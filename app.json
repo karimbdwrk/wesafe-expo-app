@@ -1,38 +1,75 @@
 {
   "expo": {
-    "name": "starter-kit-expo",
-    "slug": "starter-kit-expo",
+    "name": "my-app",
+    "slug": "my-app",
+    "owner": "wesafe",
+    "platforms": ["ios", "android"],
+    "extra": {
+      "SUPABASE_URL": "https://hzvbylhdptwgblpdondm.supabase.co",
+      "SUPABASE_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6dmJ5bGhkcHR3Z2JscGRvbmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTA5MjksImV4cCI6MjA2MTAyNjkyOX0.UdtpnbES2Ul7TDFBcHIpGnVxFxqQYmGt-WVtMHgewk4",
+      "eas": {
+        "projectId": "dd6d1001-e217-43e0-b545-e89b21412e4b"
+      }
+    },
+
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "starterkitexpo",
+
+    "scheme": "my-app",
+
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/splash-screen.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs access to your camera."
+      },
+      "bundleIdentifier": "com.wesafe.supabaseapp"
     },
+
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.wesafe.supabaseapp"
     },
+
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+
     "plugins": [
       "expo-router",
-      "expo-web-browser",
-      "expo-font"
+      "expo-secure-store",
+      "expo-dev-client",
+      "react-native-vision-camera",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends.",
+          "cameraPermission": "The app accesses your camera to let you take pictures with your friends."
+        }
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
+
     "experiments": {
       "typedRoutes": true
     }
