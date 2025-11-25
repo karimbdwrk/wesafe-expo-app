@@ -15,7 +15,10 @@ import { StatusBar } from "expo-status-bar";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { MoonIcon, SunIcon } from "@/components/ui/icon";
 
+import { Toaster } from "sonner-native";
+
 import { AuthProvider } from "@/context/AuthContext";
+import { DataProvider } from "@/context/DataContext";
 
 export {
 	// Catch any errors thrown by the Layout component.
@@ -50,26 +53,33 @@ function RootLayoutNav() {
 
 	return (
 		<AuthProvider>
-			<GluestackUIProvider mode={colorMode}>
-				<ThemeProvider
-					value={colorMode === "dark" ? DarkTheme : DefaultTheme}>
-					<Slot />
-					{pathname === "/" && (
-						<Fab
-							onPress={() =>
-								setColorMode(
-									colorMode === "dark" ? "light" : "dark"
-								)
-							}
-							className='m-6'
-							size='lg'>
-							<FabIcon
-								as={colorMode === "dark" ? MoonIcon : SunIcon}
-							/>
-						</Fab>
-					)}
-				</ThemeProvider>
-			</GluestackUIProvider>
+			<DataProvider>
+				<GluestackUIProvider mode={colorMode}>
+					<Toaster />
+					<ThemeProvider
+						value={colorMode === "dark" ? DarkTheme : DefaultTheme}>
+						<Slot />
+						{pathname === "/" && (
+							<Fab
+								onPress={() =>
+									setColorMode(
+										colorMode === "dark" ? "light" : "dark"
+									)
+								}
+								className='m-6'
+								size='lg'>
+								<FabIcon
+									as={
+										colorMode === "dark"
+											? MoonIcon
+											: SunIcon
+									}
+								/>
+							</Fab>
+						)}
+					</ThemeProvider>
+				</GluestackUIProvider>
+			</DataProvider>
 		</AuthProvider>
 	);
 }
