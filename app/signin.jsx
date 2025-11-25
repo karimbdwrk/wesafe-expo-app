@@ -41,7 +41,7 @@ const SignInScreen = () => {
 		setSubmitting(true);
 		try {
 			await signIn(email, password);
-			router.replace("/(tabs)"); // Redirige vers la page principale
+			router.replace("/tabs/(tabs)"); // Redirige vers la page principale
 		} catch (error) {
 			Alert.alert("Échec de la connexion", error.message);
 		} finally {
