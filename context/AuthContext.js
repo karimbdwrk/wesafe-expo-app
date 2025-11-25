@@ -225,7 +225,7 @@ export const AuthProvider = ({ children }) => {
 		setHasSubscription(false); // Réinitialiser
 		setLoading(false); // Pas de chargement après déconnexion
 		console.log("sign out ok !");
-		router.replace("/signin");
+		router.replace("/");
 	};
 
 	const refreshToken = async () => {
