@@ -74,7 +74,7 @@ const CreateCompany = () => {
 					// setReloadRole(true);
 				}
 
-				router.push("/(tabs)");
+				router.push("/tabs/(tabs)");
 				return;
 			}
 			if (newCompanyResponse && newCompanyResponse.status !== 201) {
@@ -95,7 +95,7 @@ const CreateCompany = () => {
 					// setReloadRole(true);
 				}
 
-				router.push("/(tabs)");
+				router.push("/tabs/(tabs)");
 				return;
 			}
 
