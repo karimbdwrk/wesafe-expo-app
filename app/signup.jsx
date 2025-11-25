@@ -341,10 +341,10 @@ const SignUpScreen = () => {
 				)}
 				{generatedOTP && (
 					<View style={styles.container}>
-						{/* <OTPForm onSubmit={handleOTP} />
+						<OTPForm onSubmit={handleOTP} />
 						<Button onPress={handleReset}>
 							<ButtonText>Modifier mes informations</ButtonText>
-						</Button> */}
+						</Button>
 					</View>
 				)}
 			</ScrollView>
