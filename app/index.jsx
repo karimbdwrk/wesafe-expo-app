@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
+
+import { useAuth } from "@/context/AuthContext";
+
 import Gradient from "@/assets/icons/Gradient";
 import Logo from "@/assets/icons/Logo";
 import { Box } from "@/components/ui/box";
 import { ScrollView } from "react-native";
 import { Text } from "@/components/ui/text";
-
 import { Button, ButtonText } from "@/components/ui/button";
 import { useRouter } from "expo-router";
 import { Icon } from "@/components/ui/icon";
@@ -26,6 +28,35 @@ const FeatureCard = ({ iconSvg: IconSvg, name, desc }) => {
 
 export default function Home() {
 	const router = useRouter();
+	const {
+		accessToken,
+		role,
+		signOut,
+		user,
+		userProfile,
+		userCompany,
+		loadUserData,
+		loadSession,
+		checkSubscription,
+		hasSubscription,
+		loading: authLoading,
+	} = useAuth();
+
+	useEffect(() => {
+		console.log("REDIRECTION INDEX");
+		console.log("user && !authLoading out of if :", user, authLoading);
+		if (user) {
+			console.log("user && !authLoading :", user, authLoading);
+			if (role === "unknown") {
+				router.replace("/finalizeregistration");
+				// console.log("role is set to:", role);
+			} else {
+				console.log("FIRST INDEX role is set to:", role);
+				router.replace("/tabs/(tabs)");
+			}
+		}
+	}, [user, role]);
+
 	return (
 		<Box className='flex-1 bg-background-300 h-[100vh]'>
 			<Box className='absolute h-[500px] w-[500px] lg:w-[700px] lg:h-[700px]'>
