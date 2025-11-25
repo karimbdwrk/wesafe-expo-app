@@ -158,7 +158,7 @@ export default function Tab2() {
 	return (
 		<VStack style={{ flex: 1 }}>
 			<JobsList pageNbr={1} itemsPerPage={5} isLastMinute={false} />
-			<Button onPress={() => setShowActionsheet(true)}>
+			{/* <Button onPress={() => setShowActionsheet(true)}>
 				<ButtonText>Open Actionsheet</ButtonText>
 			</Button>
 			<Actionsheet isOpen={showActionsheet} onClose={handleClose}>
@@ -185,7 +185,7 @@ export default function Tab2() {
 						<ActionsheetItemText>Delete</ActionsheetItemText>
 					</ActionsheetItem>
 				</ActionsheetContent>
-			</Actionsheet>
+			</Actionsheet> */}
 		</VStack>
 	);
 }
