@@ -261,40 +261,325 @@ export default function JobsList({
 
 	return (
 		<>
-			<VStack style={{ flex: 1 }}>
+			{/* <VStack style={{ flex: 1 }}>
 				<Button onPress={() => setShowActionsheet(true)}>
 					<ButtonText>Open Actionsheet</ButtonText>
 				</Button>
-				<Actionsheet isOpen={showActionsheet} onClose={handleClose}>
+				<Actionsheet
+					// snapPoints={["75%"]}
+					isOpen={showActionsheet}
+					onClose={handleClose}>
 					<ActionsheetBackdrop />
 					<ActionsheetContent>
 						<ActionsheetDragIndicatorWrapper>
 							<ActionsheetDragIndicator />
 						</ActionsheetDragIndicatorWrapper>
-						<ActionsheetItem onPress={handleClose}>
-							<ActionsheetItemText>
-								Edit Message
-							</ActionsheetItemText>
-						</ActionsheetItem>
-						<ActionsheetItem onPress={handleClose}>
-							<ActionsheetItemText>
-								Mark Unread
-							</ActionsheetItemText>
-						</ActionsheetItem>
-						<ActionsheetItem onPress={handleClose}>
-							<ActionsheetItemText>Remind Me</ActionsheetItemText>
-						</ActionsheetItem>
-						<ActionsheetItem onPress={handleClose}>
-							<ActionsheetItemText>
-								Add to Saved Items
-							</ActionsheetItemText>
-						</ActionsheetItem>
-						<ActionsheetItem isDisabled onPress={handleClose}>
-							<ActionsheetItemText>Delete</ActionsheetItemText>
-						</ActionsheetItem>
+						<ActionsheetScrollView style={{ paddingBottom: 20 }}>
+							<VStack
+								style={{
+									paddingHorizontal: 15,
+									paddingTop: 10,
+								}}>
+								<Heading>Localisation</Heading>
+								<Input>
+									<InputSlot className='pl-3'>
+										<InputIcon as={MapPin} />
+									</InputSlot>
+									<InputField
+										placeholder='Ville...'
+										value={userCity}
+										onChangeText={(text) => {
+											setUserCity(text);
+											setUserCitySelected(false);
+										}}
+									/>
+								</Input>
+
+								{!userCitySelected && results.length > 0 && (
+									<VStack
+										style={{
+											maxHeight: 220,
+											marginTop: 10,
+										}}>
+										{results.map((item) => (
+											<TouchableOpacity
+												key={
+													item.nom +
+													(item.codesPostaux?.[0] ??
+														"")
+												}
+												onPress={() => pickCity(item)}
+												style={{ paddingVertical: 10 }}>
+												<Text>
+													{item.nom} (
+													{item.codeDepartement})
+												</Text>
+											</TouchableOpacity>
+										))}
+									</VStack>
+								)}
+
+								<VStack style={{ marginTop: 15 }}>
+									<HStack
+										style={{
+											justifyContent: "space-between",
+											alignItems: "center",
+										}}>
+										<Heading>Distance</Heading>
+										<Text>{distanceKm} km</Text>
+									</HStack>
+
+									<Center
+										style={{
+											paddingHorizontal: 15,
+											paddingVertical: 10,
+										}}>
+										<Slider
+											defaultValue={30}
+											size='lg'
+											orientation='horizontal'
+											onChange={(value) =>
+												setDistanceKm(value)
+											}
+											value={distanceKm}
+											minValue={0}
+											maxValue={200}
+											step={5}>
+											<SliderTrack>
+												<SliderFilledTrack />
+											</SliderTrack>
+											<SliderThumb />
+										</Slider>
+									</Center>
+								</VStack>
+
+								<VStack style={{ marginTop: 10 }}>
+									<CheckboxGroup
+										value={values}
+										onChange={(keys) => setValues(keys)}>
+										<VStack space='xl'>
+											<Checkbox value='SSIAP1'>
+												<CheckboxIndicator>
+													<CheckboxIcon as={Check} />
+												</CheckboxIndicator>
+												<CheckboxLabel>
+													SSIAP1
+												</CheckboxLabel>
+											</Checkbox>
+											<Checkbox value='APS'>
+												<CheckboxIndicator>
+													<CheckboxIcon as={Check} />
+												</CheckboxIndicator>
+												<CheckboxLabel>
+													APS
+												</CheckboxLabel>
+											</Checkbox>
+											<Checkbox value='APR'>
+												<CheckboxIndicator>
+													<CheckboxIcon as={Check} />
+												</CheckboxIndicator>
+												<CheckboxLabel>
+													APR
+												</CheckboxLabel>
+											</Checkbox>
+										</VStack>
+									</CheckboxGroup>
+								</VStack>
+
+								<HStack
+									style={{
+										marginTop: 20,
+										justifyContent: "flex-end",
+									}}>
+									<Button
+										onPress={() => {
+											handleCloseSheet();
+										}}>
+										<Text>Fermer</Text>
+									</Button>
+								</HStack>
+							</VStack>
+						</ActionsheetScrollView>
 					</ActionsheetContent>
 				</Actionsheet>
-			</VStack>
+			</VStack> */}
+			{/* VALUES sheet */}
+			<Actionsheet
+				snapPoints={[100]}
+				isOpen={activeSheet === "values"}
+				onClose={handleCloseSheet}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+
+					{/* Single ActionsheetScrollView only */}
+					<ActionsheetScrollView style={{ paddingBottom: 20 }}>
+						<VStack
+							style={{
+								paddingHorizontal: 15,
+								paddingTop: 10,
+							}}>
+							<Heading>Localisation</Heading>
+							<Input>
+								<InputSlot className='pl-3'>
+									<InputIcon as={MapPin} />
+								</InputSlot>
+								<InputField
+									placeholder='Ville...'
+									value={userCity}
+									onChangeText={(text) => {
+										setUserCity(text);
+										setUserCitySelected(false);
+									}}
+								/>
+							</Input>
+
+							{!userCitySelected && results.length > 0 && (
+								<VStack
+									style={{
+										maxHeight: 220,
+										marginTop: 10,
+									}}>
+									{results.map((item) => (
+										<TouchableOpacity
+											key={
+												item.nom +
+												(item.codesPostaux?.[0] ?? "")
+											}
+											onPress={() => pickCity(item)}
+											style={{ paddingVertical: 10 }}>
+											<Text>
+												{item.nom} (
+												{item.codeDepartement})
+											</Text>
+										</TouchableOpacity>
+									))}
+								</VStack>
+							)}
+
+							<VStack style={{ marginTop: 15 }}>
+								<HStack
+									style={{
+										justifyContent: "space-between",
+										alignItems: "center",
+									}}>
+									<Heading>Distance</Heading>
+									<Text>{distanceKm} km</Text>
+								</HStack>
+
+								<Center
+									style={{
+										paddingHorizontal: 15,
+										paddingVertical: 10,
+									}}>
+									<Slider
+										defaultValue={30}
+										size='lg'
+										orientation='horizontal'
+										onChange={(value) =>
+											setDistanceKm(value)
+										}
+										value={distanceKm}
+										minValue={0}
+										maxValue={200}
+										step={5}>
+										<SliderTrack>
+											<SliderFilledTrack />
+										</SliderTrack>
+										<SliderThumb />
+									</Slider>
+								</Center>
+							</VStack>
+
+							<VStack style={{ marginTop: 10 }}>
+								<CheckboxGroup
+									value={values}
+									onChange={(keys) => setValues(keys)}>
+									<VStack space='xl'>
+										<Checkbox value='SSIAP1'>
+											<CheckboxIndicator>
+												<CheckboxIcon as={Check} />
+											</CheckboxIndicator>
+											<CheckboxLabel>
+												SSIAP1
+											</CheckboxLabel>
+										</Checkbox>
+										<Checkbox value='APS'>
+											<CheckboxIndicator>
+												<CheckboxIcon as={Check} />
+											</CheckboxIndicator>
+											<CheckboxLabel>APS</CheckboxLabel>
+										</Checkbox>
+										<Checkbox value='APR'>
+											<CheckboxIndicator>
+												<CheckboxIcon as={Check} />
+											</CheckboxIndicator>
+											<CheckboxLabel>APR</CheckboxLabel>
+										</Checkbox>
+									</VStack>
+								</CheckboxGroup>
+							</VStack>
+							{/* 
+							<HStack
+								style={{
+									marginTop: 20,
+									justifyContent: "flex-end",
+								}}>
+								<Button
+									onPress={() => {
+										handleCloseSheet();
+									}}>
+									<Text>Fermer</Text>
+								</Button>
+							</HStack> */}
+						</VStack>
+					</ActionsheetScrollView>
+				</ActionsheetContent>
+			</Actionsheet>
+
+			{/* KEYWORDS sheet */}
+			<Actionsheet
+				// snapPoints={[40]}
+				isOpen={activeSheet === "keywords"}
+				onClose={handleCloseSheet}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+
+					<ActionsheetScrollView style={{ paddingBottom: 20 }}>
+						<VStack
+							style={{
+								paddingHorizontal: 15,
+								paddingTop: 10,
+							}}>
+							<Input>
+								<InputSlot className='pl-3'>
+									<InputIcon as={Search} />
+								</InputSlot>
+								<InputField
+									placeholder='Search...'
+									value={keywords}
+									onChangeText={(text) => setKeywords(text)}
+								/>
+							</Input>
+
+							{/* <HStack
+								style={{
+									marginTop: 20,
+									justifyContent: "flex-end",
+								}}>
+								<Button onPress={() => handleCloseSheet()}>
+									<Text>Fermer</Text>
+								</Button>
+							</HStack> */}
+						</VStack>
+					</ActionsheetScrollView>
+				</ActionsheetContent>
+			</Actionsheet>
 			<VStack style={styles.container}>
 				{/* floating action buttons */}
 				<Button
@@ -428,191 +713,6 @@ export default function JobsList({
 						)}
 					</View>
 				</ScrollView>
-
-				{/* VALUES sheet */}
-				<Actionsheet
-					snapPoints={["75%"]}
-					isOpen={activeSheet === "values"}
-					onClose={handleCloseSheet}>
-					<ActionsheetBackdrop />
-					<ActionsheetContent>
-						<ActionsheetDragIndicatorWrapper>
-							<ActionsheetDragIndicator />
-						</ActionsheetDragIndicatorWrapper>
-
-						{/* Single ActionsheetScrollView only */}
-						<ActionsheetScrollView style={{ paddingBottom: 20 }}>
-							<VStack
-								style={{
-									paddingHorizontal: 15,
-									paddingTop: 10,
-								}}>
-								<Heading>Localisation</Heading>
-								<Input>
-									<InputSlot className='pl-3'>
-										<InputIcon as={MapPin} />
-									</InputSlot>
-									<InputField
-										placeholder='Ville...'
-										value={userCity}
-										onChangeText={(text) => {
-											setUserCity(text);
-											setUserCitySelected(false);
-										}}
-									/>
-								</Input>
-
-								{!userCitySelected && results.length > 0 && (
-									<VStack
-										style={{
-											maxHeight: 220,
-											marginTop: 10,
-										}}>
-										{results.map((item) => (
-											<TouchableOpacity
-												key={
-													item.nom +
-													(item.codesPostaux?.[0] ??
-														"")
-												}
-												onPress={() => pickCity(item)}
-												style={{ paddingVertical: 10 }}>
-												<Text>
-													{item.nom} (
-													{item.codeDepartement})
-												</Text>
-											</TouchableOpacity>
-										))}
-									</VStack>
-								)}
-
-								<VStack style={{ marginTop: 15 }}>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											alignItems: "center",
-										}}>
-										<Heading>Distance</Heading>
-										<Text>{distanceKm} km</Text>
-									</HStack>
-
-									<Center
-										style={{
-											paddingHorizontal: 15,
-											paddingVertical: 10,
-										}}>
-										<Slider
-											defaultValue={30}
-											size='lg'
-											orientation='horizontal'
-											onChange={(value) =>
-												setDistanceKm(value)
-											}
-											value={distanceKm}
-											minValue={0}
-											maxValue={200}
-											step={5}>
-											<SliderTrack>
-												<SliderFilledTrack />
-											</SliderTrack>
-											<SliderThumb />
-										</Slider>
-									</Center>
-								</VStack>
-
-								<VStack style={{ marginTop: 10 }}>
-									<CheckboxGroup
-										value={values}
-										onChange={(keys) => setValues(keys)}>
-										<VStack space='xl'>
-											<Checkbox value='SSIAP1'>
-												<CheckboxIndicator>
-													<CheckboxIcon as={Check} />
-												</CheckboxIndicator>
-												<CheckboxLabel>
-													SSIAP1
-												</CheckboxLabel>
-											</Checkbox>
-											<Checkbox value='APS'>
-												<CheckboxIndicator>
-													<CheckboxIcon as={Check} />
-												</CheckboxIndicator>
-												<CheckboxLabel>
-													APS
-												</CheckboxLabel>
-											</Checkbox>
-											<Checkbox value='APR'>
-												<CheckboxIndicator>
-													<CheckboxIcon as={Check} />
-												</CheckboxIndicator>
-												<CheckboxLabel>
-													APR
-												</CheckboxLabel>
-											</Checkbox>
-										</VStack>
-									</CheckboxGroup>
-								</VStack>
-
-								<HStack
-									style={{
-										marginTop: 20,
-										justifyContent: "flex-end",
-									}}>
-									<Button
-										onPress={() => {
-											handleCloseSheet();
-										}}>
-										<Text>Fermer</Text>
-									</Button>
-								</HStack>
-							</VStack>
-						</ActionsheetScrollView>
-					</ActionsheetContent>
-				</Actionsheet>
-
-				{/* KEYWORDS sheet */}
-				<Actionsheet
-					snapPoints={["40%"]}
-					isOpen={activeSheet === "keywords"}
-					onClose={handleCloseSheet}>
-					<ActionsheetBackdrop />
-					<ActionsheetContent>
-						<ActionsheetDragIndicatorWrapper>
-							<ActionsheetDragIndicator />
-						</ActionsheetDragIndicatorWrapper>
-
-						<ActionsheetScrollView style={{ paddingBottom: 20 }}>
-							<VStack
-								style={{
-									paddingHorizontal: 15,
-									paddingTop: 10,
-								}}>
-								<Input>
-									<InputSlot className='pl-3'>
-										<InputIcon as={Search} />
-									</InputSlot>
-									<InputField
-										placeholder='Search...'
-										value={keywords}
-										onChangeText={(text) =>
-											setKeywords(text)
-										}
-									/>
-								</Input>
-
-								<HStack
-									style={{
-										marginTop: 20,
-										justifyContent: "flex-end",
-									}}>
-									<Button onPress={() => handleCloseSheet()}>
-										<Text>Fermer</Text>
-									</Button>
-								</HStack>
-							</VStack>
-						</ActionsheetScrollView>
-					</ActionsheetContent>
-				</Actionsheet>
 			</VStack>
 		</>
 	);
