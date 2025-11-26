@@ -405,7 +405,7 @@ export default function JobsList({
 			</VStack> */}
 			{/* VALUES sheet */}
 			<Actionsheet
-				snapPoints={[100]}
+				snapPoints={[60]}
 				isOpen={activeSheet === "values"}
 				onClose={handleCloseSheet}>
 				<ActionsheetBackdrop />
