@@ -1,64 +1,650 @@
-import React from "react";
+import React, { useState, useEffect, useCallback, useRef, use } from "react";
+import {
+	ScrollView,
+	StyleSheet,
+	View,
+	RefreshControl,
+	KeyboardAvoidingView,
+	Platform,
+	TouchableOpacity,
+} from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import axios from "axios";
+import PagerView from "react-native-pager-view";
+import { useActionSheet } from "@expo/react-native-action-sheet";
+// import Modal from "react-native-modal";
 
-import EditScreenInfo from "@/components/EditScreenInfo";
-import { Center } from "@/components/ui/center";
-import { Divider } from "@/components/ui/divider";
-import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
+import { Heading } from "@/components/ui/heading";
+import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
+import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
+import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
+import { HStack } from "@/components/ui/hstack";
+import { VStack } from "@/components/ui/vstack";
+// import {
+// 	Actionsheet,
+// 	ActionsheetContent,
+// 	ActionsheetItem,
+// 	ActionsheetItemText,
+// 	ActionsheetDragIndicator,
+// 	ActionsheetDragIndicatorWrapper,
+// 	ActionsheetBackdrop,
+// 	ActionsheetScrollView,
+// } from "@/components/ui/actionsheet";
+import {
+	Checkbox,
+	CheckboxIndicator,
+	CheckboxLabel,
+	CheckboxIcon,
+	CheckboxGroup,
+} from "@/components/ui/checkbox";
+import { Center } from "@/components/ui/center";
+import {
+	Slider,
+	SliderThumb,
+	SliderTrack,
+	SliderFilledTrack,
+} from "@/components/ui/slider";
+
+import JobCard from "@/components/JobCard";
 
 import {
-	Actionsheet,
-	ActionsheetContent,
-	ActionsheetItem,
-	ActionsheetItemText,
-	ActionsheetDragIndicator,
-	ActionsheetDragIndicatorWrapper,
-	ActionsheetBackdrop,
-} from "@/components/ui/actionsheet";
-import { Button, ButtonText } from "@/components/ui/button";
+	ChevronLeft,
+	ChevronRight,
+	Info,
+	SlidersHorizontal,
+	Check,
+	Search,
+	X,
+	Pin,
+	MapPin,
+} from "lucide-react-native";
+
+import { useDataContext } from "@/context/DataContext";
+import { useAuth } from "@/context/AuthContext";
+import JobsList from "@/components/JobsList";
+import MiniJobsList from "@/components/MiniJobsList";
+
+const ITEMS_PER_PAGE = 5;
+const today = new Date();
 
 export default function Tab1() {
-	const [showActionsheet, setShowActionsheet] = React.useState(false);
+	const scrollRef = useRef(null);
+	const { user, accessToken, role, userProfile, userCompany } = useAuth();
+	const { getAll, isLoading } = useDataContext();
+
+	const router = useRouter();
+
+	const { showActionSheetWithOptions } = useActionSheet();
+	const [visible, setVisible] = useState(false);
+
+	const openSheet = () => setVisible(true);
+	const closeSheet = () => setVisible(false);
+
+	const pagerRef = useRef(null);
+	const [activePage, setActivePage] = useState(0);
+	const numPages = 2;
+
+	const goToPage = (pageIndex) => {
+		pagerRef.current?.setPage(pageIndex);
+	};
+
+	const [showActionsheet, setShowActionsheet] = useState(false);
 	const handleClose = () => setShowActionsheet(false);
+
+	const [showActionsheet2, setShowActionsheet2] = useState(false);
+	const handleClose2 = () => setShowActionsheet2(false);
+
+	const [values, setValues] = useState([]);
+	const [resetValues, setResetValues] = useState(false);
+	const [filters, setFilters] = useState("");
+	const [keywords, setKeywords] = useState("");
+	const [switchToKeywords, setSwitchToKeywords] = useState(false);
+
+	const [userLat, setUserLat] = useState(userProfile?.latitude || null);
+	const [userLon, setUserLon] = useState(userProfile?.longitude || null);
+	const [userCity, setUserCity] = useState(userProfile?.city || null);
+	const [userCitySelected, setUserCitySelected] = useState(true);
+	const [results, setResults] = useState([]);
+
+	const [myProcards, setMyProcards] = useState([]);
+	const [myCategories, setMyCategories] = useState([]);
+
+	// useEffect(() => {
+	// 	console.log("coord data :", userLat, userLon, userCity);
+	// }, [userCity]);
+
+	const [minLat, setMinLat] = useState(null);
+	const [maxLat, setMaxLat] = useState(null);
+	const [minLon, setMinLon] = useState(null);
+	const [maxLon, setMaxLon] = useState(null);
+	const [distanceKm, setDistanceKm] = useState(0);
+
+	const [refreshing, setRefreshing] = useState(false);
+	const [page, setPage] = useState(1);
+	const [jobs, setJobs] = useState([]);
+
+	const [totalCount, setTotalCount] = useState(0);
+	const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+	const onPressActionSheet = () => {
+		const options = ["Delete", "Cancel"];
+		const destructiveButtonIndex = 0;
+		const cancelButtonIndex = 1;
+
+		showActionSheetWithOptions(
+			{
+				options,
+				cancelButtonIndex,
+				destructiveButtonIndex,
+			},
+			(buttonIndex) => {
+				if (buttonIndex === 0) {
+					console.log("User Clicked Delete");
+				}
+			}
+		);
+	};
+
+	useFocusEffect(
+		useCallback(() => {
+			if (userProfile) {
+				console.log("userProfile procards :", userProfile.procards);
+				setMyProcards(userProfile.procards || []);
+			}
+		}, [userProfile])
+	);
+
+	useEffect(() => {
+		console.log("my procards data :", myProcards);
+		const newCategories = new Set();
+
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		myProcards.forEach((card) => {
+			console.log("card data :", card);
+			const cardValidityDate = new Date(card.validity_date);
+			cardValidityDate.setHours(0, 0, 0, 0);
+			if (card.isValid && cardValidityDate >= today) {
+				newCategories.add(card.category);
+			}
+		});
+		setMyCategories(Array.from(newCategories));
+	}, [myProcards]);
+
+	useEffect(() => {
+		console.log("categories data :", myCategories);
+	}, [myCategories]);
+
+	useEffect(() => {
+		const fetchCities = async () => {
+			if (userCity && userCity.length < 2) return setResults([]);
+			try {
+				const res = await axios.get(
+					`https://geo.api.gouv.fr/communes`,
+					{
+						params: {
+							nom: userCity,
+							fields: "nom,codesPostaux,codeDepartement,centre",
+							limit: 5,
+							boost: "population",
+						},
+					}
+				);
+				setResults(res.data);
+				console.log("result userCity data :", res.data);
+			} catch (err) {
+				console.error("Erreur de géolocalisation :", err);
+			}
+		};
+		const timeout = setTimeout(fetchCities, 300); // debounce
+		return () => clearTimeout(timeout);
+	}, [userCity]);
+
+	const getBoundingBox = (centerLat, centerLon, distanceKm) => {
+		const earthRadiusKm = 6371; // Rayon moyen de la Terre en kilomètres
+
+		// Convertir la latitude centrale en radians pour le calcul du cosinus
+		const centerLatRad = centerLat * (Math.PI / 180);
+
+		// Calcul de la variation en degrés de latitude pour la distance donnée
+		// 1 degré de latitude est environ 111 km
+		const deltaLat = (distanceKm / earthRadiusKm) * (180 / Math.PI); // Variation en degrés de latitude
+
+		// Calcul de la variation en degrés de longitude pour la distance donnée
+		// La distance d'un degré de longitude diminue avec la latitude (cosinus)
+		const deltaLon =
+			(distanceKm / (earthRadiusKm * Math.cos(centerLatRad))) *
+			(180 / Math.PI); // Variation en degrés de longitude
+
+		// Calcul des min/max latitudes et longitudes
+		const minLat = centerLat - deltaLat;
+		const maxLat = centerLat + deltaLat;
+		const minLon = centerLon - deltaLon;
+		const maxLon = centerLon + deltaLon;
+
+		// Retourne les valeurs
+		return { minLat, maxLat, minLon, maxLon };
+	};
+
+	useEffect(() => {
+		// const userLat = userProfile?.latitude;
+		// const userLon = userProfile?.longitude;
+
+		// const desiredDistanceKm = 20;
+
+		const bbox = getBoundingBox(userLat, userLon, distanceKm);
+		if (userProfile) {
+			console.warn(`------------------------------------`);
+			console.log(
+				`Bounding Box pour ${distanceKm}km autour de (${userLat}, ${userLon}):`
+			);
+			console.log(`  minLat: ${bbox.minLat}`);
+			console.log(`  maxLat: ${bbox.maxLat}`);
+			console.log(`  minLon: ${bbox.minLon}`);
+			console.log(`  maxLon: ${bbox.maxLon}`);
+			console.warn(`------------------------------------`);
+		}
+	}, [user]);
+
+	const handleOpenBottomSheet = (type) => {
+		scrollRef.current?.scrollTo({ y: 0, animated: true });
+		if (type === "keywords") {
+			setShowActionsheet2(true);
+			setShowActionsheet(false);
+			setPage(1);
+			setValues([]);
+			setDistanceKm(0);
+		} else if (type === "values") {
+			setShowActionsheet(true);
+			setShowActionsheet2(false);
+			setPage(1);
+			setKeywords("");
+		}
+	};
+
+	useFocusEffect(
+		useCallback(() => {
+			if (userProfile && !userCity) {
+				console.log("userProfile.city :", userProfile, userCity);
+				setUserLat(userProfile.latitude);
+				setUserLon(userProfile.longitude);
+				setUserCity(userProfile.city);
+				setDistanceKm(0);
+			}
+		}, [userProfile])
+	);
+
+	// useFocusEffect(
+	// 	useCallback(() => {
+	// 		setKeywords("");
+	// 		setValues([]);
+	// 		setFilters("");
+	// 		setPage(1);
+	// 	}, [])
+	// );
+
+	const loadDataJobs = async () => {
+		const { data, totalCount } = await getAll(
+			"jobs",
+			"*",
+			`&isArchived=eq.FALSE${filters}`,
+			page,
+			ITEMS_PER_PAGE,
+			"date.desc"
+		);
+		setJobs(data);
+		setTotalCount(totalCount);
+	};
+
+	// const handleFilterByValues = () => {
+	// 	console.log("values :", values);
+	// 	let filter = "";
+	// 	if (values.length > 0) {
+	// 		const formatted = values.map((c) => `"${c}"`).join(",");
+	// 		filter = `&category=in.(${formatted})`;
+	// 	} else {
+	// 		console.log("everything clear");
+	// 		loadDataJobs();
+	// 	}
+	// 	setFilters(filter);
+	// };
+
+	const handleFilterByValues = () => {
+		let filterString = ""; // Variable locale pour construire la chaîne de filtre
+
+		// 1. Gérer le filtre de catégorie
+		if (values.length > 0) {
+			const formattedCategories = values.map((c) => `"${c}"`).join(",");
+			filterString += `&category=in.(${formattedCategories})`;
+			console.log("Catégories ajoutées :", formattedCategories);
+		} else {
+			console.log("Aucune catégorie sélectionnée.");
+		}
+
+		// 2. Gérer le filtre de distance
+		if (userLat !== null && userLon !== null && distanceKm > 0) {
+			const bbox = getBoundingBox(userLat, userLon, distanceKm);
+			console.log("Bounding Box calculée :", bbox);
+
+			// // Ajoute le séparateur '&' si d'autres filtres sont déjà présents
+			// if (filterString.length > 0) {
+			// 	filterString += "&";
+			// }
+
+			// AJOUT DES FILTRES LATITUDE ET LONGITUDE (GTE/LTE)
+			filterString += `&latitude=gte.${bbox.minLat}&latitude=lte.${bbox.maxLat}`;
+			filterString += `&longitude=gte.${bbox.minLon}&longitude=lte.${bbox.maxLon}`;
+		} else {
+			console.log("Pas de filtre de distance appliqué.");
+		}
+
+		// Mettre à jour l'état `filters` et déclencher le chargement des jobs
+		setFilters(filterString);
+		// loadDataJobs(filterString);
+	};
+
+	const handleFilterByKeywords = () => {
+		let filter = "";
+		if (keywords.trim() !== "") {
+			setSwitchToKeywords(true);
+			const encodedKeyword = encodeURIComponent(`%${keywords}%`);
+			filter = `&or=(title.ilike.${encodedKeyword},category.ilike.${encodedKeyword})`;
+		}
+		console.log("Keyword-only filter:", filter);
+		setFilters(filter);
+	};
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true);
+		await loadDataJobs();
+		setRefreshing(false);
+	}, [filters, page]);
+
+	useEffect(() => {
+		handleFilterByValues();
+	}, [values, distanceKm, userCity]);
+
+	useEffect(() => {
+		handleFilterByKeywords();
+	}, [keywords]);
+
+	useEffect(() => {
+		loadDataJobs();
+	}, [page, filters]);
+
+	const handleResetKeywords = () => {
+		setKeywords("");
+	};
+
+	const handleRemoveValue = (value) => {
+		setValues((prevValues) => prevValues.filter((v) => v !== value));
+	};
+
+	const handleNext = () => {
+		setPage((prev) => prev + 1);
+		scrollRef.current?.scrollTo({ y: 0, animated: true });
+	};
+	const handlePrev = () => {
+		setPage((prev) => Math.max(prev - 1, 1));
+		scrollRef.current?.scrollTo({ y: 0, animated: true });
+	};
 
 	return (
 		<>
-			<Center className='flex-1'>
-				<Heading className='font-bold text-2xl'>Expo - Tab 1</Heading>
-				<Divider className='my-[30px] w-[80%]' />
-				<Text className='p-4'>
-					Example below to use gluestack-ui components.
-				</Text>
-				<EditScreenInfo path='app/(app)/(tabs)/tab1.tsx' />
-				<Button onPress={() => setShowActionsheet(true)}>
-					<ButtonText>Open Actionsheet</ButtonText>
-				</Button>
-			</Center>
-			<Actionsheet isOpen={showActionsheet} onClose={handleClose}>
-				<ActionsheetBackdrop />
-				<ActionsheetContent>
-					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
-					</ActionsheetDragIndicatorWrapper>
-					<ActionsheetItem onPress={handleClose}>
-						<ActionsheetItemText>Edit Message</ActionsheetItemText>
-					</ActionsheetItem>
-					<ActionsheetItem onPress={handleClose}>
-						<ActionsheetItemText>Mark Unread</ActionsheetItemText>
-					</ActionsheetItem>
-					<ActionsheetItem onPress={handleClose}>
-						<ActionsheetItemText>Remind Me</ActionsheetItemText>
-					</ActionsheetItem>
-					<ActionsheetItem onPress={handleClose}>
-						<ActionsheetItemText>
-							Add to Saved Items
-						</ActionsheetItemText>
-					</ActionsheetItem>
-					<ActionsheetItem isDisabled onPress={handleClose}>
-						<ActionsheetItemText>Delete</ActionsheetItemText>
-					</ActionsheetItem>
-				</ActionsheetContent>
-			</Actionsheet>
+			<ScrollView backgroundColor='white'>
+				<VStack style={{ flex: 1 }}>
+					<VStack
+						style={{
+							height: 75,
+							padding: 15,
+						}}>
+						<Text>Bienvenue,</Text>
+						{role === "candidat" ? (
+							<Heading>
+								{userProfile?.firstname +
+									" " +
+									userProfile?.lastname}
+							</Heading>
+						) : (
+							<Heading>{userCompany?.name}</Heading>
+						)}
+					</VStack>
+					<VStack>
+						<PagerView
+							ref={pagerRef}
+							style={styles.pagerView}
+							initialPage={0}
+							onPageSelected={(e) => {
+								setActivePage(e.nativeEvent.position); // Met à jour la page active
+							}}>
+							<View
+								key='1'
+								style={{ backgroundColor: "lightgreen" }}>
+								<Text>First page</Text>
+							</View>
+							<View
+								key='2'
+								style={{ backgroundColor: "lightcoral" }}>
+								<Text>Second page</Text>
+							</View>
+						</PagerView>
+						<View style={styles.paginationDotsContainer}>
+							{Array.from({ length: numPages }).map(
+								(_, index) => (
+									<TouchableOpacity
+										key={index}
+										style={[
+											styles.dot,
+											activePage === index
+												? styles.activeDot
+												: styles.inactiveDot, // Applique un style différent pour la page active
+										]}
+										onPress={() => goToPage(index)} // Navigue vers la page correspondante au clic sur le dot
+									/>
+								)
+							)}
+						</View>
+					</VStack>
+					<VStack style={{ padding: 15 }}>
+						<MiniJobsList
+							heading='Nos offres Last Minute'
+							subtitle='Voici nos offres de dernière minute dans votre secteur'
+							pageNbr={1}
+							itemsPerPage={3}
+							regionCode={userProfile?.region_code}
+							regionName={userProfile?.region}
+							category={myCategories}
+							filtersSup={
+								"&isLastMinute=eq.true&date=gte." +
+								today.toISOString().split("T")[0]
+							}
+						/>
+						<Button onPress={() => router.push("/lastminute")}>
+							<ButtonText>
+								Voir toutes les offres Last Minute
+							</ButtonText>
+						</Button>
+					</VStack>
+					<VStack style={{ padding: 15 }}>
+						{/* <JobsList pageNbr={1} itemsPerPage={5} /> */}
+						<MiniJobsList
+							heading='Offres recommandées'
+							subtitle='* Basées sur vos informations personnelles'
+							pageNbr={1}
+							itemsPerPage={5}
+							regionCode={userProfile?.region_code}
+							regionName={userProfile?.region}
+							category={myCategories}
+							filtersSup={"&isLastMinute=eq.false"}
+						/>
+						<Button onPress={() => router.push("/two")}>
+							<ButtonText>Voir toutes les offres</ButtonText>
+						</Button>
+					</VStack>
+					<VStack style={{ padding: 15 }}>
+						<Button
+							variant='outline'
+							onPress={() => router.push("/contactus")}>
+							<ButtonText>Contactez-nous</ButtonText>
+						</Button>
+					</VStack>
+					<VStack style={{ padding: 15 }}>
+						<Button onPress={() => router.push("/testsheet")}>
+							<ButtonText>Test Sheet Screen</ButtonText>
+						</Button>
+						{/* <Actionsheet
+						isOpen={showActionsheet2}
+						onClose={handleClose2}>
+						<ActionsheetBackdrop />
+						<ActionsheetContent>
+							<ActionsheetDragIndicatorWrapper>
+								<ActionsheetDragIndicator />
+							</ActionsheetDragIndicatorWrapper>
+							<ActionsheetItem onPress={handleClose2}>
+								<ActionsheetItemText>
+									Edit Message
+								</ActionsheetItemText>
+							</ActionsheetItem>
+							<ActionsheetItem onPress={handleClose2}>
+								<ActionsheetItemText>
+									Mark Unread
+								</ActionsheetItemText>
+							</ActionsheetItem>
+							<ActionsheetItem onPress={handleClose2}>
+								<ActionsheetItemText>
+									Remind Me
+								</ActionsheetItemText>
+							</ActionsheetItem>
+							<ActionsheetItem onPress={handleClose2}>
+								<ActionsheetItemText>
+									Add to Saved Items
+								</ActionsheetItemText>
+							</ActionsheetItem>
+							<ActionsheetItem isDisabled onPress={handleClose2}>
+								<ActionsheetItemText>
+									Delete
+								</ActionsheetItemText>
+							</ActionsheetItem>
+						</ActionsheetContent>
+					</Actionsheet> */}
+					</VStack>
+				</VStack>
+			</ScrollView>
+			{/* <Modal
+				isVisible={visible}
+				onBackdropPress={() => setVisible(false)}
+				style={styles.modal}
+				backdropOpacity={0.4} // important : rend l'arrière-plan sombre
+			>
+				<View style={styles.sheet}>
+					<Text style={styles.title}>Actions disponibles</Text>
+
+					<TouchableOpacity style={styles.option}>
+						<Text style={styles.optionText}>
+							📸 Prendre une photo
+						</Text>
+					</TouchableOpacity>
+
+					<TouchableOpacity style={styles.option}>
+						<Text style={styles.optionText}>
+							🖼 Choisir une image
+						</Text>
+					</TouchableOpacity>
+
+					<TouchableOpacity style={[styles.option, styles.delete]}>
+						<Text style={styles.deleteText}>🗑 Supprimer</Text>
+					</TouchableOpacity>
+
+					<TouchableOpacity
+						style={[styles.option, styles.cancel]}
+						onPress={() => setVisible(false)}>
+						<Text style={styles.cancelText}>Fermer</Text>
+					</TouchableOpacity>
+				</View>
+			</Modal> */}
 		</>
 	);
 }
+
+const styles = StyleSheet.create({
+	pagerView: {
+		// flex: 1,
+		height: 200,
+		backgroundColor: "lightblue",
+	},
+	paginationDotsContainer: {
+		flexDirection: "row",
+		justifyContent: "center",
+		alignItems: "center",
+		paddingVertical: 10,
+		backgroundColor: "#fff", // Fond pour les dots
+		borderTopWidth: 1,
+		borderTopColor: "#eee",
+	},
+	dot: {
+		width: 10,
+		height: 10,
+		borderRadius: 5, // Pour faire un cercle
+		marginHorizontal: 5, // Espacement entre les dots
+	},
+	activeDot: {
+		backgroundColor: "#303030", // Couleur du dot actif (bleu par défaut)
+	},
+	inactiveDot: {
+		backgroundColor: "#d0d0d0", // Couleur du dot inactif (gris clair)
+	},
+	container: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: "#f0f0f0",
+	},
+	button: {
+		backgroundColor: "#3478f6",
+		padding: 14,
+		borderRadius: 8,
+	},
+	buttonText: {
+		color: "white",
+		fontSize: 18,
+		fontWeight: "600",
+	},
+	modal: {
+		justifyContent: "flex-end",
+		margin: 0,
+	},
+	sheet: {
+		backgroundColor: "white", // ← SANS ÇA = INVISIBLE
+		padding: 20,
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+	},
+	title: {
+		fontSize: 20,
+		fontWeight: "700",
+		marginBottom: 20,
+	},
+	option: {
+		paddingVertical: 14,
+	},
+	optionText: {
+		fontSize: 18,
+	},
+	deleteText: {
+		fontSize: 18,
+		color: "red",
+	},
+	cancel: {
+		marginTop: 10,
+		borderTopWidth: 1,
+		borderTopColor: "#ddd",
+	},
+	cancelText: {
+		fontSize: 18,
+		textAlign: "center",
+		marginTop: 10,
+	},
+});
