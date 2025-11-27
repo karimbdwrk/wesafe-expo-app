@@ -16,10 +16,12 @@ import { Fab, FabIcon } from "@/components/ui/fab";
 import { MoonIcon, SunIcon } from "@/components/ui/icon";
 
 import { Toaster } from "sonner-native";
+import { StripeProvider } from "@stripe/stripe-react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider } from "@/context/AuthContext";
 import { DataProvider } from "@/context/DataContext";
-
+import { ImageProvider } from "@/context/ImageContext";
 export {
 	// Catch any errors thrown by the Layout component.
 	ErrorBoundary,
@@ -52,34 +54,46 @@ function RootLayoutNav() {
 	const [colorMode, setColorMode] = useState("light");
 
 	return (
-		<AuthProvider>
-			<DataProvider>
-				<GluestackUIProvider mode={colorMode}>
-					<Toaster />
-					<ThemeProvider
-						value={colorMode === "dark" ? DarkTheme : DefaultTheme}>
-						<Slot />
-						{pathname === "/" && (
-							<Fab
-								onPress={() =>
-									setColorMode(
-										colorMode === "dark" ? "light" : "dark"
-									)
-								}
-								className='m-6'
-								size='lg'>
-								<FabIcon
-									as={
+		<StripeProvider publishableKey='pk_test_51RhCWfRs36t2SzSl20E1w8vTi97kdamUZ36cUp6tI7uBjzYWm3hXiNs8evBcViZpsYCHnnK7MYFl6I52jC9xS4Su000R6gOuhW'>
+			<AuthProvider>
+				<DataProvider>
+					<ImageProvider>
+						<SafeAreaProvider>
+							<GluestackUIProvider mode={colorMode}>
+								<Toaster />
+								<ThemeProvider
+									value={
 										colorMode === "dark"
-											? MoonIcon
-											: SunIcon
-									}
-								/>
-							</Fab>
-						)}
-					</ThemeProvider>
-				</GluestackUIProvider>
-			</DataProvider>
-		</AuthProvider>
+											? DarkTheme
+											: DefaultTheme
+									}>
+									<Slot />
+									{pathname === "/" && (
+										<Fab
+											onPress={() =>
+												setColorMode(
+													colorMode === "dark"
+														? "light"
+														: "dark"
+												)
+											}
+											className='m-6'
+											size='lg'>
+											<FabIcon
+												as={
+													colorMode === "dark"
+														? MoonIcon
+														: SunIcon
+												}
+											/>
+										</Fab>
+									)}
+								</ThemeProvider>
+							</GluestackUIProvider>
+						</SafeAreaProvider>
+					</ImageProvider>
+				</DataProvider>
+			</AuthProvider>
+		</StripeProvider>
 	);
 }
