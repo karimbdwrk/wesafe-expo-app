@@ -230,10 +230,6 @@ export default function Tab1() {
 	};
 
 	useEffect(() => {
-		// const userLat = userProfile?.latitude;
-		// const userLon = userProfile?.longitude;
-
-		// const desiredDistanceKm = 20;
 
 		const bbox = getBoundingBox(userLat, userLon, distanceKm);
 		if (userProfile) {
@@ -277,15 +273,6 @@ export default function Tab1() {
 		}, [userProfile])
 	);
 
-	// useFocusEffect(
-	// 	useCallback(() => {
-	// 		setKeywords("");
-	// 		setValues([]);
-	// 		setFilters("");
-	// 		setPage(1);
-	// 	}, [])
-	// );
-
 	const loadDataJobs = async () => {
 		const { data, totalCount } = await getAll(
 			"jobs",
@@ -298,19 +285,6 @@ export default function Tab1() {
 		setJobs(data);
 		setTotalCount(totalCount);
 	};
-
-	// const handleFilterByValues = () => {
-	// 	console.log("values :", values);
-	// 	let filter = "";
-	// 	if (values.length > 0) {
-	// 		const formatted = values.map((c) => `"${c}"`).join(",");
-	// 		filter = `&category=in.(${formatted})`;
-	// 	} else {
-	// 		console.log("everything clear");
-	// 		loadDataJobs();
-	// 	}
-	// 	setFilters(filter);
-	// };
 
 	const handleFilterByValues = () => {
 		let filterString = ""; // Variable locale pour construire la chaîne de filtre
@@ -328,11 +302,6 @@ export default function Tab1() {
 		if (userLat !== null && userLon !== null && distanceKm > 0) {
 			const bbox = getBoundingBox(userLat, userLon, distanceKm);
 			console.log("Bounding Box calculée :", bbox);
-
-			// // Ajoute le séparateur '&' si d'autres filtres sont déjà présents
-			// if (filterString.length > 0) {
-			// 	filterString += "&";
-			// }
 
 			// AJOUT DES FILTRES LATITUDE ET LONGITUDE (GTE/LTE)
 			filterString += `&latitude=gte.${bbox.minLat}&latitude=lte.${bbox.maxLat}`;
@@ -374,22 +343,6 @@ export default function Tab1() {
 	useEffect(() => {
 		loadDataJobs();
 	}, [page, filters]);
-
-	const handleResetKeywords = () => {
-		setKeywords("");
-	};
-
-	const handleRemoveValue = (value) => {
-		setValues((prevValues) => prevValues.filter((v) => v !== value));
-	};
-
-	const handleNext = () => {
-		setPage((prev) => prev + 1);
-		scrollRef.current?.scrollTo({ y: 0, animated: true });
-	};
-	const handlePrev = () => {
-		setPage((prev) => Math.max(prev - 1, 1));
-		scrollRef.current?.scrollTo({ y: 0, animated: true });
 	};
 
 	return (
@@ -491,80 +444,8 @@ export default function Tab1() {
 							<ButtonText>Contactez-nous</ButtonText>
 						</Button>
 					</VStack>
-					<VStack style={{ padding: 15 }}>
-						<Button onPress={() => router.push("/testsheet")}>
-							<ButtonText>Test Sheet Screen</ButtonText>
-						</Button>
-						{/* <Actionsheet
-						isOpen={showActionsheet2}
-						onClose={handleClose2}>
-						<ActionsheetBackdrop />
-						<ActionsheetContent>
-							<ActionsheetDragIndicatorWrapper>
-								<ActionsheetDragIndicator />
-							</ActionsheetDragIndicatorWrapper>
-							<ActionsheetItem onPress={handleClose2}>
-								<ActionsheetItemText>
-									Edit Message
-								</ActionsheetItemText>
-							</ActionsheetItem>
-							<ActionsheetItem onPress={handleClose2}>
-								<ActionsheetItemText>
-									Mark Unread
-								</ActionsheetItemText>
-							</ActionsheetItem>
-							<ActionsheetItem onPress={handleClose2}>
-								<ActionsheetItemText>
-									Remind Me
-								</ActionsheetItemText>
-							</ActionsheetItem>
-							<ActionsheetItem onPress={handleClose2}>
-								<ActionsheetItemText>
-									Add to Saved Items
-								</ActionsheetItemText>
-							</ActionsheetItem>
-							<ActionsheetItem isDisabled onPress={handleClose2}>
-								<ActionsheetItemText>
-									Delete
-								</ActionsheetItemText>
-							</ActionsheetItem>
-						</ActionsheetContent>
-					</Actionsheet> */}
-					</VStack>
 				</VStack>
 			</ScrollView>
-			{/* <Modal
-				isVisible={visible}
-				onBackdropPress={() => setVisible(false)}
-				style={styles.modal}
-				backdropOpacity={0.4} // important : rend l'arrière-plan sombre
-			>
-				<View style={styles.sheet}>
-					<Text style={styles.title}>Actions disponibles</Text>
-
-					<TouchableOpacity style={styles.option}>
-						<Text style={styles.optionText}>
-							📸 Prendre une photo
-						</Text>
-					</TouchableOpacity>
-
-					<TouchableOpacity style={styles.option}>
-						<Text style={styles.optionText}>
-							🖼 Choisir une image
-						</Text>
-					</TouchableOpacity>
-
-					<TouchableOpacity style={[styles.option, styles.delete]}>
-						<Text style={styles.deleteText}>🗑 Supprimer</Text>
-					</TouchableOpacity>
-
-					<TouchableOpacity
-						style={[styles.option, styles.cancel]}
-						onPress={() => setVisible(false)}>
-						<Text style={styles.cancelText}>Fermer</Text>
-					</TouchableOpacity>
-				</View>
-			</Modal> */}
 		</>
 	);
 }
