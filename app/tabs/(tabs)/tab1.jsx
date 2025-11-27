@@ -230,7 +230,6 @@ export default function Tab1() {
 	};
 
 	useEffect(() => {
-
 		const bbox = getBoundingBox(userLat, userLon, distanceKm);
 		if (userProfile) {
 			console.warn(`------------------------------------`);
@@ -343,110 +342,101 @@ export default function Tab1() {
 	useEffect(() => {
 		loadDataJobs();
 	}, [page, filters]);
-	};
 
 	return (
-		<>
-			<ScrollView backgroundColor='white'>
-				<VStack style={{ flex: 1 }}>
-					<VStack
-						style={{
-							height: 75,
-							padding: 15,
-						}}>
-						<Text>Bienvenue,</Text>
-						{role === "candidat" ? (
-							<Heading>
-								{userProfile?.firstname +
-									" " +
-									userProfile?.lastname}
-							</Heading>
-						) : (
-							<Heading>{userCompany?.name}</Heading>
-						)}
-					</VStack>
-					<VStack>
-						<PagerView
-							ref={pagerRef}
-							style={styles.pagerView}
-							initialPage={0}
-							onPageSelected={(e) => {
-								setActivePage(e.nativeEvent.position); // Met à jour la page active
-							}}>
-							<View
-								key='1'
-								style={{ backgroundColor: "lightgreen" }}>
-								<Text>First page</Text>
-							</View>
-							<View
-								key='2'
-								style={{ backgroundColor: "lightcoral" }}>
-								<Text>Second page</Text>
-							</View>
-						</PagerView>
-						<View style={styles.paginationDotsContainer}>
-							{Array.from({ length: numPages }).map(
-								(_, index) => (
-									<TouchableOpacity
-										key={index}
-										style={[
-											styles.dot,
-											activePage === index
-												? styles.activeDot
-												: styles.inactiveDot, // Applique un style différent pour la page active
-										]}
-										onPress={() => goToPage(index)} // Navigue vers la page correspondante au clic sur le dot
-									/>
-								)
-							)}
-						</View>
-					</VStack>
-					<VStack style={{ padding: 15 }}>
-						<MiniJobsList
-							heading='Nos offres Last Minute'
-							subtitle='Voici nos offres de dernière minute dans votre secteur'
-							pageNbr={1}
-							itemsPerPage={3}
-							regionCode={userProfile?.region_code}
-							regionName={userProfile?.region}
-							category={myCategories}
-							filtersSup={
-								"&isLastMinute=eq.true&date=gte." +
-								today.toISOString().split("T")[0]
-							}
-						/>
-						<Button onPress={() => router.push("/lastminute")}>
-							<ButtonText>
-								Voir toutes les offres Last Minute
-							</ButtonText>
-						</Button>
-					</VStack>
-					<VStack style={{ padding: 15 }}>
-						{/* <JobsList pageNbr={1} itemsPerPage={5} /> */}
-						<MiniJobsList
-							heading='Offres recommandées'
-							subtitle='* Basées sur vos informations personnelles'
-							pageNbr={1}
-							itemsPerPage={5}
-							regionCode={userProfile?.region_code}
-							regionName={userProfile?.region}
-							category={myCategories}
-							filtersSup={"&isLastMinute=eq.false"}
-						/>
-						<Button onPress={() => router.push("/two")}>
-							<ButtonText>Voir toutes les offres</ButtonText>
-						</Button>
-					</VStack>
-					<VStack style={{ padding: 15 }}>
-						<Button
-							variant='outline'
-							onPress={() => router.push("/contactus")}>
-							<ButtonText>Contactez-nous</ButtonText>
-						</Button>
-					</VStack>
+		<ScrollView backgroundColor='white'>
+			<VStack style={{ flex: 1 }}>
+				<VStack
+					style={{
+						height: 75,
+						padding: 15,
+					}}>
+					<Text>Bienvenue,</Text>
+					{role === "candidat" ? (
+						<Heading>
+							{userProfile?.firstname +
+								" " +
+								userProfile?.lastname}
+						</Heading>
+					) : (
+						<Heading>{userCompany?.name}</Heading>
+					)}
 				</VStack>
-			</ScrollView>
-		</>
+				<VStack>
+					<PagerView
+						ref={pagerRef}
+						style={styles.pagerView}
+						initialPage={0}
+						onPageSelected={(e) => {
+							setActivePage(e.nativeEvent.position); // Met à jour la page active
+						}}>
+						<View key='1' style={{ backgroundColor: "lightgreen" }}>
+							<Text>First page</Text>
+						</View>
+						<View key='2' style={{ backgroundColor: "lightcoral" }}>
+							<Text>Second page</Text>
+						</View>
+					</PagerView>
+					<View style={styles.paginationDotsContainer}>
+						{Array.from({ length: numPages }).map((_, index) => (
+							<TouchableOpacity
+								key={index}
+								style={[
+									styles.dot,
+									activePage === index
+										? styles.activeDot
+										: styles.inactiveDot, // Applique un style différent pour la page active
+								]}
+								onPress={() => goToPage(index)} // Navigue vers la page correspondante au clic sur le dot
+							/>
+						))}
+					</View>
+				</VStack>
+				<VStack style={{ padding: 15 }}>
+					<MiniJobsList
+						heading='Nos offres Last Minute'
+						subtitle='Voici nos offres de dernière minute dans votre secteur'
+						pageNbr={1}
+						itemsPerPage={3}
+						regionCode={userProfile?.region_code}
+						regionName={userProfile?.region}
+						category={myCategories}
+						filtersSup={
+							"&isLastMinute=eq.true&date=gte." +
+							today.toISOString().split("T")[0]
+						}
+					/>
+					<Button onPress={() => router.push("/lastminute")}>
+						<ButtonText>
+							Voir toutes les offres Last Minute
+						</ButtonText>
+					</Button>
+				</VStack>
+				<VStack style={{ padding: 15 }}>
+					{/* <JobsList pageNbr={1} itemsPerPage={5} /> */}
+					<MiniJobsList
+						heading='Offres recommandées'
+						subtitle='* Basées sur vos informations personnelles'
+						pageNbr={1}
+						itemsPerPage={5}
+						regionCode={userProfile?.region_code}
+						regionName={userProfile?.region}
+						category={myCategories}
+						filtersSup={"&isLastMinute=eq.false"}
+					/>
+					<Button onPress={() => router.push("/two")}>
+						<ButtonText>Voir toutes les offres</ButtonText>
+					</Button>
+				</VStack>
+				<VStack style={{ padding: 15 }}>
+					<Button
+						variant='outline'
+						onPress={() => router.push("/contactus")}>
+						<ButtonText>Contactez-nous</ButtonText>
+					</Button>
+				</VStack>
+			</VStack>
+		</ScrollView>
 	);
 }
 
