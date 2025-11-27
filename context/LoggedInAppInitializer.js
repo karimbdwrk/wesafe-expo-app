@@ -1,45 +1,25 @@
 import React, { useEffect } from "react";
-import { useAuth } from "@/context/AuthContext"; // Votre hook useAuth
-import { registerForPushNotificationsAsync } from "@/utils/pushNotifications"; // Votre fonction de notifications
+import { useAuth } from "@/context/AuthContext";
+import { registerForPushNotificationsAsync } from "@/utils/pushNotifications";
 
 const TOKEN_API_ENDPOINT =
 	"https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/store-push-token";
 
 const LoggedInAppInitializer = () => {
-	const { user, userCompany } = useAuth(); // Récupère l'utilisateur et l'ID de l'entreprise depuis votre AuthContext
+	const { user, userCompany, accessToken } = useAuth(); // 👈 AJOUT accessToken
 
 	useEffect(() => {
-		// Cette logique ne se déclenchera que si LoggedInAppInitializer est rendu,
-		// ce qui devrait être le cas uniquement si l'utilisateur est connecté.
-		console.log(
-			"LoggedInAppInitializer: Checking conditions for push token registration...",
-			{
-				userId: user?.id,
-				userCompanyId: userCompany?.id,
-			}
-		);
-
 		if (user?.id && userCompany?.id) {
-			console.log(
-				"LoggedInAppInitializer: Conditions met! Calling registerForPushNotificationsAsync..."
-			);
 			registerForPushNotificationsAsync(
 				user.id,
 				userCompany.id,
-				TOKEN_API_ENDPOINT
-			);
-		} else {
-			console.warn(
-				"LoggedInAppInitializer: Conditions NOT met for push token registration.",
-				{
-					userId: user?.id,
-					userCompanyId: userCompany?.id,
-				}
+				TOKEN_API_ENDPOINT,
+				accessToken // 👈 PASS accessToken AU LIEU D'APPELER useAuth()
 			);
 		}
-	}, [user, userCompany]); // Déclenche quand user ou userCompanyId changent
+	}, [user, userCompany, accessToken]);
 
-	return null; // Ce composant ne rend rien visuellement, il gère juste la logique
+	return null;
 };
 
 export default LoggedInAppInitializer;
