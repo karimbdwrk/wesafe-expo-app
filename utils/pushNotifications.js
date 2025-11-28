@@ -117,5 +117,5 @@ export function setupNotificationResponseListener(router) {
 		}
 	);
 
-	return () => Notifications.removeNotificationSubscription(subscription);
+	return () => subscription.remove();
 }
