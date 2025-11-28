@@ -94,13 +94,6 @@ function LogoTitle() {
 	);
 }
 
-// function TabBarIcon(props: {
-// 	name: React.ComponentProps<typeof FontAwesome>["name"],
-// 	color: string,
-// }) {
-// 	return <FontAwesome size={18} style={{ marginBottom: -3 }} {...props} />;
-// }
-
 export default function TabLayout({ theme = "light" }) {
 	const colorScheme = useColorScheme();
 	const {
