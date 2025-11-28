@@ -199,7 +199,7 @@ export default function TabLayout({ theme = "light" }) {
 					}
 				}
 			);
-		return () => Notifications.removeNotificationSubscription(subscription);
+		return () => subscription.remove();
 	}, []);
 
 	useEffect(() => {
