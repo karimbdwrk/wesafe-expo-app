@@ -175,6 +175,21 @@ const CreateJobForm3 = () => {
 	};
 
 	const handleSubmit = async () => {
+		console.log("Submitting job :", {
+			title,
+			description,
+			date,
+			isLastMinute,
+			category,
+			city: selectedCity,
+			postcode: selectedPostcode,
+			department: selectedDepartment,
+			departmentCode: selectedDepartmentCode,
+			region: selectedRegion,
+			regionCode: selectedRegionCode,
+			latitude: selectedLatitude,
+			longitude: selectedLongitude,
+		});
 		setLoading(true);
 		setMessage(null);
 		try {
@@ -699,79 +714,25 @@ const CreateJobForm3 = () => {
 							<ButtonText>Prev</ButtonText>
 						</Button>
 					)}
-					<Button
-						style={{ width: activePage !== 0 ? "48%" : "100%" }}
-						onPress={() => {
-							pagerRef.current.setPage(activePage + 1);
-							setActiveStep(() => activeStep + 1);
-						}}>
-						<ButtonText>Next</ButtonText>
-					</Button>
+					{activePage < 4 && (
+						<Button
+							style={{ width: activePage !== 0 ? "48%" : "100%" }}
+							onPress={() => {
+								pagerRef.current.setPage(activePage + 1);
+								setActiveStep(() => activeStep + 1);
+							}}>
+							<ButtonText>Next</ButtonText>
+						</Button>
+					)}
+					{activePage === 4 && (
+						<Button
+							style={{ width: activePage !== 0 ? "48%" : "100%" }}
+							onPress={handleSubmit}>
+							<ButtonText>Publish</ButtonText>
+						</Button>
+					)}
 				</HStack>
 			</VStack>
-			{/* <Input>
-				<InputField
-					placeholder='Job Title'
-					value={title}
-					onChangeText={setTitle}
-				/>
-			</Input>
-			<Input isReadOnly>
-				<InputField
-					onPress={showDatePicker}
-					placeholder='Date (YYYY-MM-DD)'
-					value={date}
-					onChangeText={setDate}
-				/>
-				<InputSlot onPress={showDatePicker} style={{ marginRight: 15 }}>
-					<InputIcon as={CalendarDaysIcon} />
-				</InputSlot>
-			</Input>
-			<HStack space='md'>
-				<Switch
-					onValueChange={() => setIsLastMinute(!isLastMinute)}
-					value={isLastMinute}
-					trackColor={{
-						false: colors.gray[300],
-						true: colors.gray[500],
-					}}
-					thumbColor={colors.gray[50]}
-					activeThumbColor={colors.gray[50]}
-					ios_backgroundColor={colors.gray[300]}
-				/>
-				<Text size='sm'>isLastMinute</Text>
-			</HStack>
-			<DateTimePickerModal
-				isVisible={isDatePickerVisible}
-				mode='date'
-				onConfirm={handleConfirm}
-				onCancel={hideDatePicker}
-			/>
-			<Select onValueChange={setCategory}>
-				<SelectTrigger variant='outline' size='md'>
-					<SelectInput placeholder='Select option' />
-					<SelectIcon className='mr-3' as={ChevronDownIcon} />
-				</SelectTrigger>
-				<SelectPortal>
-					<SelectBackdrop />
-					<SelectContent style={{ paddingBottom: 90 }}>
-						<SelectDragIndicatorWrapper>
-							<SelectDragIndicator />
-						</SelectDragIndicatorWrapper>
-						<SelectItem label='SSIAP1' value='SSIAP1' />
-						<SelectItem label='APR' value='APR' />
-						<SelectItem label='APS' value='APS' />
-					</SelectContent>
-				</SelectPortal>
-			</Select>
-
-			<Button onPress={handleSubmit} isDisabled={loading}>
-				<ButtonText>
-					{loading ? "Creating..." : "Create Job"}
-				</ButtonText>
-			</Button>
-
-			{message && <Text>{message}</Text>} */}
 		</VStack>
 	);
 };
