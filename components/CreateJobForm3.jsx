@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import PagerView from "react-native-pager-view";
 import { ProgressSteps, ProgressStep } from "react-native-progress-steps";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
@@ -76,7 +77,9 @@ const CreateJobForm3 = () => {
 
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
-	const [date, setDate] = useState("");
+	const [date, setDate] = useState(new Date());
+	const [selectedDate, setSelectedDate] = useState(null);
+	const [show, setShow] = useState(false);
 	const [isLastMinute, setIsLastMinute] = useState(false);
 	const [category, setCategory] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -100,7 +103,8 @@ const CreateJobForm3 = () => {
 
 	useEffect(() => {
 		console.log("date :", date);
-	}, [date]);
+		console.log("selectedDate :", selectedDate);
+	}, [date, selectedDate]);
 
 	useEffect(() => {
 		console.log("category :", category);
@@ -116,6 +120,13 @@ const CreateJobForm3 = () => {
 
 	const hideDatePicker = () => {
 		setDatePickerVisibility(false);
+	};
+
+	const onChangeDate = (_, selected) => {
+		const current = selected || date;
+		setShow(false);
+		setDate(current);
+		simpleDate(current);
 	};
 
 	useEffect(() => {
@@ -174,19 +185,26 @@ const CreateJobForm3 = () => {
 		hideDatePicker();
 	};
 
+	const simpleDate = (isoDate) => {
+		const simpleDate = new Date(isoDate).toISOString().split("T")[0];
+		console.warn("A date has been picked: ", simpleDate);
+		setSelectedDate(simpleDate);
+		hideDatePicker();
+	};
+
 	const handleSubmit = async () => {
 		console.log("Submitting job :", {
 			title,
 			description,
-			date,
+			date: selectedDate,
 			isLastMinute,
 			category,
-			city: selectedCity,
+			city: selectedCity.nom,
 			postcode: selectedPostcode,
 			department: selectedDepartment,
-			departmentCode: selectedDepartmentCode,
+			department_code: selectedDepartmentCode,
 			region: selectedRegion,
-			regionCode: selectedRegionCode,
+			region_code: selectedRegionCode,
 			latitude: selectedLatitude,
 			longitude: selectedLongitude,
 		});
@@ -196,9 +214,18 @@ const CreateJobForm3 = () => {
 			const newJob = await create("jobs", {
 				company_id: user.id,
 				title,
-				date,
-				category,
+				description,
+				date: selectedDate,
 				isLastMinute,
+				category,
+				city: selectedCity.nom,
+				postcode: selectedPostcode,
+				department: selectedDepartment,
+				department_code: selectedDepartmentCode,
+				region: selectedRegion,
+				region_code: selectedRegionCode,
+				latitude: selectedLatitude,
+				longitude: selectedLongitude,
 			});
 			console.log("new job :", newJob);
 			setMessage("Job created successfully!");
@@ -684,6 +711,24 @@ const CreateJobForm3 = () => {
 						languages, salary, reimbursement, packed lunch, night
 						work
 					</Text>
+					<View>
+						<Button onPress={() => setShow(true)}>
+							<Text>Choisir une date</Text>
+						</Button>
+						{show && (
+							<DateTimePicker
+								value={date}
+								mode='date'
+								display='default'
+								onChange={onChangeDate}
+							/>
+						)}
+						{date && (
+							<Text>
+								Date choisie : {date.toLocaleDateString()}
+							</Text>
+						)}
+					</View>
 				</VStack>
 				<VStack
 					key='5'
