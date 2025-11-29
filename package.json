@@ -46,7 +46,7 @@
     "@internationalized/date": "^3.10.0",
     "@legendapp/motion": "^2.5.3",
     "@react-aria/utils": "^3.29.0",
-    "@react-native-community/datetimepicker": "^8.5.0",
+    "@react-native-community/datetimepicker": "8.4.4",
     "@react-navigation/native": "^7.1.21",
     "@stripe/stripe-react-native": "^0.57.0",
     "axios": "^1.13.2",
