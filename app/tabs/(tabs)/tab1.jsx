@@ -424,7 +424,7 @@ export default function Tab1() {
 						category={myCategories}
 						filtersSup={"&isLastMinute=eq.false"}
 					/>
-					<Button onPress={() => router.push("/two")}>
+					<Button onPress={() => router.replace("/tabs/(tabs)/tab2")}>
 						<ButtonText>Voir toutes les offres</ButtonText>
 					</Button>
 				</VStack>
