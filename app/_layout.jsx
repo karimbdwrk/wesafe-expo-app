@@ -68,9 +68,63 @@ function RootLayoutNav() {
 											: DefaultTheme
 									}>
 									<Stack
-										screenOptions={{ headerShown: false }}>
+										screenOptions={{
+											headerShown: false,
+											headerBackTitle: "Retour",
+										}}>
+										<Stack.Screen
+											name='account'
+											options={{
+												headerShown: true,
+												headerTitle: "Mon Compte",
+											}}
+										/>
+										<Stack.Screen
+											name='updateprofile'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='curriculum'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='addexperience'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='signature'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='procards'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='procard'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='addprocard'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='applications'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='application'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='wishlist'
+											options={{ headerShown: true }}
+										/>
 										<Stack.Screen
 											name='job'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='lastminute'
 											options={{ headerShown: true }}
 										/>
 										<Slot />
