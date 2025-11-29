@@ -73,6 +73,46 @@ function RootLayoutNav() {
 											headerBackTitle: "Retour",
 										}}>
 										<Stack.Screen
+											name='dashboard'
+											options={{
+												headerShown: true,
+												headerTitle:
+													"Mon Dashboard Pro",
+											}}
+										/>
+										<Stack.Screen
+											name='updatecompany'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='stamp'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='scanner'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='buycredits'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='offers'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='applicationspro'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='profilelist'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='profile'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
 											name='account'
 											options={{
 												headerShown: true,
@@ -125,6 +165,10 @@ function RootLayoutNav() {
 										/>
 										<Stack.Screen
 											name='lastminute'
+											options={{ headerShown: true }}
+										/>
+										<Stack.Screen
+											name='contactus'
 											options={{ headerShown: true }}
 										/>
 										<Slot />
