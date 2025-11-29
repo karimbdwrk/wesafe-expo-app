@@ -30,6 +30,15 @@ import {
 	AccordionContentText,
 	AccordionIcon,
 } from "@/components/ui/accordion";
+import {
+	Actionsheet,
+	ActionsheetContent,
+	ActionsheetItem,
+	ActionsheetItemText,
+	ActionsheetDragIndicator,
+	ActionsheetDragIndicatorWrapper,
+	ActionsheetBackdrop,
+} from "@/components/ui/actionsheet";
 import { Pressable } from "@/components/ui/pressable";
 import {
 	Select,
@@ -85,6 +94,7 @@ const CreateJobForm3 = () => {
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState(null);
 	const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+	const handleClose = () => setDatePickerVisibility(false);
 
 	const [city, setCity] = useState("");
 	const [results, setResults] = useState([]);
@@ -127,6 +137,7 @@ const CreateJobForm3 = () => {
 		setShow(false);
 		setDate(current);
 		simpleDate(current);
+		setDatePickerVisibility(true);
 	};
 
 	useEffect(() => {
@@ -233,6 +244,9 @@ const CreateJobForm3 = () => {
 			setDate("");
 			setCategory("");
 			setIsLastMinute(false);
+
+			pagerRef.current.setPage(5);
+			setActiveStep(5);
 		} catch (err) {
 			console.error(
 				"Error creating job:",
@@ -242,6 +256,26 @@ const CreateJobForm3 = () => {
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	const handleResetAll = () => {
+		setCity("");
+		setSelectedCity(null);
+		setSelectedDepartment("");
+		setSelectedDepartmentCode("");
+		setSelectedRegion("");
+		setSelectedRegionCode("");
+		setSelectedLongitude(null);
+		setSelectedLatitude(null);
+		setSelectedPostcode("");
+		setResults([]);
+		setTitle("");
+		setDate("");
+		setCategory("");
+		setIsLastMinute(false);
+
+		pagerRef.current.setPage(0);
+		setActiveStep(0);
 	};
 
 	return (
@@ -257,6 +291,7 @@ const CreateJobForm3 = () => {
 					<ProgressStep label='Titre' removeBtnRow={true} />
 					<ProgressStep label='Informations' removeBtnRow={true} />
 					<ProgressStep label='Publication' removeBtnRow={true} />
+					<ProgressStep label='Confirmation' removeBtnRow={true} />
 				</ProgressSteps>
 			</VStack>
 			<PagerView
@@ -303,19 +338,11 @@ const CreateJobForm3 = () => {
 								</AccordionTrigger>
 							</AccordionHeader>
 							<AccordionContent className='mt-0 pt-2 bg-background-50'>
-								{/* <AccordionContentText>
-															The type prop determines whether one or
-															multiple items can be opened at the same
-															time. The default value is "single"
-															which means only one item can be opened
-															at a time.
-														</AccordionContentText> */}
 								{["SSIAP1", "APR", "APS"].map((item) => (
 									<Pressable
 										key={item}
 										onPress={() => {
 											setCategory(item);
-											// setCategoryModalVisible(false);
 										}}
 										style={{
 											padding: 15,
@@ -528,22 +555,6 @@ const CreateJobForm3 = () => {
 							</AccordionContent>
 						</AccordionItem>
 					</Accordion>
-					<HStack
-						style={{
-							justifyContent: "space-between",
-							padding: 15,
-							paddingBottom: 30,
-						}}>
-						<Button
-							isDisabled={category === ""}
-							style={{ width: "100%" }}
-							onPress={() => {
-								pagerRef.current.setPage(1);
-								setActiveStep(() => 1);
-							}}>
-							<ButtonText>Next</ButtonText>
-						</Button>
-					</HStack>
 				</VStack>
 				<VStack
 					key='2'
@@ -553,6 +564,7 @@ const CreateJobForm3 = () => {
 						justifyContent: "space-between",
 					}}>
 					<Button
+						isDisabled={!city && !selectedCity}
 						onPress={() => {
 							setCity("");
 							setResults([]);
@@ -567,6 +579,10 @@ const CreateJobForm3 = () => {
 						}}>
 						<ButtonText>CLEAR</ButtonText>
 					</Button>
+					<Text>
+						SelectedCity :{" "}
+						{selectedCity ? selectedCity.nom : "None"}
+					</Text>
 					<Input>
 						<InputField
 							placeholder='Ville'
@@ -598,15 +614,6 @@ const CreateJobForm3 = () => {
 
 					{selectedCity && (
 						<View style={{ marginTop: 20 }}>
-							{/* <Text>✅ Ville sélectionnée :</Text>
-							<Text>Ville : {selectedCity.nom}</Text>
-							<Text>Code postal : {selectedCity.codePostal}</Text>
-							<Text>
-								Département : {selectedCity.codeDepartement}
-							</Text>
-							<Text>Région : {selectedCity.codeRegion}</Text>
-							<Text>Lat : {selectedCity.lat}</Text>
-							<Text>Lon : {selectedCity.lon}</Text> */}
 							{selectedCity.postcode && (
 								<Text>
 									Code postaux :{selectedCity.postcode.length}
@@ -638,31 +645,6 @@ const CreateJobForm3 = () => {
 							</HStack>
 						</View>
 					)}
-					<HStack
-						style={{
-							justifyContent: "space-between",
-							padding: 15,
-							paddingBottom: 30,
-						}}>
-						<Button
-							variant='outline'
-							style={{ width: "48%" }}
-							onPress={() => {
-								pagerRef.current.setPage(0);
-								setActiveStep(() => 0);
-							}}>
-							<ButtonText>Prev</ButtonText>
-						</Button>
-						<Button
-							isDisabled={selectedCity === null}
-							style={{ width: "48%" }}
-							onPress={() => {
-								pagerRef.current.setPage(2);
-								setActiveStep(() => 2);
-							}}>
-							<ButtonText>Next</ButtonText>
-						</Button>
-					</HStack>
 				</VStack>
 				<VStack
 					key='3'
@@ -688,31 +670,6 @@ const CreateJobForm3 = () => {
 							onChangeText={setDescription}
 						/>
 					</Textarea>
-					<HStack
-						style={{
-							justifyContent: "space-between",
-							padding: 15,
-							paddingBottom: 30,
-						}}>
-						<Button
-							variant='outline'
-							style={{ width: "48%" }}
-							onPress={() => {
-								pagerRef.current.setPage(1);
-								setActiveStep(() => 1);
-							}}>
-							<ButtonText>Prev</ButtonText>
-						</Button>
-						<Button
-							isDisabled={!title || !description}
-							style={{ width: "48%" }}
-							onPress={() => {
-								pagerRef.current.setPage(3);
-								setActiveStep(() => 3);
-							}}>
-							<ButtonText>Next</ButtonText>
-						</Button>
-					</HStack>
 				</VStack>
 				<VStack
 					key='4'
@@ -727,14 +684,14 @@ const CreateJobForm3 = () => {
 						work
 					</Text>
 					<View>
-						<Button onPress={() => setShow(true)}>
-							<Text>Choisir une date</Text>
+						<Button onPress={() => setDatePickerVisibility(true)}>
+							<ButtonText>Choisir une date</ButtonText>
 						</Button>
 						{show && (
 							<DateTimePicker
 								value={date}
 								mode='date'
-								display='default'
+								display='spinner'
 								onChange={onChangeDate}
 							/>
 						)}
@@ -744,6 +701,25 @@ const CreateJobForm3 = () => {
 							</Text>
 						)}
 					</View>
+					<Actionsheet
+						isOpen={isDatePickerVisible}
+						onClose={handleClose}>
+						<ActionsheetBackdrop />
+						<ActionsheetContent>
+							<ActionsheetDragIndicatorWrapper>
+								<ActionsheetDragIndicator />
+							</ActionsheetDragIndicatorWrapper>
+							<DateTimePicker
+								value={date}
+								mode='date'
+								display='spinner'
+								onChange={onChangeDate}
+							/>
+							<Button onPress={handleClose}>
+								<ButtonText>Close</ButtonText>
+							</Button>
+						</ActionsheetContent>
+					</Actionsheet>
 				</VStack>
 				<VStack
 					key='5'
@@ -754,6 +730,18 @@ const CreateJobForm3 = () => {
 					}}>
 					<Text>Fifth page</Text>
 				</VStack>
+				<VStack
+					key='6'
+					style={{
+						backgroundColor: "white",
+						padding: 15,
+						justifyContent: "space-between",
+					}}>
+					<Text>Annonce publiée</Text>
+					<Button>
+						<ButtonText>Publier une nouvelle annonce</ButtonText>
+					</Button>
+				</VStack>
 			</PagerView>
 			<VStack>
 				<Text>Active page : {activePage}</Text>
@@ -763,32 +751,54 @@ const CreateJobForm3 = () => {
 						padding: 15,
 						paddingBottom: 30,
 					}}>
-					{activePage !== 0 && (
-						<Button
-							variant='outline'
-							style={{ width: "48%" }}
-							onPress={() => {
-								pagerRef.current.setPage(activePage - 1);
-								setActiveStep(() => activeStep - 1);
-							}}>
-							<ButtonText>Prev</ButtonText>
-						</Button>
-					)}
+					{activePage !== 0 &&
+						activePage !== 5 &&
+						activePage !== 6 && (
+							<Button
+								variant='outline'
+								style={{ width: "48%" }}
+								onPress={() => {
+									pagerRef.current.setPage(activePage - 1);
+									setActiveStep(() => activeStep - 1);
+								}}>
+								<ButtonText>Prev</ButtonText>
+							</Button>
+						)}
 					{activePage < 4 && (
-						<Button
-							style={{ width: activePage !== 0 ? "48%" : "100%" }}
-							onPress={() => {
-								pagerRef.current.setPage(activePage + 1);
-								setActiveStep(() => activeStep + 1);
-							}}>
-							<ButtonText>Next</ButtonText>
-						</Button>
+						<>
+							<Button
+								isDisabled={
+									(activePage === 0 && category === "") ||
+									(activePage === 1 &&
+										selectedCity === null) ||
+									(activePage === 2 &&
+										(title === "" || description === ""))
+								}
+								style={{
+									width: activePage !== 0 ? "48%" : "100%",
+								}}
+								onPress={() => {
+									pagerRef.current.setPage(activePage + 1);
+									setActiveStep(() => activeStep + 1);
+								}}>
+								<ButtonText>Next</ButtonText>
+							</Button>
+						</>
 					)}
 					{activePage === 4 && (
 						<Button
 							style={{ width: activePage !== 0 ? "48%" : "100%" }}
 							onPress={handleSubmit}>
 							<ButtonText>Publish</ButtonText>
+						</Button>
+					)}
+					{activePage === 5 && (
+						<Button
+							style={{ width: "100%" }}
+							onPress={handleResetAll}>
+							<ButtonText>
+								Publier une nouvelle annonce
+							</ButtonText>
 						</Button>
 					)}
 				</HStack>
