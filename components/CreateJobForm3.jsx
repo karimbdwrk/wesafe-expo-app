@@ -552,6 +552,21 @@ const CreateJobForm3 = () => {
 						padding: 15,
 						justifyContent: "space-between",
 					}}>
+					<Button
+						onPress={() => {
+							setCity("");
+							setResults([]);
+							setSelectedCity(null);
+							setSelectedPostcode(null);
+							setSelectedDepartment(null);
+							setSelectedDepartmentCode(null);
+							setSelectedRegion(null);
+							setSelectedRegionCode(null);
+							setSelectedLatitude(null);
+							setSelectedLongitude(null);
+						}}>
+						<ButtonText>CLEAR</ButtonText>
+					</Button>
 					<Input>
 						<InputField
 							placeholder='Ville'
