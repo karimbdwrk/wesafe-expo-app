@@ -13,6 +13,7 @@ import { Slot, Stack, usePathname } from "expo-router";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { MoonIcon, SunIcon } from "@/components/ui/icon";
 
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Toaster } from "sonner-native";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -55,156 +56,158 @@ function RootLayoutNav() {
 			<AuthProvider>
 				<DataProvider>
 					<ImageProvider>
-						<SafeAreaProvider>
-							<GluestackUIProvider mode={colorMode}>
-								<Toaster />
-								<ThemeProvider
-									value={
-										colorMode === "dark"
-											? DarkTheme
-											: DefaultTheme
-									}>
-									<Stack
-										screenOptions={{
-											headerShown: false,
-											headerBackTitle: "Retour",
-										}}>
-										<Stack.Screen
-											name='index'
-											options={{ headerShown: false }}
-										/>
-										<Stack.Screen
-											name='dashboard'
-											options={{
-												headerShown: true,
-												headerTitle:
-													"Mon Dashboard Pro",
-											}}
-										/>
-										<Stack.Screen
-											name='updatecompany'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='stamp'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='scanner'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='buycredits'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='offers'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='applicationspro'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='profilelist'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='profile'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='account'
-											options={{
-												headerShown: true,
-												headerTitle: "Mon Compte",
-											}}
-										/>
-										<Stack.Screen
-											name='updateprofile'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='curriculum'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='addexperience'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='signature'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='procards'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='procard'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='addprocard'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='applications'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='application'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='wishlist'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='job'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='addjob'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='lastminute'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='contactus'
-											options={{ headerShown: true }}
-										/>
-										<Stack.Screen
-											name='subscription'
-											options={{ headerShown: true }}
-										/>
-										{/* <Slot /> */}
-									</Stack>
-									{pathname === "/" && (
-										<Fab
-											onPress={() =>
-												setColorMode(
-													colorMode === "dark"
-														? "light"
-														: "dark"
-												)
-											}
-											className='m-6'
-											size='lg'>
-											<FabIcon
-												as={
-													colorMode === "dark"
-														? MoonIcon
-														: SunIcon
-												}
+						<GestureHandlerRootView style={{ flex: 1 }}>
+							<SafeAreaProvider>
+								<GluestackUIProvider mode={colorMode}>
+									<Toaster />
+									<ThemeProvider
+										value={
+											colorMode === "dark"
+												? DarkTheme
+												: DefaultTheme
+										}>
+										<Stack
+											screenOptions={{
+												headerShown: false,
+												headerBackTitle: "Retour",
+											}}>
+											<Stack.Screen
+												name='index'
+												options={{ headerShown: false }}
 											/>
-										</Fab>
-									)}
-								</ThemeProvider>
-							</GluestackUIProvider>
-						</SafeAreaProvider>
+											<Stack.Screen
+												name='dashboard'
+												options={{
+													headerShown: true,
+													headerTitle:
+														"Mon Dashboard Pro",
+												}}
+											/>
+											<Stack.Screen
+												name='updatecompany'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='stamp'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='scanner'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='buycredits'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='offers'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='applicationspro'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='profilelist'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='profile'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='account'
+												options={{
+													headerShown: true,
+													headerTitle: "Mon Compte",
+												}}
+											/>
+											<Stack.Screen
+												name='updateprofile'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='curriculum'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='addexperience'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='signature'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='procards'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='procard'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='addprocard'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='applications'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='application'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='wishlist'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='job'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='addjob'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='lastminute'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='contactus'
+												options={{ headerShown: true }}
+											/>
+											<Stack.Screen
+												name='subscription'
+												options={{ headerShown: true }}
+											/>
+											{/* <Slot /> */}
+										</Stack>
+										{pathname === "/" && (
+											<Fab
+												onPress={() =>
+													setColorMode(
+														colorMode === "dark"
+															? "light"
+															: "dark"
+													)
+												}
+												className='m-6'
+												size='lg'>
+												<FabIcon
+													as={
+														colorMode === "dark"
+															? MoonIcon
+															: SunIcon
+													}
+												/>
+											</Fab>
+										)}
+									</ThemeProvider>
+								</GluestackUIProvider>
+							</SafeAreaProvider>
+						</GestureHandlerRootView>
 					</ImageProvider>
 				</DataProvider>
 			</AuthProvider>
