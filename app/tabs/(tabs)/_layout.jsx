@@ -205,7 +205,7 @@ export default function TabLayout({ theme = "light" }) {
 			<Tabs
 				screenOptions={{
 					tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-					headerShown: useClientOnlyValue(false, true),
+					headerShown: true,
 					headerBackTitle: "Back",
 					headerTitle: (props) => <LogoTitle {...props} />,
 					headerRight: () => (
