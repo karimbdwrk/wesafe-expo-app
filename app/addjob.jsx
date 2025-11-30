@@ -39,12 +39,12 @@ export default function AddJobScreen() {
 	const { getAll, isLoading } = useDataContext();
 
 	const [jobCount, setJobCount] = useState(null);
+	const [remainingJobs, setRemainingJobs] = useState(0);
 
-	// useFocusEffect(
-	// 	useCallback(() => {
-	// 		loadUserData();
-	// 	}, [])
-	// );
+	useEffect(() => {
+		console.log("hasSubscription @ jobcount :", hasSubscription, jobCount);
+		setRemainingJobs(3 - (jobCount || 0));
+	}, [jobCount]);
 
 	const fetchJobCount = async () => {
 		console.log("hasSubscription :", hasSubscription);
@@ -74,8 +74,6 @@ export default function AddJobScreen() {
 		fetchJobCount();
 		console.log("company credits :", userCompany.last_minute_credits);
 	}, [user]);
-
-	const remaining = 3 - (jobCount || 0);
 
 	const handleJobCreated = (isSubmitted) => {
 		if (isSubmitted) {
@@ -111,8 +109,8 @@ export default function AddJobScreen() {
 								fontWeight: "bold",
 								color: "#555",
 							}}>
-							🎯 Vous pouvez encore poster {remaining} annonce
-							{remaining !== 1 ? "s" : ""} ce mois-ci
+							🎯 Vous pouvez encore poster {remainingJobs} annonce
+							{remainingJobs !== 1 ? "s" : ""} ce mois-ci
 						</Text>
 					</View>
 				)}
@@ -128,9 +126,8 @@ export default function AddJobScreen() {
 						pour des last minute jobs
 					</Text>
 				</View>
-				{remaining !== 0 ? (
+				{remainingJobs > 0 ? (
 					<View style={styles.container}>
-						{/* <CreateJobForm onJobCreated={handleJobCreated} /> */}
 						<CreateJobForm3 />
 					</View>
 				) : (
