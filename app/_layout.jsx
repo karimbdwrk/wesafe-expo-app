@@ -175,6 +175,10 @@ function RootLayoutNav() {
 											name='contactus'
 											options={{ headerShown: true }}
 										/>
+										<Stack.Screen
+											name='subscription'
+											options={{ headerShown: true }}
+										/>
 										<Slot />
 									</Stack>
 									{pathname === "/" && (
