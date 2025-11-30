@@ -306,255 +306,261 @@ const CreateJobForm3 = () => {
 					key='1'
 					style={{
 						backgroundColor: "lightgreen",
-						padding: 15,
 						justifyContent: "space-between",
 					}}>
-					<Accordion
-						className='border border-outline-300'
-						type='single'>
-						<AccordionItem
-							value='a'
-							className='border-b border-outline-300'>
-							<AccordionHeader className='bg-background-0'>
-								<AccordionTrigger>
-									{({ isExpanded }) => {
-										return (
-											<>
-												<AccordionTitleText>
-													AGENT DE SÉCURITÉ
-												</AccordionTitleText>
-												{isExpanded ? (
-													<AccordionIcon
-														as={ChevronUpIcon}
-													/>
-												) : (
-													<AccordionIcon
-														as={ChevronDownIcon}
-													/>
-												)}
-											</>
-										);
-									}}
-								</AccordionTrigger>
-							</AccordionHeader>
-							<AccordionContent className='mt-0 pt-2 bg-background-50'>
-								{["SSIAP1", "APR", "APS"].map((item) => (
-									<Pressable
-										key={item}
-										onPress={() => {
-											setCategory(item);
+					<ScrollView style={{ flex: 1, padding: 15 }}>
+						<Accordion
+							className='border border-outline-300'
+							type='single'>
+							<AccordionItem
+								value='a'
+								className='border-b border-outline-300'>
+								<AccordionHeader className='bg-background-0'>
+									<AccordionTrigger>
+										{({ isExpanded }) => {
+											return (
+												<>
+													<AccordionTitleText>
+														AGENT DE SÉCURITÉ
+													</AccordionTitleText>
+													{isExpanded ? (
+														<AccordionIcon
+															as={ChevronUpIcon}
+														/>
+													) : (
+														<AccordionIcon
+															as={ChevronDownIcon}
+														/>
+													)}
+												</>
+											);
 										}}
-										style={{
-											padding: 15,
-											borderWidth: 1,
-											borderColor: "#ccc",
-											display: "flex",
-											flexDirection: "row",
-											justifyContent: "space-between",
-											alignItems: "center",
-										}}>
-										<Text style={{ color: "#000" }}>
-											{item}
-										</Text>
-										{category === item ? (
-											<CircleCheck color={"black"} />
-										) : (
-											<Circle color={"lightgrey"} />
-										)}
-									</Pressable>
-								))}
-							</AccordionContent>
-						</AccordionItem>
-						<AccordionItem
-							value='b'
-							className='border-b border-outline-300'>
-							<AccordionHeader
-								sx={{
-									backgroundColor: "$backgroundLight0",
-									_dark: {
-										backgroundColor: "$backgroundDark950",
-									},
-								}}>
-								<AccordionTrigger>
-									{({ isExpanded }) => {
-										return (
-											<>
-												<AccordionTitleText>
-													PROTECTION RAPPROCHÉE
-												</AccordionTitleText>
-												{isExpanded ? (
-													<AccordionIcon
-														as={ChevronUpIcon}
-													/>
-												) : (
-													<AccordionIcon
-														as={ChevronDownIcon}
-													/>
-												)}
-											</>
-										);
-									}}
-								</AccordionTrigger>
-							</AccordionHeader>
-							<AccordionContent className='mt-0 pt-2 bg-background-50'>
-								<AccordionContentText>
-									Yes, you can disable the whole accordion by
-									setting the isDisabled prop to true on the
-									Accordion component.
-								</AccordionContentText>
-							</AccordionContent>
-						</AccordionItem>
-						<AccordionItem
-							value='c'
-							className='border-b border-outline-300'>
-							<AccordionHeader className='bg-background-0'>
-								<AccordionTrigger>
-									{({ isExpanded }) => {
-										return (
-											<>
-												<AccordionTitleText>
-													SSIAP
-												</AccordionTitleText>
-												{isExpanded ? (
-													<AccordionIcon
-														as={ChevronUpIcon}
-													/>
-												) : (
-													<AccordionIcon
-														as={ChevronDownIcon}
-													/>
-												)}
-											</>
-										);
-									}}
-								</AccordionTrigger>
-							</AccordionHeader>
-							<AccordionContent className='mt-0 pt-2 bg-background-50'>
-								<AccordionContentText>
-									Controlled components refer to the
-									components where the state and behaviors are
-									controlled by the Parent component. You can
-									make the accordion a controlled component by
-									passing the value prop to the Accordion
-									component and setting the onValueChange prop
-									to update the value prop. Refer to the
-									controlled accordion example in the docs.
-								</AccordionContentText>
-							</AccordionContent>
-						</AccordionItem>
-						<AccordionItem
-							value='d'
-							className='border-b border-outline-300'>
-							<AccordionHeader className='bg-background-0'>
-								<AccordionTrigger>
-									{({ isExpanded }) => {
-										return (
-											<>
-												<AccordionTitleText>
-													CYNOPHILE
-												</AccordionTitleText>
-												{isExpanded ? (
-													<AccordionIcon
-														as={ChevronUpIcon}
-													/>
-												) : (
-													<AccordionIcon
-														as={ChevronDownIcon}
-													/>
-												)}
-											</>
-										);
-									}}
-								</AccordionTrigger>
-							</AccordionHeader>
-							<AccordionContent className='mt-0 pt-2 bg-background-50'>
-								<AccordionContentText>
-									Controlled components refer to the
-									components where the state and behaviors are
-									controlled by the Parent component. You can
-									make the accordion a controlled component by
-									passing the value prop to the Accordion
-									component and setting the onValueChange prop
-									to update the value prop. Refer to the
-									controlled accordion example in the docs.
-								</AccordionContentText>
-							</AccordionContent>
-						</AccordionItem>
-						<AccordionItem
-							value='e'
-							className='border-b border-outline-300'>
-							<AccordionHeader className='bg-background-0'>
-								<AccordionTrigger>
-									{({ isExpanded }) => {
-										return (
-											<>
-												<AccordionTitleText>
-													TRANSPORTEUR
-												</AccordionTitleText>
-												{isExpanded ? (
-													<AccordionIcon
-														as={ChevronUpIcon}
-													/>
-												) : (
-													<AccordionIcon
-														as={ChevronDownIcon}
-													/>
-												)}
-											</>
-										);
-									}}
-								</AccordionTrigger>
-							</AccordionHeader>
-							<AccordionContent className='mt-0 pt-2 bg-background-50'>
-								<AccordionContentText>
-									Controlled components refer to the
-									components where the state and behaviors are
-									controlled by the Parent component. You can
-									make the accordion a controlled component by
-									passing the value prop to the Accordion
-									component and setting the onValueChange prop
-									to update the value prop. Refer to the
-									controlled accordion example in the docs.
-								</AccordionContentText>
-							</AccordionContent>
-						</AccordionItem>
-						<AccordionItem value='f'>
-							<AccordionHeader className='bg-background-0'>
-								<AccordionTrigger>
-									{({ isExpanded }) => {
-										return (
-											<>
-												<AccordionTitleText>
-													DÉTECTIVE PRIVÉ
-												</AccordionTitleText>
-												{isExpanded ? (
-													<AccordionIcon
-														as={ChevronUpIcon}
-													/>
-												) : (
-													<AccordionIcon
-														as={ChevronDownIcon}
-													/>
-												)}
-											</>
-										);
-									}}
-								</AccordionTrigger>
-							</AccordionHeader>
-							<AccordionContent className='mt-0 pt-2 bg-background-50'>
-								<AccordionContentText>
-									Controlled components refer to the
-									components where the state and behaviors are
-									controlled by the Parent component. You can
-									make the accordion a controlled component by
-									passing the value prop to the Accordion
-									component and setting the onValueChange prop
-									to update the value prop. Refer to the
-									controlled accordion example in the docs.
-								</AccordionContentText>
-							</AccordionContent>
-						</AccordionItem>
-					</Accordion>
+									</AccordionTrigger>
+								</AccordionHeader>
+								<AccordionContent className='mt-0 pt-2 bg-background-50'>
+									{["SSIAP1", "APR", "APS"].map((item) => (
+										<Pressable
+											key={item}
+											onPress={() => {
+												setCategory(item);
+											}}
+											style={{
+												padding: 15,
+												borderWidth: 1,
+												borderColor: "#ccc",
+												display: "flex",
+												flexDirection: "row",
+												justifyContent: "space-between",
+												alignItems: "center",
+											}}>
+											<Text style={{ color: "#000" }}>
+												{item}
+											</Text>
+											{category === item ? (
+												<CircleCheck color={"black"} />
+											) : (
+												<Circle color={"lightgrey"} />
+											)}
+										</Pressable>
+									))}
+								</AccordionContent>
+							</AccordionItem>
+							<AccordionItem
+								value='b'
+								className='border-b border-outline-300'>
+								<AccordionHeader
+									sx={{
+										backgroundColor: "$backgroundLight0",
+										_dark: {
+											backgroundColor:
+												"$backgroundDark950",
+										},
+									}}>
+									<AccordionTrigger>
+										{({ isExpanded }) => {
+											return (
+												<>
+													<AccordionTitleText>
+														PROTECTION RAPPROCHÉE
+													</AccordionTitleText>
+													{isExpanded ? (
+														<AccordionIcon
+															as={ChevronUpIcon}
+														/>
+													) : (
+														<AccordionIcon
+															as={ChevronDownIcon}
+														/>
+													)}
+												</>
+											);
+										}}
+									</AccordionTrigger>
+								</AccordionHeader>
+								<AccordionContent className='mt-0 pt-2 bg-background-50'>
+									<AccordionContentText>
+										Yes, you can disable the whole accordion
+										by setting the isDisabled prop to true
+										on the Accordion component.
+									</AccordionContentText>
+								</AccordionContent>
+							</AccordionItem>
+							<AccordionItem
+								value='c'
+								className='border-b border-outline-300'>
+								<AccordionHeader className='bg-background-0'>
+									<AccordionTrigger>
+										{({ isExpanded }) => {
+											return (
+												<>
+													<AccordionTitleText>
+														SSIAP
+													</AccordionTitleText>
+													{isExpanded ? (
+														<AccordionIcon
+															as={ChevronUpIcon}
+														/>
+													) : (
+														<AccordionIcon
+															as={ChevronDownIcon}
+														/>
+													)}
+												</>
+											);
+										}}
+									</AccordionTrigger>
+								</AccordionHeader>
+								<AccordionContent className='mt-0 pt-2 bg-background-50'>
+									<AccordionContentText>
+										Controlled components refer to the
+										components where the state and behaviors
+										are controlled by the Parent component.
+										You can make the accordion a controlled
+										component by passing the value prop to
+										the Accordion component and setting the
+										onValueChange prop to update the value
+										prop. Refer to the controlled accordion
+										example in the docs.
+									</AccordionContentText>
+								</AccordionContent>
+							</AccordionItem>
+							<AccordionItem
+								value='d'
+								className='border-b border-outline-300'>
+								<AccordionHeader className='bg-background-0'>
+									<AccordionTrigger>
+										{({ isExpanded }) => {
+											return (
+												<>
+													<AccordionTitleText>
+														CYNOPHILE
+													</AccordionTitleText>
+													{isExpanded ? (
+														<AccordionIcon
+															as={ChevronUpIcon}
+														/>
+													) : (
+														<AccordionIcon
+															as={ChevronDownIcon}
+														/>
+													)}
+												</>
+											);
+										}}
+									</AccordionTrigger>
+								</AccordionHeader>
+								<AccordionContent className='mt-0 pt-2 bg-background-50'>
+									<AccordionContentText>
+										Controlled components refer to the
+										components where the state and behaviors
+										are controlled by the Parent component.
+										You can make the accordion a controlled
+										component by passing the value prop to
+										the Accordion component and setting the
+										onValueChange prop to update the value
+										prop. Refer to the controlled accordion
+										example in the docs.
+									</AccordionContentText>
+								</AccordionContent>
+							</AccordionItem>
+							<AccordionItem
+								value='e'
+								className='border-b border-outline-300'>
+								<AccordionHeader className='bg-background-0'>
+									<AccordionTrigger>
+										{({ isExpanded }) => {
+											return (
+												<>
+													<AccordionTitleText>
+														TRANSPORTEUR
+													</AccordionTitleText>
+													{isExpanded ? (
+														<AccordionIcon
+															as={ChevronUpIcon}
+														/>
+													) : (
+														<AccordionIcon
+															as={ChevronDownIcon}
+														/>
+													)}
+												</>
+											);
+										}}
+									</AccordionTrigger>
+								</AccordionHeader>
+								<AccordionContent className='mt-0 pt-2 bg-background-50'>
+									<AccordionContentText>
+										Controlled components refer to the
+										components where the state and behaviors
+										are controlled by the Parent component.
+										You can make the accordion a controlled
+										component by passing the value prop to
+										the Accordion component and setting the
+										onValueChange prop to update the value
+										prop. Refer to the controlled accordion
+										example in the docs.
+									</AccordionContentText>
+								</AccordionContent>
+							</AccordionItem>
+							<AccordionItem value='f'>
+								<AccordionHeader className='bg-background-0'>
+									<AccordionTrigger>
+										{({ isExpanded }) => {
+											return (
+												<>
+													<AccordionTitleText>
+														DÉTECTIVE PRIVÉ
+													</AccordionTitleText>
+													{isExpanded ? (
+														<AccordionIcon
+															as={ChevronUpIcon}
+														/>
+													) : (
+														<AccordionIcon
+															as={ChevronDownIcon}
+														/>
+													)}
+												</>
+											);
+										}}
+									</AccordionTrigger>
+								</AccordionHeader>
+								<AccordionContent className='mt-0 pt-2 bg-background-50'>
+									<AccordionContentText>
+										Controlled components refer to the
+										components where the state and behaviors
+										are controlled by the Parent component.
+										You can make the accordion a controlled
+										component by passing the value prop to
+										the Accordion component and setting the
+										onValueChange prop to update the value
+										prop. Refer to the controlled accordion
+										example in the docs.
+									</AccordionContentText>
+								</AccordionContent>
+							</AccordionItem>
+						</Accordion>
+					</ScrollView>
 				</VStack>
 				<VStack
 					key='2'
