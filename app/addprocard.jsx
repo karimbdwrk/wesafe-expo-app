@@ -39,7 +39,6 @@ export default function AddProCardScreen() {
 			ITEMS_PER_PAGE,
 			"created_at.desc"
 		);
-		console.log("data pro cards in form :", data, data.length);
 		setProcards(data);
 		setTotalCount(totalCount);
 	};

@@ -66,7 +66,6 @@ export const AuthProvider = ({ children }) => {
 		}
 	};
 
-	// --- Modifié: fetchProfileFromSession pour retourner les données ---
 	const fetchProfileFromSession = async (userId, token) => {
 		try {
 			const res = await axios.get(
@@ -129,26 +128,6 @@ export const AuthProvider = ({ children }) => {
 			await saveSession(data);
 
 			await loadUserData(data.user.id, data.access_token);
-
-			// const userCompanyId = await loadUserData(
-			// 	data.user.id,
-			// 	data.access_token
-			// );
-			console.log("User company ID after sign-in:", data.user.id);
-
-			// --- NOUVELLE ÉTAPE : Stocker le Push Token ---
-			// const userId = data.user.id;
-
-			// if (userId) {
-			// 	await storePushTokenDirectly(userId, data.access_token);
-			// } else {
-			// 	console.warn(
-			// 		"Skipping push token storage: Missing user ID or company ID after sign-in."
-			// 	);
-			// }
-			// --- FIN NOUVELLE ÉTAPE ---
-
-			console.log("Connexion OK.");
 		} catch (err) {
 			console.error(
 				"Erreur connexion:",
@@ -161,8 +140,7 @@ export const AuthProvider = ({ children }) => {
 	};
 
 	const signUp = async (email, password, isCandidateFlag, isCompanyFlag) => {
-		// Renommé les args pour éviter confusion
-		setLoading(true); // Mettre loading à true au début du signup
+		setLoading(true);
 		try {
 			const { data } = await axios.post(
 				`${SUPABASE_URL}/auth/v1/signup`,
@@ -175,12 +153,6 @@ export const AuthProvider = ({ children }) => {
 				}
 			);
 			if (data) {
-				console.log(
-					"Sign up data.id :",
-					data?.user,
-					data?.user?.id,
-					data?.user?.app_metadata?.id
-				);
 				setUser(data.user);
 				setAccessToken(data.access_token);
 			}
@@ -188,20 +160,16 @@ export const AuthProvider = ({ children }) => {
 				throw new Error("Inscription échouée ou données incomplètes.");
 			}
 
-			// setUser(data.app_metadata);
-			setJustSignup(true); // Indique qu'on vient de s'inscrire
+			setJustSignup(true);
 
-			await saveSession(data); // Sauvegarde le token et l'utilisateur de base
+			await saveSession(data);
 
-			// Après avoir sauvegardé la session, rechargez toutes les données de l'utilisateur
-			// C'est ici que le rôle et le profil/entreprise seront déterminés
 			await loadUserData(data.user.id, data.access_token);
 
-			// Redirection basée sur le rôle détecté après le chargement complet des données
 			if (isCompanyFlag) {
-				router.replace("/createcompany"); // Redirige après l'inscription
+				router.replace("/createcompany");
 			} else if (isCandidateFlag) {
-				router.replace("/createprofile"); // Redirige après l'inscription
+				router.replace("/createprofile");
 			}
 		} catch (error) {
 			console.error(
@@ -220,11 +188,10 @@ export const AuthProvider = ({ children }) => {
 		setUser(null);
 		setRole(null);
 		setAccessToken(null);
-		setUserProfile(null); // Réinitialiser
-		setUserCompany(null); // Réinitialiser
-		setHasSubscription(false); // Réinitialiser
-		setLoading(false); // Pas de chargement après déconnexion
-		console.log("sign out ok !");
+		setUserProfile(null);
+		setUserCompany(null);
+		setHasSubscription(false);
+		setLoading(false);
 		router.replace("/");
 	};
 
@@ -283,7 +250,6 @@ export const AuthProvider = ({ children }) => {
 					userId,
 					token
 				);
-				console.log("companyData in authcontext:", companyData);
 				setUserCompany(companyData); // Ceci est l'objet complet de la compagnie
 				setUserProfile(null); // S'assurer que l'autre est null
 				if (companyData) {
@@ -302,7 +268,6 @@ export const AuthProvider = ({ children }) => {
 				setUserCompany(null);
 				setHasSubscription(false);
 			}
-			console.log("Données utilisateur chargées. Rôle:", detectedRole);
 			setLoading(false);
 		} catch (error) {
 			console.error(
@@ -407,7 +372,6 @@ export const AuthProvider = ({ children }) => {
 					},
 				}
 			);
-			console.log("check subs data :", data);
 
 			if (data.length > 0) {
 				const latestSubscription = data[0];
@@ -417,8 +381,6 @@ export const AuthProvider = ({ children }) => {
 					(latestSubscription.status === "canceled" &&
 						new Date(latestSubscription.current_period_end) >
 							new Date());
-
-				console.log("🔐 Abonnement actif (isValid) :", isActive);
 				setHasSubscription(isActive);
 				return isActive;
 			}
@@ -434,7 +396,6 @@ export const AuthProvider = ({ children }) => {
 
 	useEffect(() => {
 		if (justSignup) {
-			console.log("User just signed up, loading data...");
 			loadUserData(user.id, accessToken);
 			setJustSignup(false);
 		}

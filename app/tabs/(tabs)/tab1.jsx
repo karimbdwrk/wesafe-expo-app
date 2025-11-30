@@ -111,10 +111,6 @@ export default function Tab1() {
 	const [myProcards, setMyProcards] = useState([]);
 	const [myCategories, setMyCategories] = useState([]);
 
-	// useEffect(() => {
-	// 	console.log("coord data :", userLat, userLon, userCity);
-	// }, [userCity]);
-
 	const [minLat, setMinLat] = useState(null);
 	const [maxLat, setMaxLat] = useState(null);
 	const [minLon, setMinLon] = useState(null);
@@ -128,43 +124,21 @@ export default function Tab1() {
 	const [totalCount, setTotalCount] = useState(0);
 	const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-	const onPressActionSheet = () => {
-		const options = ["Delete", "Cancel"];
-		const destructiveButtonIndex = 0;
-		const cancelButtonIndex = 1;
-
-		showActionSheetWithOptions(
-			{
-				options,
-				cancelButtonIndex,
-				destructiveButtonIndex,
-			},
-			(buttonIndex) => {
-				if (buttonIndex === 0) {
-					console.log("User Clicked Delete");
-				}
-			}
-		);
-	};
-
 	useFocusEffect(
 		useCallback(() => {
 			if (userProfile) {
-				console.log("userProfile procards :", userProfile.procards);
 				setMyProcards(userProfile.procards || []);
 			}
 		}, [userProfile])
 	);
 
 	useEffect(() => {
-		console.log("my procards data :", myProcards);
 		const newCategories = new Set();
 
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 
 		myProcards.forEach((card) => {
-			console.log("card data :", card);
 			const cardValidityDate = new Date(card.validity_date);
 			cardValidityDate.setHours(0, 0, 0, 0);
 			if (card.isValid && cardValidityDate >= today) {
@@ -173,10 +147,6 @@ export default function Tab1() {
 		});
 		setMyCategories(Array.from(newCategories));
 	}, [myProcards]);
-
-	useEffect(() => {
-		console.log("categories data :", myCategories);
-	}, [myCategories]);
 
 	useEffect(() => {
 		const fetchCities = async () => {
@@ -194,7 +164,6 @@ export default function Tab1() {
 					}
 				);
 				setResults(res.data);
-				console.log("result userCity data :", res.data);
 			} catch (err) {
 				console.error("Erreur de géolocalisation :", err);
 			}
@@ -229,41 +198,9 @@ export default function Tab1() {
 		return { minLat, maxLat, minLon, maxLon };
 	};
 
-	useEffect(() => {
-		const bbox = getBoundingBox(userLat, userLon, distanceKm);
-		if (userProfile) {
-			console.warn(`------------------------------------`);
-			console.log(
-				`Bounding Box pour ${distanceKm}km autour de (${userLat}, ${userLon}):`
-			);
-			console.log(`  minLat: ${bbox.minLat}`);
-			console.log(`  maxLat: ${bbox.maxLat}`);
-			console.log(`  minLon: ${bbox.minLon}`);
-			console.log(`  maxLon: ${bbox.maxLon}`);
-			console.warn(`------------------------------------`);
-		}
-	}, [user]);
-
-	const handleOpenBottomSheet = (type) => {
-		scrollRef.current?.scrollTo({ y: 0, animated: true });
-		if (type === "keywords") {
-			setShowActionsheet2(true);
-			setShowActionsheet(false);
-			setPage(1);
-			setValues([]);
-			setDistanceKm(0);
-		} else if (type === "values") {
-			setShowActionsheet(true);
-			setShowActionsheet2(false);
-			setPage(1);
-			setKeywords("");
-		}
-	};
-
 	useFocusEffect(
 		useCallback(() => {
 			if (userProfile && !userCity) {
-				console.log("userProfile.city :", userProfile, userCity);
 				setUserLat(userProfile.latitude);
 				setUserLon(userProfile.longitude);
 				setUserCity(userProfile.city);
@@ -292,21 +229,19 @@ export default function Tab1() {
 		if (values.length > 0) {
 			const formattedCategories = values.map((c) => `"${c}"`).join(",");
 			filterString += `&category=in.(${formattedCategories})`;
-			console.log("Catégories ajoutées :", formattedCategories);
 		} else {
-			console.log("Aucune catégorie sélectionnée.");
+			console.error("Aucune catégorie sélectionnée.");
 		}
 
 		// 2. Gérer le filtre de distance
 		if (userLat !== null && userLon !== null && distanceKm > 0) {
 			const bbox = getBoundingBox(userLat, userLon, distanceKm);
-			console.log("Bounding Box calculée :", bbox);
 
 			// AJOUT DES FILTRES LATITUDE ET LONGITUDE (GTE/LTE)
 			filterString += `&latitude=gte.${bbox.minLat}&latitude=lte.${bbox.maxLat}`;
 			filterString += `&longitude=gte.${bbox.minLon}&longitude=lte.${bbox.maxLon}`;
 		} else {
-			console.log("Pas de filtre de distance appliqué.");
+			console.error("Pas de filtre de distance appliqué.");
 		}
 
 		// Mettre à jour l'état `filters` et déclencher le chargement des jobs
@@ -321,7 +256,6 @@ export default function Tab1() {
 			const encodedKeyword = encodeURIComponent(`%${keywords}%`);
 			filter = `&or=(title.ilike.${encodedKeyword},category.ilike.${encodedKeyword})`;
 		}
-		console.log("Keyword-only filter:", filter);
 		setFilters(filter);
 	};
 

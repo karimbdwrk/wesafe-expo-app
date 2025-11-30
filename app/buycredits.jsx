@@ -26,16 +26,7 @@ const BuyCreditsScreen = () => {
 	const loadCompanyCredits = async (id) => {
 		setLoading(true);
 		const data = await getById("companies", id, `last_minute_credits`);
-		console.log("Fetched company credits:", data);
 		setCredits(data.last_minute_credits);
-		// if (error) {
-		// 	console.error("Error fetching company credits:", error);
-		// 	setCredits(0);
-		// 	Alert.alert("Erreur", "Impossible de charger vos crédits.");
-		// } else if (data) {
-		// 	console.log("Fetched company credits:", data);
-		// 	setCredits(data.last_minute_credits);
-		// }
 		setLoading(false);
 	};
 
@@ -44,19 +35,9 @@ const BuyCreditsScreen = () => {
 		const data = await update("companies", id, {
 			last_minute_credits: credits + 10,
 		});
-		console.log("added company credits data:", data);
 	};
 
-	// const loadJob = async () => {
-	// 	const data = await getById("jobs", id, `*, companies(name, email)`);
-	// 	console.log("data job :", data);
-	// 	setJob(data);
-	// };
-
 	const fetchUserAndCredits = async () => {
-		// const {
-		// 	data: { user },
-		// } = await supabase.auth.getUser();
 		if (user) {
 			setCompanyId(user.id);
 			await loadCompanyCredits(user.id);
@@ -74,30 +55,6 @@ const BuyCreditsScreen = () => {
 			fetchUserAndCredits();
 		}, [companyId])
 	);
-
-	// useEffect(() => {
-	// 	const fetchUserAndCredits = async () => {
-	// 		// const {
-	// 		// 	data: { user },
-	// 		// } = await supabase.auth.getUser();
-	// 		if (user) {
-	// 			setCompanyId(user.id);
-	// 			await loadCompanyCredits(user.id);
-	// 		} else {
-	// 			Alert.alert(
-	// 				"Erreur",
-	// 				"Vous devez être connecté pour acheter des crédits."
-	// 			);
-	// 			navigation.navigate("Login");
-	// 		}
-	// 	};
-	// 	fetchUserAndCredits();
-
-	// 	// const unsubscribe = navigation.addListener("focus", () => {
-	// 	// 	if (companyId) loadCompanyCredits(companyId); // Recharger à chaque fois qu'on revient
-	// 	// });
-	// 	// return unsubscribe;
-	// }, [companyId]);
 
 	const handleBuyCredits = async () => {
 		if (!companyId) {

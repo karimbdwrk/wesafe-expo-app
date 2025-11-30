@@ -25,28 +25,6 @@ const JobCard = ({
 }) => {
 	const router = useRouter();
 
-	useEffect(() => {
-		console.log("JobCard props:", {
-			id,
-			title,
-			category,
-			company_id,
-			city,
-			department,
-			isArchived,
-			isLastMinute,
-		});
-	}, [
-		id,
-		title,
-		category,
-		company_id,
-		city,
-		department,
-		isArchived,
-		isLastMinute,
-	]);
-
 	return (
 		<Card size='lg' variant='filled' style={styles.card}>
 			{isLastMinute && (

@@ -53,8 +53,6 @@ const JobScreen = () => {
 			id,
 			`*, companies(name, email), applies(id, candidate_id, profiles(firstname, lastname))`
 		);
-		console.log("data job :", data);
-		console.log("job candidates array :", data.applies);
 		setJob(data);
 	};
 
@@ -63,21 +61,6 @@ const JobScreen = () => {
 			id && loadJob();
 		}, [])
 	);
-
-	useEffect(() => {
-		console.log(
-			"job screen props and context :",
-			id,
-			title,
-			company_id,
-			user.id,
-			role
-		);
-	}, []);
-
-	useEffect(() => {
-		console.log("job screen role :", role);
-	}, [role]);
 
 	const handleToggle = async () => {
 		const isNowInWishlist = await toggleWishlistJob(id, user.id);
@@ -91,17 +74,6 @@ const JobScreen = () => {
 	};
 
 	const handleApply = async () => {
-		console.log(
-			user.id,
-			id,
-			company_id,
-			job.companies.name,
-			job.companies.email,
-			job.title,
-			userProfile.lastname,
-			userProfile.email
-		);
-		// const edgeFunctionUrl = `${SUPABASE_URL}/functions/v1/send-push-notification`;
 		const edgeFunctionUrl = `https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/send-push-notification`;
 
 		const isNowApplied = await applyToJob(
@@ -115,17 +87,12 @@ const JobScreen = () => {
 			userProfile.email
 		);
 
-		console.log("isNowApplied :", isNowApplied);
-		console.log("accessToken:", accessToken);
-
 		const notificationPayload = {
 			offer_id: id,
 			candidate_id: user.id,
 			company_id: company_id, // L'ID de l'entreprise destinataire
 			application_id: isNowApplied[0].id, // L'ID de la candidature créée
 		};
-
-		console.log("Envoi de notification avec payload:", notificationPayload);
 
 		const notificationResponse = await axios.post(
 			edgeFunctionUrl,
@@ -137,11 +104,6 @@ const JobScreen = () => {
 					Authorization: `Bearer ${accessToken}`, // Assurez-vous que l'utilisateur a un accessToken valide
 				},
 			}
-		);
-
-		console.log(
-			"Réponse de la Edge Function de notification:",
-			notificationResponse.data
 		);
 
 		setIsApplied(isNowApplied);
@@ -173,14 +135,6 @@ const JobScreen = () => {
 		const archived = await isJobArchived(id);
 		setIsArchived(archived);
 	};
-
-	// useEffect(() => {
-	// 	checkWishlist();
-	// }, []);
-
-	// useEffect(() => {
-	// 	checkApplication();
-	// }, [user, id]);
 
 	useFocusEffect(
 		useCallback(() => {

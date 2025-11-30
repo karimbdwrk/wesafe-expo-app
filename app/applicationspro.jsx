@@ -43,7 +43,6 @@ const ApplicationsProScreen = () => {
 			ITEMS_PER_PAGE,
 			"created_at.desc"
 		);
-		console.log(data, data.length);
 		setApplications(data);
 		setTotalCount(totalCount);
 	};

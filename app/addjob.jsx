@@ -42,19 +42,16 @@ export default function AddJobScreen() {
 	const [remainingJobs, setRemainingJobs] = useState(0);
 
 	useEffect(() => {
-		console.log("hasSubscription @ jobcount :", hasSubscription, jobCount);
 		setRemainingJobs(3 - (jobCount || 0));
 	}, [jobCount]);
 
 	const fetchJobCount = async () => {
-		console.log("hasSubscription :", hasSubscription);
 		if (!user || hasSubscription) return; // Premium : ne rien faire
 
 		const startDate = new Date();
 		startDate.setDate(startDate.getDate() - 30); // ← 30 derniers jours
 		startDate.setHours(0, 0, 0, 0);
 		const fromDate = startDate.toISOString();
-		console.log("dates :", fromDate);
 
 		const { data, totalCount } = await getAll(
 			"jobs",
@@ -64,15 +61,12 @@ export default function AddJobScreen() {
 			5,
 			"created_at.desc"
 		);
-		console.log("data :", data);
-		console.log("count :", totalCount);
 		setJobCount(totalCount);
 	};
 
 	useEffect(() => {
 		loadUserData(userCompany.id, accessToken);
 		fetchJobCount();
-		console.log("company credits :", userCompany.last_minute_credits);
 	}, [user]);
 
 	const handleJobCreated = (isSubmitted) => {
@@ -83,12 +77,10 @@ export default function AddJobScreen() {
 				duration: 2500,
 				icon: <Check />,
 			});
-			console.log("Job soumis avec succès !");
-			console.log("handleJobCreated ok!");
 			loadUserData(userCompany.id, accessToken);
 			fetchJobCount();
 		} else {
-			console.log("Job non soumis");
+			console.error("Job non soumis");
 		}
 	};
 

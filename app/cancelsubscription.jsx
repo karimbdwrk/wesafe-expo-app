@@ -22,7 +22,6 @@ const CancelSubscriptionScreen = () => {
 
 	useFocusEffect(
 		useCallback(() => {
-			console.log("sub ID :", subscription_id);
 			setUserSubscriptionId(subscription_id);
 		}, [subscription_id])
 	);

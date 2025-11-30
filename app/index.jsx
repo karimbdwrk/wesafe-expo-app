@@ -43,15 +43,10 @@ export default function Home() {
 	} = useAuth();
 
 	useEffect(() => {
-		console.log("REDIRECTION INDEX");
-		console.log("user && !authLoading out of if :", user, authLoading);
 		if (user) {
-			console.log("user && !authLoading :", user, authLoading);
 			if (role === "unknown") {
 				router.replace("/finalizeregistration");
-				console.log("role is set to:", role);
 			} else {
-				console.log("FIRST INDEX role is set to:", role);
 				router.replace("/tabs/(tabs)");
 			}
 		}

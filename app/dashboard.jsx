@@ -29,7 +29,6 @@ const DashboardScreen = () => {
 
 	const loadData = async () => {
 		const data = await getById("companies", user.id, `*`);
-		console.log("data company :", data);
 		setCompany(data);
 		// setTotalCount(totalCount);
 	};

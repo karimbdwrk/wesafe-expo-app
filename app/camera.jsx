@@ -67,13 +67,10 @@ export default function CameraScreen() {
 		if (!cameraRef.current) return;
 
 		try {
-			console.log("Taking photo...");
 			const photo = await cameraRef.current.takePictureAsync({
 				quality: 1,
 				base64: false,
 			});
-
-			console.log("Photo taken:", photo);
 			setCapturedPhoto(photo.uri);
 			setImage(photo);
 			setShowCamera(false);
@@ -82,7 +79,6 @@ export default function CameraScreen() {
 			// Here you can call your handleUpload function
 			// handleUpload({ uri: photo.uri });
 		} catch (error) {
-			console.error("Error taking photo:", error);
 			toast.error("Failed to take photo");
 		}
 	};
@@ -92,7 +88,6 @@ export default function CameraScreen() {
 	};
 
 	const openCamera = () => {
-		console.log("Opening camera...");
 		setShowCamera(true);
 	};
 

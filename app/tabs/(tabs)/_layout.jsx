@@ -112,13 +112,8 @@ export default function TabLayout({ theme = "light" }) {
 	const router = useRouter();
 	const segments = useSegments();
 
-	useEffect(() => {
-		console.warn("my role :", role);
-	}, [role]);
-
 	useFocusEffect(
 		useCallback(() => {
-			console.log("useFocusEffect called in /(tabs)/_layout.jsx :", user);
 			loadSession();
 		}, [])
 	);
@@ -127,9 +122,6 @@ export default function TabLayout({ theme = "light" }) {
 		if (user && !authLoading) {
 			if (role === "unknown") {
 				router.replace("/finalizeregistration");
-				// console.log("role is set to:", role);
-			} else {
-				console.log("role is set to:", role);
 			}
 		}
 	}, [user, role]);
@@ -152,16 +144,11 @@ export default function TabLayout({ theme = "light" }) {
 				finalStatus = status;
 			}
 			if (finalStatus !== "granted") {
-				// alert("Failed to get push token for push notification!");
 				console.warn("Failed to get push token for push notification!");
 				return;
 			}
 			token = (await Notifications.getExpoPushTokenAsync()).data;
-			console.log(token);
-			// Envoyer ce token à votre fonction Edge ou API pour le stocker dans Supabase
-			// Exemple: await supabase.from('push_tokens').insert({ company_id: companyId, token: token });
 		} else {
-			// alert("Must use physical device for Push Notifications");
 			console.warn("Must use physical device for Push Notifications");
 		}
 

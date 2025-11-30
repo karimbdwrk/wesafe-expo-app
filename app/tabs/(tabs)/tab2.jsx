@@ -97,7 +97,6 @@ export default function Tab2() {
 	};
 
 	useEffect(() => {
-		console.log("values :", values);
 		let filter = "";
 		if (values.length > 0 && resetValues) {
 			setKeywords("");
@@ -105,7 +104,6 @@ export default function Tab2() {
 			const formatted = values.map((c) => `"${c}"`).join(",");
 			filter = `&category=in.(${formatted})`;
 		} else {
-			console.log("everything clear");
 			loadDataJobs();
 		}
 		setFilters(filter);
@@ -118,9 +116,6 @@ export default function Tab2() {
 			const encodedKeyword = encodeURIComponent(`%${keywords}%`);
 			filter = `&or=(title.ilike.${encodedKeyword},category.ilike.${encodedKeyword})`;
 		}
-
-		console.log("Keyword-only filter:", filter);
-		// setValues([]);
 		setResetValues(true);
 		setFilters(filter);
 	}, [keywords]);
@@ -132,9 +127,6 @@ export default function Tab2() {
 	useFocusEffect(
 		useCallback(() => {
 			loadDataJobs();
-			return () => {
-				console.log("Screen unfocused.");
-			};
 		}, [page])
 	);
 
@@ -158,34 +150,6 @@ export default function Tab2() {
 	return (
 		<VStack style={{ flex: 1 }}>
 			<JobsList pageNbr={1} itemsPerPage={5} isLastMinute={false} />
-			{/* <Button onPress={() => setShowActionsheet(true)}>
-				<ButtonText>Open Actionsheet</ButtonText>
-			</Button>
-			<Actionsheet isOpen={showActionsheet} onClose={handleClose}>
-				<ActionsheetBackdrop />
-				<ActionsheetContent>
-					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
-					</ActionsheetDragIndicatorWrapper>
-					<ActionsheetItem onPress={handleClose}>
-						<ActionsheetItemText>Edit Message</ActionsheetItemText>
-					</ActionsheetItem>
-					<ActionsheetItem onPress={handleClose}>
-						<ActionsheetItemText>Mark Unread</ActionsheetItemText>
-					</ActionsheetItem>
-					<ActionsheetItem onPress={handleClose}>
-						<ActionsheetItemText>Remind Me</ActionsheetItemText>
-					</ActionsheetItem>
-					<ActionsheetItem onPress={handleClose}>
-						<ActionsheetItemText>
-							Add to Saved Items
-						</ActionsheetItemText>
-					</ActionsheetItem>
-					<ActionsheetItem isDisabled onPress={handleClose}>
-						<ActionsheetItemText>Delete</ActionsheetItemText>
-					</ActionsheetItem>
-				</ActionsheetContent>
-			</Actionsheet> */}
 		</VStack>
 	);
 }

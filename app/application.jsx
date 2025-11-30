@@ -58,7 +58,6 @@ const ApplicationScreen = () => {
 			apply_id,
 			"*,jobs(*), profiles(*)"
 		);
-		console.log("data loaded : ", data);
 		setApplication(data);
 		setIsConfirmed(data.isConfirmed);
 		setIsSelected(data.isSelected);
@@ -68,7 +67,6 @@ const ApplicationScreen = () => {
 
 	useFocusEffect(
 		useCallback(() => {
-			console.log("use focus effect and use callback application");
 			loadData();
 		}, [])
 	);
@@ -80,7 +78,6 @@ const ApplicationScreen = () => {
 
 	const handleSelect = async (bool) => {
 		const isNowSelected = await selectApplication(apply_id, bool);
-		console.log("isNowSelected :", isNowSelected);
 		setIsSelected(bool);
 	};
 
@@ -105,10 +102,6 @@ const ApplicationScreen = () => {
 		const applied = await isJobApplied(user.id, id);
 		setIsApplied(applied);
 	};
-
-	useEffect(() => {
-		console.warn("application data :", user.id, company_id);
-	}, []);
 
 	// useEffect(() => {
 	// 	checkApplication();
