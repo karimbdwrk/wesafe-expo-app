@@ -49,7 +49,7 @@ export default function Home() {
 			console.log("user && !authLoading :", user, authLoading);
 			if (role === "unknown") {
 				router.replace("/finalizeregistration");
-				// console.log("role is set to:", role);
+				console.log("role is set to:", role);
 			} else {
 				console.log("FIRST INDEX role is set to:", role);
 				router.replace("/tabs/(tabs)");
