@@ -77,7 +77,6 @@ export const AuthProvider = ({ children }) => {
 					},
 				}
 			);
-			console.warn("Profile user data:", res.data[0]);
 			if (res.data.length === 0) {
 				console.warn("Profile not found for user:", userId);
 				return null;
