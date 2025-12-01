@@ -42,15 +42,27 @@ export default function Home() {
 		loading: authLoading,
 	} = useAuth();
 
-	useEffect(() => {
-		if (user) {
-			if (role === "unknown") {
-				router.replace("/finalizeregistration");
-			} else {
-				router.replace("/tabs/(tabs)");
-			}
-		}
-	}, [user, role]);
+	// console.log("INDEX RENDER", { user, role, authLoading });
+
+	// useEffect(() => {
+	// 	if (authLoading) {
+	// 		console.log("⏳ Auth loading → pas de redirection");
+	// 		return;
+	// 	}
+
+	// 	if (!user) {
+	// 		console.log("⛔ Pas de user → pas de redirection");
+	// 		return;
+	// 	}
+
+	// 	console.log("User détecté, role :", role);
+
+	// 	if (role === "unknown") {
+	// 		router.replace("/finalizeregistration");
+	// 	} else {
+	// 		router.replace("/tabs/(tabs)");
+	// 	}
+	// }, [authLoading, user, role]);
 
 	return (
 		<Box className='flex-1 bg-background-300 h-[100vh]'>
