@@ -229,8 +229,6 @@ export default function Tab1() {
 		if (values.length > 0) {
 			const formattedCategories = values.map((c) => `"${c}"`).join(",");
 			filterString += `&category=in.(${formattedCategories})`;
-		} else {
-			console.error("Aucune catégorie sélectionnée.");
 		}
 
 		// 2. Gérer le filtre de distance
@@ -240,8 +238,6 @@ export default function Tab1() {
 			// AJOUT DES FILTRES LATITUDE ET LONGITUDE (GTE/LTE)
 			filterString += `&latitude=gte.${bbox.minLat}&latitude=lte.${bbox.maxLat}`;
 			filterString += `&longitude=gte.${bbox.minLon}&longitude=lte.${bbox.maxLon}`;
-		} else {
-			console.error("Pas de filtre de distance appliqué.");
 		}
 
 		// Mettre à jour l'état `filters` et déclencher le chargement des jobs
