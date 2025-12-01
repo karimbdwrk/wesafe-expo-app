@@ -120,6 +120,10 @@ function RootLayoutNav() {
 									options={{ headerShown: true }}
 								/>
 								<Stack.Screen
+									name='updatestamp'
+									options={{ headerShown: true }}
+								/>
+								<Stack.Screen
 									name='scanner'
 									options={{ headerShown: true }}
 								/>
@@ -208,6 +212,10 @@ function RootLayoutNav() {
 								/>
 								<Stack.Screen
 									name='subscription'
+									options={{ headerShown: true }}
+								/>
+								<Stack.Screen
+									name='contract'
 									options={{ headerShown: true }}
 								/>
 								{/* <Slot /> */}
