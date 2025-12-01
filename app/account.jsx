@@ -43,7 +43,6 @@ const AccountScreen = () => {
 
 	const loadData = async () => {
 		const data = await getById("profiles", user.id, `*`);
-		console.log("data profile :", data);
 		setProfile(data);
 		// setTotalCount(totalCount);
 	};
