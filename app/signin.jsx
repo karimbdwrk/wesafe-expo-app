@@ -139,18 +139,6 @@ const SignInScreen = () => {
 									<LinkText>M'inscrire</LinkText>
 								</Link>
 							</HStack>
-							<HStack
-								space={"sm"}
-								style={{ paddingTop: 30, paddingBottom: 5 }}
-								justifyContent='center'>
-								<Text>Tabs</Text>
-								<Link
-									onPress={() =>
-										router.replace("/tabs/(tabs)")
-									}>
-									<LinkText>Tabs</LinkText>
-								</Link>
-							</HStack>
 						</FormControl>
 						{loading && (
 							<Text style={styles.loading}>
