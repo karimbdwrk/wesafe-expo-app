@@ -91,22 +91,11 @@ const MiniJobsList = ({
 			itemsPerPage,
 			"date.desc"
 		);
-		console.warn(
-			heading,
-			subtitle,
-			itemsPerPage,
-			regionName,
-			regionCode,
-			category,
-			filtersSup
-		);
-		console.log(heading, "Jobs data:", data, "Total count:", totalCount);
 		setJobs(data);
 		setTotalCount(totalCount);
 	};
 
 	useEffect(() => {
-		console.log("MiniJobsList useEffect: filters changed:", filters);
 		loadDataJobs();
 	}, [filters]);
 
