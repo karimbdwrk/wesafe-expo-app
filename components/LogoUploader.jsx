@@ -90,6 +90,7 @@ const LogoUploader = ({ image }) => {
 			<VStack space='lg' alignItems='center'>
 				{logoUrl ? (
 					<Image
+						alt='company logo'
 						source={{ uri: logoUrl }}
 						size={"xl"}
 						resizeMode='contain'
