@@ -65,6 +65,7 @@ import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 import JobsList from "@/components/JobsList";
 import MiniJobsList from "@/components/MiniJobsList";
+import ApplicationsProList from "@/components/ApplicationsProList";
 
 const ITEMS_PER_PAGE = 5;
 const today = new Date();
@@ -322,42 +323,56 @@ export default function Tab1() {
 						))}
 					</View>
 				</VStack>
-				<VStack style={{ padding: 15 }}>
-					<MiniJobsList
-						heading='Nos offres Last Minute'
-						subtitle='Voici nos offres de dernière minute dans votre secteur'
-						pageNbr={1}
-						itemsPerPage={3}
-						regionCode={userProfile?.region_code}
-						regionName={userProfile?.region}
-						category={myCategories}
-						filtersSup={
-							"&isLastMinute=eq.true&date=gte." +
-							today.toISOString().split("T")[0]
-						}
-					/>
-					<Button onPress={() => router.push("/lastminute")}>
-						<ButtonText>
-							Voir toutes les offres Last Minute
-						</ButtonText>
-					</Button>
-				</VStack>
-				<VStack style={{ padding: 15 }}>
-					{/* <JobsList pageNbr={1} itemsPerPage={5} /> */}
-					<MiniJobsList
-						heading='Offres recommandées'
-						subtitle='* Basées sur vos informations personnelles'
-						pageNbr={1}
-						itemsPerPage={5}
-						regionCode={userProfile?.region_code}
-						regionName={userProfile?.region}
-						category={myCategories}
-						filtersSup={"&isLastMinute=eq.false"}
-					/>
-					<Button onPress={() => router.replace("/tabs/(tabs)/tab2")}>
-						<ButtonText>Voir toutes les offres</ButtonText>
-					</Button>
-				</VStack>
+				{role === "candidat" ? (
+					<>
+						<VStack style={{ padding: 15 }}>
+							<MiniJobsList
+								heading='Nos offres Last Minute'
+								subtitle='Voici nos offres de dernière minute dans votre secteur'
+								pageNbr={1}
+								itemsPerPage={3}
+								regionCode={userProfile?.region_code}
+								regionName={userProfile?.region}
+								category={myCategories}
+								filtersSup={
+									"&isLastMinute=eq.true&date=gte." +
+									today.toISOString().split("T")[0]
+								}
+							/>
+							<Button onPress={() => router.push("/lastminute")}>
+								<ButtonText>
+									Voir toutes les offres Last Minute
+								</ButtonText>
+							</Button>
+						</VStack>
+						<VStack style={{ padding: 15 }}>
+							{/* <JobsList pageNbr={1} itemsPerPage={5} /> */}
+							<MiniJobsList
+								heading='Offres recommandées'
+								subtitle='* Basées sur vos informations personnelles'
+								pageNbr={1}
+								itemsPerPage={5}
+								regionCode={userProfile?.region_code}
+								regionName={userProfile?.region}
+								category={myCategories}
+								filtersSup={"&isLastMinute=eq.false"}
+							/>
+							<Button
+								onPress={() =>
+									router.replace("/tabs/(tabs)/tab2")
+								}>
+								<ButtonText>Voir toutes les offres</ButtonText>
+							</Button>
+						</VStack>
+					</>
+				) : (
+					<VStack style={{ padding: 15 }}>
+						<ApplicationsProList
+							title='Vos dernières candidatures'
+							userId={user.id}
+						/>
+					</VStack>
+				)}
 				<VStack style={{ padding: 15 }}>
 					<Button
 						variant='outline'
