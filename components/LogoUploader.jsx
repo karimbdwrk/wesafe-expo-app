@@ -93,6 +93,7 @@ const LogoUploader = ({ image }) => {
 						source={{ uri: logoUrl }}
 						size={"xl"}
 						resizeMode='contain'
+						borderRadius={15}
 					/>
 				) : (
 					<View
