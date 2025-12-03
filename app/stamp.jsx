@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter, useFocusEffect } from "expo-router";
 
 import { Image } from "@/components/ui/image";
@@ -10,13 +10,26 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 
 const StampScreen = () => {
-	const { user, userCompany } = useAuth();
+	const { user, userCompany, refreshUser } = useAuth();
 
 	const router = useRouter();
 
-	useEffect(() => {
-		console.log("userCompany stamp url:", userCompany?.stamp_url);
-	}, [userCompany]);
+	// useEffect(() => {
+	// 	console.log("userCompany stamp url:", userCompany?.stamp_url);
+	// }, [userCompany]);
+
+	useFocusEffect(
+		useCallback(() => {
+			console.log("refreshing user in StampScreen");
+			refreshUser();
+			if (userCompany) {
+				console.log(
+					"userCompany Stamp in StampScreen:",
+					userCompany?.stamp_url
+				);
+			}
+		}, [])
+	);
 
 	return (
 		<VStack
@@ -33,14 +46,16 @@ const StampScreen = () => {
 					backgroundColor: "yellow",
 					height: 500,
 				}}>
-				<Image
-					size='2xl'
-					source={{
-						uri: userCompany.stamp_url,
-					}}
-					resizeMode='contain'
-					alt='image'
-				/>
+				{userCompany?.stamp_url && (
+					<Image
+						size='2xl'
+						source={{
+							uri: userCompany.stamp_url,
+						}}
+						resizeMode='contain'
+						alt='image'
+					/>
+				)}
 			</VStack>
 			<Button onPress={() => router.push("/updatestamp")}>
 				<ButtonText>Update tampon</ButtonText>
