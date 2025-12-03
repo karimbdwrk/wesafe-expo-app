@@ -119,10 +119,13 @@ const StampCaptureUploader = () => {
 			);
 			console.log("Response upload:", response.data);
 			const publicUrl = `${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${filename}`;
-			await update("companies", user.id, { stamp_url: publicUrl });
+			const responseUpdate = await update("companies", user.id, {
+				stamp_url: publicUrl,
+			});
+			console.log("Response update company:", responseUpdate);
 
 			Alert.alert("envoyé a supabase !");
-			fetchCompanyFromSession();
+			// fetchCompanyFromSession();
 			// setAvatarUrl(publicUrl);
 			// await fetchProfileFromSession();
 			// Reset form after successful submission
