@@ -14,9 +14,9 @@ const StampScreen = () => {
 
 	const router = useRouter();
 
-	// useEffect(() => {
-	// 	console.log("userCompany :", userCompany);
-	// }, [userCompany]);
+	useEffect(() => {
+		console.log("userCompany stamp url:", userCompany?.stamp_url);
+	}, [userCompany]);
 
 	return (
 		<VStack
