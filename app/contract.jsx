@@ -313,7 +313,13 @@ const ContractScreen = () => {
 				{role === "candidat" && !isSigned && (
 					<View style={styles.buttonContainer}>
 						{!candidate?.signature_url ? (
-							<Button onPress={() => router.push("/signature")}>
+							<Button
+								onPress={() =>
+									router.push({
+										pathname: "/signature",
+										params: { type: "profiles" },
+									})
+								}>
 								<ButtonText>
 									Enregistrer une signature
 								</ButtonText>
