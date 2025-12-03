@@ -41,6 +41,10 @@ const SignatureScreen = () => {
 		signature && handleUpload(signature);
 	}, [signature]);
 
+	useEffect(() => {
+		console.log("type param in signature screen :", type);
+	}, [type]);
+
 	const handleUpload = async (signatureBase64) => {
 		try {
 			const bucket = "signatures";
