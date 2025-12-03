@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Image, View, ActivityIndicator, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import axios from "axios";
 import Constants from "expo-constants";
 
@@ -77,7 +77,8 @@ const StampCaptureUploader = () => {
 					FileSystem.documentDirectory + `stamp-${Date.now()}.jpg`;
 
 				await FileSystem.writeAsStringAsync(filePath, base64data, {
-					encoding: FileSystem.EncodingType.Base64,
+					encoding: "base64",
+					// encoding: FileSystem.EncodingType.Base64,
 				});
 
 				setProcessedImage({ uri: filePath });
