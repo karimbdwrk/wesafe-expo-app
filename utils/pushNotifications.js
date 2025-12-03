@@ -80,7 +80,7 @@ export async function registerForPushNotificationsAsync(
 			);
 		}
 	} catch (error) {
-		console.error("Erreur lors de l'envoi du token:", error);
+		console.warn("Erreur lors de l'envoi du token:", error);
 	}
 
 	if (Platform.OS === "android") {
