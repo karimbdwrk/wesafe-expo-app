@@ -393,6 +393,17 @@ export const AuthProvider = ({ children }) => {
 		}
 	};
 
+	const refreshUser = async () => {
+		if (!user || !accessToken) {
+			console.warn("refreshUser called but no user or token. Skipping.");
+			return;
+		}
+
+		console.log("🔄 Refreshing user data…");
+
+		await loadUserData(user.id, accessToken);
+	};
+
 	useEffect(() => {
 		if (justSignup) {
 			loadUserData(user.id, accessToken);
@@ -417,6 +428,7 @@ export const AuthProvider = ({ children }) => {
 				refreshToken,
 				loadUserData,
 				loadSession,
+				refreshUser,
 				setJustSignup,
 				checkSubscription,
 				hasSubscription,
