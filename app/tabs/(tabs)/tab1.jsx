@@ -367,10 +367,12 @@ export default function Tab1() {
 					</>
 				) : (
 					<VStack style={{ padding: 15 }}>
-						<ApplicationsProList
-							title='Vos dernières candidatures'
-							userId={user.id}
-						/>
+						{user && (
+							<ApplicationsProList
+								title='Vos dernières candidatures'
+								userId={user.id}
+							/>
+						)}
 					</VStack>
 				)}
 				<VStack style={{ padding: 15 }}>
