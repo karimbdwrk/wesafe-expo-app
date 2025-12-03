@@ -45,6 +45,7 @@ const ApplicationScreen = () => {
 	} = useDataContext();
 
 	const [isInWishlist, setIsInWishlist] = useState(false);
+	const [isApplied, setIsApplied] = useState(false);
 	const [isConfirmed, setIsConfirmed] = useState(false);
 	const [isSelected, setIsSelected] = useState(false);
 	const [isRefused, setIsRefused] = useState(false);
@@ -115,7 +116,7 @@ const ApplicationScreen = () => {
 
 	useFocusEffect(
 		useCallback(() => {
-			checkApplication();
+			role === "candidat" && checkApplication();
 		}, [user, id])
 	);
 
