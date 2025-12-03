@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import Constants from "expo-constants";
 import axios from "axios";
 
-import { Image, View } from "react-native";
+import { View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Button, ButtonText } from "@/components/ui/button";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import { Spinner } from "@/components/ui/spinner";
 import { Center } from "@/components/ui/center";
+import { Image } from "@/components/ui/image";
 
 import { useDataContext } from "@/context/DataContext"; // your supabase axios methods
 import { useAuth } from "@/context/AuthContext"; // to get user & token
@@ -77,7 +78,7 @@ const LogoUploader = ({ image }) => {
 			const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${filename}`;
 			await update("companies", user.id, { logo_url: publicUrl });
 			setLogoUrl(publicUrl);
-			await fetchCompanyFromSession();
+			// await fetchCompanyFromSession();
 			setImage(null);
 		} catch (error) {
 			console.error("Error upload:", error);
@@ -90,7 +91,8 @@ const LogoUploader = ({ image }) => {
 				{logoUrl ? (
 					<Image
 						source={{ uri: logoUrl }}
-						style={{ width: 120, height: 120, borderRadius: 15 }}
+						size={"xl"}
+						resizeMode='contain'
 					/>
 				) : (
 					<View
