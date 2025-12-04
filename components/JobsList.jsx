@@ -186,7 +186,6 @@ export default function JobsList({
 				itemsPerPage,
 				"date.desc"
 			);
-			console.log("Jobs data:", data[0]);
 			setJobs(data || []);
 			setTotalCount(totalCount || 0);
 		} catch (err) {
