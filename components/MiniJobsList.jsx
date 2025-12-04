@@ -85,7 +85,7 @@ const MiniJobsList = ({
 	const loadDataJobs = async () => {
 		const { data, totalCount } = await getAll(
 			"jobs",
-			"*",
+			"*,companies(logo_url)",
 			`&isArchived=eq.FALSE${filtersSup}&region_code=eq.${regionCode}${filters}`,
 			1,
 			itemsPerPage,
