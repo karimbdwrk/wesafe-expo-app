@@ -176,7 +176,7 @@ export default function JobsList({
 		try {
 			const { data, totalCount } = await getAll(
 				"jobs",
-				"*",
+				"*,companies(logo_url)",
 				`&isArchived=eq.FALSE${filters}&isLastMinute=eq.${isLastMinute}${
 					isLastMinute
 						? "&date=gte." + today.toISOString().split("T")[0]
@@ -186,6 +186,7 @@ export default function JobsList({
 				itemsPerPage,
 				"date.desc"
 			);
+			console.log("Jobs data:", data[0]);
 			setJobs(data || []);
 			setTotalCount(totalCount || 0);
 		} catch (err) {
@@ -685,6 +686,7 @@ export default function JobsList({
 									company_id={job?.company_id}
 									city={job?.city}
 									department={job?.department_code}
+									logo={job?.companies?.logo_url}
 								/>
 							))
 						)}
