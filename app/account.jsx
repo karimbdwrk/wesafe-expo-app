@@ -8,6 +8,7 @@ import { Text } from "@/components/ui/text";
 import { Heading } from "@/components/ui/heading";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
+import { Image } from "@/components/ui/image";
 import { Button, ButtonText } from "@/components/ui/button";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import {
@@ -23,7 +24,7 @@ import {
 import { Divider } from "@/components/ui/divider";
 import { ChevronUpIcon, ChevronDownIcon } from "@/components/ui/icon";
 
-import { IdCard } from "lucide-react-native";
+import { IdCard, CircleCheckBig } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
@@ -31,6 +32,7 @@ import { useImage } from "@/context/ImageContext";
 
 import AvatarUploader from "@/components/AvatarUploader";
 import FlipCardProfile from "@/components/FlipCardProfile";
+import { width } from "dom-helpers";
 
 const AccountScreen = () => {
 	const { user } = useAuth();
@@ -186,9 +188,18 @@ const AccountScreen = () => {
 									{({ isExpanded }) => {
 										return (
 											<>
-												<AccordionTitleText>
-													Signature
-												</AccordionTitleText>
+												<HStack
+													style={{
+														width: "max-content",
+														gap: 15,
+													}}>
+													<Heading size='md'>
+														Signature
+													</Heading>
+													{profile?.signature_url && (
+														<CircleCheckBig />
+													)}
+												</HStack>
 												{isExpanded ? (
 													<AccordionIcon
 														as={ChevronUpIcon}
@@ -206,11 +217,23 @@ const AccountScreen = () => {
 								</AccordionTrigger>
 							</AccordionHeader>
 							<AccordionContent>
-								<AccordionContentText>
-									We accept all major credit cards, including
-									Visa, Mastercard, and American Express. We
-									also support payments through PayPal.
-								</AccordionContentText>
+								<VStack
+									style={{
+										alignItems: "center",
+										padding: 15,
+									}}>
+									{profile?.signature_url && (
+										<Image
+											source={{
+												uri: profile?.signature_url,
+											}}
+											size={"2xl"}
+											resizeMode='contain'
+											borderRadius={15}
+											alt='profile signature'
+										/>
+									)}
+								</VStack>
 								<Button
 									onPress={() => {
 										router.push({
