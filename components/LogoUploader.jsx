@@ -4,9 +4,10 @@ import axios from "axios";
 
 import { View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { Button, ButtonText } from "@/components/ui/button";
+import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
+import { Pressable } from "@/components/ui/pressable";
 import { Spinner } from "@/components/ui/spinner";
 import { Center } from "@/components/ui/center";
 import { Image } from "@/components/ui/image";
@@ -14,7 +15,7 @@ import { Image } from "@/components/ui/image";
 import { useDataContext } from "@/context/DataContext"; // your supabase axios methods
 import { useAuth } from "@/context/AuthContext"; // to get user & token
 import { useImage } from "@/context/ImageContext";
-import { Camera, User } from "lucide-react-native";
+import { Camera, Pen, User } from "lucide-react-native";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const BUCKET_NAME = "logos";
@@ -87,32 +88,33 @@ const LogoUploader = ({ image }) => {
 
 	return (
 		<Center>
-			<VStack space='lg' alignItems='center'>
-				{logoUrl ? (
-					<Image
-						alt='company logo'
-						source={{ uri: logoUrl }}
-						size={"xl"}
-						resizeMode='contain'
-						borderRadius={15}
-					/>
-				) : (
-					<View
-						style={{
-							width: 120,
-							height: 120,
-							borderWidth: 1,
-							borderRadius: 15,
-							borderColor: "black",
-							borderStyle: "dotted",
-							justifyContent: "center",
-							alignItems: "center",
-						}}>
-						<Camera />
-					</View>
-				)}
+			<Pressable onPress={pickImage}>
+				<VStack space='lg' alignItems='center'>
+					{logoUrl ? (
+						<Image
+							alt='company logo'
+							source={{ uri: logoUrl }}
+							size={"xl"}
+							resizeMode='contain'
+							borderRadius={15}
+						/>
+					) : (
+						<View
+							style={{
+								width: 120,
+								height: 120,
+								borderWidth: 1,
+								borderRadius: 15,
+								borderColor: "black",
+								borderStyle: "dotted",
+								justifyContent: "center",
+								alignItems: "center",
+							}}>
+							<Camera />
+						</View>
+					)}
 
-				{loading ? (
+					{/* {loading ? (
 					<Spinner size='large' />
 				) : (
 					<Button onPress={pickImage}>
@@ -120,8 +122,16 @@ const LogoUploader = ({ image }) => {
 							{logoUrl ? "Update logo" : "Upload logo"}
 						</ButtonText>
 					</Button>
-				)}
-			</VStack>
+				)} */}
+				</VStack>
+				<Button
+					onPress={pickImage}
+					size='lg'
+					className='rounded-full p-3'
+					style={{ position: "absolute", bottom: -15, right: -15 }}>
+					<ButtonIcon as={Pen} />
+				</Button>
+			</Pressable>
 		</Center>
 	);
 };
