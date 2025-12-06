@@ -56,6 +56,7 @@ import {
 	X,
 	Pin,
 	MapPin,
+	IdCard,
 } from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
@@ -123,6 +124,7 @@ const MiniJobsList = ({
 				</Text>
 				<HStack style={{ gap: 10, paddingVertical: 10 }}>
 					<Badge size='md' variant='solid' action='muted'>
+						<BadgeIcon as={MapPin} className='mr-2' />
 						<BadgeText>{regionName}</BadgeText>
 					</Badge>
 					{category &&
@@ -133,6 +135,7 @@ const MiniJobsList = ({
 								size='md'
 								variant='solid'
 								action='muted'>
+								<BadgeIcon as={IdCard} className='mr-2' />
 								<BadgeText>{cat}</BadgeText>
 							</Badge>
 						))}
