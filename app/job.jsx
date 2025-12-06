@@ -22,6 +22,7 @@ import {
 	Timer,
 	Check,
 	MapPin,
+	IdCard,
 } from "lucide-react-native";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
@@ -176,6 +177,7 @@ const JobScreen = () => {
 			)}
 			<HStack style={{ paddingVertical: 15, gap: 15 }}>
 				<Badge size='md' variant='solid' action='info'>
+					<BadgeIcon as={IdCard} className='mr-2' />
 					<BadgeText>{job?.category}</BadgeText>
 				</Badge>
 				{job?.isArchived && (
