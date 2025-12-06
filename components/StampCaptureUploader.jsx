@@ -96,7 +96,6 @@ const StampCaptureUploader = () => {
 	};
 
 	const handleUpload = async () => {
-		// setAvatarLoading(true);
 		console.log("handleUpload values", filepath);
 
 		try {
@@ -125,12 +124,6 @@ const StampCaptureUploader = () => {
 			console.log("Response update company:", responseUpdate);
 
 			Alert.alert("envoyé a supabase !");
-			// fetchCompanyFromSession();
-			// setAvatarUrl(publicUrl);
-			// await fetchProfileFromSession();
-			// Reset form after successful submission
-			// resetForm();
-			// setImage(null);
 		} catch (error) {
 			console.error("Error upload:", error);
 		}
