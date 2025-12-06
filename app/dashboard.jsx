@@ -43,6 +43,7 @@ const DashboardScreen = () => {
 		<VStack style={{ padding: 15 }}>
 			<LogoUploader image={image} />
 			<Text>{company?.name}</Text>
+			<Text>{company?.siret}</Text>
 			<Button
 				onPress={() => {
 					router.push({
