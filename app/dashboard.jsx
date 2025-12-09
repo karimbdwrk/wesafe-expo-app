@@ -44,12 +44,15 @@ const DashboardScreen = () => {
 			<LogoUploader image={image} />
 			<Text>{company?.name}</Text>
 			<Text>{company?.siret}</Text>
+			<Text>{company?.description}</Text>
 			<Button
 				onPress={() => {
 					router.push({
 						pathname: "/updatecompany",
 						params: {
 							companyName: company.name,
+							companySiret: company.siret,
+							companyDescription: company.description,
 						},
 					});
 				}}>
