@@ -6,8 +6,12 @@ import Constants from "expo-constants";
 
 import { Text } from "@/components/ui/text";
 import { Heading } from "@/components/ui/heading";
+import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import { Button, ButtonText } from "@/components/ui/button";
+import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
+
+import { BadgeCheckIcon } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
@@ -42,7 +46,19 @@ const DashboardScreen = () => {
 	return (
 		<VStack style={{ padding: 15 }}>
 			<LogoUploader image={image} />
-			<Text>{company?.name}</Text>
+			<HStack alignItems='center' className='mt-2 mb-2' space={2}>
+				<Text>{company?.name}</Text>
+				{company.isConfirmed && (
+					<Badge
+						size='sm'
+						variant='solid'
+						action='success'
+						className='ml-1'>
+						<BadgeText>Verified</BadgeText>
+						<BadgeIcon as={BadgeCheckIcon} className='ml-1' />
+					</Badge>
+				)}
+			</HStack>
 			<Text>{company?.siret}</Text>
 			<Text>{company?.description}</Text>
 			<Button
