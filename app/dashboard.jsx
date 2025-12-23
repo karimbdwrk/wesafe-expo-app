@@ -48,7 +48,7 @@ const DashboardScreen = () => {
 			<LogoUploader image={image} />
 			<HStack alignItems='center' className='mt-2 mb-2' space={2}>
 				<Text>{company?.name}</Text>
-				{company.isConfirmed && (
+				{company?.isConfirmed && (
 					<Badge
 						size='sm'
 						variant='solid'
