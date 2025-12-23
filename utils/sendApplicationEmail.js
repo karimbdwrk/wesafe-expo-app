@@ -49,3 +49,14 @@ export const sendApplicationEmail = async (
 		};
 	}
 };
+
+// import { Resend } from 'resend';
+
+// const resend = new Resend('re_iTKHK5Xv_7Qv5s9WyZvnTgyw6fohANonE');
+
+// resend.emails.send({
+//   from: 'onboarding@resend.dev',
+//   to: 'info.wesafeapp@gmail.com',
+//   subject: 'Hello World',
+//   html: '<p>Congrats on sending your <strong>first email</strong>!</p>'
+// });
