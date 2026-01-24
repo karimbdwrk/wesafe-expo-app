@@ -1,5 +1,11 @@
 // context/DataContext.jsx
-import React, { createContext, useContext, useState } from "react";
+import React, {
+	createContext,
+	useContext,
+	useState,
+	useMemo,
+	useCallback,
+} from "react";
 // import dotenv from "dotenv";
 import Constants from "expo-constants";
 import axios from "axios";
@@ -19,25 +25,31 @@ export const DataProvider = ({ children }) => {
 
 	// const accessToken = session?.access_token;
 
-	const axiosInstance = axios.create({
-		baseURL: `${SUPABASE_URL}/rest/v1`,
-		headers: {
-			apikey: SUPABASE_API_KEY,
-			Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
-			"Content-Type": "application/json",
-		},
-	});
+	const axiosInstance = useMemo(
+		() =>
+			axios.create({
+				baseURL: `${SUPABASE_URL}/rest/v1`,
+				headers: {
+					apikey: SUPABASE_API_KEY,
+					Authorization: accessToken
+						? `Bearer ${accessToken}`
+						: undefined,
+					"Content-Type": "application/json",
+				},
+			}),
+		[accessToken],
+	);
 
 	const isJobInWishlist = async (jobId, userId) => {
 		try {
 			const res = await axiosInstance.get(
-				`/wishlists?job_id=eq.${jobId}&profile_id=eq.${userId}&select=wish_id`
+				`/wishlists?job_id=eq.${jobId}&profile_id=eq.${userId}&select=wish_id`,
 			);
 			return res.data.length > 0;
 		} catch (err) {
 			console.error(
 				"Error checking if job is in wishlist:",
-				err.response?.data || err.message
+				err.response?.data || err.message,
 			);
 			throw err;
 		}
@@ -47,7 +59,7 @@ export const DataProvider = ({ children }) => {
 		try {
 			// 1. Check if the job is already in the wishlist
 			const res = await axiosInstance.get(
-				`/wishlists?job_id=eq.${jobId}&profile_id=eq.${userId}`
+				`/wishlists?job_id=eq.${jobId}&profile_id=eq.${userId}`,
 			);
 			console.log("wishlist res :", res.data, res.data.length);
 
@@ -61,7 +73,7 @@ export const DataProvider = ({ children }) => {
 						headers: {
 							Prefer: "return=representation", // so you get a response back
 						},
-					}
+					},
 				);
 				console.log("deleteWish :", deleteRes.data);
 				return false; // now NOT in wishlist
@@ -77,7 +89,7 @@ export const DataProvider = ({ children }) => {
 		} catch (err) {
 			console.error(
 				"Error toggling wishlist:",
-				err.response?.data || err.message
+				err.response?.data || err.message,
 			);
 			throw err;
 		}
@@ -86,7 +98,7 @@ export const DataProvider = ({ children }) => {
 	const getWishlistJobs = async (userId) => {
 		try {
 			const res = await axiosInstance.get(
-				`/wishlists?profile_id=eq.${userId}&select=jobs(*)`
+				`/wishlists?profile_id=eq.${userId}&select=jobs(*)`,
 			);
 
 			// Each item in res.data contains a related job
@@ -95,7 +107,7 @@ export const DataProvider = ({ children }) => {
 		} catch (err) {
 			console.error(
 				"Error fetching wishlist jobs:",
-				err.response?.data || err.message
+				err.response?.data || err.message,
 			);
 			throw err;
 		}
@@ -109,7 +121,7 @@ export const DataProvider = ({ children }) => {
 		companyEmail,
 		offerTitle,
 		applicantName,
-		applicantEmail
+		applicantEmail,
 	) => {
 		console.log(
 			"try Apply to job:",
@@ -120,7 +132,7 @@ export const DataProvider = ({ children }) => {
 			companyEmail,
 			offerTitle,
 			applicantName,
-			applicantEmail
+			applicantEmail,
 		);
 		try {
 			const res = await axiosInstance.post(
@@ -134,7 +146,7 @@ export const DataProvider = ({ children }) => {
 					headers: {
 						Prefer: "return=representation", // Optional, but helpful for confirmation
 					},
-				}
+				},
 			);
 			console.log("Applied to job:", res.data);
 			const emailResult = await sendApplicationEmail(
@@ -142,13 +154,13 @@ export const DataProvider = ({ children }) => {
 				applicantEmail,
 				offerTitle, // Récupéré dynamiquement
 				companyEmail, // Récupéré dynamiquement
-				companyName // Récupéré dynamiquement
+				companyName, // Récupéré dynamiquement
 			);
 			return res.data;
 		} catch (err) {
 			console.error(
 				"Error applying to job:",
-				err.response?.data || err.message
+				err.response?.data || err.message,
 			);
 			throw err;
 		}
@@ -157,13 +169,13 @@ export const DataProvider = ({ children }) => {
 	const isJobApplied = async (candidateId, jobId) => {
 		try {
 			const res = await axiosInstance.get(
-				`/applies?candidate_id=eq.${candidateId}&job_id=eq.${jobId}&select=id`
+				`/applies?candidate_id=eq.${candidateId}&job_id=eq.${jobId}&select=id`,
 			);
 			return res.data.length > 0; // true if applied
 		} catch (err) {
 			console.error(
 				"Error checking job application:",
-				err.response?.data || err.message
+				err.response?.data || err.message,
 			);
 			throw err;
 		}
@@ -181,14 +193,14 @@ export const DataProvider = ({ children }) => {
 					headers: {
 						Prefer: "return=representation", // Optional, but helpful for confirmation
 					},
-				}
+				},
 			);
 			console.log("Archived job:", res.data);
 			return res.data;
 		} catch (err) {
 			console.error(
 				"Error archiving to job:",
-				err.response?.data || err.message
+				err.response?.data || err.message,
 			);
 			throw err;
 		}
@@ -197,14 +209,14 @@ export const DataProvider = ({ children }) => {
 	const isJobArchived = async (jobId) => {
 		try {
 			const res = await axiosInstance.get(
-				`/jobs?id=eq.${jobId}&isArchived=eq.true`
+				`/jobs?id=eq.${jobId}&isArchived=eq.true`,
 			);
 
 			return res.data.length > 0; // true if applied
 		} catch (err) {
 			console.error(
 				"Error checking job archives:",
-				err.response?.data || err.message
+				err.response?.data || err.message,
 			);
 			throw err;
 		}
@@ -223,14 +235,14 @@ export const DataProvider = ({ children }) => {
 					headers: {
 						Prefer: "return=representation", // Optional, but helpful for confirmation
 					},
-				}
+				},
 			);
 			console.log("Confirmed application :", res.data);
 			return res.data;
 		} catch (err) {
 			console.error(
 				"Error confirm application:",
-				err.response?.data || err.message
+				err.response?.data || err.message,
 			);
 			throw err;
 		}
@@ -248,14 +260,14 @@ export const DataProvider = ({ children }) => {
 					headers: {
 						Prefer: "return=representation", // Optional, but helpful for confirmation
 					},
-				}
+				},
 			);
 			console.log("Selected application :", res.data);
 			return res.data;
 		} catch (err) {
 			console.error(
 				"Error Select application:",
-				err.response?.data || err.message
+				err.response?.data || err.message,
 			);
 			throw err;
 		}
@@ -274,14 +286,14 @@ export const DataProvider = ({ children }) => {
 					headers: {
 						Prefer: "return=representation", // Optional, but helpful for confirmation
 					},
-				}
+				},
 			);
 			console.log("Refused application :", res.data);
 			return res.data;
 		} catch (err) {
 			console.error(
 				"Error Refuse application:",
-				err.response?.data || err.message
+				err.response?.data || err.message,
 			);
 			throw err;
 		}
@@ -298,7 +310,7 @@ export const DataProvider = ({ children }) => {
 					headers: {
 						Prefer: "return=representation", // Optional, but helpful for confirmation
 					},
-				}
+				},
 			);
 
 			console.log("Deleted procard :", res.data);
@@ -306,49 +318,52 @@ export const DataProvider = ({ children }) => {
 		} catch (err) {
 			console.error(
 				"Error delete pro card:",
-				err.response?.data || err.message
+				err.response?.data || err.message,
 			);
 			throw err;
 		}
 	};
 
-	const getAll = async (
-		table,
-		select = "*",
-		filters = "",
-		page = 1,
-		limit = 10,
-		order
-	) => {
-		setIsLoading(true);
-		try {
-			const from = (page - 1) * limit;
-			const to = from + limit - 1;
+	const getAll = useCallback(
+		async (
+			table,
+			select = "*",
+			filters = "",
+			page = 1,
+			limit = 10,
+			order,
+		) => {
+			setIsLoading(true);
+			try {
+				const from = (page - 1) * limit;
+				const to = from + limit - 1;
 
-			const query = `/${table}?select=${select}${filters}&order=${order}&offset=${from}&limit=${limit}`;
+				const query = `/${table}?select=${select}${filters}&order=${order}&offset=${from}&limit=${limit}`;
 
-			const res = await axiosInstance.get(query, {
-				headers: {
-					Prefer: "count=exact",
-				},
-			});
+				const res = await axiosInstance.get(query, {
+					headers: {
+						Prefer: "count=exact",
+					},
+				});
 
-			const contentRange = res.headers["content-range"];
-			const totalCount = contentRange
-				? parseInt(contentRange.split("/")[1], 10)
-				: res.data.length;
+				const contentRange = res.headers["content-range"];
+				const totalCount = contentRange
+					? parseInt(contentRange.split("/")[1], 10)
+					: res.data.length;
 
-			return { data: res.data, totalCount };
-		} catch (error) {
-			console.error(
-				"Error fetching data:",
-				error.response?.data || error.message
-			);
-			throw error;
-		} finally {
-			setIsLoading(false);
-		}
-	};
+				return { data: res.data, totalCount };
+			} catch (error) {
+				console.error(
+					"Error fetching data:",
+					error.response?.data || error.message,
+				);
+				throw error;
+			} finally {
+				setIsLoading(false);
+			}
+		},
+		[axiosInstance],
+	);
 
 	// const getById = async (table, id, select) => {
 	// 	const res = await axiosInstance.get(
@@ -360,17 +375,17 @@ export const DataProvider = ({ children }) => {
 	const getById = async (table, id, select) => {
 		try {
 			console.log(
-				`Fetching data by ID from table: ${table}, ID: ${id}, Select: ${select}`
+				`Fetching data by ID from table: ${table}, ID: ${id}, Select: ${select}`,
 			);
 			const res = await axiosInstance.get(
-				`/${table}?id=eq.${id}&select=${select}`
+				`/${table}?id=eq.${id}&select=${select}`,
 			);
 			console.log("Data fetched successfully:", res.data[0]);
 			return res.data[0] || null;
 		} catch (error) {
 			console.error(
 				"Error fetching data by ID:",
-				error.response?.data || error.message
+				error.response?.data || error.message,
 			);
 			throw error; // Relancer l'erreur pour permettre un traitement ultérieur
 		}
@@ -384,7 +399,7 @@ export const DataProvider = ({ children }) => {
 				table,
 				data,
 				accessToken,
-				SUPABASE_API_KEY
+				SUPABASE_API_KEY,
 			);
 			const res = await axiosInstance.post(`/${table}`, data);
 			// console.log("res status:", res);
@@ -393,7 +408,7 @@ export const DataProvider = ({ children }) => {
 		} catch (error) {
 			console.error(
 				"Error creating data:",
-				error.response?.data || error.message
+				error.response?.data || error.message,
 			);
 			console.error("Create failed", error.message);
 			console.error("Full error:", error.toJSON?.() || error);
@@ -409,14 +424,14 @@ export const DataProvider = ({ children }) => {
 		try {
 			const res = await axiosInstance.patch(
 				`/${table}?id=eq.${id}`,
-				data
+				data,
 			);
 			console.log("Data updated successfully:", res.data);
 			return res.data;
 		} catch (error) {
 			console.error(
 				"Error updating data:",
-				error.response?.data || error.message
+				error.response?.data || error.message,
 			);
 			console.error("Update failed", error.message);
 			console.error("Full error:", error.toJSON?.() || error);
@@ -441,7 +456,7 @@ export const DataProvider = ({ children }) => {
 		} catch (error) {
 			console.error(
 				"Error removing data:",
-				error.response?.data || error.message
+				error.response?.data || error.message,
 			);
 			console.error("Remove failed", error.message);
 			console.error("Full error:", error.toJSON?.() || error);
