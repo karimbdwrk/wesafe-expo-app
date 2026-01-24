@@ -35,43 +35,37 @@ const ProCardsScreen = () => {
 	const [totalCount, setTotalCount] = useState(0);
 	const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-	const checkDateValidity = (dateString) => {
-		const inputDate = parseDate(dateString); // Ex: 2027-05-24
-		const currentDate = today("UTC"); // You can also use 'en-US', 'fr-FR', etc.
-
-		if (inputDate.compare(currentDate) >= 0) {
-			console.log("✅ Date is still valid (today or future)");
-			return true;
-		} else {
-			console.log("❌ Date is in the past (invalid)");
-			return false;
-		}
-	};
-
-	const onRefresh = useCallback(async () => {
-		setRefreshing(true);
-		await loadData();
-		setRefreshing(false);
+	const checkDateValidity = useCallback((dateString) => {
+		const inputDate = parseDate(dateString);
+		const currentDate = today("UTC");
+		return inputDate.compare(currentDate) >= 0;
 	}, []);
 
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
+		console.log("loadData called");
 		const { data, totalCount } = await getAll(
 			"procards",
 			"*",
 			`&profile_id=eq.${user.id}&isDeleted=eq.false`,
 			page,
 			ITEMS_PER_PAGE,
-			"created_at.desc"
+			"created_at.desc",
 		);
 		console.log("data pro cards :", data, data.length);
 		setProcards(data);
 		setTotalCount(totalCount);
-	};
+	}, [getAll, user.id, page]);
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true);
+		await loadData();
+		setRefreshing(false);
+	}, [loadData]);
 
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
-		}, [page])
+		}, [loadData]),
 	);
 
 	const handleNext = () => {
