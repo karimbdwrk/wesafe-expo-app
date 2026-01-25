@@ -155,6 +155,10 @@ function RootLayoutNav() {
 									}}
 								/>
 								<Stack.Screen
+									name='documentsverification'
+									options={{ headerShown: true }}
+								/>
+								<Stack.Screen
 									name='updateprofile'
 									options={{ headerShown: true }}
 								/>
@@ -226,7 +230,7 @@ function RootLayoutNav() {
 										setColorMode(
 											colorMode === "dark"
 												? "light"
-												: "dark"
+												: "dark",
 										)
 									}
 									className='m-6'
