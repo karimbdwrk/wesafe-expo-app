@@ -52,7 +52,7 @@ const AccountScreen = () => {
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
-		}, [])
+		}, []),
 	);
 
 	return (
@@ -251,6 +251,12 @@ const AccountScreen = () => {
 							</AccordionContent>
 						</AccordionItem>
 					</Accordion>
+				</VStack>
+				<VStack>
+					<Button
+						onPress={() => router.push("/documentsverification")}>
+						<ButtonText>Documents</ButtonText>
+					</Button>
 				</VStack>
 				{/* <VStack
 					style={{
