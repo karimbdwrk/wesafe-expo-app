@@ -155,7 +155,11 @@ function RootLayoutNav() {
 									}}
 								/>
 								<Stack.Screen
-									name='documentsverification'
+									name='documents'
+									options={{ headerShown: true }}
+								/>
+								<Stack.Screen
+									name='iddocumentverification'
 									options={{ headerShown: true }}
 								/>
 								<Stack.Screen
