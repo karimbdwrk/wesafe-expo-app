@@ -253,10 +253,13 @@ const AccountScreen = () => {
 					</Accordion>
 				</VStack>
 				<VStack>
-					<Button
-						onPress={() => router.push("/documentsverification")}>
+					<Button onPress={() => router.push("/documents")}>
 						<ButtonText>Documents</ButtonText>
 					</Button>
+					{/* <Button
+						onPress={() => router.push("/documentsverification")}>
+						<ButtonText>Documents</ButtonText>
+					</Button> */}
 				</VStack>
 				{/* <VStack
 					style={{
