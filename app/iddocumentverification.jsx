@@ -5,7 +5,7 @@ import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonText } from "@/components/ui/button";
 import { Pressable } from "@/components/ui/pressable";
 import { Image } from "@/components/ui/image";
 
@@ -36,12 +36,12 @@ export default function DocumentVerification({ navigation }) {
 			: !!frontImage && !!backImage;
 
 	return (
-		<Box flex={1} p='$6' bg='$backgroundLight0'>
-			<VStack space='xl'>
+		<Box flex={1} bg='$backgroundLight0' style={{ padding: 15 }}>
+			<VStack space='xl' p='$6'>
 				{/* Header */}
 				<VStack space='xs'>
 					<Text size='xl' fontWeight='$bold'>
-						Document verification
+						ID Document verification
 					</Text>
 					<Text color='$textLight500'>
 						Upload a valid identity document
@@ -102,7 +102,9 @@ export default function DocumentVerification({ navigation }) {
 									setFrontImage(null);
 									setBackImage(null);
 								}}>
-								<Text color='$primary500'>Change</Text>
+								<ButtonText color='$primary500'>
+									Change
+								</ButtonText>
 							</Button>
 						</HStack>
 
@@ -139,7 +141,7 @@ export default function DocumentVerification({ navigation }) {
 						)}
 
 						<Button isDisabled={!canSubmit}>
-							<Text>Submit documents</Text>
+							<ButtonText>Submit documents</ButtonText>
 						</Button>
 					</VStack>
 				)}
@@ -179,10 +181,10 @@ function UploadBlock({ label, image, onPick, onCamera }) {
 
 				<HStack space='sm'>
 					<Button variant='outline' flex={1} onPress={onPick}>
-						<Text>Gallery</Text>
+						<ButtonText>Gallery</ButtonText>
 					</Button>
 					<Button flex={1} onPress={onCamera}>
-						<Text>Camera</Text>
+						<ButtonText>Camera</ButtonText>
 					</Button>
 				</HStack>
 			</VStack>
