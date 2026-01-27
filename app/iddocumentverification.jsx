@@ -22,7 +22,7 @@ import { useAuth } from "@/context/AuthContext";
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const DOCUMENTS_BUCKET = "identity-documents";
 
-export default function DocumentVerification({ navigation }) {
+export default function IDDocumentVerification({ navigation }) {
 	const { user, userProfile, accessToken, loadUserData } = useAuth();
 	const { update } = useDataContext();
 
@@ -48,7 +48,7 @@ export default function DocumentVerification({ navigation }) {
 	useEffect(() => {
 		console.log("User profile updated:", userProfile);
 		setDocumentUploadedType(userProfile?.id_type || null);
-		setDocumentUploadedStatus(userProfile?.verification_status || null);
+		setDocumentUploadedStatus(userProfile?.id_verification_status || null);
 		setDocumentUploadedValidityDate(userProfile?.id_validity_date || null);
 	}, [userProfile]);
 
@@ -149,7 +149,7 @@ export default function DocumentVerification({ navigation }) {
 					id_type: documentType,
 					id_validity_date: date,
 					passport_url: passportUrl,
-					verification_status: "pending",
+					id_verification_status: "pending",
 				});
 			}
 
@@ -171,7 +171,7 @@ export default function DocumentVerification({ navigation }) {
 					id_validity_date: date,
 					national_id_front_url: frontUrl,
 					national_id_back_url: backUrl,
-					verification_status: "pending",
+					id_verification_status: "pending",
 				});
 			}
 
