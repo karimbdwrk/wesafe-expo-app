@@ -227,7 +227,7 @@ export default function DocumentVerification({ navigation }) {
 					)}
 				</VStack>
 
-				{!documentType && (
+				{documentUploadedStatus !== "verified" && !documentType && (
 					<VStack space='md'>
 						<Text fontWeight='$medium'>Choose your document</Text>
 
@@ -256,6 +256,20 @@ export default function DocumentVerification({ navigation }) {
 
 				{documentType && (
 					<VStack space='lg'>
+						<HStack
+							style={{
+								justifyContent: "space-between",
+								alignItems: "center",
+							}}>
+							<Text>
+								{documentType === "passport"
+									? "Passeport"
+									: "Carte d'identité"}
+							</Text>
+							<Button onPress={() => setDocumentType(null)}>
+								<ButtonText>Changer</ButtonText>
+							</Button>
+						</HStack>
 						<UploadBlock
 							label={
 								documentType === "passport"
