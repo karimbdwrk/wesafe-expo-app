@@ -14,6 +14,8 @@ import { Image } from "@/components/ui/image";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import { GlobeIcon } from "@/components/ui/icon";
 
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+
 import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 
@@ -30,6 +32,11 @@ export default function DocumentVerification({ navigation }) {
 
 	const [documentUploadedType, setDocumentUploadedType] = useState(null);
 	const [documentUploadedStatus, setDocumentUploadedStatus] = useState(null);
+	const [documentUploadedValidityDate, setDocumentUploadedValidityDate] =
+		useState(null);
+
+	const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+	const [date, setDate] = useState(null);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -42,7 +49,20 @@ export default function DocumentVerification({ navigation }) {
 		console.log("User profile updated:", userProfile);
 		setDocumentUploadedType(userProfile?.id_type || null);
 		setDocumentUploadedStatus(userProfile?.verification_status || null);
+		setDocumentUploadedValidityDate(userProfile?.id_validity_date || null);
 	}, [userProfile]);
+
+	useEffect(() => {
+		if (date) {
+			console.log("Selected date:", date);
+		}
+	}, [date]);
+
+	const handleConfirmDate = (isoDate) => {
+		const simpleDate = new Date(isoDate).toISOString().split("T")[0];
+		setDate(simpleDate);
+		setDatePickerVisibility(false);
+	};
 
 	/* ------------------ */
 	/* Image picker       */
@@ -127,6 +147,7 @@ export default function DocumentVerification({ navigation }) {
 
 				await update("profiles", user.id, {
 					id_type: documentType,
+					id_validity_date: date,
 					passport_url: passportUrl,
 					verification_status: "pending",
 				});
@@ -147,6 +168,7 @@ export default function DocumentVerification({ navigation }) {
 
 				await update("profiles", user.id, {
 					id_type: documentType,
+					id_validity_date: date,
 					national_id_front_url: frontUrl,
 					national_id_back_url: backUrl,
 					verification_status: "pending",
@@ -200,6 +222,7 @@ export default function DocumentVerification({ navigation }) {
 									/>
 								</Badge>
 							</HStack>
+							<Text>{documentUploadedValidityDate}</Text>
 						</VStack>
 					)}
 				</VStack>
@@ -262,6 +285,21 @@ export default function DocumentVerification({ navigation }) {
 								}
 							/>
 						)}
+						<VStack>
+							<Pressable
+								onPress={() => setDatePickerVisibility(true)}>
+								<Text style={{ fontSize: 16 }}>
+									{date || "Sélectionner une date"}
+								</Text>
+							</Pressable>
+							<DateTimePickerModal
+								isVisible={isDatePickerVisible}
+								mode='date'
+								onConfirm={handleConfirmDate}
+								onCancel={() => setDatePickerVisibility(false)}
+								minimumDate={new Date()}
+							/>
+						</VStack>
 
 						<Button
 							isDisabled={!canSubmit}
