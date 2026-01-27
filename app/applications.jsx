@@ -41,7 +41,7 @@ const ApplicationsScreen = () => {
 			`&jobs.isArchived=eq.FALSE&jobs=not.is.null&candidate_id=eq.${user.id}`,
 			page,
 			ITEMS_PER_PAGE,
-			"created_at.desc"
+			"created_at.desc",
 		);
 		setApplications(data);
 		setTotalCount(totalCount);
@@ -50,7 +50,7 @@ const ApplicationsScreen = () => {
 	useFocusEffect(
 		useCallback(() => {
 			loadDataApplications();
-		}, [page])
+		}, [page]),
 	);
 
 	const handleNext = () => {
@@ -92,7 +92,10 @@ const ApplicationsScreen = () => {
 					/>
 				))}
 				{totalPages > 1 && (
-					<HStack justifyContent='space-between' alignItems='center'>
+					<HStack
+						justifyContent='space-between'
+						alignItems='center'
+						style={{ padding: 15 }}>
 						<Button
 							isDisabled={page === 1}
 							onPress={handlePrev}
