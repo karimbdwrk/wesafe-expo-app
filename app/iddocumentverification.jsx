@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import axios from "axios";
+import Constants from "expo-constants";
 
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
@@ -9,15 +11,32 @@ import { Button, ButtonText } from "@/components/ui/button";
 import { Pressable } from "@/components/ui/pressable";
 import { Image } from "@/components/ui/image";
 
+import { useDataContext } from "@/context/DataContext";
+import { useAuth } from "@/context/AuthContext";
+
+const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
+const DOCUMENTS_BUCKET = "identity-documents";
+
 export default function DocumentVerification({ navigation }) {
-	const [documentType, setDocumentType] = useState(null); // 'passport' | 'national_id'
+	const { user, userProfile, accessToken, loadUserData } = useAuth();
+	const { update } = useDataContext();
+
+	const [documentType, setDocumentType] = useState(null);
 	const [frontImage, setFrontImage] = useState(null);
 	const [backImage, setBackImage] = useState(null);
 
+	/* ------------------ */
+	/* Image picker       */
+	/* ------------------ */
+
 	const pickImage = async (side) => {
-		const permission =
+		const { status } =
 			await ImagePicker.requestMediaLibraryPermissionsAsync();
-		if (!permission.granted) return;
+
+		if (status !== "granted") {
+			console.warn("Permission denied");
+			return;
+		}
 
 		const result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -25,8 +44,9 @@ export default function DocumentVerification({ navigation }) {
 		});
 
 		if (!result.canceled) {
-			if (side === "front") setFrontImage(result.assets[0]);
-			if (side === "back") setBackImage(result.assets[0]);
+			const asset = result.assets[0];
+			if (side === "front") setFrontImage(asset);
+			if (side === "back") setBackImage(asset);
 		}
 	};
 
@@ -35,10 +55,96 @@ export default function DocumentVerification({ navigation }) {
 			? !!frontImage
 			: !!frontImage && !!backImage;
 
+	/* ------------------ */
+	/* Upload logic       */
+	/* ------------------ */
+
+	const uploadDocument = async ({ image, side, documentType }) => {
+		if (!image?.uri) throw new Error("No image to upload");
+
+		const formData = new FormData();
+
+		const originalName = image.uri.split("/").pop();
+		const match = /\.(\w+)$/.exec(originalName);
+		const extension = match?.[1] || "jpg";
+		const mimeType = `image/${extension}`;
+
+		const storageFilename = `${user.id}/${documentType}_${side}_${Date.now()}.${extension}`;
+
+		formData.append("files", {
+			uri: image.uri,
+			name: storageFilename,
+			type: mimeType,
+		});
+
+		await axios.post(
+			`${SUPABASE_URL}/storage/v1/object/${DOCUMENTS_BUCKET}/${storageFilename}`,
+			formData,
+			{
+				headers: {
+					"Content-Type": "multipart/form-data",
+					Authorization: `Bearer ${accessToken}`,
+					apikey: SUPABASE_API_KEY,
+				},
+			},
+		);
+
+		return `${SUPABASE_URL}/storage/v1/object/public/${DOCUMENTS_BUCKET}/${storageFilename}`;
+	};
+
+	/* ------------------ */
+	/* Submit             */
+	/* ------------------ */
+
+	const handleSubmitDocuments = async () => {
+		console.log("Submitting documents...");
+		try {
+			if (documentType === "passport") {
+				const passportUrl = await uploadDocument({
+					image: frontImage,
+					side: "main",
+					documentType: "passport",
+				});
+
+				await update("profiles", user.id, {
+					passport_url: passportUrl,
+					verification_status: "pending",
+				});
+			}
+
+			if (documentType === "national_id") {
+				const frontUrl = await uploadDocument({
+					image: frontImage,
+					side: "front",
+					documentType: "national_id",
+				});
+
+				const backUrl = await uploadDocument({
+					image: backImage,
+					side: "back",
+					documentType: "national_id",
+				});
+
+				await update("profiles", user.id, {
+					national_id_front_url: frontUrl,
+					national_id_back_url: backUrl,
+					verification_status: "pending",
+				});
+			}
+
+			console.log("Documents submitted");
+		} catch (error) {
+			console.error("Submit documents error:", error);
+		}
+	};
+
+	/* ------------------ */
+	/* UI                 */
+	/* ------------------ */
+
 	return (
 		<Box flex={1} bg='$backgroundLight0' style={{ padding: 15 }}>
-			<VStack space='xl' p='$6'>
-				{/* Header */}
+			<VStack space='xl'>
 				<VStack space='xs'>
 					<Text size='xl' fontWeight='$bold'>
 						ID Document verification
@@ -48,17 +154,12 @@ export default function DocumentVerification({ navigation }) {
 					</Text>
 				</VStack>
 
-				{/* Document type selection */}
 				{!documentType && (
 					<VStack space='md'>
 						<Text fontWeight='$medium'>Choose your document</Text>
 
 						<Pressable onPress={() => setDocumentType("passport")}>
-							<Box
-								p='$4'
-								borderWidth={1}
-								borderRadius='$lg'
-								borderColor='$borderLight300'>
+							<Box p='$4' borderWidth={1} borderRadius='$lg'>
 								<Text fontWeight='$medium'>Passport</Text>
 								<Text size='sm' color='$textLight500'>
 									Single page upload
@@ -68,11 +169,7 @@ export default function DocumentVerification({ navigation }) {
 
 						<Pressable
 							onPress={() => setDocumentType("national_id")}>
-							<Box
-								p='$4'
-								borderWidth={1}
-								borderRadius='$lg'
-								borderColor='$borderLight300'>
+							<Box p='$4' borderWidth={1} borderRadius='$lg'>
 								<Text fontWeight='$medium'>
 									National ID card
 								</Text>
@@ -84,31 +181,8 @@ export default function DocumentVerification({ navigation }) {
 					</VStack>
 				)}
 
-				{/* Upload section */}
 				{documentType && (
 					<VStack space='lg'>
-						<HStack
-							justifyContent='space-between'
-							alignItems='center'>
-							<Text fontWeight='$medium'>
-								{documentType === "passport"
-									? "Passport"
-									: "National ID card"}
-							</Text>
-							<Button
-								variant='link'
-								onPress={() => {
-									setDocumentType(null);
-									setFrontImage(null);
-									setBackImage(null);
-								}}>
-								<ButtonText color='$primary500'>
-									Change
-								</ButtonText>
-							</Button>
-						</HStack>
-
-						{/* Front / main */}
 						<UploadBlock
 							label={
 								documentType === "passport"
@@ -125,7 +199,6 @@ export default function DocumentVerification({ navigation }) {
 							}
 						/>
 
-						{/* Back only for CNI */}
 						{documentType === "national_id" && (
 							<UploadBlock
 								label='Back side'
@@ -140,7 +213,9 @@ export default function DocumentVerification({ navigation }) {
 							/>
 						)}
 
-						<Button isDisabled={!canSubmit}>
+						<Button
+							isDisabled={!canSubmit}
+							onPress={handleSubmitDocuments}>
 							<ButtonText>Submit documents</ButtonText>
 						</Button>
 					</VStack>
@@ -151,17 +226,12 @@ export default function DocumentVerification({ navigation }) {
 }
 
 /* ------------------ */
-/* Reusable component */
+/* Upload block       */
 /* ------------------ */
 
 function UploadBlock({ label, image, onPick, onCamera }) {
 	return (
-		<Box
-			p='$4'
-			borderWidth={1}
-			borderRadius='$lg'
-			borderStyle='dashed'
-			borderColor='$borderLight400'>
+		<Box p='$4' borderWidth={1} borderRadius='$lg' borderStyle='dashed'>
 			<VStack space='md'>
 				<Text fontWeight='$medium'>{label}</Text>
 
