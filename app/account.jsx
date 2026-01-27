@@ -86,7 +86,12 @@ const AccountScreen = () => {
 						</Badge>
 					</HStack>
 				</VStack>
-				<VStack style={{ gap: 15, backgroundColor: "#FFF" }}>
+				<VStack
+					style={{
+						gap: 15,
+						paddingHorizontal: 15,
+						marginBottom: 15,
+					}}>
 					<Accordion
 						size='md'
 						variant='filled'
@@ -99,9 +104,9 @@ const AccountScreen = () => {
 									{({ isExpanded }) => {
 										return (
 											<>
-												<AccordionTitleText>
+												<Heading size='md'>
 													Informations
-												</AccordionTitleText>
+												</Heading>
 												{isExpanded ? (
 													<AccordionIcon
 														as={ChevronUpIcon}
@@ -119,12 +124,94 @@ const AccountScreen = () => {
 								</AccordionTrigger>
 							</AccordionHeader>
 							<AccordionContent>
-								<AccordionContentText>
-									To place an order, simply select the
-									products you want, proceed to checkout,
-									provide shipping and payment information,
-									and finalize your purchase.
-								</AccordionContentText>
+								<VStack style={{ gap: 10, marginBottom: 15 }}>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>Genre</Heading>
+										<Text>Homme</Text>
+									</HStack>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>
+											Date de naissance
+										</Heading>
+										<Text>02/01/1990</Text>
+									</HStack>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>
+											N° de sécurité sociale
+										</Heading>
+										<Text>1 90 01 92 345 678</Text>
+									</HStack>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>Département</Heading>
+										<Text>Hauts-de-Seine (92)</Text>
+									</HStack>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>Ville</Heading>
+										<Text>Gennevilliers</Text>
+									</HStack>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>Permis</Heading>
+										<Text>B</Text>
+									</HStack>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>Véhiculé</Heading>
+										<Text>Oui</Text>
+									</HStack>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>
+											Former soldier
+										</Heading>
+										<Text>Non</Text>
+									</HStack>
+									<HStack
+										justifyContent='space-between'
+										alignItems='flex-start'>
+										<Heading size='sm'>
+											Langues parlées
+										</Heading>
+										<Text
+											style={{
+												flexWrap: "wrap",
+											}}>
+											Français, Anglais, Arabe, Espagnol
+										</Text>
+									</HStack>
+									<HStack
+										justifyContent='space-between'
+										alignItems='flex-start'>
+										<Heading size='sm'>Taille</Heading>
+										<Text
+											style={{
+												flexWrap: "wrap",
+											}}>
+											180cm
+										</Text>
+									</HStack>
+									<HStack
+										justifyContent='space-between'
+										alignItems='flex-start'>
+										<Heading size='sm'>Poids</Heading>
+										<Text
+											style={{
+												flexWrap: "wrap",
+											}}>
+											80kg
+										</Text>
+									</HStack>
+									<HStack
+										justifyContent='space-between'
+										alignItems='flex-start'>
+										<Heading size='sm'>
+											Mensurations vêtements
+										</Heading>
+										<Text
+											style={{
+												flexWrap: "wrap",
+											}}>
+											M
+										</Text>
+									</HStack>
+								</VStack>
 								<Button
 									onPress={() => {
 										router.push({
@@ -147,9 +234,9 @@ const AccountScreen = () => {
 									{({ isExpanded }) => {
 										return (
 											<>
-												<AccordionTitleText>
+												<Heading size='md'>
 													Curriculum Vitae
-												</AccordionTitleText>
+												</Heading>
 												{isExpanded ? (
 													<AccordionIcon
 														as={ChevronUpIcon}
@@ -254,7 +341,7 @@ const AccountScreen = () => {
 				</VStack>
 				<VStack>
 					<Button onPress={() => router.push("/documents")}>
-						<ButtonText>Documents</ButtonText>
+						<ButtonText>Upload my documents</ButtonText>
 					</Button>
 					{/* <Button
 						onPress={() => router.push("/documentsverification")}>
