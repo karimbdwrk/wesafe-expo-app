@@ -163,6 +163,10 @@ function RootLayoutNav() {
 									options={{ headerShown: true }}
 								/>
 								<Stack.Screen
+									name='socialsecuritydocumentverification'
+									options={{ headerShown: true }}
+								/>
+								<Stack.Screen
 									name='updateprofile'
 									options={{ headerShown: true }}
 								/>
