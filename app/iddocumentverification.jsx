@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import Constants from "expo-constants";
+import { useFocusEffect } from "expo-router";
 
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
@@ -10,6 +11,8 @@ import { HStack } from "@/components/ui/hstack";
 import { Button, ButtonText } from "@/components/ui/button";
 import { Pressable } from "@/components/ui/pressable";
 import { Image } from "@/components/ui/image";
+import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
+import { GlobeIcon } from "@/components/ui/icon";
 
 import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
@@ -24,6 +27,22 @@ export default function DocumentVerification({ navigation }) {
 	const [documentType, setDocumentType] = useState(null);
 	const [frontImage, setFrontImage] = useState(null);
 	const [backImage, setBackImage] = useState(null);
+
+	const [documentUploadedType, setDocumentUploadedType] = useState(null);
+	const [documentUploadedStatus, setDocumentUploadedStatus] = useState(null);
+
+	useFocusEffect(
+		useCallback(() => {
+			console.log("Document Verification Screen focused");
+			loadUserData(user.id, accessToken);
+		}, []),
+	);
+
+	useEffect(() => {
+		console.log("User profile updated:", userProfile);
+		setDocumentUploadedType(userProfile?.id_type || null);
+		setDocumentUploadedStatus(userProfile?.verification_status || null);
+	}, [userProfile]);
 
 	/* ------------------ */
 	/* Image picker       */
@@ -107,6 +126,7 @@ export default function DocumentVerification({ navigation }) {
 				});
 
 				await update("profiles", user.id, {
+					id_type: documentType,
 					passport_url: passportUrl,
 					verification_status: "pending",
 				});
@@ -126,6 +146,7 @@ export default function DocumentVerification({ navigation }) {
 				});
 
 				await update("profiles", user.id, {
+					id_type: documentType,
 					national_id_front_url: frontUrl,
 					national_id_back_url: backUrl,
 					verification_status: "pending",
@@ -152,6 +173,35 @@ export default function DocumentVerification({ navigation }) {
 					<Text color='$textLight500'>
 						Upload a valid identity document
 					</Text>
+					{documentUploadedStatus && (
+						<VStack>
+							<Text>
+								You have already uploaded a{" "}
+								{documentUploadedType}.
+							</Text>
+							<HStack>
+								<Badge
+									size='lg'
+									variant='solid'
+									action={
+										documentUploadedStatus === "verified"
+											? "success"
+											: documentUploadedStatus ===
+												  "pending"
+												? "warning"
+												: "info"
+									}>
+									<BadgeText>
+										{documentUploadedStatus || "pending"}
+									</BadgeText>
+									<BadgeIcon
+										as={GlobeIcon}
+										className='ml-2'
+									/>
+								</Badge>
+							</HStack>
+						</VStack>
+					)}
 				</VStack>
 
 				{!documentType && (
