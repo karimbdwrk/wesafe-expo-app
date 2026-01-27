@@ -16,6 +16,12 @@ const Documents = () => {
 				<Button onPress={() => router.push("/iddocumentverification")}>
 					<ButtonText>ID Document</ButtonText>
 				</Button>
+				<Button
+					onPress={() =>
+						router.push("/socialsecuritydocumentverification")
+					}>
+					<ButtonText>Social Security Document</ButtonText>
+				</Button>
 			</VStack>
 		</Box>
 	);
