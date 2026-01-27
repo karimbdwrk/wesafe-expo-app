@@ -254,11 +254,32 @@ const AccountScreen = () => {
 								</AccordionTrigger>
 							</AccordionHeader>
 							<AccordionContent>
-								<AccordionContentText>
-									We accept all major credit cards, including
-									Visa, Mastercard, and American Express. We
-									also support payments through PayPal.
-								</AccordionContentText>
+								<VStack style={{ gap: 10, marginBottom: 15 }}>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>
+											Experience 1
+										</Heading>
+										<Text>01/2015 - 09/2018</Text>
+									</HStack>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>
+											Experience 1
+										</Heading>
+										<Text>01/2015 - 09/2018</Text>
+									</HStack>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>
+											Experience 1
+										</Heading>
+										<Text>01/2015 - 09/2018</Text>
+									</HStack>
+									<HStack justifyContent='space-between'>
+										<Heading size='sm'>
+											Experience 1
+										</Heading>
+										<Text>01/2015 - 09/2018</Text>
+									</HStack>
+								</VStack>
 								<Button
 									onPress={() => {
 										router.push("/curriculum");
@@ -339,7 +360,7 @@ const AccountScreen = () => {
 						</AccordionItem>
 					</Accordion>
 				</VStack>
-				<VStack>
+				<VStack style={{ gap: 15, padding: 15, marginBottom: 30 }}>
 					<Button onPress={() => router.push("/documents")}>
 						<ButtonText>Upload my documents</ButtonText>
 					</Button>
