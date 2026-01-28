@@ -8,6 +8,8 @@ import { Text } from "@/components/ui/text";
 import { Heading } from "@/components/ui/heading";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
+import { Pressable } from "@/components/ui/pressable";
+import { Box } from "@/components/ui/box";
 import { Image } from "@/components/ui/image";
 import { Button, ButtonText } from "@/components/ui/button";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
@@ -30,6 +32,9 @@ import {
 	CheckIcon,
 	Signature,
 	FileUserIcon,
+	BookmarkIcon,
+	Book,
+	FileText,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -90,6 +95,107 @@ const AccountScreen = () => {
 							<BadgeIcon as={IdCard} className='mr-2' />
 							<BadgeText>SSIAP1</BadgeText>
 						</Badge>
+					</HStack>
+				</VStack>
+
+				<VStack w='100%' style={{ paddingHorizontal: 15, gap: 15 }}>
+					<HStack w='100%' space='md' style={{ marginVertical: 15 }}>
+						<Pressable
+							flex={1}
+							aspectRatio={1}
+							onPress={() => router.push(`/procards`)}>
+							{({ pressed }) => (
+								<Box
+									flex={1}
+									borderRadius={10}
+									justifyContent='center'
+									alignItems='center'
+									position='relative'
+									style={{
+										backgroundColor: pressed
+											? "white"
+											: "lightgray",
+									}}>
+									{/* <Badge
+									position='absolute'
+									top={-5}
+									left={-5}
+									className='z-10 self-end h-[22px] w-[22px] bg-red-600 rounded-full -mb-3.5 -mr-3.5'
+									variant='solid'
+									borderRadius={999}>
+									<BadgeText className='text-white'>
+										2
+									</BadgeText>
+								</Badge> */}
+									<IdCard />
+									<Text>Cartes pro</Text>
+								</Box>
+							)}
+						</Pressable>
+						<Pressable
+							flex={1}
+							aspectRatio={1}
+							onPress={() => router.push(`/wishlist`)}>
+							{({ pressed }) => (
+								<Box
+									flex={1}
+									borderRadius={10}
+									justifyContent='center'
+									alignItems='center'
+									position='relative'
+									style={{
+										backgroundColor: pressed
+											? "white"
+											: "lightgray",
+									}}>
+									{/* <Badge
+									position='absolute'
+									top={-5}
+									left={-5}
+									className='z-10 self-end h-[22px] w-[22px] bg-red-600 rounded-full -mb-3.5 -mr-3.5'
+									variant='solid'
+									borderRadius={999}>
+									<BadgeText className='text-white'>
+										2
+									</BadgeText>
+								</Badge> */}
+									<BookmarkIcon />
+									<Text>Wishlist</Text>
+								</Box>
+							)}
+						</Pressable>
+						<Pressable
+							flex={1}
+							aspectRatio={1}
+							onPress={() => router.push(`/applications`)}>
+							{({ pressed }) => (
+								<Box
+									flex={1}
+									borderRadius={10}
+									justifyContent='center'
+									alignItems='center'
+									position='relative'
+									style={{
+										backgroundColor: pressed
+											? "white"
+											: "lightgray",
+									}}>
+									<Badge
+										position='absolute'
+										top={-5}
+										left={-5}
+										className='z-10 self-end h-[22px] w-[22px] bg-red-600 rounded-full -mb-3.5 -mr-3.5'
+										variant='solid'
+										borderRadius={999}>
+										<BadgeText className='text-white'>
+											2
+										</BadgeText>
+									</Badge>
+									<FileText />
+									<Text>Candidatures</Text>
+								</Box>
+							)}
+						</Pressable>
 					</HStack>
 				</VStack>
 				<VStack
