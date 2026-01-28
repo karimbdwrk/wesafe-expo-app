@@ -125,7 +125,7 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 	/* ------------------ */
 
 	return (
-		<Box flex={1} bg='$backgroundLight0' p='$6'>
+		<Box flex={1} bg='$backgroundLight0' style={{ padding: 15 }}>
 			<VStack space='xl'>
 				<VStack space='xs'>
 					<Text size='xl' fontWeight='$bold'>
