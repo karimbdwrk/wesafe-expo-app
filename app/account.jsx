@@ -100,7 +100,7 @@ const AccountScreen = () => {
 					}}>
 					<Accordion
 						size='md'
-						variant='filled'
+						variant='unfilled'
 						type='single'
 						isCollapsible={true}
 						isDisabled={false}>
