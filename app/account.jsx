@@ -24,7 +24,13 @@ import {
 import { Divider } from "@/components/ui/divider";
 import { ChevronUpIcon, ChevronDownIcon } from "@/components/ui/icon";
 
-import { IdCard, CircleCheckBig } from "lucide-react-native";
+import {
+	IdCard,
+	InfoIcon,
+	CheckIcon,
+	Signature,
+	FileUserIcon,
+} from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
@@ -104,20 +110,46 @@ const AccountScreen = () => {
 									{({ isExpanded }) => {
 										return (
 											<>
-												<Heading size='md'>
-													Informations
-												</Heading>
-												{isExpanded ? (
-													<AccordionIcon
-														as={ChevronUpIcon}
-														className='ml-3'
-													/>
-												) : (
-													<AccordionIcon
-														as={ChevronDownIcon}
-														className='ml-3'
-													/>
-												)}
+												<HStack
+													style={{
+														width: "100%",
+														gap: 15,
+														alignItems: "center",
+													}}>
+													<InfoIcon />
+													<HStack
+														style={{
+															justifyContent:
+																"space-between",
+															width: "78%",
+														}}>
+														<Heading size='md'>
+															Informations
+														</Heading>
+														{profile?.signature_url && (
+															<Badge action='success'>
+																<BadgeText>
+																	Complété
+																</BadgeText>
+																<BadgeIcon
+																	as={
+																		CheckIcon
+																	}
+																	className='ml-2'
+																/>
+															</Badge>
+														)}
+													</HStack>
+													{isExpanded ? (
+														<AccordionIcon
+															as={ChevronUpIcon}
+														/>
+													) : (
+														<AccordionIcon
+															as={ChevronDownIcon}
+														/>
+													)}
+												</HStack>
 											</>
 										);
 									}}
@@ -234,20 +266,46 @@ const AccountScreen = () => {
 									{({ isExpanded }) => {
 										return (
 											<>
-												<Heading size='md'>
-													Curriculum Vitae
-												</Heading>
-												{isExpanded ? (
-													<AccordionIcon
-														as={ChevronUpIcon}
-														className='ml-3'
-													/>
-												) : (
-													<AccordionIcon
-														as={ChevronDownIcon}
-														className='ml-3'
-													/>
-												)}
+												<HStack
+													style={{
+														width: "100%",
+														gap: 15,
+														alignItems: "center",
+													}}>
+													<FileUserIcon />
+													<HStack
+														style={{
+															justifyContent:
+																"space-between",
+															width: "78%",
+														}}>
+														<Heading size='md'>
+															Curriculum Vitae
+														</Heading>
+														{profile?.signature_url && (
+															<Badge action='success'>
+																<BadgeText>
+																	Complété
+																</BadgeText>
+																<BadgeIcon
+																	as={
+																		CheckIcon
+																	}
+																	className='ml-2'
+																/>
+															</Badge>
+														)}
+													</HStack>
+													{isExpanded ? (
+														<AccordionIcon
+															as={ChevronUpIcon}
+														/>
+													) : (
+														<AccordionIcon
+															as={ChevronDownIcon}
+														/>
+													)}
+												</HStack>
 											</>
 										);
 									}}
@@ -298,27 +356,44 @@ const AccountScreen = () => {
 											<>
 												<HStack
 													style={{
-														width: "max-content",
+														width: "100%",
 														gap: 15,
+														alignItems: "center",
 													}}>
-													<Heading size='md'>
-														Signature
-													</Heading>
-													{profile?.signature_url && (
-														<CircleCheckBig />
+													<Signature />
+													<HStack
+														style={{
+															justifyContent:
+																"space-between",
+															width: "78%",
+														}}>
+														<Heading size='md'>
+															Signature
+														</Heading>
+														{profile?.signature_url && (
+															<Badge action='success'>
+																<BadgeText>
+																	Complété
+																</BadgeText>
+																<BadgeIcon
+																	as={
+																		CheckIcon
+																	}
+																	className='ml-2'
+																/>
+															</Badge>
+														)}
+													</HStack>
+													{isExpanded ? (
+														<AccordionIcon
+															as={ChevronUpIcon}
+														/>
+													) : (
+														<AccordionIcon
+															as={ChevronDownIcon}
+														/>
 													)}
 												</HStack>
-												{isExpanded ? (
-													<AccordionIcon
-														as={ChevronUpIcon}
-														className='ml-3'
-													/>
-												) : (
-													<AccordionIcon
-														as={ChevronDownIcon}
-														className='ml-3'
-													/>
-												)}
 											</>
 										);
 									}}
@@ -364,52 +439,7 @@ const AccountScreen = () => {
 					<Button onPress={() => router.push("/documents")}>
 						<ButtonText>Upload my documents</ButtonText>
 					</Button>
-					{/* <Button
-						onPress={() => router.push("/documentsverification")}>
-						<ButtonText>Documents</ButtonText>
-					</Button> */}
 				</VStack>
-				{/* <VStack
-					style={{
-						padding: 15,
-						backgroundColor: "#FFF",
-						height: "100%",
-						gap: 15,
-					}}>
-					<Button
-						onPress={() => {
-							router.push({
-								pathname: "/updateprofile",
-								params: {
-									firstname: profile.firstname,
-									lastname: profile.lastname,
-								},
-							});
-						}}
-						style={{ width: "100%" }}>
-						<ButtonText>Update</ButtonText>
-					</Button>
-					<Button
-						onPress={() => {
-							router.push("/curriculum");
-						}}
-						style={{ width: "100%" }}>
-						<ButtonText>CV</ButtonText>
-					</Button>
-					<Button
-						onPress={() => {
-							router.push({
-								pathname: "/signature",
-								params: {
-									signatureUrl: profile.signature_url,
-									type: "profiles",
-								},
-							});
-						}}
-						style={{ width: "100%" }}>
-						<ButtonText>Sign</ButtonText>
-					</Button>
-				</VStack> */}
 			</ScrollView>
 		</VStack>
 	);
