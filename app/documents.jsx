@@ -37,7 +37,6 @@ const Documents = () => {
 	return (
 		<Box flex={1} bg='$backgroundLight0' style={{ padding: 15 }}>
 			<VStack space='xl' p='$6'>
-				<Text>Documents</Text>
 				<Button onPress={() => router.push("/iddocumentverification")}>
 					<ButtonText>ID Document</ButtonText>
 					{IDDocumentVerified && <ButtonIcon as={CheckIcon} />}
