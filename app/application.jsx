@@ -20,12 +20,64 @@ import {
 	Hourglass,
 	X,
 	CircleSlash,
+	MapPin,
+	CalendarClock,
+	CircleCheckIcon,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 
 import JobCard from "@/components/JobCard";
+import { width } from "dom-helpers";
+
+const STATUS_ORDER = [
+	"applied",
+	"selected",
+	"contract_sent",
+	"contract_signed_candidate",
+	"contract_signed_pro",
+];
+
+const STATUS_CONFIG = {
+	applied: {
+		title: "Candidature envoyée",
+		description: "Votre candidature a été envoyée avec succès.",
+		color: "#16a34a",
+	},
+	selected: {
+		title: "Profil sélectionné",
+		description: "Le recruteur étudie votre profil.",
+		color: "#2563eb",
+	},
+	contract_sent: {
+		title: "Contrat envoyé",
+		description: "Un contrat vous a été transmis.",
+		color: "#f59e0b",
+	},
+	contract_signed_candidate: {
+		title: "Contrat signé",
+		description: "Vous avez signé le contrat.",
+		color: "#16a34a",
+	},
+	contract_signed_pro: {
+		title: "Contrat finalisé",
+		description: "Le recruteur a signé le contrat.",
+		color: "#16a34a",
+		isFinal: true,
+	},
+	rejected: {
+		title: "Candidature refusée",
+		description: "Votre candidature n’a pas été retenue.",
+		color: "#dc2626",
+		isFinal: true,
+	},
+
+	// 🟡 PENDING (fictif)
+	pending: {
+		color: "#9ca3af", // gray
+	},
+};
 
 const ApplicationScreen = () => {
 	const router = useRouter();
@@ -39,6 +91,7 @@ const ApplicationScreen = () => {
 		isJobApplied,
 		applyToJob,
 		getById,
+		getAll,
 		confirmApplication,
 		selectApplication,
 		refuseApplication,
@@ -51,13 +104,14 @@ const ApplicationScreen = () => {
 	const [isRefused, setIsRefused] = useState(false);
 
 	const [application, setApplication] = useState([]);
+	const [applicationStatus, setApplicationStatus] = useState([]);
 	// const [totalCount, setTotalCount] = useState(0);
 
 	const loadData = async () => {
 		const data = await getById(
 			"applies",
 			apply_id,
-			"*,jobs(*), profiles(*)"
+			"*,jobs(*), profiles(*)",
 		);
 		setApplication(data);
 		setIsConfirmed(data.isConfirmed);
@@ -66,11 +120,29 @@ const ApplicationScreen = () => {
 		// setTotalCount(totalCount);
 	};
 
+	const loadApplicationStatus = async () => {
+		const data = await getAll(
+			"application_status_events",
+			"*",
+			`&application_id=eq.${apply_id}`,
+			1,
+			10,
+			"created_at.asc",
+		);
+		setApplicationStatus(data.data);
+		// setTotalCount(totalCount);
+	};
+
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
-		}, [])
+			loadApplicationStatus();
+		}, []),
 	);
+
+	useEffect(() => {
+		console.log("ApplicationStatus data:", applicationStatus);
+	}, [applicationStatus]);
 
 	// const handleToggle = async () => {
 	// 	const isNowInWishlist = await toggleWishlistJob(id, user.id);
@@ -111,18 +183,126 @@ const ApplicationScreen = () => {
 	useFocusEffect(
 		useCallback(() => {
 			checkWishlist();
-		}, [])
+		}, []),
 	);
 
 	useFocusEffect(
 		useCallback(() => {
 			role === "candidat" && checkApplication();
-		}, [user, id])
+		}, [user, id]),
 	);
+
+	const formatDate = (date) => {
+		const d = new Date(date);
+
+		const day = String(d.getDate()).padStart(2, "0");
+		const month = String(d.getMonth() + 1).padStart(2, "0");
+		const year = d.getFullYear();
+
+		const hours = String(d.getHours()).padStart(2, "0");
+		const minutes = String(d.getMinutes()).padStart(2, "0");
+
+		return `${day}/${month}/${year} - ${hours}:${minutes}`;
+	};
+
+	const buildTimelineSteps = (events) => {
+		if (!events || events.length === 0) return [];
+
+		const steps = [...events];
+
+		const lastEvent = events[events.length - 1];
+		const lastStatus = lastEvent.status;
+
+		const lastConfig = STATUS_CONFIG[lastStatus];
+
+		// ⛔ Cas finaux : on n’ajoute rien
+		if (lastConfig?.isFinal) {
+			return steps;
+		}
+
+		// Trouver le statut suivant
+		const currentIndex = STATUS_ORDER.indexOf(lastStatus);
+		const nextStatus = STATUS_ORDER[currentIndex + 1];
+
+		if (!nextStatus) return steps;
+
+		// Ajouter un step pending fictif
+		steps.push({
+			status: nextStatus,
+			isPending: true,
+		});
+
+		return steps;
+	};
+
+	const StepCard = ({ status, date, isLast, isPending }) => {
+		const config = STATUS_CONFIG[status];
+		if (!config) return null;
+
+		const color = isPending ? STATUS_CONFIG.pending.color : config.color;
+
+		return (
+			<HStack style={{ gap: 15 }}>
+				{/* Timeline */}
+				<VStack style={{ alignItems: "center", gap: 5 }}>
+					<Center
+						style={{
+							height: 30,
+							width: 30,
+							backgroundColor: color,
+							borderRadius: 15,
+						}}>
+						{!isPending && (
+							<CircleCheckIcon size={12} color='white' />
+						)}
+					</Center>
+
+					{!isLast && (
+						<Divider
+							orientation='vertical'
+							style={{
+								height: 30,
+								backgroundColor: color,
+								width: 2,
+							}}
+						/>
+					)}
+				</VStack>
+
+				{/* Content */}
+				<VStack>
+					<Heading
+						size='md'
+						style={{ color: isPending ? "gray" : "#303030" }}>
+						{config.title}
+					</Heading>
+
+					<Text
+						size='sm'
+						style={{ color: isPending ? "gray" : "#303030" }}>
+						{isPending
+							? "Cette étape est en attente."
+							: config.description}
+					</Text>
+
+					{!isPending && date && (
+						<HStack style={{ alignItems: "center", gap: 3 }}>
+							<CalendarClock size={10} color='gray' />
+							<Text size='xs' style={{ color: "gray" }}>
+								{formatDate(date)}
+							</Text>
+						</HStack>
+					)}
+				</VStack>
+			</HStack>
+		);
+	};
+
+	const timelineSteps = buildTimelineSteps(applicationStatus);
 
 	return (
 		<ScrollView style={{ flex: 1, backgroundColor: "white" }}>
-			<VStack style={{ padding: 15, gap: 15 }}>
+			<VStack style={{ padding: 15, gap: 15, paddingBottom: 90 }}>
 				<VStack
 					style={{
 						justifyContent: "center",
@@ -163,140 +343,63 @@ const ApplicationScreen = () => {
 						</Button>
 					</VStack>
 				)}
-				<HStack
+				<VStack
 					style={{
 						// backgroundColor: "lightgray",
 						padding: 10,
 						marginTop: 15,
-						justifyContent: "space-between",
-						alignItems: "center",
-						gap: 15,
+						justifyContent: "flex-start",
+						// alignItems: "center",
+						gap: 10,
 					}}>
-					<VStack style={{ alignItems: "center", gap: 5, width: 60 }}>
-						<Center
-							style={{
-								height: 30,
-								width: 30,
-								backgroundColor: "lightgreen",
-								borderRadius: 15,
-							}}>
-							<Check size={16} />
-						</Center>
-						<Text size='xs'>Envoyé</Text>
+					<VStack
+						style={{
+							alignItems: "flex-start",
+							gap: 10,
+							// backgroundColor: "pink",
+						}}>
+						{/* <StepCard
+							status={"applied"}
+							title='Envoyé'
+							description='Votre candidature a été envoyée avec succès.'
+							color='green'
+						/>
+						<StepCard
+							status={"selected"}
+							title='Sélectionné'
+							description='Vous avez été sélectionné pour cette offre.'
+							color='green'
+						/>
+						<StepCard
+							status={"contract_sent"}
+							title='Contrat envoyé'
+							description='Le contrat a été envoyé pour signature.'
+							color='green'
+						/>
+						<StepCard
+							status={"contract_signed_candidate"}
+							title='Contrat signé par le candidat'
+							description='Le contrat a été signé par le candidat.'
+							color='green'
+						/>
+						<StepCard
+							status={"contract_signed_pro"}
+							title='Signature du contrat par le pro'
+							description='En attente de la signature du pro.'
+							color='gray'
+						/> */}
+						{applicationStatus &&
+							timelineSteps.map((step, index) => (
+								<StepCard
+									key={`${step.status}-${index}`}
+									status={step.status}
+									date={step.created_at}
+									isPending={step.isPending}
+									isLast={index === timelineSteps.length - 1}
+								/>
+							))}
 					</VStack>
-					<Divider
-						style={{
-							backgroundColor: "#ccc",
-							height: 2,
-							width: 45,
-							marginBottom: 20,
-						}}
-					/>
-					{isSelected === null && (
-						<VStack
-							style={{ alignItems: "center", gap: 5, width: 60 }}>
-							<Center
-								style={{
-									height: 30,
-									width: 30,
-									backgroundColor: "beige",
-									borderRadius: 15,
-								}}>
-								<Hourglass size={16} />
-							</Center>
-							<Text size='xs'>Selection</Text>
-						</VStack>
-					)}
-					{isSelected === true && (
-						<VStack
-							style={{ alignItems: "center", gap: 5, width: 60 }}>
-							<Center
-								style={{
-									height: 30,
-									width: 30,
-									backgroundColor: "lightgreen",
-									borderRadius: 15,
-								}}>
-								<Check size={16} />
-							</Center>
-							<Text size='xs'>Selectionné</Text>
-						</VStack>
-					)}
-					{isSelected === false && (
-						<VStack
-							style={{ alignItems: "center", gap: 5, width: 60 }}>
-							<Center
-								style={{
-									height: 30,
-									width: 30,
-									backgroundColor: "lightcoral",
-									borderRadius: 15,
-								}}>
-								<X size={16} />
-							</Center>
-							<Text size='xs' style={{ textAlign: "center" }}>
-								Refusé
-							</Text>
-						</VStack>
-					)}
-					<Divider
-						style={{
-							backgroundColor: "#ccc",
-							height: 2,
-							width: 45,
-							marginBottom: 20,
-						}}
-					/>
-					{isConfirmed === null && (
-						<VStack
-							style={{ alignItems: "center", gap: 5, width: 60 }}>
-							<Center
-								style={{
-									height: 30,
-									width: 30,
-									backgroundColor: "beige",
-									borderRadius: 15,
-								}}>
-								{isSelected === false ? (
-									<CircleSlash size={16} />
-								) : (
-									<Hourglass size={16} />
-								)}
-							</Center>
-							<Text size='xs'>Validation</Text>
-						</VStack>
-					)}
-					{isConfirmed === false && (
-						<VStack
-							style={{ alignItems: "center", gap: 5, width: 60 }}>
-							<Center
-								style={{
-									height: 30,
-									width: 30,
-									backgroundColor: "lightcoral",
-									borderRadius: 15,
-								}}>
-								<X size={16} />
-							</Center>
-							<Text size='xs'>Refusé</Text>
-						</VStack>
-					)}
-					{isConfirmed === true && (
-						<VStack
-							style={{ alignItems: "center", gap: 5, width: 60 }}>
-							<Center
-								style={{
-									height: 30,
-									width: 30,
-									backgroundColor: "lightgreen",
-									borderRadius: 15,
-								}}>
-								<Check size={16} />
-							</Center>
-							<Text size='xs'>Validé</Text>
-						</VStack>
-					)}
-				</HStack>
+				</VStack>
 				{role === "pro" && (
 					<VStack space='md'>
 						{isSelected === null && (
