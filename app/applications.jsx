@@ -89,6 +89,7 @@ const ApplicationsScreen = () => {
 						company_id={app.company_id}
 						isRefused={app.isRefused}
 						apply_id={app.id}
+						status={app.status}
 					/>
 				))}
 				{totalPages > 1 && (
