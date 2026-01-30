@@ -273,7 +273,7 @@ const ApplicationScreen = () => {
 				<VStack>
 					<Heading
 						size='md'
-						style={{ color: isPending ? "gray" : "#303030" }}>
+						style={{ color: isPending ? "gray" : "#303030 " }}>
 						{config.title}
 					</Heading>
 
