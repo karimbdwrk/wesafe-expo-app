@@ -62,7 +62,12 @@ const ApplyCard = ({
 						<Badge size='md' variant='solid' action='warning'>
 							<BadgeText>{category}</BadgeText>
 						</Badge>
-						<Badge size='md' variant='solid' action='info'>
+						<Badge
+							size='md'
+							variant='solid'
+							action={
+								status === "rejected" ? "error" : "success"
+							}>
 							<BadgeText>{status}</BadgeText>
 						</Badge>
 					</HStack>
