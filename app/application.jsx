@@ -42,40 +42,52 @@ const STATUS_ORDER = [
 const STATUS_CONFIG = {
 	applied: {
 		title: "Candidature envoyée",
-		description: "Votre candidature a été envoyée avec succès.",
+		descriptionCandidate: "Votre candidature a été envoyée avec succès.",
+		descriptionPro: "Un candidat a postulé à cette annonce.",
 		color: "#16a34a",
 	},
+
 	selected: {
 		title: "Profil sélectionné",
-		description: "Le recruteur étudie votre profil.",
+		descriptionCandidate: "Le recruteur étudie votre profil.",
+		descriptionPro: "Vous avez sélectionné ce candidat pour la suite.",
 		color: "#2563eb",
 	},
+
 	contract_sent: {
 		title: "Contrat envoyé",
-		description: "Un contrat vous a été transmis.",
+		descriptionCandidate: "Un contrat vous a été transmis.",
+		descriptionPro: "Vous avez envoyé un contrat au candidat.",
 		color: "#f59e0b",
 	},
+
 	contract_signed_candidate: {
 		title: "Contrat signé",
-		description: "Vous avez signé le contrat.",
+		descriptionCandidate: "Vous avez signé le contrat.",
+		descriptionPro: "Le candidat a signé le contrat.",
 		color: "#16a34a",
 	},
+
 	contract_signed_pro: {
 		title: "Contrat finalisé",
-		description: "Le recruteur a signé le contrat.",
+		descriptionCandidate:
+			"Le recruteur a signé le contrat. La mission est confirmée.",
+		descriptionPro: "Vous avez signé le contrat. La mission est confirmée.",
 		color: "#16a34a",
 		isFinal: true,
 	},
+
 	rejected: {
 		title: "Candidature refusée",
-		description: "Votre candidature n’a pas été retenue.",
+		descriptionCandidate: "Votre candidature n’a pas été retenue.",
+		descriptionPro: "Vous avez refusé cette candidature.",
 		color: "#dc2626",
 		isFinal: true,
 	},
 
 	// 🟡 PENDING (fictif)
 	pending: {
-		color: "#9ca3af", // gray
+		color: "#9ca3af",
 	},
 };
 
@@ -95,17 +107,21 @@ const ApplicationScreen = () => {
 		confirmApplication,
 		selectApplication,
 		refuseApplication,
+		updateApplicationStatus,
 	} = useDataContext();
 
 	const [isInWishlist, setIsInWishlist] = useState(false);
-	const [isApplied, setIsApplied] = useState(false);
-	const [isConfirmed, setIsConfirmed] = useState(false);
+	// const [isApplied, setIsApplied] = useState(false);
+	// const [isConfirmed, setIsConfirmed] = useState(false);
 	const [isSelected, setIsSelected] = useState(false);
 	const [isRefused, setIsRefused] = useState(false);
+	const [currentStatus, setCurrentStatus] = useState("");
 
 	const [application, setApplication] = useState([]);
 	const [applicationStatus, setApplicationStatus] = useState([]);
 	// const [totalCount, setTotalCount] = useState(0);
+
+	const [contractGenerated, setContractGenerated] = useState(false);
 
 	const loadData = async () => {
 		const data = await getById(
@@ -114,9 +130,19 @@ const ApplicationScreen = () => {
 			"*,jobs(*), profiles(*)",
 		);
 		setApplication(data);
-		setIsConfirmed(data.isConfirmed);
-		setIsSelected(data.isSelected);
-		setIsRefused(data.isRefused);
+		setCurrentStatus(data.current_status);
+
+		// Vérifier si un contrat a été généré
+		if (
+			data.current_status === "contract_sent" ||
+			data.current_status === "contract_signed_candidate" ||
+			data.current_status === "contract_signed_pro"
+		) {
+			setContractGenerated(true);
+		}
+		// setIsConfirmed(data.isConfirmed);
+		// setIsSelected(data.isSelected);
+		// setIsRefused(data.isRefused);
 		// setTotalCount(totalCount);
 	};
 
@@ -142,28 +168,65 @@ const ApplicationScreen = () => {
 
 	useEffect(() => {
 		console.log("ApplicationStatus data:", applicationStatus);
-	}, [applicationStatus]);
+		console.log("Current status:", currentStatus);
+		console.log("Contract generated:", contractGenerated);
+	}, [applicationStatus, currentStatus, contractGenerated]);
 
 	// const handleToggle = async () => {
 	// 	const isNowInWishlist = await toggleWishlistJob(id, user.id);
 	// 	setIsInWishlist(isNowInWishlist);
 	// };
 
-	const handleSelect = async (bool) => {
-		const isNowSelected = await selectApplication(apply_id, bool);
-		setIsSelected(bool);
+	const handleSelect = async () => {
+		const isNowSelected = await updateApplicationStatus(
+			apply_id,
+			"selected",
+			"company",
+		);
+		// setIsSelected(bool);
+		console.log("Candidat sélectionné :", isNowSelected);
+		setCurrentStatus("selected");
+		setApplicationStatus((prev) => [
+			...prev,
+			{ status: "selected", created_at: new Date().toISOString() },
+		]);
 	};
 
-	const handleConfirm = async () => {
-		const isNowConfirmed = await confirmApplication(apply_id);
-		setIsConfirmed(true);
-		setIsRefused(false);
+	const handleGenerateContract = async () => {
+		const isNowSelected = await updateApplicationStatus(
+			apply_id,
+			"contract_sent",
+			"company",
+		);
+		// setIsSelected(bool);
+		console.log("Candidat sélectionné :", isNowSelected);
+		setCurrentStatus("contract_sent");
+		setApplicationStatus((prev) => [
+			...prev,
+			{ status: "contract_sent", created_at: new Date().toISOString() },
+		]);
+
+		setContractGenerated(true);
 	};
 
-	const handleRefuse = async () => {
-		const isNowRefused = await refuseApplication(apply_id);
-		setIsRefused(true);
-		setIsConfirmed(false);
+	// const handleConfirm = async () => {
+	// 	const isNowConfirmed = await confirmApplication(apply_id);
+	// 	setIsConfirmed(true);
+	// 	setIsRefused(false);
+	// };
+
+	const handleReject = async () => {
+		const isNowRejected = await updateApplicationStatus(
+			apply_id,
+			"rejected",
+			"company",
+		);
+		console.log("Candidat refusé :", isNowRejected);
+		setCurrentStatus("rejected");
+		setApplicationStatus((prev) => [
+			...prev,
+			{ status: "rejected", created_at: new Date().toISOString() },
+		]);
 	};
 
 	const checkWishlist = async () => {
@@ -171,10 +234,10 @@ const ApplicationScreen = () => {
 		setIsInWishlist(inWishlist);
 	};
 
-	const checkApplication = async () => {
-		const applied = await isJobApplied(user.id, id);
-		setIsApplied(applied);
-	};
+	// const checkApplication = async () => {
+	// 	const applied = await isJobApplied(user.id, id);
+	// 	setIsApplied(applied);
+	// };
 
 	// useEffect(() => {
 	// 	checkApplication();
@@ -186,11 +249,11 @@ const ApplicationScreen = () => {
 		}, []),
 	);
 
-	useFocusEffect(
-		useCallback(() => {
-			role === "candidat" && checkApplication();
-		}, [user, id]),
-	);
+	// useFocusEffect(
+	// 	useCallback(() => {
+	// 		role === "candidat" && checkApplication();
+	// 	}, [user, id]),
+	// );
 
 	const formatDate = (date) => {
 		const d = new Date(date);
@@ -241,6 +304,12 @@ const ApplicationScreen = () => {
 
 		const color = isPending ? STATUS_CONFIG.pending.color : config.color;
 
+		const description = isPending
+			? "Cette étape est en attente."
+			: role === "pro"
+				? config.descriptionPro
+				: config.descriptionCandidate;
+
 		return (
 			<HStack style={{ gap: 15 }}>
 				{/* Timeline */}
@@ -261,9 +330,10 @@ const ApplicationScreen = () => {
 						<Divider
 							orientation='vertical'
 							style={{
-								height: 30,
-								backgroundColor: color,
+								height: 35,
+								backgroundColor: "lightgray",
 								width: 2,
+								marginTop: 5,
 							}}
 						/>
 					)}
@@ -282,7 +352,7 @@ const ApplicationScreen = () => {
 						style={{ color: isPending ? "gray" : "#303030" }}>
 						{isPending
 							? "Cette étape est en attente."
-							: config.description}
+							: description}
 					</Text>
 
 					{!isPending && date && (
@@ -345,49 +415,16 @@ const ApplicationScreen = () => {
 				)}
 				<VStack
 					style={{
-						// backgroundColor: "lightgray",
 						padding: 10,
 						marginTop: 15,
 						justifyContent: "flex-start",
-						// alignItems: "center",
 						gap: 10,
 					}}>
 					<VStack
 						style={{
 							alignItems: "flex-start",
 							gap: 10,
-							// backgroundColor: "pink",
 						}}>
-						{/* <StepCard
-							status={"applied"}
-							title='Envoyé'
-							description='Votre candidature a été envoyée avec succès.'
-							color='green'
-						/>
-						<StepCard
-							status={"selected"}
-							title='Sélectionné'
-							description='Vous avez été sélectionné pour cette offre.'
-							color='green'
-						/>
-						<StepCard
-							status={"contract_sent"}
-							title='Contrat envoyé'
-							description='Le contrat a été envoyé pour signature.'
-							color='green'
-						/>
-						<StepCard
-							status={"contract_signed_candidate"}
-							title='Contrat signé par le candidat'
-							description='Le contrat a été signé par le candidat.'
-							color='green'
-						/>
-						<StepCard
-							status={"contract_signed_pro"}
-							title='Signature du contrat par le pro'
-							description='En attente de la signature du pro.'
-							color='gray'
-						/> */}
 						{applicationStatus &&
 							timelineSteps.map((step, index) => (
 								<StepCard
@@ -402,7 +439,7 @@ const ApplicationScreen = () => {
 				</VStack>
 				{role === "pro" && (
 					<VStack space='md'>
-						{isSelected === null && (
+						{currentStatus === "applied" && (
 							<HStack
 								style={{
 									gap: 10,
@@ -412,20 +449,22 @@ const ApplicationScreen = () => {
 								<Button
 									style={{ width: "49%" }}
 									action='positive'
-									onPress={() => handleSelect(true)}
-									isDisabled={isSelected ? true : false}>
+									onPress={() => handleSelect()}
+									// isDisabled={isSelected ? true : false}
+								>
 									<ButtonText>Sélectionner</ButtonText>
 								</Button>
 								<Button
 									style={{ width: "49%" }}
 									action='negative'
-									onPress={() => handleSelect(false)}
-									isDisabled={isSelected ? true : false}>
+									onPress={() => handleReject()}
+									// isDisabled={isSelected ? true : false}
+								>
 									<ButtonText>Refuser</ButtonText>
 								</Button>
 							</HStack>
 						)}
-						{isSelected === true && isConfirmed === null && (
+						{currentStatus === "selected" && (
 							<HStack
 								style={{
 									gap: 10,
@@ -435,26 +474,24 @@ const ApplicationScreen = () => {
 								<Button
 									style={{ width: "49%" }}
 									action='positive'
-									onPress={handleConfirm}
-									isDisabled={isConfirmed ? true : false}>
-									<ButtonText>
-										{isConfirmed ? "Confirmé" : "Confirmer"}
-									</ButtonText>
+									onPress={() => handleGenerateContract()}
+									// isDisabled={isSelected ? true : false}
+								>
+									<ButtonText>Générer le contrat</ButtonText>
 								</Button>
 								<Button
 									style={{ width: "49%" }}
 									action='negative'
-									onPress={handleRefuse}
-									isDisabled={isRefused ? true : false}>
-									<ButtonText>
-										{isRefused ? "Refusé" : "Refuser"}
-									</ButtonText>
+									onPress={() => handleReject()}
+									// isDisabled={isSelected ? true : false}
+								>
+									<ButtonText>Refuser</ButtonText>
 								</Button>
 							</HStack>
 						)}
 					</VStack>
 				)}
-				{isConfirmed && (
+				{contractGenerated && (
 					<Button
 						onPress={() =>
 							router.push({
@@ -474,25 +511,6 @@ const ApplicationScreen = () => {
 						</ButtonText>
 					</Button>
 				)}
-				{/* {role === "candidat" && (
-				<Button
-					size='lg'
-					variant='link'
-					className='rounded-full p-3.5'
-					onPress={handleToggle}>
-					<ButtonIcon as={isInWishlist ? BookmarkCheck : Bookmark} />
-				</Button>
-			)}
-			{role === "candidat" && (
-				<Button
-					disabled={isApplied ? true : false}
-					variant={isApplied ? "outline" : "solid"}
-					onPress={handleApply}>
-					<ButtonText>
-						{isApplied ? "Vous avez déjà postulé" : "Postuler"}
-					</ButtonText>
-				</Button>
-			)} */}
 			</VStack>
 		</ScrollView>
 	);
