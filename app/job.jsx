@@ -52,7 +52,7 @@ const JobScreen = () => {
 		const data = await getById(
 			"jobs",
 			id,
-			`*, companies(name, email), applies(id, candidate_id, profiles(firstname, lastname))`
+			`*, companies(name, email), applies(id, candidate_id, profiles(firstname, lastname))`,
 		);
 		setJob(data);
 	};
@@ -60,7 +60,7 @@ const JobScreen = () => {
 	useFocusEffect(
 		useCallback(() => {
 			id && loadJob();
-		}, [])
+		}, []),
 	);
 
 	const handleToggle = async () => {
@@ -85,7 +85,7 @@ const JobScreen = () => {
 			job.companies.email,
 			job.title,
 			userProfile.lastname,
-			userProfile.email
+			userProfile.email,
 		);
 
 		const notificationPayload = {
@@ -104,7 +104,7 @@ const JobScreen = () => {
 					apikey: SUPABASE_API_KEY,
 					Authorization: `Bearer ${accessToken}`, // Assurez-vous que l'utilisateur a un accessToken valide
 				},
-			}
+			},
 		);
 
 		setIsApplied(isNowApplied);
@@ -140,14 +140,14 @@ const JobScreen = () => {
 	useFocusEffect(
 		useCallback(() => {
 			checkWishlist();
-		}, [])
+		}, []),
 	);
 
 	useFocusEffect(
 		useCallback(() => {
 			checkApplication();
 			checkArchive();
-		}, [user, id])
+		}, [user, id]),
 	);
 
 	return (
