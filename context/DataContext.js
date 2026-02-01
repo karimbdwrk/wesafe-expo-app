@@ -135,28 +135,52 @@ export const DataProvider = ({ children }) => {
 			applicantEmail,
 		);
 		try {
-			const res = await axiosInstance.post(
+			// 1. Créer la candidature dans /applies
+			const applyRes = await axiosInstance.post(
 				`/applies`,
 				{
 					candidate_id: candidateId,
 					job_id: jobId,
 					company_id: companyId,
+					current_status: "applied",
 				},
 				{
 					headers: {
-						Prefer: "return=representation", // Optional, but helpful for confirmation
+						Prefer: "return=representation",
 					},
 				},
 			);
-			console.log("Applied to job:", res.data);
+			console.log("Applied to job:", applyRes.data);
+
+			// 2. Créer l'événement de statut dans /application_status_events
+			const applicationId = applyRes.data[0]?.id;
+			if (applicationId) {
+				const statusEventRes = await axiosInstance.post(
+					`/application_status_events`,
+					{
+						application_id: applicationId,
+						status: "applied",
+						updated_by: "candidate",
+					},
+					{
+						headers: {
+							Prefer: "return=representation",
+						},
+					},
+				);
+				console.log("Status event created:", statusEventRes.data);
+			}
+
+			// 3. Envoyer l'email de confirmation
 			const emailResult = await sendApplicationEmail(
 				applicantName,
 				applicantEmail,
-				offerTitle, // Récupéré dynamiquement
-				companyEmail, // Récupéré dynamiquement
-				companyName, // Récupéré dynamiquement
+				offerTitle,
+				companyEmail,
+				companyName,
 			);
-			return res.data;
+
+			return applyRes.data;
 		} catch (err) {
 			console.error(
 				"Error applying to job:",
@@ -175,6 +199,58 @@ export const DataProvider = ({ children }) => {
 		} catch (err) {
 			console.error(
 				"Error checking job application:",
+				err.response?.data || err.message,
+			);
+			throw err;
+		}
+	};
+
+	const updateApplicationStatus = async (
+		applicationId,
+		newStatus,
+		updatedBy,
+	) => {
+		console.log(
+			"Updating application status:",
+			applicationId,
+			newStatus,
+			updatedBy,
+		);
+		try {
+			// 1. Mettre à jour le statut dans /applies
+			const updateRes = await axiosInstance.patch(
+				`/applies?id=eq.${applicationId}`,
+				{
+					current_status: newStatus,
+				},
+				{
+					headers: {
+						Prefer: "return=representation",
+					},
+				},
+			);
+			console.log("Application status updated:", updateRes.data);
+
+			// 2. Créer un événement de statut dans /application_status_events
+			const statusEventRes = await axiosInstance.post(
+				`/application_status_events`,
+				{
+					application_id: applicationId,
+					status: newStatus,
+					updated_by: updatedBy,
+				},
+				{
+					headers: {
+						Prefer: "return=representation",
+					},
+				},
+			);
+			console.log("Status event created:", statusEventRes.data);
+
+			return updateRes.data;
+		} catch (err) {
+			console.error(
+				"Error updating application status:",
 				err.response?.data || err.message,
 			);
 			throw err;
@@ -485,6 +561,7 @@ export const DataProvider = ({ children }) => {
 				isJobInWishlist,
 				applyToJob,
 				isJobApplied,
+				updateApplicationStatus,
 				archiveJob,
 				isJobArchived,
 				confirmApplication,
