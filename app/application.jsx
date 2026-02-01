@@ -12,6 +12,15 @@ import { Divider } from "@/components/ui/divider";
 import { Text } from "@/components/ui/text";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
+import {
+	Modal,
+	ModalBackdrop,
+	ModalContent,
+	ModalHeader,
+	ModalCloseButton,
+	ModalBody,
+	ModalFooter,
+} from "@/components/ui/modal";
 
 import {
 	Bookmark,
@@ -110,6 +119,12 @@ const ApplicationScreen = () => {
 		updateApplicationStatus,
 	} = useDataContext();
 
+	const [showModal, setShowModal] = useState(false);
+	const [showSelectModal, setShowSelectModal] = useState(false);
+	const [showRejectModal, setShowRejectModal] = useState(false);
+	const [showGenerateContractModal, setShowGenerateContractModal] =
+		useState(false);
+
 	const [isInWishlist, setIsInWishlist] = useState(false);
 	// const [isApplied, setIsApplied] = useState(false);
 	// const [isConfirmed, setIsConfirmed] = useState(false);
@@ -177,7 +192,7 @@ const ApplicationScreen = () => {
 	// 	setIsInWishlist(isNowInWishlist);
 	// };
 
-	const handleSelect = async () => {
+	const confirmSelect = async () => {
 		const isNowSelected = await updateApplicationStatus(
 			apply_id,
 			"selected",
@@ -190,9 +205,14 @@ const ApplicationScreen = () => {
 			...prev,
 			{ status: "selected", created_at: new Date().toISOString() },
 		]);
+		setShowSelectModal(false);
 	};
 
-	const handleGenerateContract = async () => {
+	const handleSelect = () => {
+		setShowSelectModal(true);
+	};
+
+	const confirmGenerateContract = async () => {
 		const isNowSelected = await updateApplicationStatus(
 			apply_id,
 			"contract_sent",
@@ -207,6 +227,11 @@ const ApplicationScreen = () => {
 		]);
 
 		setContractGenerated(true);
+		setShowGenerateContractModal(false);
+	};
+
+	const handleGenerateContract = () => {
+		setShowGenerateContractModal(true);
 	};
 
 	// const handleConfirm = async () => {
@@ -215,7 +240,7 @@ const ApplicationScreen = () => {
 	// 	setIsRefused(false);
 	// };
 
-	const handleReject = async () => {
+	const confirmReject = async () => {
 		const isNowRejected = await updateApplicationStatus(
 			apply_id,
 			"rejected",
@@ -227,6 +252,11 @@ const ApplicationScreen = () => {
 			...prev,
 			{ status: "rejected", created_at: new Date().toISOString() },
 		]);
+		setShowRejectModal(false);
+	};
+
+	const handleReject = () => {
+		setShowRejectModal(true);
 	};
 
 	const checkWishlist = async () => {
@@ -512,6 +542,107 @@ const ApplicationScreen = () => {
 					</Button>
 				)}
 			</VStack>
+
+			{/* Modal de confirmation pour sélectionner */}
+			<Modal
+				isOpen={showSelectModal}
+				onClose={() => setShowSelectModal(false)}>
+				<ModalBackdrop />
+				<ModalContent className='max-w-[375px]'>
+					<ModalHeader>
+						<Heading size='md'>Confirmer la sélection</Heading>
+					</ModalHeader>
+					<ModalBody>
+						<Text>
+							Êtes-vous sûr de vouloir sélectionner ce candidat
+							pour la suite du processus de recrutement ?
+						</Text>
+					</ModalBody>
+					<ModalFooter className='w-full gap-3'>
+						<Button
+							variant='outline'
+							action='secondary'
+							onPress={() => setShowSelectModal(false)}
+							className='flex-1'>
+							<ButtonText>Annuler</ButtonText>
+						</Button>
+						<Button
+							action='positive'
+							onPress={confirmSelect}
+							className='flex-1'>
+							<ButtonText>Confirmer</ButtonText>
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
+
+			{/* Modal de confirmation pour refuser */}
+			<Modal
+				isOpen={showRejectModal}
+				onClose={() => setShowRejectModal(false)}>
+				<ModalBackdrop />
+				<ModalContent className='max-w-[375px]'>
+					<ModalHeader>
+						<Heading size='md'>Confirmer le refus</Heading>
+					</ModalHeader>
+					<ModalBody>
+						<Text>
+							Êtes-vous sûr de vouloir refuser cette candidature ?
+							Cette action est définitive.
+						</Text>
+					</ModalBody>
+					<ModalFooter className='w-full gap-3'>
+						<Button
+							variant='outline'
+							action='secondary'
+							onPress={() => setShowRejectModal(false)}
+							className='flex-1'>
+							<ButtonText>Annuler</ButtonText>
+						</Button>
+						<Button
+							action='negative'
+							onPress={confirmReject}
+							className='flex-1'>
+							<ButtonText>Refuser</ButtonText>
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
+
+			{/* Modal de confirmation pour générer le contrat */}
+			<Modal
+				isOpen={showGenerateContractModal}
+				onClose={() => setShowGenerateContractModal(false)}>
+				<ModalBackdrop />
+				<ModalContent className='max-w-[375px]'>
+					<ModalHeader>
+						<Heading size='md'>
+							Confirmer la génération du contrat
+						</Heading>
+					</ModalHeader>
+					<ModalBody>
+						<Text>
+							Êtes-vous sûr de vouloir générer et envoyer le
+							contrat à ce candidat ?
+						</Text>
+					</ModalBody>
+					<ModalFooter className='w-full gap-3'>
+						<Button
+							variant='outline'
+							action='secondary'
+							onPress={() => setShowGenerateContractModal(false)}
+							className='flex-1'>
+							<ButtonText>Annuler</ButtonText>
+						</Button>
+						<Button
+							action='positive'
+							onPress={confirmGenerateContract}
+							className='flex-1'>
+							<ButtonText>Confirmer</ButtonText>
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
 		</ScrollView>
 	);
 };
