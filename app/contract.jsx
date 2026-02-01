@@ -10,6 +10,14 @@ import { Button, ButtonText } from "@/components/ui/button";
 import { useToast, Toast, ToastTitle } from "@/components/ui/toast";
 import { Icon } from "@/components/ui/icon";
 import { Signature } from "lucide-react-native";
+import {
+	Modal,
+	ModalBackdrop,
+	ModalContent,
+	ModalHeader,
+	ModalBody,
+	ModalFooter,
+} from "@/components/ui/modal";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
@@ -30,6 +38,9 @@ const ContractScreen = () => {
 	const toast = useToast();
 
 	const [isSigned, setIsSigned] = useState(false);
+	const [isProSigned, setIsProSigned] = useState(false);
+	const [showProSignModal, setShowProSignModal] = useState(false);
+	const [showCandidateSignModal, setShowCandidateSignModal] = useState(false);
 	const [candidate, setCandidate] = useState(null);
 	const [company, setCompany] = useState(null);
 	const [job, setJob] = useState(null);
@@ -42,7 +53,7 @@ const ContractScreen = () => {
 		const response = await getById(
 			"applies",
 			apply_id,
-			"*,jobs(*), profiles(*), companies(*)"
+			"*,jobs(*), profiles(*), companies(*)",
 		);
 		setApply(response);
 		setCandidate(response.profiles);
@@ -57,25 +68,67 @@ const ContractScreen = () => {
 			`&apply_id=eq.${apply_id}`,
 			1,
 			10,
-			"created_at.desc"
+			"created_at.desc",
 		);
-		data.length && setIsSigned(true);
-		data.length && setContract(data[0]);
-		data.length && setContractId(data[0].id);
+		if (data.length) {
+			setIsSigned(true);
+			setContract(data[0]);
+			setContractId(data[0].id);
+			if (data[0].isProSigned) {
+				setIsProSigned(true);
+			}
+		}
 	};
 
 	useFocusEffect(
 		useCallback(() => {
 			getAllData();
 			getContract();
-		}, [])
+		}, []),
 	);
 
 	useEffect(() => {
 		console.log("contract id :", contractId);
 	}, [contractId]);
 
-	const handleSign = async () => {
+	const handleProSign = () => {
+		setShowProSignModal(true);
+	};
+
+	const confirmProSign = async () => {
+		try {
+			await update("contracts", contractId, {
+				isProSigned: true,
+			});
+			setIsProSigned(true);
+			setShowProSignModal(false);
+			toast.show({
+				placement: "top",
+				render: ({ id }) => (
+					<Toast
+						nativeID={"toast-" + id}
+						className='px-5 py-3 gap-4 shadow-soft-1 items-center flex-row'>
+						<Icon
+							as={Signature}
+							size='xl'
+							className='text-typography-white'
+						/>
+						<ToastTitle size='sm'>
+							Contrat signé et tamponné !
+						</ToastTitle>
+					</Toast>
+				),
+			});
+		} catch (error) {
+			console.log("error sign contract as pro", error);
+		}
+	};
+
+	const handleSign = () => {
+		setShowCandidateSignModal(true);
+	};
+
+	const confirmCandidateSign = async () => {
 		try {
 			await create("contracts", {
 				job_id: job.id,
@@ -85,6 +138,7 @@ const ContractScreen = () => {
 				category: job.category,
 				isSigned: true,
 			});
+			setShowCandidateSignModal(false);
 			getContract();
 			toast.show({
 				placement: "top",
@@ -180,7 +234,7 @@ const ContractScreen = () => {
 						apikey: SUPABASE_API_KEY,
 						"Content-Type": "multipart/form-data",
 					},
-				}
+				},
 			);
 
 			if (res.status !== 200) {
@@ -235,7 +289,7 @@ const ContractScreen = () => {
 		} catch (error) {
 			console.error(
 				"Erreur lors du téléchargement ou partage du PDF:",
-				error
+				error,
 			);
 		}
 	};
@@ -264,35 +318,39 @@ const ContractScreen = () => {
 					<Text>{job?.id}</Text>
 				</View>
 
-				<VStack
-					style={{
-						position: "relative",
-						height: 200,
-						marginBottom: 20,
-					}}>
-					<Text style={styles.subtitle}>Signature entreprise :</Text>
-					<Image
-						source={{ uri: company?.stamp_url }}
+				{/* {isProSigned && (
+					<VStack
 						style={{
-							position: "absolute",
-							top: 50,
-							left: 50,
-							width: 100,
-							height: 100,
-							opacity: 0.5,
-						}}
-					/>
-					<Image
-						source={{ uri: company?.signature_url }}
-						style={{
-							position: "absolute",
-							top: 25,
-							left: 25,
-							width: 200,
+							position: "relative",
 							height: 200,
-						}}
-					/>
-				</VStack>
+							marginBottom: 20,
+						}}>
+						<Text style={styles.subtitle}>
+							Signature entreprise :
+						</Text>
+						<Image
+							source={{ uri: company?.stamp_url }}
+							style={{
+								position: "absolute",
+								top: 50,
+								left: 50,
+								width: 100,
+								height: 100,
+								opacity: 0.5,
+							}}
+						/>
+						<Image
+							source={{ uri: company?.signature_url }}
+							style={{
+								position: "absolute",
+								top: 25,
+								left: 25,
+								width: 200,
+								height: 200,
+							}}
+						/>
+					</VStack>
+				)} */}
 
 				<View style={styles.section}>
 					<Text style={styles.subtitle}>Signature du candidat :</Text>
@@ -304,8 +362,50 @@ const ContractScreen = () => {
 					) : (
 						<Text style={styles.italic}>
 							{role === "pro"
-								? "Le candidat n’a pas encore signé."
+								? "Le candidat n'a pas encore signé."
 								: "Vous n'avez pas encore signé."}
+						</Text>
+					)}
+				</View>
+
+				<View style={styles.section}>
+					<Text style={styles.subtitle}>
+						Signature et tampon entreprise :
+					</Text>
+					{isProSigned ? (
+						<VStack
+							style={{
+								position: "relative",
+								height: 200,
+								marginBottom: 20,
+							}}>
+							<Image
+								source={{ uri: company?.stamp_url }}
+								style={{
+									position: "absolute",
+									top: 50,
+									left: 50,
+									width: 100,
+									height: 100,
+									opacity: 0.5,
+								}}
+							/>
+							<Image
+								source={{ uri: company?.signature_url }}
+								style={{
+									position: "absolute",
+									top: 25,
+									left: 25,
+									width: 200,
+									height: 200,
+								}}
+							/>
+						</VStack>
+					) : (
+						<Text style={styles.italic}>
+							{role === "pro"
+								? "Vous n'avez pas encore signé le contrat."
+								: "L'entreprise n'a pas encore signé le contrat."}
 						</Text>
 					)}
 				</View>
@@ -332,7 +432,31 @@ const ContractScreen = () => {
 					</View>
 				)}
 
-				{isSigned && (
+				{role === "pro" && isSigned && !isProSigned && (
+					<View style={styles.buttonContainer}>
+						{!company?.signature_url || !company?.stamp_url ? (
+							<Button
+								onPress={() =>
+									router.push({
+										pathname: "/signature",
+										params: { type: "companies" },
+									})
+								}>
+								<ButtonText>
+									Enregistrer signature et tampon
+								</ButtonText>
+							</Button>
+						) : (
+							<Button onPress={handleProSign}>
+								<ButtonText>
+									Signer et tamponner le contrat
+								</ButtonText>
+							</Button>
+						)}
+					</View>
+				)}
+
+				{isSigned && isProSigned && (
 					<View style={styles.buttonContainer}>
 						{(!contract || !contract.pdf_url) && (
 							<Button onPress={handleDownloadAndUploadPdf}>
@@ -354,6 +478,70 @@ const ContractScreen = () => {
 					</View>
 				)}
 			</ScrollView>
+
+			<Modal
+				isOpen={showProSignModal}
+				onClose={() => setShowProSignModal(false)}>
+				<ModalBackdrop />
+				<ModalContent className='max-w-[375px]'>
+					<ModalHeader>
+						<Heading size='md'>Confirmer la signature</Heading>
+					</ModalHeader>
+					<ModalBody>
+						<Text>
+							Êtes-vous sûr de vouloir signer et tamponner ce
+							contrat ? Cette action est définitive.
+						</Text>
+					</ModalBody>
+					<ModalFooter className='w-full gap-3'>
+						<Button
+							variant='outline'
+							action='secondary'
+							onPress={() => setShowProSignModal(false)}
+							className='flex-1'>
+							<ButtonText>Annuler</ButtonText>
+						</Button>
+						<Button
+							action='positive'
+							onPress={confirmProSign}
+							className='flex-1'>
+							<ButtonText>Confirmer</ButtonText>
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
+
+			<Modal
+				isOpen={showCandidateSignModal}
+				onClose={() => setShowCandidateSignModal(false)}>
+				<ModalBackdrop />
+				<ModalContent className='max-w-[375px]'>
+					<ModalHeader>
+						<Heading size='md'>Confirmer la signature</Heading>
+					</ModalHeader>
+					<ModalBody>
+						<Text>
+							Êtes-vous sûr de vouloir signer ce contrat ? Cette
+							action est définitive.
+						</Text>
+					</ModalBody>
+					<ModalFooter className='w-full gap-3'>
+						<Button
+							variant='outline'
+							action='secondary'
+							onPress={() => setShowCandidateSignModal(false)}
+							className='flex-1'>
+							<ButtonText>Annuler</ButtonText>
+						</Button>
+						<Button
+							action='positive'
+							onPress={confirmCandidateSign}
+							className='flex-1'>
+							<ButtonText>Confirmer</ButtonText>
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
 		</VStack>
 	);
 };
