@@ -80,8 +80,9 @@ const STATUS_CONFIG = {
 	contract_signed_pro: {
 		title: "Contrat finalisé",
 		descriptionCandidate:
-			"Le recruteur a signé le contrat. La mission est confirmée.",
-		descriptionPro: "Vous avez signé le contrat. La mission est confirmée.",
+			"Le recruteur a signé le contrat. \nLa mission est confirmée.",
+		descriptionPro:
+			"Vous avez signé le contrat. \nLa mission est confirmée.",
 		color: "#16a34a",
 		isFinal: true,
 	},
