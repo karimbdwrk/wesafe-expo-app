@@ -34,7 +34,8 @@ const ContractScreen = () => {
 	const { apply_id } = useLocalSearchParams();
 	const router = useRouter();
 	const { user, role, accessToken } = useAuth();
-	const { getById, getAll, create, update } = useDataContext();
+	const { getById, getAll, create, update, updateApplicationStatus } =
+		useDataContext();
 	const toast = useToast();
 
 	const [isSigned, setIsSigned] = useState(false);
@@ -100,6 +101,14 @@ const ContractScreen = () => {
 			await update("contracts", contractId, {
 				isProSigned: true,
 			});
+
+			// Mettre à jour le statut de la candidature
+			await updateApplicationStatus(
+				apply_id,
+				"contract_signed_pro",
+				"company",
+			);
+
 			setIsProSigned(true);
 			setShowProSignModal(false);
 			toast.show({
@@ -138,6 +147,14 @@ const ContractScreen = () => {
 				category: job.category,
 				isSigned: true,
 			});
+
+			// Mettre à jour le statut de la candidature
+			await updateApplicationStatus(
+				apply_id,
+				"contract_signed_candidate",
+				"candidate",
+			);
+
 			setShowCandidateSignModal(false);
 			getContract();
 			toast.show({
