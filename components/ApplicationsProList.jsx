@@ -23,7 +23,7 @@ const ApplicationsProList = ({ userId, title }) => {
 			`&jobs.isArchived=eq.FALSE&jobs=not.is.null&company_id=eq.${userId}`,
 			1,
 			5,
-			"created_at.desc"
+			"created_at.desc",
 		);
 		setApplications(data);
 	};
@@ -32,7 +32,7 @@ const ApplicationsProList = ({ userId, title }) => {
 		useCallback(() => {
 			console.log("userId in ApplicationsProList:", userId);
 			userId && loadDataApplications();
-		}, [userId])
+		}, [userId]),
 	);
 
 	return (
@@ -48,6 +48,7 @@ const ApplicationsProList = ({ userId, title }) => {
 					company_id={app.company_id}
 					isRefused={app.isRefused}
 					apply_id={app.id}
+					status={app.current_status}
 				/>
 			))}
 			<Button>
