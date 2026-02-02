@@ -41,7 +41,7 @@ const ApplicationsProScreen = () => {
 			`&jobs.isArchived=eq.FALSE&jobs=not.is.null&company_id=eq.${user.id}`,
 			page,
 			ITEMS_PER_PAGE,
-			"created_at.desc"
+			"created_at.desc",
 		);
 		setApplications(data);
 		setTotalCount(totalCount);
@@ -50,7 +50,7 @@ const ApplicationsProScreen = () => {
 	useFocusEffect(
 		useCallback(() => {
 			loadDataApplications();
-		}, [page])
+		}, [page]),
 	);
 
 	const handleNext = () => {
@@ -92,6 +92,7 @@ const ApplicationsProScreen = () => {
 						company_id={app.company_id}
 						isRefused={app.isRefused}
 						apply_id={app.id}
+						status={app.current_status}
 					/>
 				))}
 				{totalPages > 1 && (
