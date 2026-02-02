@@ -118,6 +118,7 @@ const ApplicationScreen = () => {
 		selectApplication,
 		refuseApplication,
 		updateApplicationStatus,
+		createNotification,
 	} = useDataContext();
 
 	const [showModal, setShowModal] = useState(false);
@@ -207,6 +208,15 @@ const ApplicationScreen = () => {
 			{ status: "selected", created_at: new Date().toISOString() },
 		]);
 		setShowSelectModal(false);
+		await createNotification({
+			recipientId: application.candidate_id,
+			actorId: application.company_id,
+			type: "application_selected",
+			title: "Profil sélectionné",
+			body: "Le recruteur souhaite poursuivre avec vous.",
+			entityType: "application",
+			entityId: apply_id,
+		});
 	};
 
 	const handleSelect = () => {
