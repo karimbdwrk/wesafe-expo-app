@@ -39,6 +39,7 @@ const JobScreen = () => {
 		archiveJob,
 		isJobArchived,
 		getById,
+		createNotification,
 	} = useDataContext();
 
 	const router = useRouter();
@@ -114,6 +115,15 @@ const JobScreen = () => {
 				"Vous recevrez une notification pour vous tenir informer de l'avancée",
 			duration: 2500,
 			icon: <Check />,
+		});
+		await createNotification({
+			recipientId: company_id,
+			actorId: user.id,
+			type: "application_submitted",
+			title: "Candidature soumise",
+			body: "Un candidat vient de postuler à votre offre d'emploi.",
+			entityType: "application",
+			entityId: isNowApplied[0].id,
 		});
 	};
 
