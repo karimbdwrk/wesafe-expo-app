@@ -19,7 +19,7 @@ const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
-	const { accessToken } = useAuth();
+	const { accessToken, user } = useAuth();
 
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -547,6 +547,42 @@ export const DataProvider = ({ children }) => {
 		}
 	};
 
+	const createNotification = async ({
+		recipientId,
+		actorId,
+		type,
+		title,
+		body,
+		entityType = null,
+		entityId = null,
+		metadata = null,
+	}) => {
+		try {
+			const payload = {
+				recipient_id: recipientId,
+				actor_id: actorId,
+				type,
+				title,
+				body,
+				entity_type: entityType,
+				entity_id: entityId,
+				metadata,
+			};
+
+			console.log("Creating notification:", payload);
+
+			const res = await create("notifications", payload);
+
+			return res;
+		} catch (error) {
+			console.error(
+				"Error creating notification:",
+				error.response?.data || error.message,
+			);
+			throw error;
+		}
+	};
+
 	return (
 		<DataContext.Provider
 			value={{
@@ -568,6 +604,7 @@ export const DataProvider = ({ children }) => {
 				selectApplication,
 				refuseApplication,
 				proCardDelete,
+				createNotification,
 			}}>
 			{children}
 		</DataContext.Provider>
