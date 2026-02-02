@@ -537,7 +537,7 @@ const ApplicationScreen = () => {
 						}>
 						<ButtonText>
 							{role === "pro"
-								? "Voir le contrat"
+								? "Voir & signer le contrat"
 								: "Voir & signer mon contrat"}
 						</ButtonText>
 					</Button>
