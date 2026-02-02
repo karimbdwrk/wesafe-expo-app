@@ -1,19 +1,25 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
+import { Pressable, ScrollView } from "react-native";
+import { useRouter } from "expo-router";
 import { Box } from "@/components/ui/box";
+import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
-import { InfoIcon } from "@/components/ui/icon";
+import { Badge, BadgeText } from "@/components/ui/badge";
+import { Icon } from "@/components/ui/icon";
+import { Bell, Briefcase, FileText, User } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 
 const Notifications = () => {
 	const { user } = useAuth();
-	const { getAll } = useDataContext();
+	const { getAll, update } = useDataContext();
+	const router = useRouter();
 	const [notifications, setNotifications] = useState([]);
 
 	const loadNotifications = async () => {
@@ -41,29 +47,183 @@ const Notifications = () => {
 		}, [user]),
 	);
 
+	const handleNotificationPress = async (notification) => {
+		console.log("Notification pressed:", notification);
+
+		// Marquer la notification comme lue
+		if (!notification.is_read) {
+			try {
+				await update("notifications", notification.id, {
+					is_read: true,
+				});
+				// Recharger les notifications pour mettre à jour l'affichage
+				loadNotifications();
+			} catch (error) {
+				console.error("Error marking notification as read:", error);
+			}
+		}
+
+		// Navigation selon le type de notification
+		if (
+			notification.type === "application_submitted" &&
+			notification.entity_id
+		) {
+			router.push({
+				pathname: "/application",
+				params: { apply_id: notification.entity_id, id: user.id },
+			});
+		} else if (
+			notification.type === "job_offer" &&
+			notification.entity_id
+		) {
+			router.push({
+				pathname: "/job",
+				params: { id: notification.entity_id },
+			});
+		} else if (notification.type === "contract" && notification.entity_id) {
+			router.push({
+				pathname: "/contract",
+				params: { apply_id: notification.entity_id },
+			});
+		}
+		// Ajouter d'autres types de navigation si nécessaire
+	};
+
+	const formatDate = (dateString) => {
+		const date = new Date(dateString);
+		const now = new Date();
+		const diff = now - date;
+		const hours = Math.floor(diff / (1000 * 60 * 60));
+
+		if (hours < 1) {
+			const minutes = Math.floor(diff / (1000 * 60));
+			return `Il y a ${minutes} min`;
+		} else if (hours < 24) {
+			return `Il y a ${hours}h`;
+		} else {
+			const days = Math.floor(hours / 24);
+			return `Il y a ${days}j`;
+		}
+	};
+
+	const getNotificationIcon = (type) => {
+		switch (type) {
+			case "application_submitted":
+				return Briefcase;
+			case "contract":
+				return FileText;
+			case "job_offer":
+				return Briefcase;
+			default:
+				return Bell;
+		}
+	};
+
 	return (
-		<VStack style={{ flex: 1, padding: 15 }}>
-			<Heading>Notifications</Heading>
-			{notifications.length > 0 ? (
-				notifications.map((notification) => (
-					<Box
-						key={notification.id}
+		<ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
+			<VStack style={{ padding: 15, gap: 10 }}>
+				<Heading>Notifications</Heading>
+				{notifications.length > 0 ? (
+					notifications.map((notification) => (
+						<Pressable
+							key={notification.id}
+							onPress={() =>
+								handleNotificationPress(notification)
+							}>
+							<Card
+								style={{
+									padding: 15,
+									backgroundColor: notification.is_read
+										? "#fff"
+										: "#f0f9ff",
+									borderWidth: 1,
+									borderColor: notification.is_read
+										? "#e5e7eb"
+										: "#3b82f6",
+								}}>
+								<HStack
+									style={{
+										gap: 12,
+										alignItems: "flex-start",
+									}}>
+									<Icon
+										as={getNotificationIcon(
+											notification.type,
+										)}
+										size='lg'
+										color={
+											notification.is_read
+												? "#6b7280"
+												: "#3b82f6"
+										}
+									/>
+									<VStack style={{ flex: 1, gap: 4 }}>
+										<HStack
+											style={{
+												justifyContent: "space-between",
+												alignItems: "center",
+											}}>
+											<Text
+												style={{
+													fontWeight: "600",
+													fontSize: 14,
+												}}>
+												{notification.title}
+											</Text>
+											{!notification.is_read && (
+												<Badge
+													size='sm'
+													variant='solid'
+													style={{
+														backgroundColor:
+															"#3b82f6",
+													}}>
+													<BadgeText
+														style={{
+															color: "#fff",
+															fontSize: 10,
+														}}>
+														Nouveau
+													</BadgeText>
+												</Badge>
+											)}
+										</HStack>
+										<Text
+											style={{
+												fontSize: 13,
+												color: "#6b7280",
+											}}>
+											{notification.message}
+										</Text>
+										<Text
+											style={{
+												fontSize: 11,
+												color: "#9ca3af",
+											}}>
+											{formatDate(
+												notification.created_at,
+											)}
+										</Text>
+									</VStack>
+								</HStack>
+							</Card>
+						</Pressable>
+					))
+				) : (
+					<VStack
 						style={{
-							marginTop: 10,
-							padding: 10,
-							borderWidth: 1,
-							borderColor: "#ddd",
-							borderRadius: 8,
+							alignItems: "center",
+							marginTop: 40,
+							gap: 10,
 						}}>
-						<Text>
-							{notification.message || notification.title}
+						<Icon as={Bell} size='xl' color='#9ca3af' />
+						<Text style={{ color: "#6b7280" }}>
+							Aucune notification
 						</Text>
-					</Box>
-				))
-			) : (
-				<Text>Aucune notification</Text>
-			)}
-		</VStack>
+					</VStack>
+				)}
+			</VStack>
+		</ScrollView>
 	);
 };
 
