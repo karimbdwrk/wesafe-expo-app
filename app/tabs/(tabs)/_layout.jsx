@@ -53,6 +53,7 @@ import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 
 import { useAuth } from "@/context/AuthContext";
+import { useDataContext } from "@/context/DataContext";
 
 import LoggedInAppInitializer from "@/context/LoggedInAppInitializer";
 
@@ -110,12 +111,35 @@ export default function TabLayout({ theme = "light" }) {
 		hasSubscription,
 		loading: authLoading,
 	} = useAuth();
+	const { getAll } = useDataContext();
 	const router = useRouter();
 	const segments = useSegments();
+
+	const [unreadCount, setUnreadCount] = useState(0);
+
+	const loadUnreadNotificationsCount = async () => {
+		if (!user?.id) return;
+		try {
+			const { totalCount } = await getAll(
+				"notifications",
+				"id",
+				`&recipient_id=eq.${user.id}&is_read=eq.false`,
+				1,
+				1,
+				"created_at.desc",
+			);
+			setUnreadCount(totalCount || 0);
+		} catch (error) {
+			console.error("Error loading unread notifications count:", error);
+		}
+	};
 
 	useFocusEffect(
 		useCallback(() => {
 			loadSession();
+			if (user?.id) {
+				loadUnreadNotificationsCount();
+			}
 		}, []),
 	);
 
@@ -220,15 +244,19 @@ export default function TabLayout({ theme = "light" }) {
 								</Link>
 							)}
 							<VStack>
-								<Badge
-									className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full -left-2'
-									variant='solid'>
-									<BadgeText
-										className='text-white absolute right-1'
-										style={{ fontSize: 10 }}>
-										2
-									</BadgeText>
-								</Badge>
+								{unreadCount > 0 && (
+									<Badge
+										className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full -left-2'
+										variant='solid'>
+										<BadgeText
+											className='text-white absolute right-1'
+											style={{ fontSize: 10 }}>
+											{unreadCount > 99
+												? "99+"
+												: unreadCount}
+										</BadgeText>
+									</Badge>
+								)}
 								<Button
 									variant='link'
 									style={{ marginRight: 15 }}
