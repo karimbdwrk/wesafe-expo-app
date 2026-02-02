@@ -239,6 +239,15 @@ const ApplicationScreen = () => {
 
 		setContractGenerated(true);
 		setShowGenerateContractModal(false);
+		await createNotification({
+			recipientId: application.candidate_id,
+			actorId: application.company_id,
+			type: "contract_sent",
+			title: "Contrat envoyé",
+			body: "Le recruteur a envoyé un contrat pour votre candidature.",
+			entityType: "application",
+			entityId: apply_id,
+		});
 	};
 
 	const handleGenerateContract = () => {
@@ -264,6 +273,15 @@ const ApplicationScreen = () => {
 			{ status: "rejected", created_at: new Date().toISOString() },
 		]);
 		setShowRejectModal(false);
+		await createNotification({
+			recipientId: application.candidate_id,
+			actorId: application.company_id,
+			type: "application_rejected",
+			title: "Profil refusé",
+			body: "Le recruteur a refusé votre candidature.",
+			entityType: "application",
+			entityId: apply_id,
+		});
 	};
 
 	const handleReject = () => {
