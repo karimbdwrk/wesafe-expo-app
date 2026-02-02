@@ -112,6 +112,10 @@ function RootLayoutNav() {
 									}}
 								/>
 								<Stack.Screen
+									name='notifications'
+									options={{ headerShown: true }}
+								/>
+								<Stack.Screen
 									name='updatecompany'
 									options={{ headerShown: true }}
 								/>
