@@ -19,7 +19,7 @@ import {
 	AvatarFallbackText,
 	AvatarImage,
 } from "@/components/ui/avatar";
-import { Button, ButtonIcon } from "@/components/ui/button";
+import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { VStack } from "@/components/ui/vstack";
 import { Badge, BadgeText } from "@/components/ui/badge";
 import { Text } from "@/components/ui/text";
@@ -46,6 +46,7 @@ import {
 	Trophy,
 	Box,
 	House,
+	Bell,
 } from "lucide-react-native";
 
 import Colors from "@/constants/Colors";
@@ -115,7 +116,7 @@ export default function TabLayout({ theme = "light" }) {
 	useFocusEffect(
 		useCallback(() => {
 			loadSession();
-		}, [])
+		}, []),
 	);
 
 	useEffect(() => {
@@ -177,7 +178,7 @@ export default function TabLayout({ theme = "light" }) {
 							offerId: offerId,
 						});
 					}
-				}
+				},
 			);
 		return () => subscription.remove();
 	}, []);
@@ -218,6 +219,25 @@ export default function TabLayout({ theme = "light" }) {
 									</Pressable>
 								</Link>
 							)}
+							<VStack>
+								<Badge
+									className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full -left-2'
+									variant='solid'>
+									<BadgeText
+										className='text-white absolute right-1'
+										style={{ fontSize: 10 }}>
+										2
+									</BadgeText>
+								</Badge>
+								<Button
+									variant='link'
+									style={{ marginRight: 15 }}
+									onPress={() =>
+										router.push("/notifications")
+									}>
+									<ButtonIcon as={Bell} />
+								</Button>
+							</VStack>
 							{role === "candidat" && (
 								<Menu
 									style={{ marginRight: 5, marginTop: 5 }}
