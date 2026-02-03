@@ -34,8 +34,14 @@ const ContractScreen = () => {
 	const { apply_id } = useLocalSearchParams();
 	const router = useRouter();
 	const { user, role, accessToken } = useAuth();
-	const { getById, getAll, create, update, updateApplicationStatus } =
-		useDataContext();
+	const {
+		getById,
+		getAll,
+		create,
+		update,
+		updateApplicationStatus,
+		createNotification,
+	} = useDataContext();
 	const toast = useToast();
 
 	const [isSigned, setIsSigned] = useState(false);
@@ -128,6 +134,15 @@ const ContractScreen = () => {
 					</Toast>
 				),
 			});
+			await createNotification({
+				recipientId: candidate.id,
+				actorId: company.id,
+				type: "contract_signed_pro",
+				title: "Contrat signé et tamponné par l'entreprise",
+				body: "L'entreprise a signé et tamponné le contrat.",
+				entityType: "application",
+				entityId: apply_id,
+			});
 		} catch (error) {
 			console.log("error sign contract as pro", error);
 		}
@@ -171,6 +186,15 @@ const ContractScreen = () => {
 						<ToastTitle size='sm'>Contrat signé !</ToastTitle>
 					</Toast>
 				),
+			});
+			await createNotification({
+				recipientId: company.id,
+				actorId: candidate.id,
+				type: "contract_signed_candidate",
+				title: "Contrat signé par le candidat",
+				body: "Le candidat a signé le contrat.",
+				entityType: "application",
+				entityId: apply_id,
 			});
 		} catch (error) {
 			console.log("error create Contract", error);
