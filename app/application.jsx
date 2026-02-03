@@ -37,6 +37,8 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 
+import { sendApplicationSelectedEmail } from "@/utils/sendApplicationSelectedEmail";
+
 import JobCard from "@/components/JobCard";
 import { width } from "dom-helpers";
 
@@ -144,7 +146,7 @@ const ApplicationScreen = () => {
 		const data = await getById(
 			"applies",
 			apply_id,
-			"*,jobs(*), profiles(*)",
+			"*,jobs(*), profiles(*), companies(*)",
 		);
 		setApplication(data);
 		setCurrentStatus(data.current_status);
@@ -217,6 +219,35 @@ const ApplicationScreen = () => {
 			entityType: "application",
 			entityId: apply_id,
 		});
+		console.log(
+			"application after select email content :",
+			`${application.profiles.firstname} ${application.profiles.lastname}`,
+			application.profiles.email,
+			application.jobs.title,
+			application.jobs.company_name,
+		);
+		// await sendApplicationSelectedEmail(
+		// 	`${application.profiles.firstname} ${application.profiles.lastname}`,
+		// 	application.profiles.email,
+		// 	application.jobs.title,
+		// 	application.jobs.company_name ?? "L’entreprise",
+		// );
+	};
+
+	const testSelectEmail = async () => {
+		console.log(
+			"application email content :",
+			`${application.profiles.firstname} ${application.profiles.lastname}`,
+			application.profiles.email,
+			application.jobs.title,
+			application.companies.name,
+		);
+		await sendApplicationSelectedEmail(
+			`${application.profiles.firstname} ${application.profiles.lastname}`,
+			application.profiles.email,
+			application.jobs.title,
+			application.companies.name ?? "L’entreprise",
+		);
 	};
 
 	const handleSelect = () => {
@@ -571,6 +602,9 @@ const ApplicationScreen = () => {
 					</Button>
 				)}
 			</VStack>
+			<Button onPress={testSelectEmail}>
+				<ButtonText>Test Email selected application</ButtonText>
+			</Button>
 
 			{/* Modal de confirmation pour sélectionner */}
 			<Modal
