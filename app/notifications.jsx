@@ -106,6 +106,22 @@ const Notifications = () => {
 				params: { apply_id: notification.entity_id, id: user.id },
 			});
 		} else if (
+			notification.type === "contract_signed_candidate" &&
+			notification.entity_id
+		) {
+			router.push({
+				pathname: "/application",
+				params: { apply_id: notification.entity_id, id: user.id },
+			});
+		} else if (
+			notification.type === "contract_signed_pro " &&
+			notification.entity_id
+		) {
+			router.push({
+				pathname: "/application",
+				params: { apply_id: notification.entity_id, id: user.id },
+			});
+		} else if (
 			notification.type === "job_offer" &&
 			notification.entity_id
 		) {
@@ -148,6 +164,10 @@ const Notifications = () => {
 			case "application_rejected":
 				return Briefcase;
 			case "contract_sent":
+				return FileText;
+			case "contract_signed_candidate":
+				return FileText;
+			case "contract_signed_pro":
 				return FileText;
 			case "job_offer":
 				return Briefcase;
