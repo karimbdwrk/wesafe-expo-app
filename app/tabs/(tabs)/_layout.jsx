@@ -144,6 +144,18 @@ export default function TabLayout({ theme = "light" }) {
 	);
 
 	useEffect(() => {
+		if (!user?.id) return;
+
+		// Rafraîchir les notifications toutes les 30 secondes
+		const interval = setInterval(() => {
+			loadUnreadNotificationsCount();
+		}, 30000);
+
+		// Nettoyer l'interval au démontage
+		return () => clearInterval(interval);
+	}, [user?.id]);
+
+	useEffect(() => {
 		if (user && !authLoading) {
 			if (role === "unknown") {
 				router.replace("/finalizeregistration");
