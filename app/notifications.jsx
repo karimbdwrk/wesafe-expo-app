@@ -179,13 +179,14 @@ const Notifications = () => {
 								}}>
 								<HStack
 									style={{
-										gap: 12,
+										gap: 15,
 										alignItems: "flex-start",
 									}}>
 									<VStack
 										style={{
 											justifyContent: "space-between",
-											height: 90,
+											alignItems: "center",
+											height: 60,
 										}}>
 										<Icon
 											as={getNotificationIcon(
@@ -200,21 +201,14 @@ const Notifications = () => {
 											style={{ marginTop: 4 }}
 										/>
 										{!notification.is_read && (
-											<Badge
-												size='sm'
-												variant='solid'
-												style={{
-													backgroundColor: "#3b82f6",
-												}}>
-												<BadgeIcon
-													as={CircleSmall}
-													size={14}
-													color='#fff'
-												/>
-											</Badge>
+											<Icon
+												as={CircleSmall}
+												size={14}
+												color='#3b82f6'
+											/>
 										)}
 									</VStack>
-									<VStack style={{ flex: 1, gap: 4 }}>
+									<VStack>
 										<HStack
 											style={{
 												justifyContent: "space-between",
