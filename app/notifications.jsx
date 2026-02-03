@@ -55,6 +55,7 @@ const Notifications = () => {
 			try {
 				await update("notifications", notification.id, {
 					is_read: true,
+					read_at: new Date().toISOString(),
 				});
 				// Recharger les notifications pour mettre à jour l'affichage
 				loadNotifications();
@@ -73,6 +74,30 @@ const Notifications = () => {
 				params: { apply_id: notification.entity_id, id: user.id },
 			});
 		} else if (
+			notification.type === "application_selected" &&
+			notification.entity_id
+		) {
+			router.push({
+				pathname: "/application",
+				params: { apply_id: notification.entity_id, id: user.id },
+			});
+		} else if (
+			notification.type === "application_rejected" &&
+			notification.entity_id
+		) {
+			router.push({
+				pathname: "/application",
+				params: { apply_id: notification.entity_id, id: user.id },
+			});
+		} else if (
+			notification.type === "contract_sent" &&
+			notification.entity_id
+		) {
+			router.push({
+				pathname: "/application",
+				params: { apply_id: notification.entity_id, id: user.id },
+			});
+		} else if (
 			notification.type === "job_offer" &&
 			notification.entity_id
 		) {
@@ -83,7 +108,7 @@ const Notifications = () => {
 		} else if (notification.type === "contract" && notification.entity_id) {
 			router.push({
 				pathname: "/contract",
-				params: { apply_id: notification.entity_id },
+				params: { apply_id: notification.entity_id, id: user.id },
 			});
 		}
 		// Ajouter d'autres types de navigation si nécessaire
@@ -122,7 +147,6 @@ const Notifications = () => {
 	return (
 		<ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
 			<VStack style={{ padding: 15, gap: 10 }}>
-				<Heading>Notifications</Heading>
 				{notifications.length > 0 ? (
 					notifications.map((notification) => (
 						<Pressable
