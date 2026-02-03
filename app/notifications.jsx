@@ -11,10 +11,18 @@ import { HStack } from "@/components/ui/hstack";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Badge, BadgeText } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
-import { Bell, Briefcase, FileText, User } from "lucide-react-native";
+import {
+	BadgeIcon,
+	Bell,
+	Briefcase,
+	CircleSmall,
+	FileText,
+	User,
+} from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { height } from "dom-helpers";
 
 const Notifications = () => {
 	const { user } = useAuth();
@@ -135,7 +143,11 @@ const Notifications = () => {
 		switch (type) {
 			case "application_submitted":
 				return Briefcase;
-			case "contract":
+			case "application_selected":
+				return Briefcase;
+			case "application_rejected":
+				return Briefcase;
+			case "contract_sent":
 				return FileText;
 			case "job_offer":
 				return Briefcase;
@@ -170,47 +182,56 @@ const Notifications = () => {
 										gap: 12,
 										alignItems: "flex-start",
 									}}>
-									<Icon
-										as={getNotificationIcon(
-											notification.type,
+									<VStack
+										style={{
+											justifyContent: "space-between",
+											height: 90,
+										}}>
+										<Icon
+											as={getNotificationIcon(
+												notification.type,
+											)}
+											size='lg'
+											color={
+												notification.is_read
+													? "#6b7280"
+													: "#3b82f6"
+											}
+											style={{ marginTop: 4 }}
+										/>
+										{!notification.is_read && (
+											<Badge
+												size='sm'
+												variant='solid'
+												style={{
+													backgroundColor: "#3b82f6",
+												}}>
+												<BadgeIcon
+													as={CircleSmall}
+													size={14}
+													color='#fff'
+												/>
+											</Badge>
 										)}
-										size='lg'
-										color={
-											notification.is_read
-												? "#6b7280"
-												: "#3b82f6"
-										}
-									/>
+									</VStack>
 									<VStack style={{ flex: 1, gap: 4 }}>
 										<HStack
 											style={{
 												justifyContent: "space-between",
 												alignItems: "center",
 											}}>
-											<Text
-												style={{
-													fontWeight: "600",
-													fontSize: 14,
-												}}>
-												{notification.title}
-											</Text>
-											{!notification.is_read && (
-												<Badge
-													size='sm'
-													variant='solid'
+											<VStack>
+												<Heading size='md'>
+													{notification.title}
+												</Heading>
+												<Text
 													style={{
-														backgroundColor:
-															"#3b82f6",
+														fontWeight: "600",
+														fontSize: 14,
 													}}>
-													<BadgeText
-														style={{
-															color: "#fff",
-															fontSize: 10,
-														}}>
-														Nouveau
-													</BadgeText>
-												</Badge>
-											)}
+													{notification.body}
+												</Text>
+											</VStack>
 										</HStack>
 										<Text
 											style={{
