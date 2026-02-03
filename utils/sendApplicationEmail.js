@@ -1,37 +1,38 @@
-// Votre fichier de service API ou dans le composant où le candidat postule
 import axios from "axios";
 
-// Fonction pour envoyer l'e-mail de notification à l'entreprise
 export const sendApplicationEmail = async (
 	applicantName,
 	applicantEmail,
 	offerTitle,
 	companyEmail,
-	companyName
+	companyName,
 ) => {
 	try {
-		// REMPLACEZ PAR L'URL DE VOTRE FONCTION EDGE
 		const EDGE_FUNCTION_URL =
 			"https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/send-application-email";
 
-		const response = await axios.post(EDGE_FUNCTION_URL, {
+		const payload = {
 			applicantName,
 			applicantEmail,
 			offerTitle,
 			companyEmail,
 			companyName,
-		});
+		};
+
+		console.log("Envoi de l'email avec les données:", payload);
+
+		const response = await axios.post(EDGE_FUNCTION_URL, payload);
 
 		if (response.status === 200) {
 			console.log(
 				"E-mail de notification de candidature envoyé avec succès !",
-				response.data
+				response.data,
 			);
 			return { success: true, message: "Email sent successfully!" };
 		} else {
 			console.error(
 				"Erreur lors de l'envoi de l'e-mail de notification :",
-				response.data
+				response.data,
 			);
 			return {
 				success: false,
@@ -41,11 +42,15 @@ export const sendApplicationEmail = async (
 	} catch (error) {
 		console.error(
 			"Erreur réseau ou inattendue lors de l'envoi de l'e-mail :",
-			error.message
+			error.message,
 		);
+		console.error("Détails de l'erreur:", error.response?.data);
+		console.error("Status code:", error.response?.status);
 		return {
 			success: false,
-			message: "Network error or unexpected issue.",
+			message:
+				error.response?.data?.error ||
+				"Network error or unexpected issue.",
 		};
 	}
 };
