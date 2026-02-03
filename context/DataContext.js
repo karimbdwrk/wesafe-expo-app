@@ -172,6 +172,13 @@ export const DataProvider = ({ children }) => {
 			}
 
 			// 3. Envoyer l'email de confirmation
+			console.log("Paramètres pour sendApplicationEmail:", {
+				applicantName,
+				applicantEmail,
+				offerTitle,
+				companyEmail,
+				companyName,
+			});
 			const emailResult = await sendApplicationEmail(
 				applicantName,
 				applicantEmail,
@@ -179,7 +186,7 @@ export const DataProvider = ({ children }) => {
 				companyEmail,
 				companyName,
 			);
-
+			console.log("Email send result:", emailResult);
 			return applyRes.data;
 		} catch (err) {
 			console.error(
