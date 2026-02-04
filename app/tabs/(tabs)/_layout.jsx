@@ -52,23 +52,25 @@ import {
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 
+import { supabase } from "@/lib/supabase";
+
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 
 import LoggedInAppInitializer from "@/context/LoggedInAppInitializer";
 
-import {
-	registerForPushNotificationsAsync,
-	setupNotificationResponseListener,
-} from "@/utils/pushNotifications";
+// import {
+// 	registerForPushNotificationsAsync,
+// 	setupNotificationResponseListener,
+// } from "@/utils/pushNotifications";
 
-Notifications.setNotificationHandler({
-	handleNotification: async () => ({
-		shouldShowAlert: true,
-		shouldPlaySound: false,
-		shouldSetBadge: false,
-	}),
-});
+// Notifications.setNotificationHandler({
+// 	handleNotification: async () => ({
+// 		shouldShowAlert: true,
+// 		shouldPlaySound: false,
+// 		shouldSetBadge: false,
+// 	}),
+// });
 
 const TOKEN_API_ENDPOINT =
 	"https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/store-push-token";
@@ -117,6 +119,35 @@ export default function TabLayout({ theme = "light" }) {
 
 	const [unreadCount, setUnreadCount] = useState(0);
 
+	useEffect(() => {
+		if (!user?.id) return;
+
+		console.log("🔔 Realtime notifications listener ACTIVÉ");
+
+		const channel = supabase
+			.channel("notifications-listener")
+			.on(
+				"postgres_changes",
+				{
+					event: "INSERT",
+					schema: "public",
+					table: "notifications",
+					filter: `recipient_id=eq.${user.id}`,
+				},
+				(payload) => {
+					console.log("📩 NOUVELLE NOTIFICATION REÇUE !");
+					console.log("Payload :", payload);
+					console.log("Contenu :", payload.new);
+				},
+			)
+			.subscribe();
+
+		return () => {
+			console.log("🔕 Realtime notifications listener DÉSACTIVÉ");
+			supabase.removeChannel(channel);
+		};
+	}, [user?.id]);
+
 	const loadUnreadNotificationsCount = async () => {
 		if (!user?.id) return;
 		try {
@@ -143,17 +174,17 @@ export default function TabLayout({ theme = "light" }) {
 		}, []),
 	);
 
-	useEffect(() => {
-		if (!user?.id) return;
+	// useEffect(() => {
+	// 	if (!user?.id) return;
 
-		// Rafraîchir les notifications toutes les 30 secondes
-		const interval = setInterval(() => {
-			loadUnreadNotificationsCount();
-		}, 30000);
+	// 	// Rafraîchir les notifications toutes les 30 secondes
+	// 	const interval = setInterval(() => {
+	// 		loadUnreadNotificationsCount();
+	// 	}, 30000);
 
-		// Nettoyer l'interval au démontage
-		return () => clearInterval(interval);
-	}, [user?.id]);
+	// 	// Nettoyer l'interval au démontage
+	// 	return () => clearInterval(interval);
+	// }, [user?.id]);
 
 	useEffect(() => {
 		if (user && !authLoading) {
@@ -163,42 +194,42 @@ export default function TabLayout({ theme = "light" }) {
 		}
 	}, [user, role]);
 
-	useEffect(() => {
-		// setupNotificationResponseListener a besoin de l'objet router pour naviguer
-		const unsubscribe = setupNotificationResponseListener(router);
-		return unsubscribe; // Nettoyer le listener au démontage
-	}, [router]);
+	// useEffect(() => {
+	// 	// setupNotificationResponseListener a besoin de l'objet router pour naviguer
+	// 	const unsubscribe = setupNotificationResponseListener(router);
+	// 	return unsubscribe; // Nettoyer le listener au démontage
+	// }, [router]);
 
-	async function registerForPushNotificationsAsync(companyId) {
-		let token;
-		if (Device.isDevice) {
-			const { status: existingStatus } =
-				await Notifications.getPermissionsAsync();
-			let finalStatus = existingStatus;
-			if (existingStatus !== "granted") {
-				const { status } =
-					await Notifications.requestPermissionsAsync();
-				finalStatus = status;
-			}
-			if (finalStatus !== "granted") {
-				console.warn("Failed to get push token for push notification!");
-				return;
-			}
-			token = (await Notifications.getExpoPushTokenAsync()).data;
-		} else {
-			console.warn("Must use physical device for Push Notifications");
-		}
+	// async function registerForPushNotificationsAsync(companyId) {
+	// 	let token;
+	// 	if (Device.isDevice) {
+	// 		const { status: existingStatus } =
+	// 			await Notifications.getPermissionsAsync();
+	// 		let finalStatus = existingStatus;
+	// 		if (existingStatus !== "granted") {
+	// 			const { status } =
+	// 				await Notifications.requestPermissionsAsync();
+	// 			finalStatus = status;
+	// 		}
+	// 		if (finalStatus !== "granted") {
+	// 			console.warn("Failed to get push token for push notification!");
+	// 			return;
+	// 		}
+	// 		token = (await Notifications.getExpoPushTokenAsync()).data;
+	// 	} else {
+	// 		console.warn("Must use physical device for Push Notifications");
+	// 	}
 
-		if (Platform.OS === "android") {
-			Notifications.setNotificationChannelAsync("default", {
-				name: "default",
-				importance: Notifications.AndroidImportance.MAX,
-				vibrationPattern: [0, 250, 250, 250],
-				lightColor: "#FF231F7C",
-			});
-		}
-		return token;
-	}
+	// 	if (Platform.OS === "android") {
+	// 		Notifications.setNotificationChannelAsync("default", {
+	// 			name: "default",
+	// 			importance: Notifications.AndroidImportance.MAX,
+	// 			vibrationPattern: [0, 250, 250, 250],
+	// 			lightColor: "#FF231F7C",
+	// 		});
+	// 	}
+	// 	return token;
+	// }
 
 	useEffect(() => {
 		// Appeler registerForPushNotificationsAsync() au démarrage de l'app ou après connexion
@@ -219,9 +250,9 @@ export default function TabLayout({ theme = "light" }) {
 		return () => subscription.remove();
 	}, []);
 
-	useEffect(() => {
-		userCompany && registerForPushNotificationsAsync(userCompany.id);
-	}, [userCompany]);
+	// useEffect(() => {
+	// 	userCompany && registerForPushNotificationsAsync(userCompany.id);
+	// }, [userCompany]);
 
 	return (
 		<>
