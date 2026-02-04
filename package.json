@@ -49,6 +49,7 @@
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-navigation/native": "^7.1.21",
     "@stripe/stripe-react-native": "^0.57.0",
+    "@supabase/supabase-js": "^2.94.1",
     "axios": "^1.13.2",
     "babel-plugin-module-resolver": "^5.0.2",
     "base64-arraybuffer": "^1.0.2",
