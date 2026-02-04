@@ -433,11 +433,11 @@ export const DataProvider = ({ children }) => {
 				const totalCount = contentRange
 					? parseInt(contentRange.split("/")[1], 10)
 					: res.data.length;
-				console.log(
-					"getAll data fetched successfully:",
-					table,
-					res.data,
-				);
+				// console.log(
+				// 	"getAll data fetched successfully:",
+				// 	table,
+				// 	res.data,
+				// );
 				return { data: res.data, totalCount };
 			} catch (error) {
 				console.error(
