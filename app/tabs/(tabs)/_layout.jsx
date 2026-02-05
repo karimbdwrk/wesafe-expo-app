@@ -52,10 +52,11 @@ import {
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 
-import { supabase } from "@/lib/supabase";
+import { supabase, createSupabaseClient } from "@/lib/supabase";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { useNotifications } from "@/context/NotificationsContext";
 
 import LoggedInAppInitializer from "@/context/LoggedInAppInitializer";
 
@@ -118,35 +119,45 @@ export default function TabLayout({ theme = "light" }) {
 	const segments = useSegments();
 
 	const [unreadCount, setUnreadCount] = useState(0);
+	const {
+		notifications,
+		unreadCount: contextUnreadCount,
+		fetchNotifications,
+	} = useNotifications();
 
 	useEffect(() => {
-		if (!user?.id) return;
+		if (!user?.id || !accessToken) return;
+
+		const supabase = createSupabaseClient(accessToken);
 
 		console.log("🔔 Realtime notifications listener ACTIVÉ");
+		console.log("User ID:", user?.id);
+		console.log("Access token present:", !!accessToken);
 
 		const channel = supabase
 			.channel("notifications-listener")
-			.on(
-				"postgres_changes",
-				{
-					event: "INSERT",
-					schema: "public",
-					table: "notifications",
-					filter: `recipient_id=eq.${user.id}`,
-				},
-				(payload) => {
-					console.log("📩 NOUVELLE NOTIFICATION REÇUE !");
-					console.log("Payload :", payload);
-					console.log("Contenu :", payload.new);
-				},
-			)
-			.subscribe();
+			// .on(
+			// 	"postgres_changes",
+			// 	{
+			// 		event: "INSERT",
+			// 		schema: "public",
+			// 		table: "notifications",
+			// 		filter: `recipient_id=eq.${user.id}`,
+			// 	},
+			// 	(payload) => {
+			// 		console.log("📩 NOUVELLE NOTIFICATION REÇUE !");
+			// 		console.log("Payload :", payload.new);
+			// 	},
+			// )
+			.subscribe((status) => {
+				console.log("Realtime channel status:", status);
+			});
 
 		return () => {
 			console.log("🔕 Realtime notifications listener DÉSACTIVÉ");
 			supabase.removeChannel(channel);
 		};
-	}, [user?.id]);
+	}, [user?.id, accessToken]);
 
 	const loadUnreadNotificationsCount = async () => {
 		if (!user?.id) return;
@@ -287,16 +298,16 @@ export default function TabLayout({ theme = "light" }) {
 								</Link>
 							)}
 							<VStack>
-								{unreadCount > 0 && (
+								{contextUnreadCount > 0 && (
 									<Badge
 										className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full -left-2'
 										variant='solid'>
 										<BadgeText
 											className='text-white absolute right-1'
 											style={{ fontSize: 10 }}>
-											{unreadCount > 99
+											{contextUnreadCount > 99
 												? "99+"
-												: unreadCount}
+												: contextUnreadCount}
 										</BadgeText>
 									</Badge>
 								)}
