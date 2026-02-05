@@ -40,6 +40,18 @@ export const DataProvider = ({ children }) => {
 		[accessToken],
 	);
 
+	const sendNotification = async (payload) => {
+		const EDGE_FUNCTION_URL =
+			"https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/send-notification";
+
+		await axios.post(EDGE_FUNCTION_URL, payload, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
+			},
+		});
+	};
+
 	const isJobInWishlist = async (jobId, userId) => {
 		try {
 			const res = await axiosInstance.get(
