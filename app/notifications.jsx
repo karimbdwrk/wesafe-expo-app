@@ -22,13 +22,49 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { useNotifications } from "@/context/NotificationsContext";
 import { height } from "dom-helpers";
 
+import { createClient } from "@supabase/supabase-js";
+import Constants from "expo-constants";
+
 const Notifications = () => {
-	const { user } = useAuth();
+	const { user, accessToken } = useAuth();
 	const { getAll, update } = useDataContext();
+	const { markNotificationAsRead } = useNotifications();
+
 	const router = useRouter();
 	const [notifications, setNotifications] = useState([]);
+
+	const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
+
+	const supabaseTest = createClient(SUPABASE_URL, SUPABASE_API_KEY, {
+		global: {
+			headers: {
+				Authorization: accessToken
+					? `Bearer ${accessToken}`
+					: undefined,
+			},
+		},
+	});
+
+	const testRealtimeInsert = async () => {
+		console.log("🧪 TEST REALTIME INSERT (supabase-js)");
+
+		const { error } = await supabaseTest.from("notifications").insert({
+			recipient_id: user.id,
+			actor_id: null,
+			title: "Test Realtime",
+			body: "Insert via supabase-js",
+			type: "test",
+		});
+
+		if (error) {
+			console.error("❌ Insert error:", error);
+		} else {
+			console.log("✅ Insert OK — attente Realtime…");
+		}
+	};
 
 	const loadNotifications = async () => {
 		try {
@@ -41,7 +77,7 @@ const Notifications = () => {
 				"created_at.desc",
 			);
 			setNotifications(data);
-			console.log("Notifications loaded:", data);
+			// console.log("Notifications loaded:", data);
 		} catch (error) {
 			console.error("Error loading notifications:", error);
 		}
@@ -56,7 +92,7 @@ const Notifications = () => {
 	);
 
 	const handleNotificationPress = async (notification) => {
-		console.log("Notification pressed:", notification);
+		// console.log("Notification pressed:", notification);
 
 		// Marquer la notification comme lue
 		if (!notification.is_read) {
@@ -66,6 +102,7 @@ const Notifications = () => {
 					read_at: new Date().toISOString(),
 				});
 				// Recharger les notifications pour mettre à jour l'affichage
+				markNotificationAsRead();
 				loadNotifications();
 			} catch (error) {
 				console.error("Error marking notification as read:", error);
@@ -179,6 +216,9 @@ const Notifications = () => {
 	return (
 		<ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
 			<VStack style={{ padding: 15, gap: 10 }}>
+				<Button onPress={testRealtimeInsert}>
+					<ButtonText>TEST REALTIME</ButtonText>
+				</Button>
 				{notifications.length > 0 ? (
 					notifications.map((notification) => (
 						<Pressable
