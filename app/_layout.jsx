@@ -20,6 +20,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { DataProvider } from "@/context/DataContext";
+import { NotificationsProvider } from "@/context/NotificationsContext";
 import { ImageProvider } from "@/context/ImageContext";
 
 export { ErrorBoundary } from "expo-router";
@@ -48,9 +49,11 @@ export default function RootLayout() {
 		<StripeProvider publishableKey='pk_test_51RhCWfRs36t2SzSl20E1w8vTi97kdamUZ36cUp6tI7uBjzYWm3hXiNs8evBcViZpsYCHnnK7MYFl6I52jC9xS4Su000R6gOuhW'>
 			<AuthProvider>
 				<DataProvider>
-					<ImageProvider>
-						<RootLayoutNav />
-					</ImageProvider>
+					<NotificationsProvider>
+						<ImageProvider>
+							<RootLayoutNav />
+						</ImageProvider>
+					</NotificationsProvider>
 				</DataProvider>
 			</AuthProvider>
 		</StripeProvider>
