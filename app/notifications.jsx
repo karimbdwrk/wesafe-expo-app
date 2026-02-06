@@ -31,65 +31,67 @@ import Constants from "expo-constants";
 const Notifications = () => {
 	const { user, accessToken } = useAuth();
 	const { getAll, update } = useDataContext();
-	const { markNotificationAsRead } = useNotifications();
+	const {
+		notifications,
+		unreadCount,
+		markNotificationAsRead,
+		markAllAsRead,
+		refreshNotifications,
+		isLoading,
+	} = useNotifications();
 
 	const router = useRouter();
-	const [notifications, setNotifications] = useState([]);
+	// const [notifications, setNotifications] = useState([]);
 
 	const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
-	const supabaseTest = createClient(SUPABASE_URL, SUPABASE_API_KEY, {
-		global: {
-			headers: {
-				Authorization: accessToken
-					? `Bearer ${accessToken}`
-					: undefined,
-			},
-		},
-	});
+	// const supabaseTest = createClient(SUPABASE_URL, SUPABASE_API_KEY, {
+	// 	global: {
+	// 		headers: {
+	// 			Authorization: accessToken
+	// 				? `Bearer ${accessToken}`
+	// 				: undefined,
+	// 		},
+	// 	},
+	// });
 
-	const testRealtimeInsert = async () => {
-		console.log("🧪 TEST REALTIME INSERT (supabase-js)");
-
-		const { error } = await supabaseTest.from("notifications").insert({
-			recipient_id: user.id,
-			actor_id: null,
-			title: "Test Realtime",
-			body: "Insert via supabase-js",
-			type: "test",
-		});
-
-		if (error) {
-			console.error("❌ Insert error:", error);
-		} else {
-			console.log("✅ Insert OK — attente Realtime…");
-		}
-	};
-
-	const loadNotifications = async () => {
-		try {
-			const { data } = await getAll(
-				"notifications",
-				"*",
-				`&recipient_id=eq.${user.id}`,
-				1,
-				50,
-				"created_at.desc",
-			);
-			setNotifications(data);
-			// console.log("Notifications loaded:", data);
-		} catch (error) {
-			console.error("Error loading notifications:", error);
-		}
-	};
+	// const loadNotifications = async () => {
+	// 	try {
+	// 		const { data } = await getAll(
+	// 			"notifications",
+	// 			"*",
+	// 			`&recipient_id=eq.${user.id}`,
+	// 			1,
+	// 			50,
+	// 			"created_at.desc",
+	// 		);
+	// 		setNotifications(data);
+	// 		// console.log("Notifications loaded:", data);
+	// 	} catch (error) {
+	// 		console.error("Error loading notifications:", error);
+	// 	}
+	// };
 
 	useFocusEffect(
 		useCallback(() => {
-			if (user?.id) {
-				loadNotifications();
-			}
-		}, [user]),
+			refreshNotifications();
+		}, []),
 	);
+
+	// const renderNotification = ({ item }) => (
+	// 	<NotificationItem
+	// 		notification={item}
+	// 		onPress={() => markNotificationAsRead(item.id)}
+	// 	/>
+	// );
+
+	// useFocusEffect(
+	// 	useCallback(() => {
+	// 		if (user?.id) {
+	// 			loadNotifications();
+	// 		}
+	// 	}, [user]),
+	// );
 
 	const handleNotificationPress = async (notification) => {
 		// console.log("Notification pressed:", notification);
@@ -103,7 +105,7 @@ const Notifications = () => {
 				});
 				// Recharger les notifications pour mettre à jour l'affichage
 				markNotificationAsRead();
-				loadNotifications();
+				// loadNotifications();
 			} catch (error) {
 				console.error("Error marking notification as read:", error);
 			}
@@ -216,9 +218,6 @@ const Notifications = () => {
 	return (
 		<ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
 			<VStack style={{ padding: 15, gap: 10 }}>
-				<Button onPress={testRealtimeInsert}>
-					<ButtonText>TEST REALTIME</ButtonText>
-				</Button>
 				{notifications.length > 0 ? (
 					notifications.map((notification) => (
 						<Pressable
