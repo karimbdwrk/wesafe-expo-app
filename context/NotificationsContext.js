@@ -27,9 +27,9 @@ export const NotificationsProvider = ({ children }) => {
 				.from("notifications")
 				.select(
 					`
-          id, title, body, entity_type, entity_id, 
-          is_read, read_at, metadata, created_at
-        `,
+                    id, title, body, entity_type, entity_id, 
+                    is_read, read_at, metadata, created_at
+                    `,
 					{
 						count: "exact",
 						order: "created_at",
