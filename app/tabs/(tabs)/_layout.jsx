@@ -123,7 +123,14 @@ export default function TabLayout({ theme = "light" }) {
 		notifications,
 		unreadCount: contextUnreadCount,
 		fetchNotifications,
+		refreshUnreadCount,
 	} = useNotifications();
+
+	useFocusEffect(
+		useCallback(() => {
+			refreshUnreadCount();
+		}, [refreshUnreadCount]),
+	);
 
 	useEffect(() => {
 		if (!user?.id || !accessToken) return;
