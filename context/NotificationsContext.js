@@ -1,57 +1,10 @@
-// // context/NotificationsContext.jsx
-// import React, { createContext, useContext, useEffect, useState } from "react";
-// import { createSupabaseClient } from "@/lib/supabase";
-// import { useAuth } from "@/context/AuthContext";
-
-// const NotificationsContext = createContext();
-
-// export const NotificationsProvider = ({ children }) => {
-// 	const { user, accessToken } = useAuth();
-// 	const [unreadCount, setUnreadCount] = useState(0);
-
-// 	useEffect(() => {
-// 		if (!user?.id || !accessToken) return;
-
-// 		const supabase = createSupabaseClient(accessToken);
-
-// 		const channel = supabase
-// 			.channel(`user:${user.id}:notifications`)
-// 			.on("broadcast", { event: "new_notification" }, () => {
-// 				setUnreadCount((prev) => prev + 1);
-// 			})
-// 			.subscribe();
-
-// 		return () => {
-// 			supabase.removeChannel(channel);
-// 		};
-// 	}, [user?.id, accessToken]);
-
-// 	// ✅ appelé quand UNE notif est lue
-// 	const markNotificationAsRead = () => {
-// 		setUnreadCount((prev) => Math.max(prev - 1, 0));
-// 	};
-
-// 	// ✅ utile si tu marques tout comme lu
-// 	const resetUnreadCount = () => {
-// 		setUnreadCount(0);
-// 	};
-
-// 	return (
-// 		<NotificationsContext.Provider
-// 			value={{
-// 				unreadCount,
-// 				markNotificationAsRead,
-// 				resetUnreadCount,
-// 			}}>
-// 			{children}
-// 		</NotificationsContext.Provider>
-// 	);
-// };
-
-// export const useNotifications = () => useContext(NotificationsContext);
-
-// context/NotificationsContext.jsx
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+	createContext,
+	useContext,
+	useEffect,
+	useState,
+	useCallback,
+} from "react";
 import { createSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 
@@ -60,6 +13,34 @@ const NotificationsContext = createContext();
 export const NotificationsProvider = ({ children }) => {
 	const { user, accessToken } = useAuth();
 	const [unreadCount, setUnreadCount] = useState(0);
+	const [isInitialized, setIsInitialized] = useState(false);
+
+	useEffect(() => {
+		if (!user?.id || !accessToken || isInitialized) return;
+
+		const fetchUnreadCount = async () => {
+			try {
+				const supabase = createSupabaseClient(accessToken);
+				const { count, error } = await supabase
+					.from("notifications")
+					.select("*", { count: "exact", head: true })
+					.eq("is_read", false)
+					.eq("recipient_id", user.id);
+
+				if (error) throw error;
+
+				setUnreadCount(count || 0);
+				setIsInitialized(true);
+				console.log("🔔 INITIAL UNREAD COUNT:", count);
+			} catch (error) {
+				console.error("Error fetching unread count:", error);
+				setUnreadCount(0);
+				setIsInitialized(true);
+			}
+		};
+
+		fetchUnreadCount();
+	}, [user?.id, accessToken, isInitialized]);
 
 	useEffect(() => {
 		console.log("🔔 NOTIF EFFECT start", {
@@ -72,38 +53,42 @@ export const NotificationsProvider = ({ children }) => {
 		const supabase = createSupabaseClient(accessToken);
 
 		const channel = supabase
-			.channel("debug:notifications")
+			.channel(`user:${user.id}:notifications`)
 			.on(
 				"postgres_changes",
 				{
-					event: "INSERT",
+					event: "*", // ← écoute TOUT (INSERT + UPDATE + DELETE)
 					schema: "public",
-					table: "notifications", // ← ici
+					table: "notifications",
+					filter: `recipient_id=eq.${user.id}`, // adapte ta colonne user
 				},
 				(payload) => {
-					console.log("🔴 NOTIFICATIONS PAYLOAD", payload);
-					// Vérifie que c'est bien une notif pour ton user
-					if (payload.new.recipient_id === user.id) {
-						// adapte selon ta colonne
+					console.log(
+						"🔴 NOTIF EVENT:",
+						payload.eventType,
+						payload.new,
+					);
+
+					if (
+						payload.eventType === "INSERT" &&
+						!payload.new.is_read
+					) {
+						// Nouvelle notif non lue → +1
 						setUnreadCount((prev) => prev + 1);
+					} else if (payload.eventType === "UPDATE") {
+						// UPDATE : compare avant/après
+						const wasUnread = !payload.old?.is_read;
+						const isUnread = !payload.new.is_read;
+
+						if (wasUnread && !isUnread) {
+							// Était non lue → maintenant lue → -1
+							setUnreadCount((prev) => Math.max(prev - 1, 0));
+						}
+						// Si UPDATE mais pas de changement is_read → on ignore
 					}
 				},
 			)
-			// .on(
-			// 	"postgres_changes",
-			// 	{
-			// 		event: "*",
-			// 		schema: "public",
-			// 		table: "test_realtime",
-			// 	},
-			// 	(payload) => {
-			// 		console.log("🔴 TEST REALTIME PAYLOAD", payload);
-			// 		setUnreadCount((prev) => prev + 1);
-			// 	},
-			// )
-			.subscribe((status) => {
-				console.log("📡 SUBSCRIBE STATUS", status);
-			});
+			.subscribe();
 
 		return () => {
 			console.log("🧹 CLEANUP NOTIF CHANNEL");
@@ -117,7 +102,30 @@ export const NotificationsProvider = ({ children }) => {
 
 	const resetUnreadCount = () => {
 		setUnreadCount(0);
+		setIsInitialized(false);
 	};
+
+	const refreshUnreadCount = useCallback(async () => {
+		if (!user?.id || !accessToken) return;
+
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			const { count, error } = await supabase
+				.from("notifications")
+				.select("*", { count: "exact", head: true })
+				.eq("is_read", false)
+				.eq("recipient_id", user.id); // adapte ta colonne
+
+			console.log("🔄 REFRESH UNREAD COUNT:", { count, error });
+
+			if (!error && count !== null) {
+				setUnreadCount(count);
+				console.log("🔄 REFRESH COUNT:", count);
+			}
+		} catch (error) {
+			console.error("Refresh unread count error:", error);
+		}
+	}, [user?.id, accessToken]);
 
 	return (
 		<NotificationsContext.Provider
@@ -125,6 +133,7 @@ export const NotificationsProvider = ({ children }) => {
 				unreadCount,
 				markNotificationAsRead,
 				resetUnreadCount,
+				refreshUnreadCount,
 			}}>
 			{children}
 		</NotificationsContext.Provider>
