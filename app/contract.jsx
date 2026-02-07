@@ -22,6 +22,8 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 
+import { createSupabaseClient } from "@/lib/supabase";
+
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
@@ -66,6 +68,50 @@ const ContractScreen = () => {
 		setCandidate(response.profiles);
 		setCompany(response.companies);
 		setJob(response.jobs);
+	};
+
+	// 1. ENVOYER OTP (avec JWT)
+	const sendContractOtp = async (email, candidateName, companyName) => {
+		const supabase = createSupabaseClient(accessToken);
+
+		const { data, error } = await supabase.functions.invoke(
+			"send-contract-otp",
+			{
+				body: {
+					candidate_email: email,
+					candidate_name: candidateName,
+					company_name: companyName,
+				},
+				// ➕ JWT automatique via headers
+				headers: {
+					Authorization: `Bearer ${accessToken}`, // ton accessToken du useAuth
+				},
+			},
+		);
+
+		if (error) throw error;
+		console.log("✅ OTP envoyé:", data);
+		return data;
+	};
+
+	// 2. VÉRIFIER OTP (avec JWT)
+	const verifyContractOtp = async (contractId, otpCode) => {
+		const { data, error } = await supabase.functions.invoke(
+			"verify-contract-otp",
+			{
+				body: {
+					contract_id: contractId,
+					otp: otpCode,
+				},
+				headers: {
+					Authorization: `Bearer ${accessToken}`, // JWT envoyé automatiquement
+				},
+			},
+		);
+
+		if (error) throw error;
+		console.log("✅ Contrat signé:", data);
+		return data;
 	};
 
 	const getContract = async () => {
@@ -339,7 +385,16 @@ const ContractScreen = () => {
 		<VStack style={{ flex: 1, backgroundColor: "#FFF" }}>
 			<ScrollView contentContainerStyle={styles.container}>
 				<Heading>Contrat de travail</Heading>
-
+				<Button
+					onPress={() =>
+						sendContractOtp(
+							candidate.email,
+							candidate.firstname,
+							company.name,
+						)
+					}>
+					<ButtonText>Send OTP test</ButtonText>
+				</Button>
 				<View style={styles.section}>
 					<Text style={styles.subtitle}>Entreprise :</Text>
 					<Text>{company?.name}</Text>
