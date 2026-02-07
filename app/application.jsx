@@ -3,6 +3,8 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
+import { createSupabaseClient } from "@/lib/supabase";
+
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { HStack } from "@/components/ui/hstack";
@@ -107,7 +109,7 @@ const ApplicationScreen = () => {
 	const router = useRouter();
 	const { id, title, company_id, category, apply_id, name } =
 		useLocalSearchParams();
-	const { user, role } = useAuth();
+	const { user, role, accessToken } = useAuth();
 	const {
 		toggleWishlistJob,
 		getWishlistJobs,
@@ -152,17 +154,13 @@ const ApplicationScreen = () => {
 		setCurrentStatus(data.current_status);
 
 		// Vérifier si un contrat a été généré
-		if (
-			data.current_status === "contract_sent" ||
-			data.current_status === "contract_signed_candidate" ||
-			data.current_status === "contract_signed_pro"
-		) {
-			setContractGenerated(true);
-		}
-		// setIsConfirmed(data.isConfirmed);
-		// setIsSelected(data.isSelected);
-		// setIsRefused(data.isRefused);
-		// setTotalCount(totalCount);
+		// if (
+		// 	data.current_status === "contract_sent" ||
+		// 	data.current_status === "contract_signed_candidate" ||
+		// 	data.current_status === "contract_signed_pro"
+		// ) {
+		// 	setContractGenerated(true);
+		// }
 	};
 
 	const loadApplicationStatus = async () => {
@@ -175,7 +173,6 @@ const ApplicationScreen = () => {
 			"created_at.asc",
 		);
 		setApplicationStatus(data.data);
-		// setTotalCount(totalCount);
 	};
 
 	useFocusEffect(
@@ -186,15 +183,68 @@ const ApplicationScreen = () => {
 	);
 
 	useEffect(() => {
-		console.log("ApplicationStatus data:", applicationStatus);
-		console.log("Current status:", currentStatus);
-		console.log("Contract generated:", contractGenerated);
-	}, [applicationStatus, currentStatus, contractGenerated]);
+		currentStatus &&
+			console.log("Current application status:", currentStatus);
+		if (
+			currentStatus === "contract_sent" ||
+			currentStatus === "contract_signed_candidate" ||
+			currentStatus === "contract_signed_pro"
+		) {
+			setContractGenerated(true);
+		} else {
+			setContractGenerated(false);
+		}
+	}, [currentStatus]);
 
-	// const handleToggle = async () => {
-	// 	const isNowInWishlist = await toggleWishlistJob(id, user.id);
-	// 	setIsInWishlist(isNowInWishlist);
-	// };
+	useEffect(() => {
+		if (!apply_id || !accessToken) return;
+
+		const supabase = createSupabaseClient(accessToken);
+
+		const channel = supabase
+			.channel(`application_status`)
+			.on(
+				"postgres_changes",
+				{
+					event: "*",
+					schema: "public",
+					table: "application_status_events",
+					filter: `application_id=eq.${apply_id}`, // adapte le nom de la colonne
+				},
+				(payload) => {
+					console.log(
+						"🟢 STATUS EVENT",
+						payload.eventType,
+						payload.new,
+					);
+
+					if (payload.eventType === "INSERT") {
+						// Comme tu es en created_at.asc, on ajoute en bas
+						setApplicationStatus((prev) =>
+							[...prev, payload.new].sort(
+								(a, b) =>
+									new Date(a.created_at) -
+									new Date(b.created_at),
+							),
+						);
+						setCurrentStatus(payload.new.status);
+					} else if (payload.eventType === "UPDATE") {
+						// Si jamais tu modifies un event existant
+						setApplicationStatus((prev) =>
+							prev.map((s) =>
+								s.id === payload.new.id ? payload.new : s,
+							),
+						);
+						setCurrentStatus(payload.new.status);
+					}
+				},
+			)
+			.subscribe();
+
+		return () => {
+			supabase.removeChannel(channel);
+		};
+	}, [apply_id, accessToken]);
 
 	const confirmSelect = async () => {
 		const isNowSelected = await updateApplicationStatus(
@@ -205,10 +255,7 @@ const ApplicationScreen = () => {
 		// setIsSelected(bool);
 		console.log("Candidat sélectionné :", isNowSelected);
 		setCurrentStatus("selected");
-		setApplicationStatus((prev) => [
-			...prev,
-			{ status: "selected", created_at: new Date().toISOString() },
-		]);
+
 		setShowSelectModal(false);
 		await createNotification({
 			recipientId: application.candidate_id,
@@ -234,21 +281,21 @@ const ApplicationScreen = () => {
 		// );
 	};
 
-	const testSelectEmail = async () => {
-		console.log(
-			"application email content :",
-			`${application.profiles.firstname} ${application.profiles.lastname}`,
-			application.profiles.email,
-			application.jobs.title,
-			application.companies.name,
-		);
-		await sendApplicationSelectedEmail(
-			`${application.profiles.firstname} ${application.profiles.lastname}`,
-			application.profiles.email,
-			application.jobs.title,
-			application.companies.name ?? "L’entreprise",
-		);
-	};
+	// const testSelectEmail = async () => {
+	// 	console.log(
+	// 		"application email content :",
+	// 		`${application.profiles.firstname} ${application.profiles.lastname}`,
+	// 		application.profiles.email,
+	// 		application.jobs.title,
+	// 		application.companies.name,
+	// 	);
+	// 	await sendApplicationSelectedEmail(
+	// 		`${application.profiles.firstname} ${application.profiles.lastname}`,
+	// 		application.profiles.email,
+	// 		application.jobs.title,
+	// 		application.companies.name ?? "L’entreprise",
+	// 	);
+	// };
 
 	const handleSelect = () => {
 		setShowSelectModal(true);
@@ -263,10 +310,10 @@ const ApplicationScreen = () => {
 		// setIsSelected(bool);
 		console.log("Candidat sélectionné :", isNowSelected);
 		setCurrentStatus("contract_sent");
-		setApplicationStatus((prev) => [
-			...prev,
-			{ status: "contract_sent", created_at: new Date().toISOString() },
-		]);
+		// setApplicationStatus((prev) => [
+		// 	...prev,
+		// 	{ status: "contract_sent", created_at: new Date().toISOString() },
+		// ]);
 
 		setContractGenerated(true);
 		setShowGenerateContractModal(false);
@@ -299,10 +346,10 @@ const ApplicationScreen = () => {
 		);
 		console.log("Candidat refusé :", isNowRejected);
 		setCurrentStatus("rejected");
-		setApplicationStatus((prev) => [
-			...prev,
-			{ status: "rejected", created_at: new Date().toISOString() },
-		]);
+		// setApplicationStatus((prev) => [
+		// 	...prev,
+		// 	{ status: "rejected", created_at: new Date().toISOString() },
+		// ]);
 		setShowRejectModal(false);
 		await createNotification({
 			recipientId: application.candidate_id,
@@ -602,9 +649,9 @@ const ApplicationScreen = () => {
 					</Button>
 				)}
 			</VStack>
-			<Button onPress={testSelectEmail}>
+			{/* <Button onPress={testSelectEmail}>
 				<ButtonText>Test Email selected application</ButtonText>
-			</Button>
+			</Button> */}
 
 			{/* Modal de confirmation pour sélectionner */}
 			<Modal
