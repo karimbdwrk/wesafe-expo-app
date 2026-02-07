@@ -118,7 +118,7 @@ export default function TabLayout({ theme = "light" }) {
 	const router = useRouter();
 	const segments = useSegments();
 
-	const [unreadCount, setUnreadCount] = useState(0);
+	// const [unreadCount, setUnreadCount] = useState(0);
 	const {
 		notifications,
 		unreadCount: contextUnreadCount,
@@ -132,65 +132,65 @@ export default function TabLayout({ theme = "light" }) {
 		}, [refreshUnreadCount]),
 	);
 
-	useEffect(() => {
-		if (!user?.id || !accessToken) return;
+	// useEffect(() => {
+	// 	if (!user?.id || !accessToken) return;
 
-		const supabase = createSupabaseClient(accessToken);
+	// 	const supabase = createSupabaseClient(accessToken);
 
-		console.log("🔔 Realtime notifications listener ACTIVÉ");
-		console.log("User ID:", user?.id);
-		console.log("Access token present:", !!accessToken);
+	// 	console.log("🔔 Realtime notifications listener ACTIVÉ");
+	// 	console.log("User ID:", user?.id);
+	// 	console.log("Access token present:", !!accessToken);
 
-		const channel = supabase
-			.channel("notifications-listener")
-			// .on(
-			// 	"postgres_changes",
-			// 	{
-			// 		event: "INSERT",
-			// 		schema: "public",
-			// 		table: "notifications",
-			// 		filter: `recipient_id=eq.${user.id}`,
-			// 	},
-			// 	(payload) => {
-			// 		console.log("📩 NOUVELLE NOTIFICATION REÇUE !");
-			// 		console.log("Payload :", payload.new);
-			// 	},
-			// )
-			.subscribe((status) => {
-				console.log("Realtime channel status:", status);
-			});
+	// 	const channel = supabase
+	// 		.channel("notifications-listener")
+	// 		// .on(
+	// 		// 	"postgres_changes",
+	// 		// 	{
+	// 		// 		event: "INSERT",
+	// 		// 		schema: "public",
+	// 		// 		table: "notifications",
+	// 		// 		filter: `recipient_id=eq.${user.id}`,
+	// 		// 	},
+	// 		// 	(payload) => {
+	// 		// 		console.log("📩 NOUVELLE NOTIFICATION REÇUE !");
+	// 		// 		console.log("Payload :", payload.new);
+	// 		// 	},
+	// 		// )
+	// 		.subscribe((status) => {
+	// 			console.log("Realtime channel status:", status);
+	// 		});
 
-		return () => {
-			console.log("🔕 Realtime notifications listener DÉSACTIVÉ");
-			supabase.removeChannel(channel);
-		};
-	}, [user?.id, accessToken]);
+	// 	return () => {
+	// 		console.log("🔕 Realtime notifications listener DÉSACTIVÉ");
+	// 		supabase.removeChannel(channel);
+	// 	};
+	// }, [user?.id, accessToken]);
 
-	const loadUnreadNotificationsCount = async () => {
-		if (!user?.id) return;
-		try {
-			const { totalCount } = await getAll(
-				"notifications",
-				"id",
-				`&recipient_id=eq.${user.id}&is_read=eq.false`,
-				1,
-				1,
-				"created_at.desc",
-			);
-			setUnreadCount(totalCount || 0);
-		} catch (error) {
-			console.error("Error loading unread notifications count:", error);
-		}
-	};
+	// const loadUnreadNotificationsCount = async () => {
+	// 	if (!user?.id) return;
+	// 	try {
+	// 		const { totalCount } = await getAll(
+	// 			"notifications",
+	// 			"id",
+	// 			`&recipient_id=eq.${user.id}&is_read=eq.false`,
+	// 			1,
+	// 			1,
+	// 			"created_at.desc",
+	// 		);
+	// 		// setUnreadCount(totalCount || 0);
+	// 	} catch (error) {
+	// 		console.error("Error loading unread notifications count:", error);
+	// 	}
+	// };
 
-	useFocusEffect(
-		useCallback(() => {
-			loadSession();
-			if (user?.id) {
-				loadUnreadNotificationsCount();
-			}
-		}, []),
-	);
+	// useFocusEffect(
+	// 	useCallback(() => {
+	// 		loadSession();
+	// 		if (user?.id) {
+	// 			loadUnreadNotificationsCount();
+	// 		}
+	// 	}, []),
+	// );
 
 	// useEffect(() => {
 	// 	if (!user?.id) return;
