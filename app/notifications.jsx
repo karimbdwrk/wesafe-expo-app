@@ -94,7 +94,7 @@ const Notifications = () => {
 	// );
 
 	const handleNotificationPress = async (notification) => {
-		// console.log("Notification pressed:", notification);
+		console.log("Notification pressed:", notification);
 
 		// Marquer la notification comme lue
 		if (!notification.is_read) {
@@ -113,47 +113,7 @@ const Notifications = () => {
 
 		// Navigation selon le type de notification
 		if (
-			notification.type === "application_submitted" &&
-			notification.entity_id
-		) {
-			router.push({
-				pathname: "/application",
-				params: { apply_id: notification.entity_id, id: user.id },
-			});
-		} else if (
-			notification.type === "application_selected" &&
-			notification.entity_id
-		) {
-			router.push({
-				pathname: "/application",
-				params: { apply_id: notification.entity_id, id: user.id },
-			});
-		} else if (
-			notification.type === "application_rejected" &&
-			notification.entity_id
-		) {
-			router.push({
-				pathname: "/application",
-				params: { apply_id: notification.entity_id, id: user.id },
-			});
-		} else if (
-			notification.type === "contract_sent" &&
-			notification.entity_id
-		) {
-			router.push({
-				pathname: "/application",
-				params: { apply_id: notification.entity_id, id: user.id },
-			});
-		} else if (
-			notification.type === "contract_signed_candidate" &&
-			notification.entity_id
-		) {
-			router.push({
-				pathname: "/application",
-				params: { apply_id: notification.entity_id, id: user.id },
-			});
-		} else if (
-			notification.type === "contract_signed_pro " &&
+			notification.entity_type === "application" &&
 			notification.entity_id
 		) {
 			router.push({
@@ -168,13 +128,7 @@ const Notifications = () => {
 				pathname: "/job",
 				params: { id: notification.entity_id },
 			});
-		} else if (notification.type === "contract" && notification.entity_id) {
-			router.push({
-				pathname: "/contract",
-				params: { apply_id: notification.entity_id, id: user.id },
-			});
 		}
-		// Ajouter d'autres types de navigation si nécessaire
 	};
 
 	const formatDate = (dateString) => {
@@ -196,7 +150,7 @@ const Notifications = () => {
 
 	const getNotificationIcon = (type) => {
 		switch (type) {
-			case "application_submitted":
+			case "application":
 				return Briefcase;
 			case "application_selected":
 				return Briefcase;
@@ -249,7 +203,7 @@ const Notifications = () => {
 										}}>
 										<Icon
 											as={getNotificationIcon(
-												notification.type,
+												notification.entity_type,
 											)}
 											size='lg'
 											color={
