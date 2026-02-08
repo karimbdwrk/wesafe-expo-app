@@ -29,6 +29,8 @@ import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 import axios from "axios";
 
+import { OtpCodeInput } from "@/components/OtpCodeInput";
+
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const SUPABASE_STORAGE_BUCKET = "contracts";
 
@@ -48,8 +50,7 @@ const ContractScreen = () => {
 
 	const [isSigned, setIsSigned] = useState(false);
 	const [isProSigned, setIsProSigned] = useState(false);
-	const [showProSignModal, setShowProSignModal] = useState(false);
-	const [showCandidateSignModal, setShowCandidateSignModal] = useState(false);
+	const [showSignModal, setShowSignModal] = useState(false);
 	const [candidate, setCandidate] = useState(null);
 	const [company, setCompany] = useState(null);
 	const [job, setJob] = useState(null);
@@ -57,6 +58,12 @@ const ContractScreen = () => {
 
 	const [contract, setContract] = useState(null);
 	const [contractId, setContractId] = useState(null);
+
+	const [otp, setOtp] = useState("");
+	const [otpSent, setOtpSent] = useState(false);
+	const [error, setError] = useState("");
+	const [resendTimer, setResendTimer] = useState(0);
+	const [canResend, setCanResend] = useState(false);
 
 	const getAllData = async () => {
 		const response = await getById(
@@ -71,17 +78,32 @@ const ContractScreen = () => {
 	};
 
 	// 1. ENVOYER OTP (avec JWT)
-	const sendContractOtp = async (email, candidateName, companyName) => {
+	const sendContractOtp = async (
+		email,
+		candidateName,
+		companyName,
+		contractIdParam = null,
+	) => {
+		setOtpSent(true);
+		setResendTimer(30);
+		setCanResend(false);
 		const supabase = createSupabaseClient(accessToken);
+
+		const body = {
+			candidate_email: email,
+			candidate_name: candidateName,
+			company_name: companyName,
+		};
+
+		// Si on a un contractId (cas du pro), on l'ajoute
+		if (contractIdParam) {
+			body.contract_id = contractIdParam;
+		}
 
 		const { data, error } = await supabase.functions.invoke(
 			"send-contract-otp",
 			{
-				body: {
-					candidate_email: email,
-					candidate_name: candidateName,
-					company_name: companyName,
-				},
+				body,
 				// ➕ JWT automatique via headers
 				headers: {
 					Authorization: `Bearer ${accessToken}`, // ton accessToken du useAuth
@@ -94,8 +116,29 @@ const ContractScreen = () => {
 		return data;
 	};
 
+	const handleConfirm = async () => {
+		if (otp.length !== 6) {
+			setError("Code invalide");
+			return;
+		}
+		setError("");
+		console.log("OTP:", otp);
+
+		try {
+			// Vérifier l'OTP avant de confirmer
+			const result = await verifyContractOtp(contractId, otp);
+			if (result) {
+				confirmSign();
+			}
+		} catch (error) {
+			console.error("Erreur vérification OTP:", error);
+			setError("Code invalide ou expiré");
+		}
+	};
+
 	// 2. VÉRIFIER OTP (avec JWT)
 	const verifyContractOtp = async (contractId, otpCode) => {
+		const supabase = createSupabaseClient(accessToken);
 		const { data, error } = await supabase.functions.invoke(
 			"verify-contract-otp",
 			{
@@ -110,7 +153,7 @@ const ContractScreen = () => {
 		);
 
 		if (error) throw error;
-		console.log("✅ Contrat signé:", data);
+		console.log("✅ OTP vérifié:", data);
 		return data;
 	};
 
@@ -144,106 +187,158 @@ const ContractScreen = () => {
 		console.log("contract id :", contractId);
 	}, [contractId]);
 
-	const handleProSign = () => {
-		setShowProSignModal(true);
-	};
-
-	const confirmProSign = async () => {
-		try {
-			await update("contracts", contractId, {
-				isProSigned: true,
-			});
-
-			// Mettre à jour le statut de la candidature
-			await updateApplicationStatus(
-				apply_id,
-				"contract_signed_pro",
-				"company",
-			);
-
-			setIsProSigned(true);
-			setShowProSignModal(false);
-			toast.show({
-				placement: "top",
-				render: ({ id }) => (
-					<Toast
-						nativeID={"toast-" + id}
-						className='px-5 py-3 gap-4 shadow-soft-1 items-center flex-row'>
-						<Icon
-							as={Signature}
-							size='xl'
-							className='text-typography-white'
-						/>
-						<ToastTitle size='sm'>
-							Contrat signé et tamponné !
-						</ToastTitle>
-					</Toast>
-				),
-			});
-			await createNotification({
-				recipientId: candidate.id,
-				actorId: company.id,
-				type: "contract_signed_pro",
-				title: "Contrat signé et tamponné par l'entreprise",
-				body: "L'entreprise a signé et tamponné le contrat.",
-				entityType: "application",
-				entityId: apply_id,
-			});
-		} catch (error) {
-			console.log("error sign contract as pro", error);
+	// Timer pour le renvoi OTP
+	useEffect(() => {
+		let interval;
+		if (resendTimer > 0) {
+			interval = setInterval(() => {
+				setResendTimer((prev) => {
+					if (prev <= 1) {
+						setCanResend(true);
+						return 0;
+					}
+					return prev - 1;
+				});
+			}, 1000);
 		}
-	};
+		return () => {
+			if (interval) clearInterval(interval);
+		};
+	}, [resendTimer]);
 
 	const handleSign = () => {
-		setShowCandidateSignModal(true);
+		setShowSignModal(true);
 	};
 
-	const confirmCandidateSign = async () => {
+	// Créer le contrat pour le candidat avant d'envoyer l'OTP
+	const createCandidateContract = async () => {
 		try {
-			await create("contracts", {
+			console.log("Création du contrat candidat...");
+			const newContract = await create("contracts", {
 				job_id: job.id,
 				company_id: company.id,
 				candidate_id: candidate.id,
 				apply_id: apply.id,
 				category: job.category,
-				isSigned: true,
+				isSigned: false, // Pas encore signé
 			});
+			console.log("Contrat créé:", newContract);
 
-			// Mettre à jour le statut de la candidature
-			await updateApplicationStatus(
-				apply_id,
-				"contract_signed_candidate",
-				"candidate",
-			);
+			// Le create peut retourner soit un objet direct, soit un tableau
+			const contractId = newContract?.id || newContract?.[0]?.id;
+			if (contractId) {
+				setContractId(contractId);
+				console.log("Contract ID set:", contractId);
+				return contractId;
+			}
 
-			setShowCandidateSignModal(false);
-			getContract();
+			console.error("Pas de contract ID trouvé dans:", newContract);
+			return null;
+		} catch (error) {
+			console.error("error create contract", error);
 			toast.show({
 				placement: "top",
 				render: ({ id }) => (
 					<Toast
 						nativeID={"toast-" + id}
-						className='px-5 py-3 gap-4 shadow-soft-1 items-center flex-row'>
-						<Icon
-							as={Signature}
-							size='xl'
-							className='text-typography-white'
-						/>
-						<ToastTitle size='sm'>Contrat signé !</ToastTitle>
+						className='px-5 py-3 gap-4 bg-error-500'>
+						<ToastTitle className='text-white'>
+							Erreur lors de la création du contrat
+						</ToastTitle>
 					</Toast>
 				),
 			});
-			await createNotification({
-				recipientId: company.id,
-				actorId: candidate.id,
-				type: "contract_signed_candidate",
-				title: "Contrat signé par le candidat",
-				body: "Le candidat a signé le contrat.",
-				entityType: "application",
-				entityId: apply_id,
-			});
+			return null;
+		}
+	};
+
+	const confirmSign = async () => {
+		try {
+			if (role === "pro") {
+				// Signature Pro
+				await update("contracts", contractId, {
+					isProSigned: true,
+				});
+
+				await updateApplicationStatus(
+					apply_id,
+					"contract_signed_pro",
+					"company",
+				);
+
+				setIsProSigned(true);
+				setShowSignModal(false);
+				setOtpSent(false);
+				setOtp("");
+				toast.show({
+					placement: "top",
+					render: ({ id }) => (
+						<Toast
+							nativeID={"toast-" + id}
+							className='px-5 py-3 gap-4 shadow-soft-1 items-center flex-row'>
+							<Icon
+								as={Signature}
+								size='xl'
+								className='text-typography-white'
+							/>
+							<ToastTitle size='sm'>
+								Contrat signé et tamponné !
+							</ToastTitle>
+						</Toast>
+					),
+				});
+				await createNotification({
+					recipientId: candidate.id,
+					actorId: company.id,
+					type: "contract_signed_pro",
+					title: "Contrat signé et tamponné par l'entreprise",
+					body: "L'entreprise a signé et tamponné le contrat.",
+					entityType: "application",
+					entityId: apply_id,
+				});
+			} else {
+				// Signature Candidat
+				await update("contracts", contractId, {
+					isSigned: true,
+				});
+
+				await updateApplicationStatus(
+					apply_id,
+					"contract_signed_candidate",
+					"candidate",
+				);
+
+				setShowSignModal(false);
+				setOtpSent(false);
+				setOtp("");
+				getContract();
+				toast.show({
+					placement: "top",
+					render: ({ id }) => (
+						<Toast
+							nativeID={"toast-" + id}
+							className='px-5 py-3 gap-4 shadow-soft-1 items-center flex-row'>
+							<Icon
+								as={Signature}
+								size='xl'
+								className='text-typography-white'
+							/>
+							<ToastTitle size='sm'>Contrat signé !</ToastTitle>
+						</Toast>
+					),
+				});
+				await createNotification({
+					recipientId: company.id,
+					actorId: candidate.id,
+					type: "contract_signed_candidate",
+					title: "Contrat signé par le candidat",
+					body: "Le candidat a signé le contrat.",
+					entityType: "application",
+					entityId: apply_id,
+				});
+			}
 		} catch (error) {
-			console.log("error create Contract", error);
+			console.log("error sign contract", error);
 		}
 	};
 
@@ -521,7 +616,15 @@ const ContractScreen = () => {
 								</ButtonText>
 							</Button>
 						) : (
-							<Button onPress={handleSign}>
+							<Button
+								onPress={() =>
+									sendContractOtp(
+										candidate.email,
+										candidate.firstname,
+										company.name,
+										contractId,
+									)
+								}>
 								<ButtonText>Signer le contrat</ButtonText>
 							</Button>
 						)}
@@ -543,7 +646,15 @@ const ContractScreen = () => {
 								</ButtonText>
 							</Button>
 						) : (
-							<Button onPress={handleProSign}>
+							<Button
+								onPress={() =>
+									sendContractOtp(
+										user.email,
+										company.name,
+										candidate.firstname,
+										contractId,
+									)
+								}>
 								<ButtonText>
 									Signer et tamponner le contrat
 								</ButtonText>
@@ -576,8 +687,8 @@ const ContractScreen = () => {
 			</ScrollView>
 
 			<Modal
-				isOpen={showProSignModal}
-				onClose={() => setShowProSignModal(false)}>
+				isOpen={showSignModal}
+				onClose={() => setShowSignModal(false)}>
 				<ModalBackdrop />
 				<ModalContent className='max-w-[375px]'>
 					<ModalHeader>
@@ -585,56 +696,150 @@ const ContractScreen = () => {
 					</ModalHeader>
 					<ModalBody>
 						<Text>
-							Êtes-vous sûr de vouloir signer et tamponner ce
-							contrat ? Cette action est définitive.
+							{role === "pro"
+								? "Êtes-vous sûr de vouloir signer et tamponner ce contrat ? Cette action est définitive."
+								: "Êtes-vous sûr de vouloir signer ce contrat ? Cette action est définitive."}
 						</Text>
-					</ModalBody>
-					<ModalFooter className='w-full gap-3'>
-						<Button
-							variant='outline'
-							action='secondary'
-							onPress={() => setShowProSignModal(false)}
-							className='flex-1'>
-							<ButtonText>Annuler</ButtonText>
-						</Button>
-						<Button
-							action='positive'
-							onPress={confirmProSign}
-							className='flex-1'>
-							<ButtonText>Confirmer</ButtonText>
-						</Button>
-					</ModalFooter>
-				</ModalContent>
-			</Modal>
 
-			<Modal
-				isOpen={showCandidateSignModal}
-				onClose={() => setShowCandidateSignModal(false)}>
-				<ModalBackdrop />
-				<ModalContent className='max-w-[375px]'>
-					<ModalHeader>
-						<Heading size='md'>Confirmer la signature</Heading>
-					</ModalHeader>
-					<ModalBody>
-						<Text>
-							Êtes-vous sûr de vouloir signer ce contrat ? Cette
-							action est définitive.
-						</Text>
+						{otpSent && (
+							<VStack
+								style={{
+									marginTop: 20,
+									gap: 10,
+									width: "100%",
+									alignItems: "center",
+								}}>
+								<OtpCodeInput
+									value={otp}
+									onChange={setOtp}
+									isInvalid={!!error}
+									onComplete={handleConfirm}
+								/>
+								{error ? (
+									<Text color='$red600' fontSize='$sm'>
+										{error}
+									</Text>
+								) : null}
+
+								{canResend ? (
+									<Button
+										variant='link'
+										onPress={() => {
+											if (role === "pro") {
+												sendContractOtp(
+													user.email,
+													company.name,
+													candidate.firstname,
+													contractId,
+												);
+											} else {
+												sendContractOtp(
+													candidate.email,
+													candidate.firstname,
+													company.name,
+													contractId,
+												);
+											}
+										}}
+										className='mt-2'>
+										<ButtonText>
+											Renvoyer le code
+										</ButtonText>
+									</Button>
+								) : (
+									<Text className='mt-2 text-sm text-gray-500'>
+										Renvoyer le code dans {resendTimer}s
+									</Text>
+								)}
+							</VStack>
+						)}
+
+						{!otpSent && (
+							<Button
+								onPress={async () => {
+									try {
+										console.log(
+											"Bouton envoi OTP cliqué, role:",
+											role,
+										);
+										if (role === "pro") {
+											console.log(
+												"Envoi OTP pour pro, contractId:",
+												contractId,
+											);
+											await sendContractOtp(
+												user.email,
+												company.name,
+												candidate.firstname,
+												contractId,
+											);
+										} else {
+											console.log(
+												"Envoi OTP pour candidat",
+											);
+											// Créer le contrat d'abord pour le candidat
+											const newContractId =
+												await createCandidateContract();
+											console.log(
+												"newContractId:",
+												newContractId,
+											);
+											if (newContractId) {
+												await sendContractOtp(
+													candidate.email,
+													candidate.firstname,
+													company.name,
+													newContractId,
+												);
+											} else {
+												console.error(
+													"Échec création contrat candidat",
+												);
+											}
+										}
+									} catch (error) {
+										console.error(
+											"Erreur envoi OTP:",
+											error,
+										);
+										toast.show({
+											placement: "top",
+											render: ({ id }) => (
+												<Toast
+													nativeID={"toast-" + id}
+													className='px-5 py-3 gap-4 bg-error-500'>
+													<ToastTitle className='text-white'>
+														Erreur lors de l'envoi
+														du code
+													</ToastTitle>
+												</Toast>
+											),
+										});
+									}
+								}}
+								className='mt-4'>
+								<ButtonText>
+									Envoyer le code par email
+								</ButtonText>
+							</Button>
+						)}
 					</ModalBody>
 					<ModalFooter className='w-full gap-3'>
 						<Button
 							variant='outline'
 							action='secondary'
-							onPress={() => setShowCandidateSignModal(false)}
+							onPress={() => setShowSignModal(false)}
 							className='flex-1'>
 							<ButtonText>Annuler</ButtonText>
 						</Button>
-						<Button
-							action='positive'
-							onPress={confirmCandidateSign}
-							className='flex-1'>
-							<ButtonText>Confirmer</ButtonText>
-						</Button>
+						{otpSent && (
+							<Button
+								action='positive'
+								onPress={handleConfirm}
+								className='flex-1'>
+								<ButtonText>Confirmer</ButtonText>
+							</Button>
+						)}
 					</ModalFooter>
 				</ModalContent>
 			</Modal>
