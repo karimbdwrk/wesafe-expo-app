@@ -133,15 +133,12 @@ const ApplicationScreen = () => {
 		useState(false);
 
 	const [isInWishlist, setIsInWishlist] = useState(false);
-	// const [isApplied, setIsApplied] = useState(false);
-	// const [isConfirmed, setIsConfirmed] = useState(false);
 	const [isSelected, setIsSelected] = useState(false);
 	const [isRefused, setIsRefused] = useState(false);
 	const [currentStatus, setCurrentStatus] = useState("");
 
 	const [application, setApplication] = useState([]);
 	const [applicationStatus, setApplicationStatus] = useState([]);
-	// const [totalCount, setTotalCount] = useState(0);
 
 	const [contractGenerated, setContractGenerated] = useState(false);
 
@@ -153,15 +150,6 @@ const ApplicationScreen = () => {
 		);
 		setApplication(data);
 		setCurrentStatus(data.current_status);
-
-		// Vérifier si un contrat a été généré
-		// if (
-		// 	data.current_status === "contract_sent" ||
-		// 	data.current_status === "contract_signed_candidate" ||
-		// 	data.current_status === "contract_signed_pro"
-		// ) {
-		// 	setContractGenerated(true);
-		// }
 	};
 
 	const loadApplicationStatus = async () => {
@@ -286,29 +274,7 @@ const ApplicationScreen = () => {
 			application.jobs.title,
 			application.companies?.name,
 		);
-		// await sendApplicationSelectedEmail(
-		// 	`${application.profiles.firstname} ${application.profiles.lastname}`,
-		// 	application.profiles.email,
-		// 	application.jobs.title,
-		// 	application.jobs.company_name ?? "L’entreprise",
-		// );
 	};
-
-	// const testSelectEmail = async () => {
-	// 	console.log(
-	// 		"application email content :",
-	// 		`${application.profiles.firstname} ${application.profiles.lastname}`,
-	// 		application.profiles.email,
-	// 		application.jobs.title,
-	// 		application.companies.name,
-	// 	);
-	// 	await sendApplicationSelectedEmail(
-	// 		`${application.profiles.firstname} ${application.profiles.lastname}`,
-	// 		application.profiles.email,
-	// 		application.jobs.title,
-	// 		application.companies.name ?? "L’entreprise",
-	// 	);
-	// };
 
 	const handleSelect = () => {
 		setShowSelectModal(true);
@@ -323,10 +289,6 @@ const ApplicationScreen = () => {
 		// setIsSelected(bool);
 		console.log("Candidat sélectionné :", isNowSelected);
 		setCurrentStatus("contract_sent");
-		// setApplicationStatus((prev) => [
-		// 	...prev,
-		// 	{ status: "contract_sent", created_at: new Date().toISOString() },
-		// ]);
 
 		setContractGenerated(true);
 		setShowGenerateContractModal(false);
@@ -356,12 +318,6 @@ const ApplicationScreen = () => {
 		setShowGenerateContractModal(true);
 	};
 
-	// const handleConfirm = async () => {
-	// 	const isNowConfirmed = await confirmApplication(apply_id);
-	// 	setIsConfirmed(true);
-	// 	setIsRefused(false);
-	// };
-
 	const confirmReject = async () => {
 		const isNowRejected = await updateApplicationStatus(
 			apply_id,
@@ -370,10 +326,6 @@ const ApplicationScreen = () => {
 		);
 		console.log("Candidat refusé :", isNowRejected);
 		setCurrentStatus("rejected");
-		// setApplicationStatus((prev) => [
-		// 	...prev,
-		// 	{ status: "rejected", created_at: new Date().toISOString() },
-		// ]);
 		setShowRejectModal(false);
 		await createNotification({
 			recipientId: application.candidate_id,
@@ -406,26 +358,11 @@ const ApplicationScreen = () => {
 		setIsInWishlist(inWishlist);
 	};
 
-	// const checkApplication = async () => {
-	// 	const applied = await isJobApplied(user.id, id);
-	// 	setIsApplied(applied);
-	// };
-
-	// useEffect(() => {
-	// 	checkApplication();
-	// }, [user, id]);
-
 	useFocusEffect(
 		useCallback(() => {
 			checkWishlist();
 		}, []),
 	);
-
-	// useFocusEffect(
-	// 	useCallback(() => {
-	// 		role === "candidat" && checkApplication();
-	// 	}, [user, id]),
-	// );
 
 	const formatDate = (date) => {
 		const d = new Date(date);
@@ -621,17 +558,13 @@ const ApplicationScreen = () => {
 								<Button
 									style={{ width: "49%" }}
 									action='positive'
-									onPress={() => handleSelect()}
-									// isDisabled={isSelected ? true : false}
-								>
+									onPress={() => handleSelect()}>
 									<ButtonText>Sélectionner</ButtonText>
 								</Button>
 								<Button
 									style={{ width: "49%" }}
 									action='negative'
-									onPress={() => handleReject()}
-									// isDisabled={isSelected ? true : false}
-								>
+									onPress={() => handleReject()}>
 									<ButtonText>Refuser</ButtonText>
 								</Button>
 							</HStack>
@@ -646,17 +579,13 @@ const ApplicationScreen = () => {
 								<Button
 									style={{ width: "49%" }}
 									action='positive'
-									onPress={() => handleGenerateContract()}
-									// isDisabled={isSelected ? true : false}
-								>
+									onPress={() => handleGenerateContract()}>
 									<ButtonText>Générer le contrat</ButtonText>
 								</Button>
 								<Button
 									style={{ width: "49%" }}
 									action='negative'
-									onPress={() => handleReject()}
-									// isDisabled={isSelected ? true : false}
-								>
+									onPress={() => handleReject()}>
 									<ButtonText>Refuser</ButtonText>
 								</Button>
 							</HStack>
@@ -678,8 +607,14 @@ const ApplicationScreen = () => {
 						}>
 						<ButtonText>
 							{role === "pro"
-								? "Voir & signer le contrat"
-								: "Voir & signer mon contrat"}
+								? currentStatus === "contract_signed_pro"
+									? "Voir le contrat"
+									: "Voir & signer le contrat"
+								: currentStatus ===
+											"contract_signed_candidate" ||
+									  currentStatus === "contract_signed_pro"
+									? "Voir le contrat"
+									: "Voir & signer mon contrat"}
 						</ButtonText>
 					</Button>
 				)}
