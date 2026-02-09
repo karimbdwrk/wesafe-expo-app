@@ -30,6 +30,7 @@ import * as FileSystem from "expo-file-system";
 import axios from "axios";
 
 import { OtpCodeInput } from "@/components/OtpCodeInput";
+import { sendRecruitmentStatusEmail } from "@/utils/sendRecruitmentStatusEmail";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const SUPABASE_STORAGE_BUCKET = "contracts";
@@ -442,6 +443,16 @@ const ContractScreen = () => {
 					entityType: "application",
 					entityId: apply_id,
 				});
+				
+				// Envoyer l'email au candidat
+				await sendRecruitmentStatusEmail(
+					candidate.email,
+					`${candidate.firstname} ${candidate.lastname}`,
+					company.name,
+					"contract_signed_pro",
+					job.title,
+					"candidate",
+				);
 			} else {
 				// Signature Candidat
 				await update("contracts", contractId, {
@@ -483,6 +494,16 @@ const ContractScreen = () => {
 					entityType: "application",
 					entityId: apply_id,
 				});
+				
+				// Envoyer l'email au pro
+				await sendRecruitmentStatusEmail(
+					user.email,
+					company.name,
+					`${candidate.firstname} ${candidate.lastname}`,
+					"contract_signed_candidate",
+					job.title,
+					"company",
+				);
 			}
 		} catch (error) {
 			console.log("error sign contract", error);
