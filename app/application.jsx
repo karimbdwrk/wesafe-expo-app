@@ -284,7 +284,7 @@ const ApplicationScreen = () => {
 			`${application.profiles.firstname} ${application.profiles.lastname}`,
 			application.profiles.email,
 			application.jobs.title,
-			application.jobs.company_name,
+			application.companies?.name,
 		);
 		// await sendApplicationSelectedEmail(
 		// 	`${application.profiles.firstname} ${application.profiles.lastname}`,
