@@ -40,6 +40,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 
 import { sendApplicationSelectedEmail } from "@/utils/sendApplicationSelectedEmail";
+import { sendRecruitmentStatusEmail } from "@/utils/sendRecruitmentStatusEmail";
 
 import JobCard from "@/components/JobCard";
 import { width } from "dom-helpers";
@@ -266,6 +267,17 @@ const ApplicationScreen = () => {
 			entityType: "application",
 			entityId: apply_id,
 		});
+
+		// Envoyer l'email au candidat
+		await sendRecruitmentStatusEmail(
+			application.profiles.email,
+			`${application.profiles.firstname} ${application.profiles.lastname}`,
+			application.companies?.name || application.jobs.company_name,
+			"selected",
+			application.jobs.title,
+			"candidate",
+		);
+
 		console.log(
 			"application after select email content :",
 			`${application.profiles.firstname} ${application.profiles.lastname}`,
@@ -326,6 +338,16 @@ const ApplicationScreen = () => {
 			entityType: "application",
 			entityId: apply_id,
 		});
+
+		// Envoyer l'email au candidat
+		await sendRecruitmentStatusEmail(
+			application.profiles.email,
+			`${application.profiles.firstname} ${application.profiles.lastname}`,
+			application.companies?.name || application.jobs.company_name,
+			"contract_sent",
+			application.jobs.title,
+			"candidate",
+		);
 	};
 
 	const handleGenerateContract = () => {
@@ -360,6 +382,16 @@ const ApplicationScreen = () => {
 			entityType: "application",
 			entityId: apply_id,
 		});
+
+		// Envoyer l'email au candidat
+		await sendRecruitmentStatusEmail(
+			application.profiles.email,
+			`${application.profiles.firstname} ${application.profiles.lastname}`,
+			application.companies?.name || application.jobs.company_name,
+			"rejected",
+			application.jobs.title,
+			"candidate",
+		);
 	};
 
 	const handleReject = () => {
