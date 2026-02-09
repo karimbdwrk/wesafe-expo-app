@@ -276,7 +276,40 @@ const ContractScreen = () => {
 	// Créer le contrat pour le candidat avant d'envoyer l'OTP
 	const createContract = async () => {
 		try {
-			console.log("Création du contrat...");
+			console.log("Vérification de l'existence d'un contrat...");
+
+			// Vérifier si un contrat existe déjà
+			const { data: existingContracts } = await getAll(
+				"contracts",
+				"*",
+				`&apply_id=eq.${apply.id}`,
+				1,
+				1,
+				"created_at.desc",
+			);
+
+			if (existingContracts && existingContracts.length > 0) {
+				const contractId = existingContracts[0].id;
+				setContractId(contractId);
+				console.log(
+					"✅ Un contrat existe déjà pour cette candidature:",
+					contractId,
+				);
+
+				// Envoyer l'OTP au candidat
+				await sendContractOtp(
+					candidate.email,
+					candidate.firstname,
+					company.name,
+					contractId,
+				);
+
+				return contractId;
+			}
+
+			console.log(
+				"❌ Aucun contrat trouvé, création d'un nouveau contrat...",
+			);
 			const newContract = await create("contracts", {
 				job_id: job.id,
 				company_id: company.id,
@@ -305,7 +338,19 @@ const ContractScreen = () => {
 				if (contracts && contracts.length > 0) {
 					const contractId = contracts[0].id;
 					setContractId(contractId);
-					console.log("Contract ID récupéré:", contractId);
+					console.log(
+						"✅ Nouveau contrat créé avec succès, ID:",
+						contractId,
+					);
+
+					// Envoyer l'OTP au candidat
+					await sendContractOtp(
+						candidate.email,
+						candidate.firstname,
+						company.name,
+						contractId,
+					);
+
 					return contractId;
 				}
 			}
@@ -317,7 +362,19 @@ const ContractScreen = () => {
 				newContract?.[0]?.id;
 			if (contractId) {
 				setContractId(contractId);
-				console.log("Contract ID set:", contractId);
+				console.log(
+					"✅ Nouveau contrat créé avec succès, ID:",
+					contractId,
+				);
+
+				// Envoyer l'OTP au candidat
+				await sendContractOtp(
+					candidate.email,
+					candidate.firstname,
+					company.name,
+					contractId,
+				);
+
 				return contractId;
 			}
 
@@ -397,6 +454,7 @@ const ContractScreen = () => {
 					"candidate",
 				);
 
+				setIsSigned(true);
 				setShowSignModal(false);
 				setOtpSent(false);
 				setOtp("");
@@ -868,29 +926,8 @@ const ContractScreen = () => {
 											console.log(
 												"Envoi OTP pour candidat",
 											);
-											// Créer le contrat d'abord pour le candidat
-											const newContractId =
-												await createContract();
-											console.log(
-												"newContractId:",
-												newContractId,
-											);
-											if (newContractId) {
-												// await sendContractOtp(
-												// 	candidate.email,
-												// 	candidate.firstname,
-												// 	company.name,
-												// 	newContractId,
-												// );
-												console.log(
-													"Envoi OTP pour candidat, newContractId:",
-													newContractId,
-												);
-											} else {
-												console.error(
-													"Échec création contrat candidat",
-												);
-											}
+											// Créer le contrat d'abord pour le candidat (envoie l'OTP automatiquement)
+											await createContract();
 										}
 									} catch (error) {
 										console.error(
