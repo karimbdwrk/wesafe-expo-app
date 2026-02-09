@@ -8,6 +8,7 @@ import axios from "axios";
  * @param {string} status - Le nouveau statut (selected, contract_sent, contract_signed_candidate, etc.)
  * @param {string} jobTitle - Titre de l'offre
  * @param {string} recipientType - "candidate" ou "company"
+ * @param {string} accessToken - Token d'authentification JWT
  */
 export const sendRecruitmentStatusEmail = async (
 	recipientEmail,
@@ -16,6 +17,7 @@ export const sendRecruitmentStatusEmail = async (
 	status,
 	jobTitle,
 	recipientType,
+	accessToken,
 ) => {
 	try {
 		const EDGE_FUNCTION_URL =
@@ -35,7 +37,12 @@ export const sendRecruitmentStatusEmail = async (
 			payload,
 		);
 
-		const response = await axios.post(EDGE_FUNCTION_URL, payload);
+		const response = await axios.post(EDGE_FUNCTION_URL, payload, {
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${accessToken}`,
+			},
+		});
 
 		if (response.status === 200) {
 			console.log(
