@@ -7,7 +7,7 @@ export const OtpCodeInput = ({
 	onChange,
 	length = 6,
 	isInvalid = false,
-	onComplete,
+	// onComplete,
 }) => {
 	const inputsRef = useRef([]);
 
@@ -26,10 +26,10 @@ export const OtpCodeInput = ({
 			inputsRef.current[index + 1]?.focus();
 		}
 
-		// Appeler onComplete si tous les champs sont remplis
-		if (char && newValue.length === length && onComplete) {
-			onComplete(newValue);
-		}
+		// // Appeler onComplete si tous les champs sont remplis
+		// if (char && newValue.length === length && onComplete) {
+		// 	onComplete(newValue);
+		// }
 	};
 
 	const handleKeyPress = (e, index) => {
