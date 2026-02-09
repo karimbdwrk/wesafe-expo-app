@@ -282,10 +282,36 @@ const ContractScreen = () => {
 				category: job.category,
 				isSigned: false, // Pas encore signé
 			});
-			console.log("Contrat créé:", newContract);
+			console.log("Contrat créé - response:", newContract);
 
-			// Le create peut retourner soit un objet direct, soit un tableau
-			const contractId = newContract?.id || newContract?.[0]?.id;
+			// Vérifier si c'est une réponse Axios avec status 201
+			if (newContract?.status === 201) {
+				// Le contrat a été créé, récupérer son ID via getAll
+				console.log(
+					"Contrat créé avec succès, récupération de l'ID...",
+				);
+				const { data: contracts } = await getAll(
+					"contracts",
+					"*",
+					`&apply_id=eq.${apply.id}`,
+					1,
+					1,
+					"created_at.desc",
+				);
+
+				if (contracts && contracts.length > 0) {
+					const contractId = contracts[0].id;
+					setContractId(contractId);
+					console.log("Contract ID récupéré:", contractId);
+					return contractId;
+				}
+			}
+
+			// Sinon, essayer de récupérer l'ID directement
+			const contractId =
+				newContract?.id ||
+				newContract?.data?.id ||
+				newContract?.[0]?.id;
 			if (contractId) {
 				setContractId(contractId);
 				console.log("Contract ID set:", contractId);
@@ -540,7 +566,7 @@ const ContractScreen = () => {
 		<VStack style={{ flex: 1, backgroundColor: "#FFF" }}>
 			<ScrollView contentContainerStyle={styles.container}>
 				<Heading>Contrat de travail</Heading>
-				<Button
+				{/* <Button
 					onPress={() =>
 						sendContractOtp(
 							candidate.email,
@@ -549,7 +575,7 @@ const ContractScreen = () => {
 						)
 					}>
 					<ButtonText>Send OTP test</ButtonText>
-				</Button>
+				</Button> */}
 				<View style={styles.section}>
 					<Text style={styles.subtitle}>Entreprise :</Text>
 					<Text>{company?.name}</Text>
@@ -847,10 +873,14 @@ const ContractScreen = () => {
 												newContractId,
 											);
 											if (newContractId) {
-												await sendContractOtp(
-													candidate.email,
-													candidate.firstname,
-													company.name,
+												// await sendContractOtp(
+												// 	candidate.email,
+												// 	candidate.firstname,
+												// 	company.name,
+												// 	newContractId,
+												// );
+												console.log(
+													"Envoi OTP pour candidat, newContractId:",
 													newContractId,
 												);
 											} else {
