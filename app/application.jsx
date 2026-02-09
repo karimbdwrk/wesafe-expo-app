@@ -276,6 +276,7 @@ const ApplicationScreen = () => {
 			"selected",
 			application.jobs.title,
 			"candidate",
+			accessToken,
 		);
 
 		console.log(
@@ -347,6 +348,7 @@ const ApplicationScreen = () => {
 			"contract_sent",
 			application.jobs.title,
 			"candidate",
+			accessToken,
 		);
 	};
 
@@ -391,6 +393,7 @@ const ApplicationScreen = () => {
 			"rejected",
 			application.jobs.title,
 			"candidate",
+			accessToken,
 		);
 	};
 
