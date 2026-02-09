@@ -452,6 +452,7 @@ const ContractScreen = () => {
 					"contract_signed_pro",
 					job.title,
 					"candidate",
+					accessToken,
 				);
 			} else {
 				// Signature Candidat
@@ -503,6 +504,7 @@ const ContractScreen = () => {
 					"contract_signed_candidate",
 					job.title,
 					"company",
+					accessToken,
 				);
 			}
 		} catch (error) {
