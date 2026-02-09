@@ -65,6 +65,13 @@ const ContractScreen = () => {
 	const [resendTimer, setResendTimer] = useState(0);
 	const [canResend, setCanResend] = useState(false);
 
+	useEffect(() => {
+		console.log("OTP actuel:", otp, otp.length);
+		if (otp.length === 6) {
+			handleConfirm();
+		}
+	}, [otp]);
+
 	const getAllData = async () => {
 		const response = await getById(
 			"applies",
@@ -84,6 +91,7 @@ const ContractScreen = () => {
 		companyName,
 		contractIdParam = null,
 	) => {
+		console.log("OTP contract ID :", contractIdParam);
 		setOtpSent(true);
 		setResendTimer(30);
 		setCanResend(false);
@@ -99,6 +107,7 @@ const ContractScreen = () => {
 		if (contractIdParam) {
 			body.contract_id = contractIdParam;
 		}
+		console.log("Envoi OTP avec body:", body);
 
 		const { data, error } = await supabase.functions.invoke(
 			"send-contract-otp",
@@ -117,27 +126,55 @@ const ContractScreen = () => {
 	};
 
 	const handleConfirm = async () => {
+		console.log("Confirmer avec OTP:", otp);
+		console.log("Contract ID:", contractId);
 		if (otp.length !== 6) {
 			setError("Code invalide");
 			return;
 		}
 		setError("");
-		console.log("OTP:", otp);
 
 		try {
 			// Vérifier l'OTP avant de confirmer
 			const result = await verifyContractOtp(contractId, otp);
+			console.log("result verifyOTP :", result);
 			if (result) {
 				confirmSign();
 			}
 		} catch (error) {
 			console.error("Erreur vérification OTP:", error);
-			setError("Code invalide ou expiré");
+
+			// Afficher un message plus clair selon le type d'erreur
+			let errorMessage = "Code invalide ou expiré";
+			if (error.message) {
+				errorMessage = error.message;
+			}
+
+			setError(errorMessage);
+
+			toast.show({
+				placement: "top",
+				render: ({ id }) => (
+					<Toast
+						nativeID={"toast-" + id}
+						className='px-5 py-3 gap-4 bg-error-500'>
+						<ToastTitle className='text-white'>
+							{errorMessage}
+						</ToastTitle>
+					</Toast>
+				),
+			});
 		}
 	};
 
 	// 2. VÉRIFIER OTP (avec JWT)
 	const verifyContractOtp = async (contractId, otpCode) => {
+		console.log(
+			"Vérification OTP - contractId:",
+			contractId,
+			"otp:",
+			otpCode,
+		);
 		const supabase = createSupabaseClient(accessToken);
 		const { data, error } = await supabase.functions.invoke(
 			"verify-contract-otp",
@@ -152,7 +189,30 @@ const ContractScreen = () => {
 			},
 		);
 
-		if (error) throw error;
+		if (error) {
+			console.error("Erreur Edge Function:", error);
+			console.error("Status:", error.context?.status);
+
+			// Erreur 404 = fonction non trouvée
+			if (error.context?.status === 404) {
+				throw new Error(
+					"La fonction de vérification OTP n'est pas déployée",
+				);
+			}
+
+			// Lire le body de l'erreur pour les autres cas
+			let errorMessage = "Erreur lors de la vérification";
+			try {
+				const errorBody = await error.context.json();
+				console.error("Error body:", errorBody);
+				errorMessage =
+					errorBody.error || errorBody.message || errorMessage;
+			} catch (parseError) {
+				console.error("Could not parse error body");
+			}
+
+			throw new Error(errorMessage);
+		}
 		console.log("✅ OTP vérifié:", data);
 		return data;
 	};
@@ -618,12 +678,13 @@ const ContractScreen = () => {
 						) : (
 							<Button
 								onPress={() =>
-									sendContractOtp(
-										candidate.email,
-										candidate.firstname,
-										company.name,
-										contractId,
-									)
+									// sendContractOtp(
+									// 	candidate.email,
+									// 	candidate.firstname,
+									// 	company.name,
+									// 	contractId,
+									// )
+									setShowSignModal(true)
 								}>
 								<ButtonText>Signer le contrat</ButtonText>
 							</Button>
@@ -648,12 +709,13 @@ const ContractScreen = () => {
 						) : (
 							<Button
 								onPress={() =>
-									sendContractOtp(
-										user.email,
-										company.name,
-										candidate.firstname,
-										contractId,
-									)
+									// sendContractOtp(
+									// 	user.email,
+									// 	company.name,
+									// 	candidate.firstname,
+									// 	contractId,
+									// )
+									setShowSignModal(true)
 								}>
 								<ButtonText>
 									Signer et tamponner le contrat
@@ -832,14 +894,14 @@ const ContractScreen = () => {
 							className='flex-1'>
 							<ButtonText>Annuler</ButtonText>
 						</Button>
-						{otpSent && (
+						{/* {otpSent && (
 							<Button
 								action='positive'
 								onPress={handleConfirm}
 								className='flex-1'>
 								<ButtonText>Confirmer</ButtonText>
 							</Button>
-						)}
+						)} */}
 					</ModalFooter>
 				</ModalContent>
 			</Modal>
