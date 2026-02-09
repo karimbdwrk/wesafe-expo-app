@@ -271,9 +271,9 @@ const ContractScreen = () => {
 	};
 
 	// Créer le contrat pour le candidat avant d'envoyer l'OTP
-	const createCandidateContract = async () => {
+	const createContract = async () => {
 		try {
-			console.log("Création du contrat candidat...");
+			console.log("Création du contrat...");
 			const newContract = await create("contracts", {
 				job_id: job.id,
 				company_id: company.id,
@@ -841,7 +841,7 @@ const ContractScreen = () => {
 											);
 											// Créer le contrat d'abord pour le candidat
 											const newContractId =
-												await createCandidateContract();
+												await createContract();
 											console.log(
 												"newContractId:",
 												newContractId,
