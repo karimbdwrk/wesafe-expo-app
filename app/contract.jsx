@@ -227,9 +227,12 @@ const ContractScreen = () => {
 			"created_at.desc",
 		);
 		if (data.length) {
-			setIsSigned(true);
+			// setIsSigned(true);
 			setContract(data[0]);
 			setContractId(data[0].id);
+			if (data[0].isSigned) {
+				setIsSigned(true);
+			}
 			if (data[0].isProSigned) {
 				setIsProSigned(true);
 			}
