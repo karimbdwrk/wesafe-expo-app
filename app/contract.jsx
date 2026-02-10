@@ -67,7 +67,7 @@ const ContractScreen = () => {
 	const [canResend, setCanResend] = useState(false);
 
 	useEffect(() => {
-		console.log("OTP actuel:", otp, otp.length);
+		// console.log("OTP actuel:", otp, otp.length);
 		if (otp.length === 6) {
 			handleConfirm();
 		}
@@ -92,7 +92,7 @@ const ContractScreen = () => {
 		companyName,
 		contractIdParam = null,
 	) => {
-		console.log("OTP contract ID :", contractIdParam);
+		// console.log("OTP contract ID :", contractIdParam);
 		setOtpSent(true);
 		setResendTimer(30);
 		setCanResend(false);
@@ -108,7 +108,7 @@ const ContractScreen = () => {
 		if (contractIdParam) {
 			body.contract_id = contractIdParam;
 		}
-		console.log("Envoi OTP avec body:", body);
+		// console.log("Envoi OTP avec body:", body);
 
 		const { data, error } = await supabase.functions.invoke(
 			"send-contract-otp",
@@ -138,7 +138,7 @@ const ContractScreen = () => {
 		try {
 			// Vérifier l'OTP avant de confirmer
 			const result = await verifyContractOtp(contractId, otp);
-			console.log("result verifyOTP :", result);
+			// console.log("result verifyOTP :", result);
 			if (result) {
 				confirmSign();
 			}
@@ -170,12 +170,12 @@ const ContractScreen = () => {
 
 	// 2. VÉRIFIER OTP (avec JWT)
 	const verifyContractOtp = async (contractId, otpCode) => {
-		console.log(
-			"Vérification OTP - contractId:",
-			contractId,
-			"otp:",
-			otpCode,
-		);
+		// console.log(
+		// 	"Vérification OTP - contractId:",
+		// 	contractId,
+		// 	"otp:",
+		// 	otpCode,
+		// );
 		const supabase = createSupabaseClient(accessToken);
 		const { data, error } = await supabase.functions.invoke(
 			"verify-contract-otp",
@@ -214,7 +214,7 @@ const ContractScreen = () => {
 
 			throw new Error(errorMessage);
 		}
-		console.log("✅ OTP vérifié:", data);
+		// console.log("✅ OTP vérifié:", data);
 		return data;
 	};
 
@@ -247,9 +247,9 @@ const ContractScreen = () => {
 		}, []),
 	);
 
-	useEffect(() => {
-		console.log("contract id :", contractId);
-	}, [contractId]);
+	// useEffect(() => {
+	// 	console.log("contract id :", contractId);
+	// }, [contractId]);
 
 	// Timer pour le renvoi OTP
 	useEffect(() => {
@@ -277,7 +277,7 @@ const ContractScreen = () => {
 	// Créer le contrat pour le candidat avant d'envoyer l'OTP
 	const createContract = async () => {
 		try {
-			console.log("Vérification de l'existence d'un contrat...");
+			// console.log("Vérification de l'existence d'un contrat...");
 
 			// Vérifier si un contrat existe déjà
 			const { data: existingContracts } = await getAll(
@@ -292,10 +292,10 @@ const ContractScreen = () => {
 			if (existingContracts && existingContracts.length > 0) {
 				const contractId = existingContracts[0].id;
 				setContractId(contractId);
-				console.log(
-					"✅ Un contrat existe déjà pour cette candidature:",
-					contractId,
-				);
+				// console.log(
+				// 	"✅ Un contrat existe déjà pour cette candidature:",
+				// 	contractId,
+				// );
 
 				// Envoyer l'OTP au candidat
 				await sendContractOtp(
@@ -308,9 +308,9 @@ const ContractScreen = () => {
 				return contractId;
 			}
 
-			console.log(
-				"❌ Aucun contrat trouvé, création d'un nouveau contrat...",
-			);
+			// console.log(
+			// 	"❌ Aucun contrat trouvé, création d'un nouveau contrat...",
+			// );
 			const newContract = await create("contracts", {
 				job_id: job.id,
 				company_id: company.id,
@@ -319,14 +319,14 @@ const ContractScreen = () => {
 				category: job.category,
 				isSigned: false, // Pas encore signé
 			});
-			console.log("Contrat créé - response:", newContract);
+			// console.log("Contrat créé - response:", newContract);
 
 			// Vérifier si c'est une réponse Axios avec status 201
 			if (newContract?.status === 201) {
 				// Le contrat a été créé, récupérer son ID via getAll
-				console.log(
-					"Contrat créé avec succès, récupération de l'ID...",
-				);
+				// console.log(
+				// 	"Contrat créé avec succès, récupération de l'ID...",
+				// );
 				const { data: contracts } = await getAll(
 					"contracts",
 					"*",
@@ -339,10 +339,10 @@ const ContractScreen = () => {
 				if (contracts && contracts.length > 0) {
 					const contractId = contracts[0].id;
 					setContractId(contractId);
-					console.log(
-						"✅ Nouveau contrat créé avec succès, ID:",
-						contractId,
-					);
+					// console.log(
+					// 	"✅ Nouveau contrat créé avec succès, ID:",
+					// 	contractId,
+					// );
 
 					// Envoyer l'OTP au candidat
 					await sendContractOtp(
@@ -363,10 +363,10 @@ const ContractScreen = () => {
 				newContract?.[0]?.id;
 			if (contractId) {
 				setContractId(contractId);
-				console.log(
-					"✅ Nouveau contrat créé avec succès, ID:",
-					contractId,
-				);
+				// console.log(
+				// 	"✅ Nouveau contrat créé avec succès, ID:",
+				// 	contractId,
+				// );
 
 				// Envoyer l'OTP au candidat
 				await sendContractOtp(
@@ -379,7 +379,7 @@ const ContractScreen = () => {
 				return contractId;
 			}
 
-			console.error("Pas de contract ID trouvé dans:", newContract);
+			// console.error("Pas de contract ID trouvé dans:", newContract);
 			return null;
 		} catch (error) {
 			console.error("error create contract", error);
@@ -443,7 +443,7 @@ const ContractScreen = () => {
 					entityType: "application",
 					entityId: apply_id,
 				});
-				
+
 				// Envoyer l'email au candidat
 				await sendRecruitmentStatusEmail(
 					candidate.email,
@@ -495,10 +495,10 @@ const ContractScreen = () => {
 					entityType: "application",
 					entityId: apply_id,
 				});
-				
+
 				// Envoyer l'email au pro
-				await sendRecruitmentStatusEmail(
-					user.email,
+				const statusEmail = await sendRecruitmentStatusEmail(
+					company.email,
 					company.name,
 					`${candidate.firstname} ${candidate.lastname}`,
 					"contract_signed_candidate",
@@ -506,6 +506,10 @@ const ContractScreen = () => {
 					"company",
 					accessToken,
 				);
+				// console.log(
+				// 	"Email de notification de statut envoyé:",
+				// 	statusEmail,
+				// );
 			}
 		} catch (error) {
 			console.log("error sign contract", error);
