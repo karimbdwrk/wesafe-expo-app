@@ -72,7 +72,8 @@ const today = new Date();
 
 export default function Tab1() {
 	const scrollRef = useRef(null);
-	const { user, accessToken, role, userProfile, userCompany } = useAuth();
+	const { user, accessToken, role, userProfile, userCompany, loadSession } =
+		useAuth();
 	const { getAll, isLoading } = useDataContext();
 
 	const router = useRouter();
@@ -127,10 +128,11 @@ export default function Tab1() {
 
 	useFocusEffect(
 		useCallback(() => {
+			loadSession();
 			if (userProfile) {
 				setMyProcards(userProfile.procards || []);
 			}
-		}, [userProfile])
+		}, [userProfile]),
 	);
 
 	useEffect(() => {
@@ -162,7 +164,7 @@ export default function Tab1() {
 							limit: 5,
 							boost: "population",
 						},
-					}
+					},
 				);
 				setResults(res.data);
 			} catch (err) {
@@ -207,7 +209,7 @@ export default function Tab1() {
 				setUserCity(userProfile.city);
 				setDistanceKm(0);
 			}
-		}, [userProfile])
+		}, [userProfile]),
 	);
 
 	const loadDataJobs = async () => {
@@ -217,7 +219,7 @@ export default function Tab1() {
 			`&isArchived=eq.FALSE${filters}`,
 			page,
 			ITEMS_PER_PAGE,
-			"date.desc"
+			"date.desc",
 		);
 		setJobs(data);
 		setTotalCount(totalCount);
