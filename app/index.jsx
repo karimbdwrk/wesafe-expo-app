@@ -42,70 +42,11 @@ export default function Home() {
 		loading: authLoading,
 	} = useAuth();
 
-	// console.log("INDEX RENDER", { user, role, authLoading });
-
-	// useEffect(() => {
-	// 	if (authLoading) {
-	// 		console.log("⏳ Auth loading → pas de redirection");
-	// 		return;
-	// 	}
-
-	// 	if (!user) {
-	// 		console.log("⛔ Pas de user → pas de redirection");
-	// 		return;
-	// 	}
-
-	// 	console.log("User détecté, role :", role);
-
-	// 	if (role === "unknown") {
-	// 		router.replace("/finalizeregistration");
-	// 	} else {
-	// 		router.replace("/tabs/(tabs)");
-	// 	}
-	// }, [authLoading, user, role]);
-
 	return (
 		<Box className='flex-1 bg-background-300 h-[100vh]'>
 			<Box className='absolute h-[500px] w-[500px] lg:w-[700px] lg:h-[700px]'>
 				<Gradient />
 			</Box>
-			<ScrollView
-				style={{ height: "100%" }}
-				contentContainerStyle={{ flexGrow: 1 }}>
-				<Box className='flex flex-1 items-center mx-5 lg:my-24 lg:mx-32 py-safe'>
-					<Box className='gap-10 base:flex-col sm:flex-row justify-between sm:w-[80%] md:flex-1'>
-						<Box className='bg-background-template py-2 px-6 rounded-full items-center flex-column md:flex-row md:self-start'>
-							<Text className='text-white font-medium'>
-								Get started by editing
-							</Text>
-							<Text className='text-white font-medium ml-2'>
-								./App.tsx or ./app/index.tsx (or whatever entry
-								point you have)
-							</Text>
-						</Box>
-						<Button
-							size='md'
-							className='bg-primary-500 px-6 py-2 rounded-full'
-							onPress={() => {
-								router.push("/signin");
-							}}>
-							<ButtonText>Sign In</ButtonText>
-						</Button>
-						<Button
-							size='md'
-							className='bg-primary-500 px-6 py-2 rounded-full'
-							onPress={() => {
-								router.push("/signup");
-							}}>
-							<ButtonText>Sign Up</ButtonText>
-						</Button>
-					</Box>
-					<Box className='flex-1 justify-center items-center h-[20px] w-[300px] lg:h-[160px] lg:w-[400px]'>
-						<Logo />
-						<Layers size={64} color='red' />
-					</Box>
-				</Box>
-			</ScrollView>
 		</Box>
 	);
 }
