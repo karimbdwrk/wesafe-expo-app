@@ -69,8 +69,10 @@ function RootLayoutNav() {
 		if (authLoading) return;
 
 		if (!user) {
+			console.log("pas connecté, pathname:", pathname);
 			// Pas connecté → laisser accéder à index.jsx
-			if (pathname !== "/") router.replace("/");
+			if (pathname !== "/") router.replace("/connexion");
+			router.replace("/connexion");
 			return;
 		}
 
@@ -105,6 +107,10 @@ function RootLayoutNav() {
 								}}>
 								<Stack.Screen
 									name='index'
+									options={{ headerShown: false }}
+								/>
+								<Stack.Screen
+									name='connexion'
 									options={{ headerShown: false }}
 								/>
 								<Stack.Screen
