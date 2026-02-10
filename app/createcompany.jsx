@@ -111,6 +111,7 @@ const CreateCompany = () => {
 				siret,
 				email: user.email,
 				last_minute_credits: 0,
+				isConfirmed: false,
 			});
 
 			const isSuccess = newCompanyResponse?.status === 201;
