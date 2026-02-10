@@ -31,6 +31,14 @@ import {
 } from "@/components/ui/menu";
 import { Icon } from "@/components/ui/icon";
 import {
+	useToast,
+	Toast,
+	ToastTitle,
+	ToastDescription,
+} from "@/components/ui/toast";
+
+import {
+	AlertTriangle,
 	Bookmark,
 	ShieldUser,
 	FileText,
@@ -59,6 +67,7 @@ import { useDataContext } from "@/context/DataContext";
 import { useNotifications } from "@/context/NotificationsContext";
 
 import LoggedInAppInitializer from "@/context/LoggedInAppInitializer";
+import { toast } from "sonner-native";
 
 // import {
 // 	registerForPushNotificationsAsync,
@@ -116,6 +125,7 @@ export default function TabLayout({ theme = "light" }) {
 	} = useAuth();
 	const { getAll } = useDataContext();
 	const router = useRouter();
+	const toast = useToast();
 	const segments = useSegments();
 
 	// const [unreadCount, setUnreadCount] = useState(0);
@@ -625,14 +635,49 @@ export default function TabLayout({ theme = "light" }) {
 			</Tabs>
 			{role === "pro" && (
 				<View style={styles.floatingButtonContainer}>
-					<Button
-						size='xl'
-						className='rounded-full p-3.5'
-						onPress={() => {
-							router.push("/addjob");
-						}}>
-						<ButtonIcon size='xl' as={Plus} />
-					</Button>
+					{userCompany.isConfirmed && (
+						<Button
+							size='xl'
+							className={`rounded-full p-3.5`}
+							onPress={() => {
+								router.push("/addjob");
+							}}>
+							<ButtonIcon size='xl' as={Plus} />
+						</Button>
+					)}
+					{!userCompany.isConfirmed && (
+						<Button
+							size='xl'
+							className={`rounded-full p-3.5 bg-slate-400`}
+							onPress={() => {
+								toast.show({
+									placement: "top",
+									render: ({ id }) => (
+										<Toast
+											nativeID={"toast-" + id}
+											className='px-5 py-3 gap-4 shadow-soft-1 items-center flex-row'>
+											<Icon
+												as={AlertTriangle}
+												size='xl'
+												className='text-typography-white'
+											/>
+											<VStack>
+												<ToastTitle size='sm'>
+													Entreprise pas encore
+													validéee
+												</ToastTitle>
+												<ToastDescription size='xs'>
+													Votre entreprise est en
+													cours de validation.
+												</ToastDescription>
+											</VStack>
+										</Toast>
+									),
+								});
+							}}>
+							<ButtonIcon size='xl' as={Plus} />
+						</Button>
+					)}
 				</View>
 			)}
 		</>
