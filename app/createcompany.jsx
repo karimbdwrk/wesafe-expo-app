@@ -15,7 +15,7 @@ const { width } = Dimensions.get("window");
 
 const CreateCompany = () => {
 	const router = useRouter();
-	const { user, setJustSignup, role, setRole, loadUserData, accessToken } =
+	const { user, setJustSignup, role, setRole, loadSession, accessToken } =
 		useAuth();
 	const { create } = useDataContext();
 
@@ -142,7 +142,7 @@ const CreateCompany = () => {
 					setRole("pro");
 					// setReloadRole(true);
 				}
-
+				loadSession();
 				router.push("/tabs/(tabs)");
 				return;
 			}
