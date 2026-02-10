@@ -116,7 +116,7 @@ const Notifications = () => {
 			notification.entity_type === "application" &&
 			notification.entity_id
 		) {
-			router.push({
+			router.replace({
 				pathname: "/application",
 				params: { apply_id: notification.entity_id, id: user.id },
 			});
@@ -124,7 +124,7 @@ const Notifications = () => {
 			notification.type === "job_offer" &&
 			notification.entity_id
 		) {
-			router.push({
+			router.replace({
 				pathname: "/job",
 				params: { id: notification.entity_id },
 			});
