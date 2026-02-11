@@ -113,6 +113,18 @@ const Notifications = () => {
 
 		// Navigation selon le type de notification
 		if (
+			notification.type === "new_message" &&
+			notification.metadata?.apply_id
+		) {
+			// Rediriger vers la page de candidature
+			router.push({
+				pathname: "/application",
+				params: {
+					apply_id: notification.metadata.apply_id,
+					id: user.id,
+				},
+			});
+		} else if (
 			notification.entity_type === "application" &&
 			notification.entity_id
 		) {
@@ -164,6 +176,8 @@ const Notifications = () => {
 				return FileText;
 			case "job_offer":
 				return Briefcase;
+			case "new_message":
+				return Bell;
 			default:
 				return Bell;
 		}
