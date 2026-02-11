@@ -79,7 +79,7 @@ const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
 			}
 
 			setNewMessage("");
-			await loadMessages();
+			// Ne pas recharger - le realtime va ajouter le message automatiquement
 		} catch (error) {
 			console.error("Erreur:", error);
 		} finally {
@@ -104,9 +104,47 @@ const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
 					table: "messages",
 					filter: `apply_id=eq.${applyId}`,
 				},
-				(payload) => {
+				async (payload) => {
 					console.log("Nouveau message reçu:", payload);
-					loadMessages();
+					const newMsg = payload.new;
+
+					// Si le message n'est pas de moi et n'est pas déjà lu, le marquer comme lu
+					if (newMsg.sender_id !== user.id && !newMsg.is_read) {
+						await supabase
+							.from("messages")
+							.update({ is_read: true })
+							.eq("id", newMsg.id);
+
+						// Ajouter le message avec is_read = true
+						setMessages((prevMessages) => [
+							...prevMessages,
+							{ ...newMsg, is_read: true },
+						]);
+					} else {
+						// Ajouter le nouveau message directement au state
+						setMessages((prevMessages) => [
+							...prevMessages,
+							newMsg,
+						]);
+					}
+				},
+			)
+			.on(
+				"postgres_changes",
+				{
+					event: "UPDATE",
+					schema: "public",
+					table: "messages",
+					filter: `apply_id=eq.${applyId}`,
+				},
+				(payload) => {
+					console.log("Message mis à jour:", payload);
+					// Mettre à jour le message dans le state
+					setMessages((prevMessages) =>
+						prevMessages.map((msg) =>
+							msg.id === payload.new.id ? payload.new : msg,
+						),
+					);
 				},
 			)
 			.subscribe();
@@ -114,7 +152,7 @@ const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
 		return () => {
 			supabase.removeChannel(channel);
 		};
-	}, [applyId, accessToken]);
+	}, [applyId, accessToken, user.id]);
 
 	// Auto-scroll vers le bas
 	useEffect(() => {
@@ -168,6 +206,12 @@ const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
 					) : (
 						messages.map((message) => {
 							const isMyMessage = message.sender_id === user.id;
+							console.log(
+								"Message:",
+								message,
+								"isMyMessage:",
+								isMyMessage,
+							);
 							return (
 								<View
 									key={message.id}
@@ -193,16 +237,26 @@ const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
 											]}>
 											{message.content}
 										</Text>
-										<Text
-											style={[
-												styles.messageTime,
-												isMyMessage && {
-													color: "#e0e0e0",
-												},
-											]}>
+									</Card>
+									<HStack
+										justifyContent='space-between'
+										style={{
+											paddingHorizontal: 4,
+											flexDirection: isMyMessage
+												? "row-reverse"
+												: "row",
+										}}>
+										<Text style={[styles.messageTime]}>
 											{formatTime(message.created_at)}
 										</Text>
-									</Card>
+										{isMyMessage && (
+											<Text style={[styles.messageTime]}>
+												{message.is_read
+													? "Lu"
+													: "Non lu"}
+											</Text>
+										)}
+									</HStack>
 								</View>
 							);
 						})
