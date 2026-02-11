@@ -5,6 +5,8 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 	StyleSheet,
+	Animated,
+	Easing,
 } from "react-native";
 import { createSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -14,14 +16,156 @@ import { Text } from "@/components/ui/text";
 import { Input, InputField } from "@/components/ui/input";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Send } from "lucide-react-native";
+import { Send, Check } from "lucide-react-native";
 
-const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
+// Animation de points pour l'indicateur de saisie
+const TypingAnimation = () => {
+	const dot1Opacity = useRef(new Animated.Value(0)).current;
+	const dot2Opacity = useRef(new Animated.Value(0)).current;
+	const dot3Opacity = useRef(new Animated.Value(0)).current;
+
+	useEffect(() => {
+		const animateDot = (dotOpacity, delay) => {
+			return Animated.sequence([
+				Animated.delay(delay),
+				Animated.timing(dotOpacity, {
+					toValue: 1,
+					duration: 300,
+					easing: Easing.ease,
+					useNativeDriver: true,
+				}),
+				Animated.timing(dotOpacity, {
+					toValue: 0,
+					duration: 300,
+					easing: Easing.ease,
+					useNativeDriver: true,
+				}),
+			]);
+		};
+
+		const animation = Animated.loop(
+			Animated.parallel([
+				animateDot(dot1Opacity, 0),
+				animateDot(dot2Opacity, 200),
+				animateDot(dot3Opacity, 400),
+			]),
+		);
+
+		animation.start();
+
+		return () => animation.stop();
+	}, []);
+
+	return (
+		<View style={{ flexDirection: "row", alignItems: "center" }}>
+			<Animated.View
+				style={{
+					width: 6,
+					height: 6,
+					borderRadius: 3,
+					backgroundColor: "#667eea",
+					marginHorizontal: 2,
+					opacity: dot1Opacity,
+				}}
+			/>
+			<Animated.View
+				style={{
+					width: 6,
+					height: 6,
+					borderRadius: 3,
+					backgroundColor: "#667eea",
+					marginHorizontal: 2,
+					opacity: dot2Opacity,
+				}}
+			/>
+			<Animated.View
+				style={{
+					width: 6,
+					height: 6,
+					borderRadius: 3,
+					backgroundColor: "#667eea",
+					marginHorizontal: 2,
+					opacity: dot3Opacity,
+				}}
+			/>
+		</View>
+	);
+};
+
+// Animation des checks de lecture
+const MessageChecks = ({ messageId, isRead, createdAt }) => {
+	const check1Opacity = useRef(new Animated.Value(0)).current;
+	const check2Opacity = useRef(new Animated.Value(0)).current;
+	const [checkColor, setCheckColor] = useState("#9ca3af");
+
+	useEffect(() => {
+		// Animation du premier check (envoyé) - immédiat
+		Animated.timing(check1Opacity, {
+			toValue: 1,
+			duration: 200,
+			delay: 100,
+			easing: Easing.ease,
+			useNativeDriver: true,
+		}).start();
+
+		// Animation du deuxième check (délivré) - après 300ms
+		Animated.timing(check2Opacity, {
+			toValue: 1,
+			duration: 200,
+			delay: 400,
+			easing: Easing.ease,
+			useNativeDriver: true,
+		}).start();
+	}, [messageId]);
+
+	useEffect(() => {
+		// Changement de couleur quand lu
+		if (isRead) {
+			setTimeout(() => {
+				setCheckColor("#4ade80");
+			}, 200);
+		}
+	}, [isRead]);
+
+	return (
+		<View
+			style={{
+				flexDirection: "row",
+				alignItems: "center",
+				marginLeft: 4,
+			}}>
+			<Animated.View style={{ opacity: check1Opacity }}>
+				<Check size={14} color={checkColor} strokeWidth={2.5} />
+			</Animated.View>
+			<Animated.View style={{ opacity: check2Opacity, marginLeft: -10 }}>
+				<Check size={14} color={checkColor} strokeWidth={2.5} />
+			</Animated.View>
+		</View>
+	);
+};
+
+const MessageThread = ({
+	applyId,
+	isReadOnly = false,
+	otherPartyName,
+	onTypingChange,
+}) => {
 	const { user, accessToken } = useAuth();
 	const [messages, setMessages] = useState([]);
 	const [newMessage, setNewMessage] = useState("");
 	const [loading, setLoading] = useState(false);
+	const [isTyping, setIsTyping] = useState(false);
 	const scrollViewRef = useRef(null);
+	const typingTimeoutRef = useRef(null);
+	const presenceChannelRef = useRef(null);
+
+	// Log les changements de isTyping
+	useEffect(() => {
+		console.log("🎯 [STATE] isTyping changé en:", isTyping);
+		if (onTypingChange) {
+			onTypingChange(isTyping);
+		}
+	}, [isTyping, onTypingChange]);
 
 	// Charger les messages
 	const loadMessages = async () => {
@@ -67,6 +211,18 @@ const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
 		setLoading(true);
 		try {
 			const supabase = createSupabaseClient(accessToken);
+
+			// Arrêter l'indicateur de saisie
+			if (presenceChannelRef.current) {
+				console.log("📤 [SEND] Arrêt de l'indicateur de saisie");
+				await presenceChannelRef.current.track({
+					typing: false,
+					user_id: user.id,
+				});
+			} else {
+				console.log("⚠️ [SEND] Pas de channel Presence disponible");
+			}
+
 			const { error } = await supabase.from("messages").insert({
 				apply_id: applyId,
 				sender_id: user.id,
@@ -84,6 +240,54 @@ const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
 			console.error("Erreur:", error);
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	// Signaler qu'on est en train d'écrire
+	const handleTyping = (text) => {
+		setNewMessage(text);
+
+		if (isReadOnly) {
+			console.log("⚠️ [TYPING] Mode lecture seule - pas de tracking");
+			return;
+		}
+
+		if (!presenceChannelRef.current) {
+			console.log("⚠️ [TYPING] Channel Presence non disponible");
+			return;
+		}
+
+		// Signaler qu'on écrit
+		if (text.length > 0) {
+			console.log("⌨️ [TYPING] Envoi typing=true, user_id:", user.id);
+			presenceChannelRef.current
+				.track({
+					typing: true,
+					user_id: user.id,
+				})
+				.catch((err) =>
+					console.error("❌ [TYPING] Erreur track:", err),
+				);
+
+			// Arrêter l'indicateur après 3 secondes d'inactivité
+			if (typingTimeoutRef.current) {
+				clearTimeout(typingTimeoutRef.current);
+			}
+			typingTimeoutRef.current = setTimeout(() => {
+				if (presenceChannelRef.current) {
+					console.log("⏱️ [TYPING] Timeout - envoi typing=false");
+					presenceChannelRef.current.track({
+						typing: false,
+						user_id: user.id,
+					});
+				}
+			}, 3000);
+		} else {
+			console.log("🛑 [TYPING] Champ vide - envoi typing=false");
+			presenceChannelRef.current.track({
+				typing: false,
+				user_id: user.id,
+			});
 		}
 	};
 
@@ -154,9 +358,83 @@ const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
 		};
 	}, [applyId, accessToken, user.id]);
 
-	// Auto-scroll vers le bas
+	// Écouter l'indicateur de saisie
 	useEffect(() => {
-		if (messages.length > 0 && scrollViewRef.current) {
+		if (!applyId || !accessToken) {
+			console.log("⚠️ [PRESENCE] Manque applyId ou accessToken");
+			return;
+		}
+
+		console.log(
+			"🔌 [PRESENCE] Initialisation channel pour apply_id:",
+			applyId,
+		);
+		console.log("👤 [PRESENCE] Mon user_id:", user.id);
+
+		const supabase = createSupabaseClient(accessToken);
+		const presenceChannel = supabase.channel(`presence:${applyId}`);
+
+		presenceChannel
+			.on("presence", { event: "sync" }, () => {
+				const state = presenceChannel.presenceState();
+				console.log(
+					"👥 [PRESENCE SYNC] État complet:",
+					JSON.stringify(state, null, 2),
+				);
+
+				// Vérifier si quelqu'un d'autre est en train d'écrire
+				const someoneTyping = Object.values(state).some((presences) =>
+					presences.some((presence) => {
+						const isOtherUser = presence.user_id !== user.id;
+						const isTyping = presence.typing === true;
+						if (isOtherUser && isTyping) {
+							console.log(
+								"✍️ [PRESENCE] Autre utilisateur est en train d'écrire:",
+								presence.user_id,
+							);
+						}
+						return isTyping && isOtherUser;
+					}),
+				);
+				console.log(
+					someoneTyping
+						? "✅ [PRESENCE] Affichage indicateur"
+						: "❌ [PRESENCE] Pas d'indicateur",
+				);
+				setIsTyping(someoneTyping);
+			})
+			.subscribe(async (status) => {
+				console.log("📡 [PRESENCE] Status:", status);
+				if (status === "SUBSCRIBED") {
+					console.log(
+						"✅ [PRESENCE] Souscription réussie - stockage du channel",
+					);
+					// Stocker le channel dans la ref une fois souscrit
+					presenceChannelRef.current = presenceChannel;
+					const trackResult = await presenceChannel.track({
+						typing: false,
+						user_id: user.id,
+					});
+					console.log("📍 [PRESENCE] Track initial:", trackResult);
+				} else if (status === "CHANNEL_ERROR") {
+					console.error("❌ [PRESENCE] Erreur de channel");
+				} else if (status === "TIMED_OUT") {
+					console.error("⏰ [PRESENCE] Timeout");
+				} else if (status === "CLOSED") {
+					console.log("🔒 [PRESENCE] Channel fermé");
+				}
+			});
+
+		return () => {
+			console.log("🧹 [PRESENCE] Nettoyage du channel");
+			presenceChannelRef.current = null;
+			supabase.removeChannel(presenceChannel);
+		};
+	}, [applyId, accessToken, user.id]);
+
+	// Auto-scroll au dernier message
+	useEffect(() => {
+		if (messages.length > 0) {
 			setTimeout(() => {
 				scrollViewRef.current?.scrollToEnd({ animated: true });
 			}, 100);
@@ -206,12 +484,6 @@ const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
 					) : (
 						messages.map((message) => {
 							const isMyMessage = message.sender_id === user.id;
-							console.log(
-								"Message:",
-								message,
-								"isMyMessage:",
-								isMyMessage,
-							);
 							return (
 								<View
 									key={message.id}
@@ -250,16 +522,24 @@ const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
 											{formatTime(message.created_at)}
 										</Text>
 										{isMyMessage && (
-											<Text style={[styles.messageTime]}>
-												{message.is_read
-													? "Lu"
-													: "Non lu"}
-											</Text>
+											<MessageChecks
+												messageId={message.id}
+												isRead={message.is_read}
+												createdAt={message.created_at}
+											/>
 										)}
 									</HStack>
 								</View>
 							);
 						})
+					)}
+					{console.log(
+						"🖼️ [RENDER] isTyping:",
+						isTyping,
+						"isReadOnly:",
+						isReadOnly,
+						"Affichage indicateur:",
+						isTyping && !isReadOnly,
 					)}
 				</ScrollView>
 
@@ -272,7 +552,7 @@ const MessageThread = ({ applyId, isReadOnly = false, otherPartyName }) => {
 							<InputField
 								placeholder='Écrivez votre message...'
 								value={newMessage}
-								onChangeText={setNewMessage}
+								onChangeText={handleTyping}
 								multiline
 								maxLength={500}
 								onSubmitEditing={sendMessage}
@@ -344,6 +624,11 @@ const styles = StyleSheet.create({
 		fontSize: 11,
 		marginTop: 4,
 		color: "#999",
+	},
+	checkContainer: {
+		flexDirection: "row",
+		alignItems: "center",
+		marginLeft: 4,
 	},
 });
 
