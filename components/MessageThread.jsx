@@ -199,6 +199,32 @@ const MessageThread = ({
 						unreadMessages.map((m) => m.id),
 					);
 			}
+
+			// Marquer les notifications de messages comme lues
+			const { data: messageNotifications } = await supabase
+				.from("notifications")
+				.select("id")
+				.eq("recipient_id", user.id)
+				.eq("entity_type", "message")
+				.eq("is_read", false)
+				.in("entity_id", data?.map((m) => m.id) || []);
+
+			if (messageNotifications && messageNotifications.length > 0) {
+				await supabase
+					.from("notifications")
+					.update({
+						is_read: true,
+						read_at: new Date().toISOString(),
+					})
+					.in(
+						"id",
+						messageNotifications.map((n) => n.id),
+					);
+				console.log(
+					"🔔 Notifications marquées comme lues:",
+					messageNotifications.length,
+				);
+			}
 		} catch (error) {
 			console.error("Erreur:", error);
 		}
@@ -223,15 +249,52 @@ const MessageThread = ({
 				console.log("⚠️ [SEND] Pas de channel Presence disponible");
 			}
 
-			const { error } = await supabase.from("messages").insert({
-				apply_id: applyId,
-				sender_id: user.id,
-				content: newMessage.trim(),
-			});
+			const { data: insertedMessage, error } = await supabase
+				.from("messages")
+				.insert({
+					apply_id: applyId,
+					sender_id: user.id,
+					content: newMessage.trim(),
+				})
+				.select()
+				.single();
 
 			if (error) {
-				console.error("Erreur envoi message:", error);
+				console.error("❌ Erreur envoi message:", error);
 				return;
+			}
+
+			// Récupérer l'apply pour trouver le destinataire
+			const { data: applyData } = await supabase
+				.from("applies")
+				.select("candidate_id, job:jobs(company_id)")
+				.eq("id", applyId)
+				.single();
+
+			const receiverId =
+				user.id === applyData.candidate_id
+					? applyData.job.company_id
+					: applyData.candidate_id;
+
+			// Appeler l'Edge Function pour créer la notification
+			try {
+				const { data: edgeFunctionData } =
+					await supabase.functions.invoke(
+						"send-message-notification",
+						{
+							body: {
+								message_id: insertedMessage.id,
+								sender_id: user.id,
+								receiver_id: receiverId,
+								apply_id: applyId,
+								message_content: newMessage.trim(),
+							},
+						},
+					);
+				console.log("🔔 Notification envoyée:", edgeFunctionData);
+			} catch (notifError) {
+				console.error("⚠️ Erreur notification:", notifError);
+				// Ne pas bloquer l'envoi du message si la notification échoue
 			}
 
 			setNewMessage("");
