@@ -546,6 +546,31 @@ const ApplicationScreen = () => {
 							))}
 					</VStack>
 				</VStack>
+
+				{/* Bouton Messagerie - Affichée si sélectionné */}
+				{currentStatus !== "applied" && currentStatus !== "" && (
+					<Button
+						onPress={() =>
+							router.push({
+								pathname: "/messaging",
+								params: {
+									apply_id: apply_id,
+									other_party_name:
+										role === "pro"
+											? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
+											: application?.companies?.name ||
+												application?.jobs?.company_name,
+									is_read_only:
+										currentStatus === "rejected"
+											? "true"
+											: "false",
+								},
+							})
+						}>
+						<ButtonText>💬 Ouvrir la messagerie</ButtonText>
+					</Button>
+				)}
+
 				{role === "pro" && (
 					<VStack space='md'>
 						{currentStatus === "applied" && (
