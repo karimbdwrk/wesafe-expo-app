@@ -139,6 +139,7 @@ const ApplicationScreen = () => {
 
 	const [application, setApplication] = useState([]);
 	const [applicationStatus, setApplicationStatus] = useState([]);
+	const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
 	const [contractGenerated, setContractGenerated] = useState(false);
 
@@ -164,10 +165,54 @@ const ApplicationScreen = () => {
 		setApplicationStatus(data.data);
 	};
 
+	const loadUnreadMessagesCount = async () => {
+		if (!user?.id || !apply_id) return;
+
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			const { count, error } = await supabase
+				.from("messages")
+				.select("*", { count: "exact", head: true })
+				.eq("apply_id", apply_id)
+				.neq("sender_id", user.id)
+				.eq("is_read", false);
+
+			if (!error) {
+				setUnreadMessagesCount(count || 0);
+			}
+		} catch (error) {
+			console.error("Error loading unread messages count:", error);
+		}
+	};
+
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
 			loadApplicationStatus();
+			loadUnreadMessagesCount();
+
+			// Abonnement real-time pour les messages
+			const supabase = createSupabaseClient(accessToken);
+			const channel = supabase
+				.channel(`messages-${apply_id}`)
+				.on(
+					"postgres_changes",
+					{
+						event: "*",
+						schema: "public",
+						table: "messages",
+						filter: `apply_id=eq.${apply_id}`,
+					},
+					() => {
+						// Recharger le compteur quand un message est ajouté/modifié
+						loadUnreadMessagesCount();
+					},
+				)
+				.subscribe();
+
+			return () => {
+				supabase.removeChannel(channel);
+			};
 		}, []),
 	);
 
@@ -567,7 +612,29 @@ const ApplicationScreen = () => {
 								},
 							})
 						}>
-						<ButtonText>💬 Ouvrir la messagerie</ButtonText>
+						<HStack space='sm' style={{ alignItems: "center" }}>
+							<ButtonText>💬 Ouvrir la messagerie</ButtonText>
+							{unreadMessagesCount > 0 && (
+								<Badge
+									action='error'
+									size='sm'
+									style={{
+										minWidth: 20,
+										height: 20,
+										borderRadius: 10,
+										justifyContent: "center",
+										alignItems: "center",
+									}}>
+									<BadgeText
+										style={{
+											fontSize: 12,
+											fontWeight: "bold",
+										}}>
+										{unreadMessagesCount}
+									</BadgeText>
+								</Badge>
+							)}
+						</HStack>
 					</Button>
 				)}
 
