@@ -7,6 +7,7 @@ import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
 import { ArrowLeft } from "lucide-react-native";
 import MessageThread from "@/components/MessageThread";
+import { useAuth } from "@/context/AuthContext";
 
 // Animation de points pour l'indicateur de saisie
 const TypingAnimation = () => {
@@ -91,8 +92,16 @@ const MessagingScreen = () => {
 	const router = useRouter();
 	const { apply_id, other_party_name, is_read_only } = useLocalSearchParams();
 	const [isTyping, setIsTyping] = useState(false);
+	const { user } = useAuth();
 
 	const isReadOnly = is_read_only === "true";
+
+	// const handleBackPress = () => {
+	// 	router.push({
+	// 		pathname: "/application",
+	// 		params: { apply_id: apply_id, id: user.id },
+	// 	});
+	// };
 
 	return (
 		<SafeAreaView style={styles.container}>
