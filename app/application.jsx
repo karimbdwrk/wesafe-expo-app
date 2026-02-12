@@ -5,9 +5,9 @@ import {
 	ScrollView,
 	Animated,
 	Easing,
-	KeyboardAvoidingView,
 	Platform,
 	Keyboard,
+	KeyboardAvoidingView,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -150,7 +150,7 @@ const ApplicationScreen = () => {
 		useState(false);
 	const [showMessaging, setShowMessaging] = useState(false);
 	const [isOtherPartyTyping, setIsOtherPartyTyping] = useState(false);
-	const [messagingSnapPoint, setMessagingSnapPoint] = useState(80);
+	const [keyboardPadding, setKeyboardPadding] = useState(0);
 
 	const [isInWishlist, setIsInWishlist] = useState(false);
 	const [isSelected, setIsSelected] = useState(false);
@@ -287,18 +287,17 @@ const ApplicationScreen = () => {
 		}, []),
 	);
 
-	// Gérer le changement de snapPoint quand le clavier s'ouvre/ferme
 	useEffect(() => {
 		const keyboardDidShowListener = Keyboard.addListener(
 			"keyboardDidShow",
 			() => {
-				setMessagingSnapPoint(90);
+				setKeyboardPadding(90);
 			},
 		);
 		const keyboardDidHideListener = Keyboard.addListener(
 			"keyboardDidHide",
 			() => {
-				setMessagingSnapPoint(80);
+				setKeyboardPadding(0);
 			},
 		);
 
@@ -954,11 +953,10 @@ const ApplicationScreen = () => {
 					</ActionsheetDragIndicatorWrapper>
 					<KeyboardAvoidingView
 						style={{ flex: 1, width: "100%" }}
-						behavior={Platform.OS === "ios" ? "padding" : "height"}
-						keyboardVerticalOffset={
-							Platform.OS === "ios" ? 100 : 40
-						}>
-						<VStack className='flex-1 w-full pt-2'>
+						behavior={Platform.OS === "ios" ? "padding" : "height"}>
+						<VStack
+							className='flex-1 w-full pt-2'
+							style={{ paddingBottom: keyboardPadding }}>
 							<HStack
 								space='md'
 								className='items-center px-4 pb-3 border-b border-outline-200'>
