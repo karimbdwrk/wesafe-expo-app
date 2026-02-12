@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Animated, Easing } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
@@ -23,6 +23,14 @@ import {
 	ModalBody,
 	ModalFooter,
 } from "@/components/ui/modal";
+import {
+	Actionsheet,
+	ActionsheetBackdrop,
+	ActionsheetContent,
+	ActionsheetDragIndicatorWrapper,
+	ActionsheetDragIndicator,
+} from "@/components/ui/actionsheet";
+import MessageThread from "@/components/MessageThread";
 
 import {
 	Bookmark,
@@ -131,6 +139,8 @@ const ApplicationScreen = () => {
 	const [showRejectModal, setShowRejectModal] = useState(false);
 	const [showGenerateContractModal, setShowGenerateContractModal] =
 		useState(false);
+	const [showMessaging, setShowMessaging] = useState(false);
+	const [isOtherPartyTyping, setIsOtherPartyTyping] = useState(false);
 
 	const [isInWishlist, setIsInWishlist] = useState(false);
 	const [isSelected, setIsSelected] = useState(false);
@@ -689,24 +699,7 @@ const ApplicationScreen = () => {
 
 				{/* Bouton Messagerie - Affichée si sélectionné */}
 				{currentStatus !== "applied" && currentStatus !== "" && (
-					<Button
-						onPress={() =>
-							router.push({
-								pathname: "/messaging",
-								params: {
-									apply_id: apply_id,
-									other_party_name:
-										role === "pro"
-											? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
-											: application?.companies?.name ||
-												application?.jobs?.company_name,
-									is_read_only:
-										currentStatus === "rejected"
-											? "true"
-											: "false",
-								},
-							})
-						}>
+					<Button onPress={() => setShowMessaging(true)}>
 						<HStack space='sm' style={{ alignItems: "center" }}>
 							<ButtonText>💬 Ouvrir la messagerie</ButtonText>
 							{unreadMessagesCount > 0 && (
@@ -910,6 +903,44 @@ const ApplicationScreen = () => {
 					</ModalFooter>
 				</ModalContent>
 			</Modal>
+
+			{/* ActionSheet Messagerie */}
+			<Actionsheet
+				isOpen={showMessaging}
+				onClose={() => setShowMessaging(false)}
+				snapPoints={[90]}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent className='h-[90%]'>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack className='flex-1 w-full pt-2'>
+						<HStack
+							space='md'
+							className='items-center px-4 pb-3 border-b border-outline-200'>
+							<Heading size='md'>
+								{role === "pro"
+									? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
+									: application?.companies?.name ||
+										application?.jobs?.company_name}
+							</Heading>
+						</HStack>
+						<MessageThread
+							applyId={apply_id}
+							otherPartyName={
+								role === "pro"
+									? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
+									: application?.companies?.name ||
+										application?.jobs?.company_name
+							}
+							isReadOnly={currentStatus === "rejected"}
+							onTypingChange={(typing) =>
+								setIsOtherPartyTyping(typing)
+							}
+						/>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
 		</ScrollView>
 	);
 };
