@@ -7,6 +7,7 @@ import {
 	StyleSheet,
 	Animated,
 	Easing,
+	Keyboard,
 } from "react-native";
 import { createSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -160,6 +161,49 @@ const MessageThread = ({
 	const scrollViewRef = useRef(null);
 	const typingTimeoutRef = useRef(null);
 	const presenceChannelRef = useRef(null);
+	const presenceIntervalRef = useRef(null);
+
+	// Scroller automatiquement quand le clavier s'ouvre
+	useEffect(() => {
+		const keyboardDidShowListener = Keyboard.addListener(
+			"keyboardDidShow",
+			() => {
+				setTimeout(() => {
+					scrollViewRef.current?.scrollToEnd({ animated: true });
+				}, 100);
+			},
+		);
+
+		return () => {
+			keyboardDidShowListener.remove();
+		};
+	}, []);
+
+	// Mettre à jour la présence régulièrement
+	useEffect(() => {
+		if (!applyId || !accessToken || !user?.id) return;
+
+		const updatePresence = async () => {
+			const supabase = createSupabaseClient(accessToken);
+			await supabase.from("user_presence").upsert({
+				user_id: user.id,
+				apply_id: applyId,
+				last_seen: new Date().toISOString(),
+			});
+		};
+
+		// Mettre à jour immédiatement
+		updatePresence();
+
+		// Puis mettre à jour toutes les 3 secondes
+		presenceIntervalRef.current = setInterval(updatePresence, 3000);
+
+		return () => {
+			if (presenceIntervalRef.current) {
+				clearInterval(presenceIntervalRef.current);
+			}
+		};
+	}, [applyId, accessToken, user?.id]);
 
 	// Log les changements de isTyping
 	useEffect(() => {
@@ -196,6 +240,14 @@ const MessageThread = ({
 
 		try {
 			const supabase = createSupabaseClient(accessToken);
+
+			// Mettre à jour la présence de l'utilisateur sur cette conversation
+			await supabase.from("user_presence").upsert({
+				user_id: user.id,
+				apply_id: applyId,
+				last_seen: new Date().toISOString(),
+			});
+
 			const { data, error } = await supabase
 				.from("messages")
 				.select("*")
@@ -303,6 +355,9 @@ const MessageThread = ({
 				return;
 			}
 
+			// Vider l'input immédiatement après l'envoi réussi
+			setNewMessage("");
+
 			// Récupérer l'apply pour trouver le destinataire
 			const { data: applyData, error: applyError } = await supabase
 				.from("applies")
@@ -335,6 +390,23 @@ const MessageThread = ({
 
 			// Créer ou mettre à jour une notification groupée
 			try {
+				// Vérifier la présence du destinataire via une table de présence
+				const { data: presenceData } = await supabase
+					.from("user_presence")
+					.select("apply_id")
+					.eq("user_id", receiverId)
+					.eq("apply_id", applyId)
+					.gte("last_seen", new Date(Date.now() - 5000).toISOString()) // Actif dans les 5 dernières secondes
+					.single();
+
+				// Si le destinataire est actif sur cette conversation, ne pas créer de notification
+				if (presenceData) {
+					console.log(
+						"⏩ Notification ignorée - destinataire actif sur la conversation",
+					);
+					return;
+				}
+
 				// Supprimer toutes les anciennes notifications de cette conversation
 				// Utiliser RPC pour contourner les restrictions RLS
 				const { error: deleteAllError } = await supabase.rpc(
@@ -405,7 +477,6 @@ const MessageThread = ({
 				// Ne pas bloquer l'envoi du message si la notification échoue
 			}
 
-			setNewMessage("");
 			// Ne pas recharger - le realtime va ajouter le message automatiquement
 		} catch (error) {
 			console.error("Erreur:", error);
@@ -636,7 +707,7 @@ const MessageThread = ({
 			style={{ flex: 1 }}
 			behavior={Platform.OS === "ios" ? "padding" : undefined}
 			keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}>
-			<VStack style={{ flex: 1, height: 400 }}>
+			<VStack style={{ flex: 1 }}>
 				{/* Liste des messages */}
 				<ScrollView
 					ref={scrollViewRef}
