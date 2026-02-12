@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import {
 	View,
 	ScrollView,
-	KeyboardAvoidingView,
 	Platform,
 	StyleSheet,
 	Animated,
@@ -15,6 +14,7 @@ import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
 import { Input, InputField } from "@/components/ui/input";
+import { Textarea, TextareaInput } from "@/components/ui/textarea";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Send, Check } from "lucide-react-native";
@@ -160,6 +160,7 @@ const MessageThread = ({
 		useState(0);
 	const [transitionMessage, setTransitionMessage] = useState(null);
 	const [showTransitionTime, setShowTransitionTime] = useState(false);
+	const [textareaHeight, setTextareaHeight] = useState(40);
 	const scrollViewRef = useRef(null);
 	const typingTimeoutRef = useRef(null);
 	const presenceChannelRef = useRef(null);
@@ -760,212 +761,233 @@ const MessageThread = ({
 	};
 
 	return (
-		<KeyboardAvoidingView
-			style={{ flex: 1 }}
-			behavior={Platform.OS === "ios" ? "padding" : undefined}
-			keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}>
-			<VStack style={{ flex: 1 }}>
-				{/* Liste des messages */}
-				<ScrollView
-					ref={scrollViewRef}
-					style={styles.messagesContainer}
-					contentContainerStyle={styles.messagesContent}>
-					{messages.length === 0 ? (
-						<View style={styles.emptyState}>
-							<Text className='text-typography-500 text-center'>
-								Aucun message pour le moment.
-								{!isReadOnly &&
-									"\nCommencez la conversation avec " +
-										otherPartyName +
-										" !"}
-							</Text>
-						</View>
-					) : (
-						messages.map((message) => {
-							const isMyMessage = message.sender_id === user.id;
-							return (
-								<View
-									key={message.id}
-									style={[
-										styles.messageWrapper,
-										isMyMessage
-											? styles.myMessageWrapper
-											: styles.otherMessageWrapper,
-									]}>
-									<Card
-										style={[
-											styles.messageCard,
-											isMyMessage
-												? styles.myMessage
-												: styles.otherMessage,
-										]}>
-										<Text
-											style={[
-												styles.messageText,
-												isMyMessage && {
-													color: "#fff",
-												},
-											]}>
-											{message.content}
-										</Text>
-									</Card>
-									<HStack
-										justifyContent='space-between'
-										style={{
-											paddingHorizontal: 4,
-											flexDirection: isMyMessage
-												? "row-reverse"
-												: "row",
-										}}>
-										<Text style={[styles.messageTime]}>
-											{formatTime(message.created_at)}
-										</Text>
-										{isMyMessage && (
-											<MessageChecks
-												messageId={message.id}
-												isRead={message.is_read}
-												createdAt={message.created_at}
-											/>
-										)}
-									</HStack>
-								</View>
-							);
-						})
-					)}
-					{/* Indicateur de saisie animé */}
-					{isTyping && !isReadOnly && (
-						<Animated.View
-							style={[
-								styles.messageWrapper,
-								styles.otherMessageWrapper,
-								{
-									opacity: typingIndicatorAnim,
-									transform: [
-										{
-											translateY:
-												typingIndicatorAnim.interpolate(
-													{
-														inputRange: [0, 1],
-														outputRange: [20, 0],
-													},
-												),
-										},
-									],
-								},
-							]}>
-							<Card
+		<VStack style={{ flex: 1 }}>
+			{/* Liste des messages */}
+			<ScrollView
+				ref={scrollViewRef}
+				style={styles.messagesContainer}
+				contentContainerStyle={styles.messagesContent}
+				keyboardShouldPersistTaps='handled'
+				onContentSizeChange={() => {
+					scrollViewRef.current?.scrollToEnd({ animated: true });
+				}}>
+				{messages.length === 0 ? (
+					<View style={styles.emptyState}>
+						<Text className='text-typography-500 text-center'>
+							Aucun message pour le moment.
+							{!isReadOnly &&
+								"\nCommencez la conversation avec " +
+									otherPartyName +
+									" !"}
+						</Text>
+					</View>
+				) : (
+					messages.map((message) => {
+						const isMyMessage = message.sender_id === user.id;
+						return (
+							<View
+								key={message.id}
 								style={[
-									styles.messageCard,
-									styles.otherMessage,
-									{ paddingVertical: 12 },
+									styles.messageWrapper,
+									isMyMessage
+										? styles.myMessageWrapper
+										: styles.otherMessageWrapper,
 								]}>
-								<HStack space='xs' className='items-center'>
+								<Card
+									style={[
+										styles.messageCard,
+										isMyMessage
+											? styles.myMessage
+											: styles.otherMessage,
+									]}>
 									<Text
 										style={[
 											styles.messageText,
-											{
-												fontSize: transitionMessage
-													? 14
-													: 13,
+											isMyMessage && {
+												color: "#fff",
 											},
 										]}>
-										{transitionMessage
-											? transitionMessage.content
-											: "en train d'écrire"}
+										{message.content}
 									</Text>
-									{!transitionMessage && <TypingAnimation />}
-								</HStack>
-							</Card>
-							{transitionMessage && showTransitionTime && (
+								</Card>
 								<HStack
 									justifyContent='space-between'
 									style={{
 										paddingHorizontal: 4,
+										flexDirection: isMyMessage
+											? "row-reverse"
+											: "row",
 									}}>
-									<Text style={styles.messageTime}>
-										{formatTime(
-											transitionMessage.created_at,
-										)}
+									<Text style={[styles.messageTime]}>
+										{formatTime(message.created_at)}
 									</Text>
+									{isMyMessage && (
+										<MessageChecks
+											messageId={message.id}
+											isRead={message.is_read}
+											createdAt={message.created_at}
+										/>
+									)}
 								</HStack>
-							)}
-						</Animated.View>
-					)}
-					{console.log(
-						"🖼️ [RENDER] isTyping:",
-						isTyping,
-						"isReadOnly:",
-						isReadOnly,
-						"Affichage indicateur:",
-						isTyping && !isReadOnly,
-					)}
-				</ScrollView>
-
-				{/* Zone de saisie */}
-				{!isReadOnly &&
-					(() => {
-						// Candidat sans messages : attendre que le pro initie
-						if (role === "candidat" && messages.length === 0) {
-							return (
-								<View className='p-3 bg-warning-100 border-t border-warning-300'>
-									<Text className='text-warning-700 text-center text-sm'>
-										En attente que le recruteur ouvre la
-										discussion...
-									</Text>
-								</View>
-							);
-						}
-
-						// Candidat ayant atteint la limite de 3 messages
-						if (
-							role === "candidat" &&
-							consecutiveCandidateMessages >= 3
-						) {
-							return (
-								<View className='p-3 bg-warning-100 border-t border-warning-300'>
-									<Text className='text-warning-700 text-center text-sm'>
-										Vous avez envoyé 3 messages. Veuillez
-										attendre la réponse du recruteur.
-									</Text>
-								</View>
-							);
-						}
-
-						// Zone de saisie normale
-						return (
+							</View>
+						);
+					})
+				)}
+				{/* Indicateur de saisie animé */}
+				{isTyping && !isReadOnly && (
+					<Animated.View
+						style={[
+							styles.messageWrapper,
+							styles.otherMessageWrapper,
+							{
+								opacity: typingIndicatorAnim,
+								transform: [
+									{
+										translateY:
+											typingIndicatorAnim.interpolate({
+												inputRange: [0, 1],
+												outputRange: [20, 0],
+											}),
+									},
+								],
+							},
+						]}>
+						<Card
+							style={[
+								styles.messageCard,
+								styles.otherMessage,
+								{ paddingVertical: 12 },
+							]}>
+							<HStack space='xs' className='items-center'>
+								<Text
+									style={[
+										styles.messageText,
+										{
+											fontSize: transitionMessage
+												? 14
+												: 13,
+										},
+									]}>
+									{transitionMessage
+										? transitionMessage.content
+										: "en train d'écrire"}
+								</Text>
+								{!transitionMessage && <TypingAnimation />}
+							</HStack>
+						</Card>
+						{transitionMessage && showTransitionTime && (
 							<HStack
-								space='sm'
-								className='p-3 bg-background-0 border-t border-outline-200'>
-								<Input className='flex-1'>
-									<InputField
+								justifyContent='space-between'
+								style={{
+									paddingHorizontal: 4,
+								}}>
+								<Text style={styles.messageTime}>
+									{formatTime(transitionMessage.created_at)}
+								</Text>
+							</HStack>
+						)}
+					</Animated.View>
+				)}
+				{console.log(
+					"🖼️ [RENDER] isTyping:",
+					isTyping,
+					"isReadOnly:",
+					isReadOnly,
+					"Affichage indicateur:",
+					isTyping && !isReadOnly,
+				)}
+			</ScrollView>
+
+			{/* Zone de saisie */}
+			{!isReadOnly &&
+				(() => {
+					// Candidat sans messages : attendre que le pro initie
+					if (role === "candidat" && messages.length === 0) {
+						return (
+							<View className='p-3 bg-warning-100 border-t border-warning-300'>
+								<Text className='text-warning-700 text-center text-sm'>
+									En attente que le recruteur ouvre la
+									discussion...
+								</Text>
+							</View>
+						);
+					}
+
+					// Candidat ayant atteint la limite de 3 messages
+					if (
+						role === "candidat" &&
+						consecutiveCandidateMessages >= 3
+					) {
+						return (
+							<View className='p-3 bg-warning-100 border-t border-warning-300'>
+								<Text className='text-warning-700 text-center text-sm'>
+									Vous avez envoyé 3 messages. Veuillez
+									attendre la réponse du recruteur.
+								</Text>
+							</View>
+						);
+					}
+
+					// Zone de saisie normale
+					return (
+						<HStack
+							space='sm'
+							className='p-3 bg-background-0 border-t border-outline-200'>
+							<Input className='flex-1'>
+								<InputField
+									placeholder='Écrivez votre message...'
+									value={newMessage}
+									onChangeText={handleTyping}
+									numberOfLines={1}
+									maxLength={500}
+									onSubmitEditing={sendMessage}
+								/>
+							</Input>
+							{/* <Textarea className='flex-1'>
+									<TextareaInput
 										placeholder='Écrivez votre message...'
 										value={newMessage}
 										onChangeText={handleTyping}
-										multiline
 										maxLength={500}
 										onSubmitEditing={sendMessage}
+										numberOfLines={1}
+										// style={{
+										// 	height: textareaHeight,
+										// 	minHeight: 40,
+										// 	maxHeight: 120,
+										// }}
+										onContentSizeChange={(event) => {
+											const height =
+												event.nativeEvent.contentSize
+													.height;
+											setTextareaHeight(
+												Math.max(
+													40,
+													Math.min(height, 120),
+												),
+											);
+										}}
 									/>
-								</Input>
-								<Button
-									size='md'
-									onPress={sendMessage}
-									isDisabled={!newMessage.trim() || loading}>
-									<ButtonIcon as={Send} />
-								</Button>
-							</HStack>
-						);
-					})()}
+								</Textarea> */}
+							<Button
+								size='md'
+								onPress={sendMessage}
+								isDisabled={!newMessage.trim() || loading}>
+								<ButtonIcon as={Send} />
+							</Button>
+						</HStack>
+					);
+				})()}
 
-				{isReadOnly && (
-					<View className='p-3 bg-warning-100 border-t border-warning-300'>
-						<Text className='text-warning-700 text-center text-sm'>
-							Cette conversation est en lecture seule car la
-							candidature a été refusée.
-						</Text>
-					</View>
-				)}
-			</VStack>
-		</KeyboardAvoidingView>
+			{isReadOnly && (
+				<View className='p-3 bg-warning-100 border-t border-warning-300'>
+					<Text className='text-warning-700 text-center text-sm'>
+						Cette conversation est en lecture seule car la
+						candidature a été refusée.
+					</Text>
+				</View>
+			)}
+		</VStack>
 	);
 };
 
