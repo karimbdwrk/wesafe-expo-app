@@ -46,17 +46,19 @@ export default function RootLayout() {
 	if (!loaded) return null;
 
 	return (
-		<StripeProvider publishableKey='pk_test_51RhCWfRs36t2SzSl20E1w8vTi97kdamUZ36cUp6tI7uBjzYWm3hXiNs8evBcViZpsYCHnnK7MYFl6I52jC9xS4Su000R6gOuhW'>
-			<AuthProvider>
-				<DataProvider>
-					<NotificationsProvider>
-						<ImageProvider>
-							<RootLayoutNav />
-						</ImageProvider>
-					</NotificationsProvider>
-				</DataProvider>
-			</AuthProvider>
-		</StripeProvider>
+		<GestureHandlerRootView style={{ flex: 1 }}>
+			<StripeProvider publishableKey='pk_test_51RhCWfRs36t2SzSl20E1w8vTi97kdamUZ36cUp6tI7uBjzYWm3hXiNs8evBcViZpsYCHnnK7MYFl6I52jC9xS4Su000R6gOuhW'>
+				<AuthProvider>
+					<DataProvider>
+						<NotificationsProvider>
+							<ImageProvider>
+								<RootLayoutNav />
+							</ImageProvider>
+						</NotificationsProvider>
+					</DataProvider>
+				</AuthProvider>
+			</StripeProvider>
+		</GestureHandlerRootView>
 	);
 }
 
@@ -129,196 +131,190 @@ function RootLayoutNav() {
 
 	return (
 		<>
-			<GestureHandlerRootView style={{ flex: 1 }}>
-				<SafeAreaProvider>
-					<GluestackUIProvider mode={colorMode}>
-						<Toaster />
-						<ThemeProvider
-							value={
-								colorMode === "dark" ? DarkTheme : DefaultTheme
-							}>
-							<Stack
-								screenOptions={{
+			<SafeAreaProvider>
+				<GluestackUIProvider mode={colorMode}>
+					<Toaster />
+					<ThemeProvider
+						value={colorMode === "dark" ? DarkTheme : DefaultTheme}>
+						<Stack
+							screenOptions={{
+								headerShown: false,
+								headerBackTitle: "Retour",
+							}}>
+							<Stack.Screen
+								name='index'
+								options={{ headerShown: false }}
+							/>
+							<Stack.Screen
+								name='connexion'
+								options={{ headerShown: false }}
+							/>
+							<Stack.Screen
+								name='dashboard'
+								options={{
+									headerShown: true,
+									headerTitle: "Mon Dashboard Pro",
+								}}
+							/>
+							<Stack.Screen
+								name='notifications'
+								options={{
+									headerShown: true,
+									headerTitle: "Notifications",
+								}}
+							/>
+							<Stack.Screen
+								name='updatecompany'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='stamp'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='updatestamp'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='scanner'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='buycredits'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='offers'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='applicationspro'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='profilelist'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='profile'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='account'
+								options={{
+									headerShown: true,
+									headerTitle: "Mon Compte",
+								}}
+							/>
+							<Stack.Screen
+								name='documents'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='iddocumentverification'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='socialsecuritydocumentverification'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='updateprofile'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='curriculum'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='addexperience'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='signature'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='procards'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='procard'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='addprocard'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='applications'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='application'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='messaging'
+								options={{
+									presentation: "modal",
 									headerShown: false,
-									headerBackTitle: "Retour",
-								}}>
-								<Stack.Screen
-									name='index'
-									options={{ headerShown: false }}
-								/>
-								<Stack.Screen
-									name='connexion'
-									options={{ headerShown: false }}
-								/>
-								<Stack.Screen
-									name='dashboard'
-									options={{
-										headerShown: true,
-										headerTitle: "Mon Dashboard Pro",
-									}}
-								/>
-								<Stack.Screen
-									name='notifications'
-									options={{
-										headerShown: true,
-										headerTitle: "Notifications",
-									}}
-								/>
-								<Stack.Screen
-									name='updatecompany'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='stamp'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='updatestamp'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='scanner'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='buycredits'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='offers'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='applicationspro'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='profilelist'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='profile'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='account'
-									options={{
-										headerShown: true,
-										headerTitle: "Mon Compte",
-									}}
-								/>
-								<Stack.Screen
-									name='documents'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='iddocumentverification'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='socialsecuritydocumentverification'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='updateprofile'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='curriculum'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='addexperience'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='signature'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='procards'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='procard'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='addprocard'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='applications'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='application'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='messaging'
-									options={{
-										presentation: "modal",
-										headerShown: false,
-										animation: "slide_from_bottom",
-										gestureEnabled: true,
-										gestureDirection: "vertical",
-									}}
-								/>
-								<Stack.Screen
-									name='wishlist'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='job'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='addjob'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='lastminute'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='contactus'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='subscription'
-									options={{ headerShown: true }}
-								/>
-								<Stack.Screen
-									name='contract'
-									options={{ headerShown: true }}
-								/>
-								{/* <Slot /> */}
-							</Stack>
-							{pathname === "/" && (
-								<Fab
-									onPress={() =>
-										setColorMode(
-											colorMode === "dark"
-												? "light"
-												: "dark",
-										)
+									animation: "slide_from_bottom",
+									gestureEnabled: true,
+									gestureDirection: "vertical",
+								}}
+							/>
+							<Stack.Screen
+								name='wishlist'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='job'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='addjob'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='lastminute'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='contactus'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='subscription'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='contract'
+								options={{ headerShown: true }}
+							/>
+							{/* <Slot /> */}
+						</Stack>
+						{pathname === "/" && (
+							<Fab
+								onPress={() =>
+									setColorMode(
+										colorMode === "dark" ? "light" : "dark",
+									)
+								}
+								className='m-6'
+								size='lg'>
+								<FabIcon
+									as={
+										colorMode === "dark"
+											? MoonIcon
+											: SunIcon
 									}
-									className='m-6'
-									size='lg'>
-									<FabIcon
-										as={
-											colorMode === "dark"
-												? MoonIcon
-												: SunIcon
-										}
-									/>
-								</Fab>
-							)}
-						</ThemeProvider>
-					</GluestackUIProvider>
-				</SafeAreaProvider>
-			</GestureHandlerRootView>
+								/>
+							</Fab>
+						)}
+					</ThemeProvider>
+				</GluestackUIProvider>
+			</SafeAreaProvider>
 		</>
 	);
 }
