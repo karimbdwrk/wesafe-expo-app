@@ -150,11 +150,13 @@ const MessageThread = ({
 	otherPartyName,
 	onTypingChange,
 }) => {
-	const { user, accessToken } = useAuth();
+	const { user, accessToken, role } = useAuth();
 	const [messages, setMessages] = useState([]);
 	const [newMessage, setNewMessage] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [isTyping, setIsTyping] = useState(false);
+	const [consecutiveCandidateMessages, setConsecutiveCandidateMessages] =
+		useState(0);
 	const scrollViewRef = useRef(null);
 	const typingTimeoutRef = useRef(null);
 	const presenceChannelRef = useRef(null);
@@ -166,6 +168,27 @@ const MessageThread = ({
 			onTypingChange(isTyping);
 		}
 	}, [isTyping, onTypingChange]);
+
+	// Calculer le nombre de messages consécutifs du candidat
+	useEffect(() => {
+		if (messages.length === 0 || role !== "candidat") {
+			setConsecutiveCandidateMessages(0);
+			return;
+		}
+
+		// Compter les messages consécutifs du candidat depuis le dernier message du pro
+		let count = 0;
+		for (let i = messages.length - 1; i >= 0; i--) {
+			if (messages[i].sender_id === user.id) {
+				count++;
+			} else {
+				// Dès qu'on trouve un message du pro, on arrête
+				break;
+			}
+		}
+		setConsecutiveCandidateMessages(count);
+		console.log("📊 Messages consécutifs du candidat:", count);
+	}, [messages, user.id, role]);
 
 	// Charger les messages
 	const loadMessages = async () => {
@@ -233,6 +256,22 @@ const MessageThread = ({
 	// Envoyer un message
 	const sendMessage = async () => {
 		if (!newMessage.trim() || loading || isReadOnly) return;
+
+		// Vérifier les restrictions pour les candidats
+		if (role === "candidat") {
+			// Si aucun message, le candidat ne peut pas initier la conversation
+			if (messages.length === 0) {
+				console.log(
+					"⚠️ Le candidat ne peut pas initier la conversation",
+				);
+				return;
+			}
+			// Si déjà 3 messages consécutifs, bloquer
+			if (consecutiveCandidateMessages >= 3) {
+				console.log("⚠️ Limite de 3 messages consécutifs atteinte");
+				return;
+			}
+		}
 
 		setLoading(true);
 		try {
@@ -607,28 +646,59 @@ const MessageThread = ({
 				</ScrollView>
 
 				{/* Zone de saisie */}
-				{!isReadOnly && (
-					<HStack
-						space='sm'
-						className='p-3 bg-background-0 border-t border-outline-200'>
-						<Input className='flex-1'>
-							<InputField
-								placeholder='Écrivez votre message...'
-								value={newMessage}
-								onChangeText={handleTyping}
-								multiline
-								maxLength={500}
-								onSubmitEditing={sendMessage}
-							/>
-						</Input>
-						<Button
-							size='md'
-							onPress={sendMessage}
-							isDisabled={!newMessage.trim() || loading}>
-							<ButtonIcon as={Send} />
-						</Button>
-					</HStack>
-				)}
+				{!isReadOnly &&
+					(() => {
+						// Candidat sans messages : attendre que le pro initie
+						if (role === "candidat" && messages.length === 0) {
+							return (
+								<View className='p-3 bg-warning-100 border-t border-warning-300'>
+									<Text className='text-warning-700 text-center text-sm'>
+										En attente que le recruteur ouvre la
+										discussion...
+									</Text>
+								</View>
+							);
+						}
+
+						// Candidat ayant atteint la limite de 3 messages
+						if (
+							role === "candidat" &&
+							consecutiveCandidateMessages >= 3
+						) {
+							return (
+								<View className='p-3 bg-warning-100 border-t border-warning-300'>
+									<Text className='text-warning-700 text-center text-sm'>
+										Vous avez envoyé 3 messages. Veuillez
+										attendre la réponse du recruteur.
+									</Text>
+								</View>
+							);
+						}
+
+						// Zone de saisie normale
+						return (
+							<HStack
+								space='sm'
+								className='p-3 bg-background-0 border-t border-outline-200'>
+								<Input className='flex-1'>
+									<InputField
+										placeholder='Écrivez votre message...'
+										value={newMessage}
+										onChangeText={handleTyping}
+										multiline
+										maxLength={500}
+										onSubmitEditing={sendMessage}
+									/>
+								</Input>
+								<Button
+									size='md'
+									onPress={sendMessage}
+									isDisabled={!newMessage.trim() || loading}>
+									<ButtonIcon as={Send} />
+								</Button>
+							</HStack>
+						);
+					})()}
 
 				{isReadOnly && (
 					<View className='p-3 bg-warning-100 border-t border-warning-300'>
