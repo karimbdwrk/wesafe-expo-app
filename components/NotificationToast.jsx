@@ -1,5 +1,11 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, SafeAreaView, Pressable, PanResponder } from "react-native";
+import {
+	Animated,
+	SafeAreaView,
+	Pressable,
+	PanResponder,
+	Platform,
+} from "react-native";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import { Text } from "@/components/ui/text";
@@ -117,7 +123,7 @@ const NotificationToast = ({ notification, onPress, onDismiss }) => {
 		<SafeAreaView
 			style={{
 				position: "absolute",
-				top: 0,
+				top: Platform.OS === "android" ? 40 : 0,
 				left: 0,
 				right: 0,
 				zIndex: 9999,
