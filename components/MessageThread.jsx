@@ -304,33 +304,102 @@ const MessageThread = ({
 			}
 
 			// Récupérer l'apply pour trouver le destinataire
-			const { data: applyData } = await supabase
+			const { data: applyData, error: applyError } = await supabase
 				.from("applies")
-				.select("candidate_id, job:jobs(company_id)")
+				.select(
+					"candidate_id, job:jobs(company_id, title), candidate:profiles!candidate_id(firstname, lastname)",
+				)
 				.eq("id", applyId)
 				.single();
+
+			if (applyError || !applyData) {
+				console.error("❌ Erreur récupération apply:", applyError);
+				return;
+			}
 
 			const receiverId =
 				user.id === applyData.candidate_id
 					? applyData.job.company_id
 					: applyData.candidate_id;
 
-			// Appeler l'Edge Function pour créer la notification
+			const jobTitle = applyData?.job?.title || "Offre d'emploi";
+			const candidateName = applyData?.candidate
+				? `${applyData.candidate.firstname || ""} ${applyData.candidate.lastname || ""}`.trim()
+				: "Candidat";
+
+			// Titre différent selon le destinataire
+			const notificationTitle =
+				receiverId === applyData.candidate_id
+					? jobTitle // Pour le candidat : titre du poste
+					: `${candidateName} - ${jobTitle}`; // Pour le pro : nom du candidat - titre du poste
+
+			// Créer ou mettre à jour une notification groupée
 			try {
-				const { data: edgeFunctionData } =
-					await supabase.functions.invoke(
-						"send-message-notification",
-						{
-							body: {
-								message_id: insertedMessage.id,
-								sender_id: user.id,
-								receiver_id: receiverId,
-								apply_id: applyId,
-								message_content: newMessage.trim(),
-							},
-						},
+				// Supprimer toutes les anciennes notifications de cette conversation
+				// Utiliser RPC pour contourner les restrictions RLS
+				const { error: deleteAllError } = await supabase.rpc(
+					"delete_conversation_notifications",
+					{
+						p_recipient_id: receiverId,
+						p_apply_id: applyId,
+					},
+				);
+
+				if (deleteAllError) {
+					console.error(
+						"❌ Erreur suppression anciennes notifications:",
+						deleteAllError,
 					);
-				console.log("🔔 Notification envoyée:", edgeFunctionData);
+				} else {
+					console.log(
+						"🗑️ Anciennes notifications supprimées pour cette conversation",
+					);
+				}
+
+				// Compter les messages NON LUS de l'expéditeur dans cette conversation
+				const { data: unreadMessages } = await supabase
+					.from("messages")
+					.select("id, created_at, is_read")
+					.eq("apply_id", applyId)
+					.eq("sender_id", user.id)
+					.or("is_read.is.false,is_read.is.null")
+					.order("created_at", { ascending: false });
+
+				const messageCount = unreadMessages?.length || 0;
+
+				const notificationBody =
+					messageCount > 1
+						? `${messageCount} nouveaux messages`
+						: "Nouveau message";
+
+				console.log("📊 Messages non lus:", messageCount);
+
+				// Créer une nouvelle notification
+				const { data: newNotif, error: insertError } = await supabase
+					.from("notifications")
+					.insert({
+						recipient_id: receiverId,
+						type: "message",
+						title: notificationTitle,
+						entity_type: "message",
+						entity_id: applyId,
+						body: notificationBody,
+						is_read: false,
+					})
+					.select();
+
+				if (insertError) {
+					console.error(
+						"❌ Erreur création notification:",
+						insertError,
+					);
+				} else {
+					console.log(
+						"🔔 Notification créée:",
+						notificationBody,
+						newNotif,
+					);
+				}
 			} catch (notifError) {
 				console.error("⚠️ Erreur notification:", notifError);
 				// Ne pas bloquer l'envoi du message si la notification échoue
