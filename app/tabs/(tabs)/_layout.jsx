@@ -143,12 +143,14 @@ export default function TabLayout({ theme = "light" }) {
 	);
 
 	useEffect(() => {
-		if (user && !authLoading) {
-			if (role === "unknown") {
+		if (user && !authLoading && role === "unknown") {
+			// Vérifier si l'utilisateur est dans les tabs avant de rediriger
+			const inTabsGroup = segments[0] === "tabs";
+			if (inTabsGroup) {
 				router.replace("/finalizeregistration");
 			}
 		}
-	}, [user, role]);
+	}, [user, role, authLoading]);
 
 	// useEffect(() => {
 	// 	// setupNotificationResponseListener a besoin de l'objet router pour naviguer
@@ -561,7 +563,7 @@ export default function TabLayout({ theme = "light" }) {
 					}}
 				/>
 			</Tabs>
-			{role === "pro" && (
+			{role === "pro" && userCompany && (
 				<View style={styles.floatingButtonContainer}>
 					{userCompany.isConfirmed && (
 						<Button
