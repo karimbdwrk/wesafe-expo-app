@@ -158,10 +158,13 @@ const MessageThread = ({
 	const [isTyping, setIsTyping] = useState(false);
 	const [consecutiveCandidateMessages, setConsecutiveCandidateMessages] =
 		useState(0);
+	const [transitionMessage, setTransitionMessage] = useState(null);
+	const [showTransitionTime, setShowTransitionTime] = useState(false);
 	const scrollViewRef = useRef(null);
 	const typingTimeoutRef = useRef(null);
 	const presenceChannelRef = useRef(null);
 	const presenceIntervalRef = useRef(null);
+	const typingIndicatorAnim = useRef(new Animated.Value(0)).current;
 
 	// Scroller automatiquement quand le clavier s'ouvre
 	useEffect(() => {
@@ -211,7 +214,27 @@ const MessageThread = ({
 		if (onTypingChange) {
 			onTypingChange(isTyping);
 		}
-	}, [isTyping, onTypingChange]);
+
+		// Animation de l'indicateur
+		if (isTyping) {
+			Animated.spring(typingIndicatorAnim, {
+				toValue: 1,
+				useNativeDriver: true,
+				friction: 8,
+			}).start();
+			// Scroller vers le bas pour voir la bulle
+			setTimeout(() => {
+				scrollViewRef.current?.scrollToEnd({ animated: true });
+			}, 100);
+		} else {
+			Animated.timing(typingIndicatorAnim, {
+				toValue: 0,
+				duration: 300,
+				easing: Easing.ease,
+				useNativeDriver: true,
+			}).start();
+		}
+	}, [isTyping, onTypingChange, typingIndicatorAnim]);
 
 	// Calculer le nombre de messages consécutifs du candidat
 	useEffect(() => {
@@ -259,7 +282,32 @@ const MessageThread = ({
 				return;
 			}
 
-			setMessages(data || []);
+			const newMessages = data || [];
+
+			// Détecter si un nouveau message de l'autre personne arrive pendant qu'il tape
+			if (isTyping && newMessages.length > messages.length) {
+				const latestMessage = newMessages[newMessages.length - 1];
+				if (latestMessage.sender_id !== user.id) {
+					// Message de l'autre personne → transition
+					setTransitionMessage(latestMessage);
+					setShowTransitionTime(false);
+
+					// Afficher l'heure après 300ms
+					setTimeout(() => {
+						setShowTransitionTime(true);
+					}, 300);
+
+					// Désactiver isTyping et transition après 800ms
+					setTimeout(() => {
+						setIsTyping(false);
+						setTransitionMessage(null);
+						setMessages(newMessages);
+					}, 800);
+					return;
+				}
+			}
+
+			setMessages(newMessages);
 
 			// Marquer les messages comme lus
 			const unreadMessages = data?.filter(
@@ -554,6 +602,15 @@ const MessageThread = ({
 					console.log("Nouveau message reçu:", payload);
 					const newMsg = payload.new;
 
+					// Si c'est un message de l'autre personne, désactiver immédiatement l'indicateur de saisie
+					if (newMsg.sender_id !== user.id) {
+						console.log("📨 Message reçu → désactivation isTyping");
+						setIsTyping(false);
+						if (typingTimeoutRef.current) {
+							clearTimeout(typingTimeoutRef.current);
+						}
+					}
+
 					// Si le message n'est pas de moi et n'est pas déjà lu, le marquer comme lu
 					if (newMsg.sender_id !== user.id && !newMsg.is_read) {
 						await supabase
@@ -774,6 +831,65 @@ const MessageThread = ({
 								</View>
 							);
 						})
+					)}
+					{/* Indicateur de saisie animé */}
+					{isTyping && !isReadOnly && (
+						<Animated.View
+							style={[
+								styles.messageWrapper,
+								styles.otherMessageWrapper,
+								{
+									opacity: typingIndicatorAnim,
+									transform: [
+										{
+											translateY:
+												typingIndicatorAnim.interpolate(
+													{
+														inputRange: [0, 1],
+														outputRange: [20, 0],
+													},
+												),
+										},
+									],
+								},
+							]}>
+							<Card
+								style={[
+									styles.messageCard,
+									styles.otherMessage,
+									{ paddingVertical: 12 },
+								]}>
+								<HStack space='xs' className='items-center'>
+									<Text
+										style={[
+											styles.messageText,
+											{
+												fontSize: transitionMessage
+													? 14
+													: 13,
+											},
+										]}>
+										{transitionMessage
+											? transitionMessage.content
+											: "en train d'écrire"}
+									</Text>
+									{!transitionMessage && <TypingAnimation />}
+								</HStack>
+							</Card>
+							{transitionMessage && showTransitionTime && (
+								<HStack
+									justifyContent='space-between'
+									style={{
+										paddingHorizontal: 4,
+									}}>
+									<Text style={styles.messageTime}>
+										{formatTime(
+											transitionMessage.created_at,
+										)}
+									</Text>
+								</HStack>
+							)}
+						</Animated.View>
 					)}
 					{console.log(
 						"🖼️ [RENDER] isTyping:",
