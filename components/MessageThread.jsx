@@ -378,7 +378,12 @@ const MessageThread = ({
 		try {
 			const supabase = createSupabaseClient(accessToken);
 
-			// Arrêter l'indicateur de saisie
+			// Arrêter l'indicateur de saisie ET le timeout
+			if (typingTimeoutRef.current) {
+				clearTimeout(typingTimeoutRef.current);
+				typingTimeoutRef.current = null;
+			}
+
 			if (presenceChannelRef.current) {
 				console.log("📤 [SEND] Arrêt de l'indicateur de saisie");
 				await presenceChannelRef.current.track({
@@ -405,6 +410,7 @@ const MessageThread = ({
 			}
 
 			// Vider l'input immédiatement après l'envoi réussi
+			// Ne déclenche pas handleTyping car on a déjà envoyé typing=false
 			setNewMessage("");
 
 			// Récupérer l'apply pour trouver le destinataire
@@ -548,6 +554,13 @@ const MessageThread = ({
 			return;
 		}
 
+		// Si le texte est vide et qu'il n'y a pas de timeout actif, c'est probablement après un envoi
+		// Ne pas envoyer typing=false car on l'a déjà fait dans sendMessage
+		if (text.length === 0 && !typingTimeoutRef.current) {
+			console.log("🛑 [TYPING] Champ vidé après envoi - pas d'action");
+			return;
+		}
+
 		// Signaler qu'on écrit
 		if (text.length > 0) {
 			console.log("⌨️ [TYPING] Envoi typing=true, user_id:", user.id);
@@ -572,9 +585,17 @@ const MessageThread = ({
 						user_id: user.id,
 					});
 				}
+				typingTimeoutRef.current = null;
 			}, 3000);
 		} else {
-			console.log("🛑 [TYPING] Champ vide - envoi typing=false");
+			// L'utilisateur a supprimé tout le texte manuellement
+			console.log(
+				"🛑 [TYPING] Champ vide manuellement - envoi typing=false",
+			);
+			if (typingTimeoutRef.current) {
+				clearTimeout(typingTimeoutRef.current);
+				typingTimeoutRef.current = null;
+			}
 			presenceChannelRef.current.track({
 				typing: false,
 				user_id: user.id,
