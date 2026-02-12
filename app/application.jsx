@@ -151,6 +151,7 @@ const ApplicationScreen = () => {
 	const [showMessaging, setShowMessaging] = useState(false);
 	const [isOtherPartyTyping, setIsOtherPartyTyping] = useState(false);
 	const [keyboardPadding, setKeyboardPadding] = useState(0);
+	const [isOtherPartyOnline, setIsOtherPartyOnline] = useState(false);
 
 	const [isInWishlist, setIsInWishlist] = useState(false);
 	const [isSelected, setIsSelected] = useState(false);
@@ -306,7 +307,74 @@ const ApplicationScreen = () => {
 			keyboardDidHideListener.remove();
 		};
 	}, []);
+	// Surveiller la présence de l'interlocuteur
+	useEffect(() => {
+		if (
+			!apply_id ||
+			!accessToken ||
+			!application?.candidate_id ||
+			!application?.company_id
+		)
+			return;
 
+		const otherUserId =
+			role === "pro" ? application.candidate_id : application.company_id;
+
+		const checkPresence = async () => {
+			const supabase = createSupabaseClient(accessToken);
+			const { data } = await supabase
+				.from("user_presence")
+				.select("last_seen")
+				.eq("user_id", otherUserId)
+				.eq("apply_id", apply_id)
+				.single();
+
+			if (data) {
+				const lastSeen = new Date(data.last_seen);
+				const now = new Date();
+				const diffMs = now - lastSeen;
+				// Considérer en ligne si vu dans les 5 dernières secondes
+				setIsOtherPartyOnline(diffMs < 5000);
+			} else {
+				setIsOtherPartyOnline(false);
+			}
+		};
+
+		// Vérifier immédiatement
+		checkPresence();
+
+		// Vérifier toutes les 3 secondes
+		const interval = setInterval(checkPresence, 3000);
+
+		// Abonnement real-time pour les changements de présence
+		const supabase = createSupabaseClient(accessToken);
+		const channel = supabase
+			.channel(`presence-${apply_id}-${otherUserId}`)
+			.on(
+				"postgres_changes",
+				{
+					event: "*",
+					schema: "public",
+					table: "user_presence",
+					filter: `user_id=eq.${otherUserId}`,
+				},
+				() => {
+					checkPresence();
+				},
+			)
+			.subscribe();
+
+		return () => {
+			clearInterval(interval);
+			supabase.removeChannel(channel);
+		};
+	}, [
+		apply_id,
+		accessToken,
+		application?.candidate_id,
+		application?.company_id,
+		role,
+	]);
 	useEffect(() => {
 		currentStatus &&
 			console.log("Current application status:", currentStatus);
@@ -966,6 +1034,16 @@ const ApplicationScreen = () => {
 										: application?.companies?.name ||
 											application?.jobs?.company_name}
 								</Heading>
+								{isOtherPartyOnline && (
+									<View
+										style={{
+											width: 10,
+											height: 10,
+											borderRadius: 5,
+											backgroundColor: "#22c55e",
+										}}
+									/>
+								)}
 							</HStack>
 							<MessageThread
 								applyId={apply_id}
