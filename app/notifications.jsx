@@ -125,6 +125,15 @@ const Notifications = () => {
 				},
 			});
 		} else if (
+			notification.entity_type === "message" &&
+			notification.entity_id
+		) {
+			// Notification de message groupé - entity_id contient l'apply_id
+			router.replace({
+				pathname: "/application",
+				params: { apply_id: notification.entity_id, id: user.id },
+			});
+		} else if (
 			notification.entity_type === "application" &&
 			notification.entity_id
 		) {
