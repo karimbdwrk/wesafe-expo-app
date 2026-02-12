@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, SafeAreaView, StyleSheet, Animated, Easing } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Heading } from "@/components/ui/heading";
@@ -8,6 +8,7 @@ import { Text } from "@/components/ui/text";
 import { ArrowLeft } from "lucide-react-native";
 import MessageThread from "@/components/MessageThread";
 import { useAuth } from "@/context/AuthContext";
+import { createSupabaseClient } from "@/lib/supabase";
 
 // Animation de points pour l'indicateur de saisie
 const TypingAnimation = () => {
@@ -92,9 +93,88 @@ const MessagingScreen = () => {
 	const router = useRouter();
 	const { apply_id, other_party_name, is_read_only } = useLocalSearchParams();
 	const [isTyping, setIsTyping] = useState(false);
-	const { user } = useAuth();
+	const { user, accessToken } = useAuth();
+	const [isReadOnly, setIsReadOnly] = useState(is_read_only === "true");
 
-	const isReadOnly = is_read_only === "true";
+	useEffect(() => {
+		if (!apply_id || !accessToken) {
+			console.log("❌ Missing apply_id or accessToken:", {
+				apply_id,
+				hasToken: !!accessToken,
+			});
+			return;
+		}
+
+		console.log(
+			"✅ MESSAGING SCREEN - Starting status monitoring for:",
+			apply_id,
+		);
+		const supabase = createSupabaseClient(accessToken);
+
+		// Charger le statut initial
+		const loadApplicationStatus = async () => {
+			console.log("📥 Loading application status for:", apply_id);
+			const { data, error } = await supabase
+				.from("applies")
+				.select("current_status")
+				.eq("id", apply_id)
+				.single();
+
+			console.log("📊 Application status data:", data);
+			if (error) console.log("❌ Application status error:", error);
+
+			if (!error && data) {
+				const newIsReadOnly = data.current_status === "rejected";
+				console.log(
+					"🔄 Setting isReadOnly to:",
+					newIsReadOnly,
+					"because status is:",
+					data.current_status,
+				);
+				setIsReadOnly(newIsReadOnly);
+			}
+		};
+
+		loadApplicationStatus();
+
+		// Abonnement real-time - Écouter les INSERT sur application_status_events
+		console.log("🔔 Subscribing to status events for:", apply_id);
+		const channel = supabase
+			.channel(`status-events-${apply_id}`)
+			.on(
+				"postgres_changes",
+				{
+					event: "INSERT",
+					schema: "public",
+					table: "application_status_events",
+					filter: `application_id=eq.${apply_id}`,
+				},
+				(payload) => {
+					console.log(
+						"🔥 STATUS EVENT RECEIVED IN MESSAGING:",
+						payload,
+					);
+					console.log("🔥 New status:", payload.new.status);
+					if (payload.new.status === "rejected") {
+						console.log(
+							"🚫 Setting isReadOnly to TRUE - candidature refusée",
+						);
+						setIsReadOnly(true);
+					} else {
+						console.log("✅ Setting isReadOnly to FALSE");
+						setIsReadOnly(false);
+					}
+				},
+			)
+			.subscribe((status) => {
+				console.log("📡 Subscription status:", status);
+			});
+
+		return () => {
+			console.log("🔌 Unsubscribing from status events channel");
+			supabase.removeChannel(channel);
+		};
+	}, [apply_id, accessToken]);
 
 	// const handleBackPress = () => {
 	// 	router.push({
