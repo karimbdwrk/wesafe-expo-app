@@ -223,14 +223,14 @@ const MessageThread = ({
 					);
 			}
 
-			// Marquer les notifications de messages comme lues
+			// Marquer les notifications de cette conversation comme lues
 			const { data: messageNotifications } = await supabase
 				.from("notifications")
 				.select("id")
 				.eq("recipient_id", user.id)
 				.eq("entity_type", "message")
-				.eq("is_read", false)
-				.in("entity_id", data?.map((m) => m.id) || []);
+				.eq("entity_id", applyId)
+				.eq("is_read", false);
 
 			if (messageNotifications && messageNotifications.length > 0) {
 				await supabase
