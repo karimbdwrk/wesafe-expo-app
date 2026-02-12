@@ -128,7 +128,6 @@ export default function Tab1() {
 
 	useFocusEffect(
 		useCallback(() => {
-			loadSession();
 			if (userProfile) {
 				setMyProcards(userProfile.procards || []);
 			}
@@ -361,7 +360,7 @@ export default function Tab1() {
 							/>
 							<Button
 								onPress={() =>
-									router.replace("/tabs/(tabs)/tab2")
+									router.push("/tabs/(tabs)/tab2")
 								}>
 								<ButtonText>Voir toutes les offres</ButtonText>
 							</Button>
