@@ -256,6 +256,16 @@ function RootLayoutNav() {
 									options={{ headerShown: true }}
 								/>
 								<Stack.Screen
+									name='messaging'
+									options={{
+										presentation: "modal",
+										headerShown: false,
+										animation: "slide_from_bottom",
+										gestureEnabled: true,
+										gestureDirection: "vertical",
+									}}
+								/>
+								<Stack.Screen
 									name='wishlist'
 									options={{ headerShown: true }}
 								/>
