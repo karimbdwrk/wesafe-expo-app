@@ -161,6 +161,9 @@ const Notifications = () => {
 
 		if (hours < 1) {
 			const minutes = Math.floor(diff / (1000 * 60));
+			if (minutes < 2) {
+				return "À l'instant";
+			}
 			return `Il y a ${minutes} min`;
 		} else if (hours < 24) {
 			return `Il y a ${hours}h`;
