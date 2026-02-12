@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { createSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import NotificationToast from "@/components/NotificationToast";
 
 const NotificationsContext = createContext();
 
@@ -16,6 +17,8 @@ export const NotificationsProvider = ({ children }) => {
 	const [notifications, setNotifications] = useState([]); // ➕ LISTE
 	const [unreadCount, setUnreadCount] = useState(0);
 	const [isInitialized, setIsInitialized] = useState(false);
+	const [currentToast, setCurrentToast] = useState(null);
+	const [toastVisible, setToastVisible] = useState(false);
 
 	// ➕ FETCH INITIAL DES NOTIFS
 	const fetchNotifications = useCallback(async () => {
@@ -84,6 +87,9 @@ export const NotificationsProvider = ({ children }) => {
 							setUnreadCount((prev) => prev + 1);
 						}
 						setNotifications((prev) => [payload.new, ...prev]);
+
+						// 🆕 AFFICHER LE TOAST
+						showToast(payload.new);
 					} else if (payload.eventType === "UPDATE") {
 						// ➕ Remplace la notif mise à jour
 						setNotifications((prev) =>
@@ -158,6 +164,108 @@ export const NotificationsProvider = ({ children }) => {
 		await fetchNotifications();
 	}, [fetchNotifications]);
 
+	// 🆕 AFFICHER LE TOAST
+	const showToast = (notification) => {
+		setCurrentToast(notification);
+		setToastVisible(true);
+
+		// Auto-hide après 5 secondes
+		setTimeout(() => {
+			dismissToast();
+		}, 5000);
+	};
+
+	// 🆕 FERMER LE TOAST
+	const dismissToast = () => {
+		setToastVisible(false);
+		setTimeout(() => setCurrentToast(null), 300);
+	};
+
+	// 🆕 GÉRER LE CLIC SUR LE TOAST
+	const handleToastPress = useCallback(
+		async (notification) => {
+			try {
+				console.log(
+					"🔵 Toast press - Start",
+					notification?.entity_type,
+				);
+
+				// Fermer le toast
+				dismissToast();
+				console.log("🔵 Toast dismissed");
+
+				// Marquer comme lue
+				if (!notification.is_read) {
+					console.log("🔵 Marking as read...");
+					await markNotificationAsRead(notification.id);
+					console.log("🔵 Marked as read");
+				}
+
+				// Petit délai pour laisser le toast se fermer
+				await new Promise((resolve) => setTimeout(resolve, 100));
+
+				console.log("🔵 Getting router...");
+				// Importer le router dynamiquement pour éviter les dépendances circulaires
+				const { router } = require("expo-router");
+				console.log("🔵 Router obtained");
+
+				// Navigation selon le type
+				if (
+					notification.type === "new_message" &&
+					notification.metadata?.apply_id
+				) {
+					console.log("🔵 Navigating to application (new_message)");
+					router.push({
+						pathname: "/application",
+						params: {
+							apply_id: notification.metadata.apply_id,
+							id: user.id,
+						},
+					});
+				} else if (
+					notification.entity_type === "message" &&
+					notification.entity_id
+				) {
+					console.log("🔵 Navigating to application (message)");
+					router.push({
+						pathname: "/application",
+						params: {
+							apply_id: notification.entity_id,
+							id: user.id,
+							openMessaging: "true",
+						},
+					});
+				} else if (
+					notification.entity_type === "application" &&
+					notification.entity_id
+				) {
+					console.log("🔵 Navigating to application");
+					router.push({
+						pathname: "/application",
+						params: {
+							apply_id: notification.entity_id,
+							id: user.id,
+						},
+					});
+				} else if (
+					notification.type === "job_offer" &&
+					notification.entity_id
+				) {
+					console.log("🔵 Navigating to job");
+					router.push({
+						pathname: "/job",
+						params: { id: notification.entity_id },
+					});
+				}
+				console.log("🔵 Toast press - End");
+			} catch (error) {
+				console.error("❌ Error handling toast press:", error);
+				console.error("❌ Error stack:", error.stack);
+			}
+		},
+		[user?.id, markNotificationAsRead, dismissToast],
+	);
+
 	return (
 		<NotificationsContext.Provider
 			value={{
@@ -170,6 +278,13 @@ export const NotificationsProvider = ({ children }) => {
 				isLoading: !isInitialized,
 			}}>
 			{children}
+			{toastVisible && currentToast && (
+				<NotificationToast
+					notification={currentToast}
+					onPress={() => handleToastPress(currentToast)}
+					onDismiss={dismissToast}
+				/>
+			)}
 		</NotificationsContext.Provider>
 	);
 };
