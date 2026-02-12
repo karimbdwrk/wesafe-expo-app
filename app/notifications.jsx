@@ -132,7 +132,11 @@ const Notifications = () => {
 			// Notification de message groupé - entity_id contient l'apply_id
 			router.replace({
 				pathname: "/application",
-				params: { apply_id: notification.entity_id, id: user.id },
+				params: {
+					apply_id: notification.entity_id,
+					id: user.id,
+					openMessaging: "true",
+				},
 			});
 		} else if (
 			notification.entity_type === "application" &&
