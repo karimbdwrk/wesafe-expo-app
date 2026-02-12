@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, StyleSheet, ScrollView, Animated, Easing } from "react-native";
+import {
+	View,
+	StyleSheet,
+	ScrollView,
+	Animated,
+	Easing,
+	KeyboardAvoidingView,
+	Platform,
+	Keyboard,
+} from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
@@ -116,7 +125,7 @@ const STATUS_CONFIG = {
 
 const ApplicationScreen = () => {
 	const router = useRouter();
-	const { id, title, company_id, category, apply_id, name } =
+	const { id, title, company_id, category, apply_id, name, openMessaging } =
 		useLocalSearchParams();
 	const { user, role, accessToken } = useAuth();
 	const {
@@ -141,6 +150,7 @@ const ApplicationScreen = () => {
 		useState(false);
 	const [showMessaging, setShowMessaging] = useState(false);
 	const [isOtherPartyTyping, setIsOtherPartyTyping] = useState(false);
+	const [messagingSnapPoint, setMessagingSnapPoint] = useState(80);
 
 	const [isInWishlist, setIsInWishlist] = useState(false);
 	const [isSelected, setIsSelected] = useState(false);
@@ -236,6 +246,13 @@ const ApplicationScreen = () => {
 			loadUnreadMessagesCount();
 			markApplicationNotificationsAsRead();
 
+			// Ouvrir automatiquement l'ActionSheet si on vient d'une notification de message
+			if (openMessaging === "true") {
+				setTimeout(() => {
+					setShowMessaging(true);
+				}, 600);
+			}
+
 			// Mettre à jour la présence immédiatement
 			updatePresence();
 
@@ -269,6 +286,27 @@ const ApplicationScreen = () => {
 			};
 		}, []),
 	);
+
+	// Gérer le changement de snapPoint quand le clavier s'ouvre/ferme
+	useEffect(() => {
+		const keyboardDidShowListener = Keyboard.addListener(
+			"keyboardDidShow",
+			() => {
+				setMessagingSnapPoint(90);
+			},
+		);
+		const keyboardDidHideListener = Keyboard.addListener(
+			"keyboardDidHide",
+			() => {
+				setMessagingSnapPoint(80);
+			},
+		);
+
+		return () => {
+			keyboardDidShowListener.remove();
+			keyboardDidHideListener.remove();
+		};
+	}, []);
 
 	useEffect(() => {
 		currentStatus &&
@@ -910,35 +948,42 @@ const ApplicationScreen = () => {
 				onClose={() => setShowMessaging(false)}
 				snapPoints={[90]}>
 				<ActionsheetBackdrop />
-				<ActionsheetContent className='h-[90%]'>
+				<ActionsheetContent style={{ padding: 0 }}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
 					</ActionsheetDragIndicatorWrapper>
-					<VStack className='flex-1 w-full pt-2'>
-						<HStack
-							space='md'
-							className='items-center px-4 pb-3 border-b border-outline-200'>
-							<Heading size='md'>
-								{role === "pro"
-									? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
-									: application?.companies?.name ||
-										application?.jobs?.company_name}
-							</Heading>
-						</HStack>
-						<MessageThread
-							applyId={apply_id}
-							otherPartyName={
-								role === "pro"
-									? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
-									: application?.companies?.name ||
-										application?.jobs?.company_name
-							}
-							isReadOnly={currentStatus === "rejected"}
-							onTypingChange={(typing) =>
-								setIsOtherPartyTyping(typing)
-							}
-						/>
-					</VStack>
+					<KeyboardAvoidingView
+						style={{ flex: 1, width: "100%" }}
+						behavior={Platform.OS === "ios" ? "padding" : "height"}
+						keyboardVerticalOffset={
+							Platform.OS === "ios" ? 100 : 40
+						}>
+						<VStack className='flex-1 w-full pt-2'>
+							<HStack
+								space='md'
+								className='items-center px-4 pb-3 border-b border-outline-200'>
+								<Heading size='md'>
+									{role === "pro"
+										? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
+										: application?.companies?.name ||
+											application?.jobs?.company_name}
+								</Heading>
+							</HStack>
+							<MessageThread
+								applyId={apply_id}
+								otherPartyName={
+									role === "pro"
+										? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
+										: application?.companies?.name ||
+											application?.jobs?.company_name
+								}
+								isReadOnly={currentStatus === "rejected"}
+								onTypingChange={(typing) =>
+									setIsOtherPartyTyping(typing)
+								}
+							/>
+						</VStack>
+					</KeyboardAvoidingView>
 				</ActionsheetContent>
 			</Actionsheet>
 		</ScrollView>
