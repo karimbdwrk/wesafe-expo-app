@@ -17,7 +17,7 @@ import { useDataContext } from "@/context/DataContext";
 
 const CreateProfile = () => {
 	const router = useRouter();
-	const { user, setJustSignup, loadUserData, AccessToken } = useAuth();
+	const { user, setJustSignup, loadSession, role } = useAuth();
 	const { create } = useDataContext();
 
 	const [lastname, setLastname] = useState("");
@@ -25,17 +25,31 @@ const CreateProfile = () => {
 
 	const handleCreateProfile = async () => {
 		try {
+			console.log("🟢 Creating profile...");
 			const newProfile = await create("profiles", {
 				lastname,
 				firstname,
 				email: user.email,
 			});
-			console.log("new profile :", newProfile);
-			loadUserData(user.id, AccessToken);
+			console.log("✅ Profile created:", newProfile);
+
+			// Attendre que les données soient chargées avant de naviguer
+			console.log("🔄 Loading session...");
+			console.log("🔵 Role BEFORE loadSession:", role);
+			await loadSession();
+			console.log("✅ Session loaded");
+
 			setJustSignup(false);
-			router.replace("/(tabs)");
+
+			// Attendre un peu pour que le state role soit bien propagé dans tous les composants
+			console.log("⏳ Waiting for state to update...");
+			await new Promise((resolve) => setTimeout(resolve, 500));
+
+			console.log("🔵 Role AFTER delay:", role);
+			console.log("🔀 Navigating to tabs...");
+			router.replace("/tabs/(tabs)");
 		} catch (error) {
-			console.log("error create profile", error);
+			console.log("❌ Error create profile", error);
 		}
 	};
 
