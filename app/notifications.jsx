@@ -17,6 +17,7 @@ import {
 	Briefcase,
 	CircleSmall,
 	FileText,
+	MessageCircleMore,
 	User,
 } from "lucide-react-native";
 
@@ -185,8 +186,8 @@ const Notifications = () => {
 				return FileText;
 			case "job_offer":
 				return Briefcase;
-			case "new_message":
-				return Bell;
+			case "message":
+				return MessageCircleMore;
 			default:
 				return Bell;
 		}
