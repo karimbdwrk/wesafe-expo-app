@@ -142,6 +142,7 @@ const ApplicationScreen = () => {
 	const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
 	const [contractGenerated, setContractGenerated] = useState(false);
+	const presenceIntervalRef = React.useRef(null);
 
 	const loadData = async () => {
 		const data = await getById(
@@ -185,11 +186,51 @@ const ApplicationScreen = () => {
 		}
 	};
 
+	const updatePresence = async () => {
+		if (!user?.id || !apply_id || !accessToken) return;
+
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			await supabase.from("user_presence").upsert({
+				user_id: user.id,
+				apply_id: apply_id,
+				last_seen: new Date().toISOString(),
+			});
+		} catch (error) {
+			console.error("Error updating presence:", error);
+		}
+	};
+
+	const markApplicationNotificationsAsRead = async () => {
+		if (!user?.id || !apply_id || !accessToken) return;
+
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			await supabase
+				.from("notifications")
+				.update({ is_read: true, read_at: new Date().toISOString() })
+				.eq("recipient_id", user.id)
+				.eq("entity_id", apply_id)
+				.eq("entity_type", "application")
+				.eq("is_read", false);
+			console.log("✅ Notifications de candidature marquées comme lues");
+		} catch (error) {
+			console.error("Error marking notifications as read:", error);
+		}
+	};
+
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
 			loadApplicationStatus();
 			loadUnreadMessagesCount();
+			markApplicationNotificationsAsRead();
+
+			// Mettre à jour la présence immédiatement
+			updatePresence();
+
+			// Démarrer l'intervalle de présence
+			presenceIntervalRef.current = setInterval(updatePresence, 3000);
 
 			// Abonnement real-time pour les messages
 			const supabase = createSupabaseClient(accessToken);
@@ -211,6 +252,9 @@ const ApplicationScreen = () => {
 				.subscribe();
 
 			return () => {
+				if (presenceIntervalRef.current) {
+					clearInterval(presenceIntervalRef.current);
+				}
 				supabase.removeChannel(channel);
 			};
 		}, []),
@@ -291,15 +335,32 @@ const ApplicationScreen = () => {
 		setCurrentStatus("selected");
 
 		setShowSelectModal(false);
-		await createNotification({
-			recipientId: application.candidate_id,
-			actorId: application.company_id,
-			type: "application_selected",
-			title: "Profil sélectionné",
-			body: "Le recruteur souhaite poursuivre avec vous.",
-			entityType: "application",
-			entityId: apply_id,
-		});
+
+		// Vérifier si le destinataire est actif sur le screen
+		const supabase = createSupabaseClient(accessToken);
+		const { data: presenceData } = await supabase
+			.from("user_presence")
+			.select("apply_id")
+			.eq("user_id", application.candidate_id)
+			.eq("apply_id", apply_id)
+			.gte("last_seen", new Date(Date.now() - 5000).toISOString())
+			.single();
+
+		if (presenceData) {
+			console.log(
+				"⏩ Notification ignorée - candidat actif sur le screen",
+			);
+		} else {
+			await createNotification({
+				recipientId: application.candidate_id,
+				actorId: application.company_id,
+				type: "application_selected",
+				title: "Profil sélectionné",
+				body: "Le recruteur souhaite poursuivre avec vous.",
+				entityType: "application",
+				entityId: apply_id,
+			});
+		}
 
 		// Envoyer l'email au candidat
 		await sendRecruitmentStatusEmail(
@@ -337,15 +398,32 @@ const ApplicationScreen = () => {
 
 		setContractGenerated(true);
 		setShowGenerateContractModal(false);
-		await createNotification({
-			recipientId: application.candidate_id,
-			actorId: application.company_id,
-			type: "contract_sent",
-			title: "Contrat envoyé",
-			body: "Le recruteur a envoyé un contrat pour votre candidature.",
-			entityType: "application",
-			entityId: apply_id,
-		});
+
+		// Vérifier si le destinataire est actif sur le screen
+		const supabase = createSupabaseClient(accessToken);
+		const { data: presenceData } = await supabase
+			.from("user_presence")
+			.select("apply_id")
+			.eq("user_id", application.candidate_id)
+			.eq("apply_id", apply_id)
+			.gte("last_seen", new Date(Date.now() - 5000).toISOString())
+			.single();
+
+		if (presenceData) {
+			console.log(
+				"⏩ Notification ignorée - candidat actif sur le screen",
+			);
+		} else {
+			await createNotification({
+				recipientId: application.candidate_id,
+				actorId: application.company_id,
+				type: "contract_sent",
+				title: "Contrat envoyé",
+				body: "Le recruteur a envoyé un contrat pour votre candidature.",
+				entityType: "application",
+				entityId: apply_id,
+			});
+		}
 
 		// Envoyer l'email au candidat
 		await sendRecruitmentStatusEmail(
@@ -372,15 +450,32 @@ const ApplicationScreen = () => {
 		console.log("Candidat refusé :", isNowRejected);
 		setCurrentStatus("rejected");
 		setShowRejectModal(false);
-		await createNotification({
-			recipientId: application.candidate_id,
-			actorId: application.company_id,
-			type: "application_rejected",
-			title: "Profil refusé",
-			body: "Le recruteur a refusé votre candidature.",
-			entityType: "application",
-			entityId: apply_id,
-		});
+
+		// Vérifier si le destinataire est actif sur le screen
+		const supabase = createSupabaseClient(accessToken);
+		const { data: presenceData } = await supabase
+			.from("user_presence")
+			.select("apply_id")
+			.eq("user_id", application.candidate_id)
+			.eq("apply_id", apply_id)
+			.gte("last_seen", new Date(Date.now() - 5000).toISOString())
+			.single();
+
+		if (presenceData) {
+			console.log(
+				"⏩ Notification ignorée - candidat actif sur le screen",
+			);
+		} else {
+			await createNotification({
+				recipientId: application.candidate_id,
+				actorId: application.company_id,
+				type: "application_rejected",
+				title: "Profil refusé",
+				body: "Le recruteur a refusé votre candidature.",
+				entityType: "application",
+				entityId: apply_id,
+			});
+		}
 
 		// Envoyer l'email au candidat
 		await sendRecruitmentStatusEmail(
