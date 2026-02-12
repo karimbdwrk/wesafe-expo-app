@@ -66,29 +66,66 @@ function RootLayoutNav() {
 	const [colorMode, setColorMode] = useState("light");
 
 	useEffect(() => {
+		console.log(
+			"🔄 _layout useEffect - authLoading:",
+			authLoading,
+			"user:",
+			!!user,
+			"role:",
+			role,
+			"pathname:",
+			pathname,
+		);
+
 		if (authLoading) return;
 
+		// Ne rien faire si on est sur createprofile ou createcompany - laisser ces écrans gérer leur propre navigation
+		if (pathname === "/createprofile" || pathname === "/createcompany") {
+			console.log("⏸️ Skipping redirect - on creation screen");
+			return;
+		}
+
 		if (!user) {
-			console.log("pas connecté, pathname:", pathname);
-			// Pas connecté → laisser accéder à index.jsx
-			if (pathname !== "/") router.replace("/connexion");
-			router.replace("/connexion");
+			console.log("❌ pas connecté, pathname:", pathname);
+			// Pas connecté → rediriger vers connexion
+			if (
+				pathname !== "/connexion" &&
+				pathname !== "/signin" &&
+				pathname !== "/signup"
+			) {
+				console.log("🔀 Redirecting to /connexion from", pathname);
+				router.replace("/connexion");
+			}
 			return;
 		}
 
 		// Connecté → vérifier la finalisation
 		if (role === "unknown") {
+			console.log("⚠️ Role unknown, pathname:", pathname);
+			// Permettre finalizeregistration
 			if (pathname !== "/finalizeregistration") {
+				console.log(
+					"🔀 Redirecting to /finalizeregistration from",
+					pathname,
+				);
 				router.replace("/finalizeregistration");
 			}
 			return;
 		}
 
-		// Connecté normal → aller sur tabs
-		if (!pathname.startsWith("/tabs")) {
+		// Connecté normal → aller sur tabs uniquement si sur les écrans de connexion/signup
+		console.log("✅ User connected with role:", role);
+		if (
+			pathname === "/" ||
+			pathname === "/connexion" ||
+			pathname === "/signin" ||
+			pathname === "/signup" ||
+			pathname === "/finalizeregistration"
+		) {
+			console.log("🔀 Redirecting to /tabs/(tabs) from", pathname);
 			router.replace("/tabs/(tabs)");
 		}
-	}, [authLoading, user, role]);
+	}, [authLoading, user, role, pathname]);
 
 	return (
 		<>
