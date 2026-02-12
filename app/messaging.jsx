@@ -5,7 +5,7 @@ import { Heading } from "@/components/ui/heading";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
-import { ArrowLeft } from "lucide-react-native";
+import { ArrowLeft, ChevronLeft } from "lucide-react-native";
 import MessageThread from "@/components/MessageThread";
 import { useAuth } from "@/context/AuthContext";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -189,12 +189,13 @@ const MessagingScreen = () => {
 				<HStack
 					space='md'
 					className='items-center p-4 border-b border-outline-200'>
-					<Button
-						size='sm'
+					{/* <Button
+						size='md'
 						variant='link'
+						style={{ minWidth: 44, minHeight: 44 }}
 						onPress={() => router.back()}>
-						<ButtonIcon as={ArrowLeft} />
-					</Button>
+						<ButtonIcon as={ChevronLeft} />
+					</Button> */}
 					<View style={{ flex: 1, minHeight: 44 }}>
 						<Heading size='md'>
 							{other_party_name || "Messagerie"}
