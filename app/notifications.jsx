@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { Pressable, ScrollView } from "react-native";
+import { TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { Box } from "@/components/ui/box";
 import { Card } from "@/components/ui/card";
@@ -9,22 +9,24 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
-import { Badge, BadgeText } from "@/components/ui/badge";
+import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
+import { Divider } from "@/components/ui/divider";
 import {
-	BadgeIcon,
 	Bell,
 	Briefcase,
-	CircleSmall,
+	Circle,
 	FileText,
 	MessageCircleMore,
 	User,
+	CheckCheck,
+	MailOpen,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useNotifications } from "@/context/NotificationsContext";
-import { height } from "dom-helpers";
+import { useTheme } from "@/context/ThemeContext";
 
 import { createClient } from "@supabase/supabase-js";
 import Constants from "expo-constants";
@@ -32,6 +34,7 @@ import Constants from "expo-constants";
 const Notifications = () => {
 	const { user, accessToken } = useAuth();
 	const { getAll, update } = useDataContext();
+	const { isDark } = useTheme();
 	const {
 		notifications,
 		unreadCount,
@@ -201,109 +204,285 @@ const Notifications = () => {
 	};
 
 	return (
-		<ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
-			<VStack style={{ padding: 15, gap: 10 }}>
-				{notifications.length > 0 ? (
-					notifications.map((notification) => (
-						<Pressable
-							key={notification.id}
-							onPress={() =>
-								handleNotificationPress(notification)
-							}>
-							<Card
-								style={{
-									padding: 15,
-									backgroundColor: notification.is_read
-										? "#fff"
-										: "#f0f9ff",
-									borderWidth: 1,
-									borderColor: notification.is_read
-										? "#e5e7eb"
-										: "#3b82f6",
-								}}>
-								<HStack
-									style={{
-										gap: 15,
-										alignItems: "flex-start",
-									}}>
-									<VStack
-										style={{
-											justifyContent: "space-between",
-											alignItems: "center",
-											height: 60,
-										}}>
-										<Icon
-											as={getNotificationIcon(
-												notification.entity_type,
-											)}
-											size='lg'
-											color={
-												notification.is_read
-													? "#6b7280"
-													: "#3b82f6"
-											}
-											style={{ marginTop: 4 }}
-										/>
-										{!notification.is_read && (
-											<Icon
-												as={CircleSmall}
-												size={14}
-												color='#3b82f6'
-											/>
-										)}
-									</VStack>
-									<VStack>
-										<HStack
-											style={{
-												justifyContent: "space-between",
-												alignItems: "center",
-											}}>
-											<VStack>
-												<Heading size='md'>
-													{notification.title}
-												</Heading>
-												<Text
-													style={{
-														fontWeight: "600",
-														fontSize: 14,
-													}}>
-													{notification.body}
-												</Text>
-											</VStack>
-										</HStack>
-										<Text
-											style={{
-												fontSize: 13,
-												color: "#6b7280",
-											}}>
-											{notification.message}
-										</Text>
-										<Text
-											style={{
-												fontSize: 11,
-												color: "#9ca3af",
-											}}>
-											{formatDate(
-												notification.created_at,
-											)}
-										</Text>
-									</VStack>
-								</HStack>
-							</Card>
-						</Pressable>
-					))
-				) : (
-					<VStack
+		<ScrollView
+			style={{
+				flex: 1,
+				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+			}}>
+			<VStack space='lg' style={{ padding: 20 }}>
+				{/* Header Card */}
+				<Card
+					style={{
+						backgroundColor: isDark ? "#374151" : "#ffffff",
+						borderRadius: 12,
+						padding: 20,
+					}}>
+					<HStack
+						space='md'
 						style={{
 							alignItems: "center",
-							marginTop: 40,
-							gap: 10,
+							justifyContent: "space-between",
 						}}>
-						<Icon as={Bell} size='xl' color='#9ca3af' />
-						<Text style={{ color: "#6b7280" }}>
-							Aucune notification
-						</Text>
+						<HStack
+							space='md'
+							style={{ alignItems: "center", flex: 1 }}>
+							<Box
+								style={{
+									width: 48,
+									height: 48,
+									borderRadius: 24,
+									backgroundColor: "#2563eb",
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Icon as={Bell} size={24} color='#ffffff' />
+							</Box>
+							<VStack style={{ flex: 1 }}>
+								<Heading
+									size='lg'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									Notifications
+								</Heading>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+										marginTop: 2,
+									}}>
+									{unreadCount > 0
+										? `${unreadCount} non lue${unreadCount > 1 ? "s" : ""}`
+										: "Aucune notification non lue"}
+								</Text>
+							</VStack>
+						</HStack>
+						{unreadCount > 0 && (
+							<TouchableOpacity onPress={markAllAsRead}>
+								<Box
+									style={{
+										paddingHorizontal: 12,
+										paddingVertical: 8,
+										borderRadius: 8,
+										backgroundColor: isDark
+											? "#1f2937"
+											: "#f3f4f6",
+									}}>
+									<HStack
+										space='xs'
+										style={{ alignItems: "center" }}>
+										<Icon
+											as={CheckCheck}
+											size={16}
+											color='#2563eb'
+										/>
+										<Text
+											size='xs'
+											style={{
+												color: "#2563eb",
+												fontWeight: "600",
+											}}>
+											Tout lire
+										</Text>
+									</HStack>
+								</Box>
+							</TouchableOpacity>
+						)}
+					</HStack>
+				</Card>
+
+				{/* Notifications List */}
+				{notifications.length > 0 ? (
+					<VStack space='md'>
+						{notifications.map((notification) => (
+							<TouchableOpacity
+								key={notification.id}
+								onPress={() =>
+									handleNotificationPress(notification)
+								}
+								activeOpacity={0.7}>
+								<Card
+									style={{
+										backgroundColor: notification.is_read
+											? isDark
+												? "#374151"
+												: "#ffffff"
+											: isDark
+												? "#1e3a5f"
+												: "#eff6ff",
+										borderRadius: 12,
+										padding: 16,
+										borderWidth: notification.is_read
+											? 0
+											: 1,
+										borderColor: "#2563eb",
+									}}>
+									<HStack
+										space='md'
+										style={{ alignItems: "flex-start" }}>
+										{/* Icon */}
+										<Box
+											style={{
+												width: 40,
+												height: 40,
+												borderRadius: 20,
+												backgroundColor:
+													notification.is_read
+														? isDark
+															? "#1f2937"
+															: "#f3f4f6"
+														: "#dbeafe",
+												justifyContent: "center",
+												alignItems: "center",
+												position: "relative",
+											}}>
+											<Icon
+												as={getNotificationIcon(
+													notification.entity_type,
+												)}
+												size={20}
+												color={
+													notification.is_read
+														? isDark
+															? "#9ca3af"
+															: "#6b7280"
+														: "#2563eb"
+												}
+											/>
+											{!notification.is_read && (
+												<Box
+													style={{
+														position: "absolute",
+														top: -2,
+														right: -2,
+														width: 10,
+														height: 10,
+														borderRadius: 5,
+														backgroundColor:
+															"#2563eb",
+														borderWidth: 2,
+														borderColor: isDark
+															? "#1e3a5f"
+															: "#eff6ff",
+													}}
+												/>
+											)}
+										</Box>
+
+										{/* Content */}
+										<VStack style={{ flex: 1 }} space='xs'>
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+													alignItems: "flex-start",
+												}}>
+												<VStack
+													style={{ flex: 1 }}
+													space='xs'>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "700",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														{notification.title}
+													</Text>
+													{notification.body && (
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#d1d5db"
+																	: "#374151",
+															}}>
+															{notification.body}
+														</Text>
+													)}
+												</VStack>
+												<Text
+													size='xs'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														marginLeft: 8,
+													}}>
+													{formatDate(
+														notification.created_at,
+													)}
+												</Text>
+											</HStack>
+											{notification.message && (
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														lineHeight: 18,
+													}}>
+													{notification.message}
+												</Text>
+											)}
+										</VStack>
+									</HStack>
+								</Card>
+							</TouchableOpacity>
+						))}
 					</VStack>
+				) : (
+					<Card
+						style={{
+							backgroundColor: isDark ? "#374151" : "#ffffff",
+							borderRadius: 12,
+							padding: 40,
+						}}>
+						<VStack
+							space='md'
+							style={{
+								alignItems: "center",
+							}}>
+							<Box
+								style={{
+									width: 80,
+									height: 80,
+									borderRadius: 40,
+									backgroundColor: isDark
+										? "#1f2937"
+										: "#f3f4f6",
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Icon
+									as={MailOpen}
+									size={40}
+									color={isDark ? "#6b7280" : "#9ca3af"}
+								/>
+							</Box>
+							<VStack space='xs' style={{ alignItems: "center" }}>
+								<Heading
+									size='md'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									Aucune notification
+								</Heading>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+										textAlign: "center",
+									}}>
+									Vous êtes à jour !
+								</Text>
+							</VStack>
+						</VStack>
+					</Card>
 				)}
 			</VStack>
 		</ScrollView>
