@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ScrollView, StyleSheet } from "react-native";
+import { TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { createSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -7,15 +7,19 @@ import { useAuth } from "@/context/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { HStack } from "@/components/ui/hstack";
-import { Pressable } from "@/components/ui/pressable";
-// import { Image } from "@/components/ui/image";
-// import { Link, LinkText } from "@/components/ui/link";
+import { VStack } from "@/components/ui/vstack";
+import { Box } from "@/components/ui/box";
+import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
-import { Button, ButtonText } from "@/components/ui/button";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
-import { GlobeIcon } from "@/components/ui/icon";
-import { width } from "dom-helpers";
-import { BackpackIcon } from "lucide-react-native";
+import { useTheme } from "@/components/ui/themed/theme-provider";
+import {
+	Briefcase,
+	Clock,
+	MessageCircle,
+	CheckCircle,
+	XCircle,
+} from "lucide-react-native";
 
 const ApplyCard = ({
 	id,
@@ -76,8 +80,36 @@ const ApplyCard = ({
 			supabase.removeChannel(channel);
 		};
 	}, [user?.id, apply_id, accessToken]);
+
+	const { isDark } = useTheme();
+
+	const getStatusConfig = (status) => {
+		switch (status) {
+			case "rejected":
+				return {
+					color: "#ef4444",
+					icon: XCircle,
+					label: "Refusé",
+				};
+			case "accepted":
+				return {
+					color: "#10b981",
+					icon: CheckCircle,
+					label: "Accepté",
+				};
+			default:
+				return {
+					color: "#f59e0b",
+					icon: Clock,
+					label: "En attente",
+				};
+		}
+	};
+
+	const statusConfig = getStatusConfig(status);
+
 	return (
-		<Pressable
+		<TouchableOpacity
 			onPress={() =>
 				router.push({
 					pathname: "/application",
@@ -90,61 +122,99 @@ const ApplyCard = ({
 						name,
 					},
 				})
-			}>
-			{({ pressed }) => (
-				<Card
-					size='lg'
-					variant='filled'
-					style={{
-						width: "100%",
-						backgroundColor: pressed ? "#F0F0F0" : "#F7F7F7",
-					}}>
-					{name && (
-						<Heading size='md' className='mb-1'>
-							{name}
-						</Heading>
-					)}
-					<Heading size='md' className='mb-1'>
-						{title}
-					</Heading>
-					<Text>{id}</Text>
-					<HStack style={{ marginTop: 15, gap: 10 }}>
-						<Badge size='md' variant='solid' action='warning'>
-							<BadgeText>{category}</BadgeText>
-						</Badge>
-						<Badge
+			}
+			activeOpacity={0.7}>
+			<Card
+				style={{
+					backgroundColor: isDark ? "#374151" : "#ffffff",
+					borderRadius: 12,
+					padding: 16,
+				}}>
+				<HStack space='md' style={{ alignItems: "flex-start" }}>
+					{/* Icon Circle */}
+					<Box
+						style={{
+							width: 48,
+							height: 48,
+							borderRadius: 24,
+							backgroundColor: isDark ? "#1f2937" : "#f3f4f6",
+							justifyContent: "center",
+							alignItems: "center",
+						}}>
+						<Icon
+							as={Briefcase}
+							size={24}
+							color={isDark ? "#9ca3af" : "#6b7280"}
+						/>
+					</Box>
+
+					{/* Content */}
+					<VStack style={{ flex: 1 }} space='xs'>
+						<Heading
 							size='md'
-							variant='solid'
-							action={
-								status === "rejected" ? "error" : "success"
-							}>
-							<BadgeText>{status}</BadgeText>
-						</Badge>
-						{unreadMessagesCount > 0 && (
-							<Badge
-								size='md'
-								variant='solid'
-								action='error'
+							style={{
+								color: isDark ? "#f3f4f6" : "#111827",
+							}}>
+							{title}
+						</Heading>
+						{name && (
+							<Text
+								size='sm'
 								style={{
-									minWidth: 24,
-									height: 24,
-									borderRadius: 12,
-									justifyContent: "center",
-									alignItems: "center",
+									color: isDark ? "#9ca3af" : "#6b7280",
 								}}>
-								<BadgeText
-									style={{
-										fontSize: 12,
-										fontWeight: "bold",
-									}}>
-									💬 {unreadMessagesCount}
+								{name}
+							</Text>
+						)}
+
+						{/* Badges */}
+						<HStack
+							space='sm'
+							style={{ marginTop: 8, flexWrap: "wrap" }}>
+							{/* Category Badge */}
+							<Badge
+								size='sm'
+								variant='solid'
+								style={{
+									backgroundColor: "#6366f1",
+								}}>
+								<BadgeText style={{ color: "#ffffff" }}>
+									{category}
 								</BadgeText>
 							</Badge>
-						)}
-					</HStack>
-				</Card>
-			)}
-		</Pressable>
+
+							{/* Status Badge */}
+							<Badge
+								size='sm'
+								variant='solid'
+								style={{
+									backgroundColor: statusConfig.color,
+								}}>
+								<BadgeIcon as={statusConfig.icon} size={12} />
+								<BadgeText style={{ color: "#ffffff" }}>
+									{statusConfig.label}
+								</BadgeText>
+							</Badge>
+
+							{/* Unread Messages Badge */}
+							{unreadMessagesCount > 0 && (
+								<Badge
+									size='sm'
+									variant='solid'
+									style={{
+										backgroundColor: "#ef4444",
+									}}>
+									<BadgeIcon as={MessageCircle} size={12} />
+									<BadgeText style={{ color: "#ffffff" }}>
+										{unreadMessagesCount}
+									</BadgeText>
+								</Badge>
+							)}
+						</HStack>
+					</VStack>
+				</HStack>
+			</Card>
+		</TouchableOpacity>
 	);
 };
 
