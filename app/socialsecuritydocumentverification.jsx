@@ -3,19 +3,36 @@ import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import Constants from "expo-constants";
 import { useFocusEffect } from "expo-router";
+import { ScrollView, TouchableOpacity } from "react-native";
 
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
-import { Button, ButtonText } from "@/components/ui/button";
+import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Pressable } from "@/components/ui/pressable";
 import { Image } from "@/components/ui/image";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
-import { GlobeIcon } from "@/components/ui/icon";
+import { Icon } from "@/components/ui/icon";
+import { Card } from "@/components/ui/card";
+import { Heading } from "@/components/ui/heading";
+import { Divider } from "@/components/ui/divider";
+import {
+	CheckCircle,
+	Clock,
+	AlertCircle,
+	CreditCard,
+	FileText,
+	Camera,
+	Image as ImageIcon,
+	Upload,
+	X,
+	Heart,
+} from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const DOCUMENTS_BUCKET = "social-security-documents";
@@ -23,6 +40,7 @@ const DOCUMENTS_BUCKET = "social-security-documents";
 export default function SocialSecurityDocumentVerification({ navigation }) {
 	const { user, userProfile, accessToken, loadUserData } = useAuth();
 	const { update } = useDataContext();
+	const { isDark } = useTheme();
 
 	const [documentType, setDocumentType] = useState(null);
 	const [documentImage, setDocumentImage] = useState(null);
@@ -124,110 +142,362 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 	/* UI                 */
 	/* ------------------ */
 
+	const getStatusBadge = () => {
+		const statusConfig = {
+			verified: {
+				action: "success",
+				icon: CheckCircle,
+				label: "Vérifié",
+			},
+			pending: {
+				action: "warning",
+				icon: Clock,
+				label: "En attente",
+			},
+			rejected: {
+				action: "error",
+				icon: AlertCircle,
+				label: "Rejeté",
+			},
+		};
+
+		const config = statusConfig[uploadedStatus] || statusConfig.pending;
+
+		return (
+			<Badge size='md' variant='solid' action={config.action}>
+				<BadgeIcon as={config.icon} />
+				<BadgeText className='ml-1'>{config.label}</BadgeText>
+			</Badge>
+		);
+	};
+
+	const getDocumentLabel = (type) => {
+		return type === "carte_vitale"
+			? "Carte Vitale"
+			: "Attestation de Sécurité Sociale";
+	};
+
 	return (
-		<Box flex={1} bg='$backgroundLight0' style={{ padding: 15 }}>
-			<VStack space='xl'>
-				<VStack space='xs'>
-					<Text size='xl' fontWeight='$bold'>
-						Social Security document
-					</Text>
-					<Text color='$textLight500'>
-						Upload your Carte Vitale or Social Security certificate
-					</Text>
+		<ScrollView
+			style={{ flex: 1, backgroundColor: isDark ? "#1f2937" : "#f9fafb" }}
+			showsVerticalScrollIndicator={false}>
+			<Box style={{ padding: 20, paddingBottom: 40 }}>
+				<VStack space='2xl'>
+					{/* Header */}
+					<VStack space='md'>
+						<Heading
+							size='2xl'
+							style={{ color: isDark ? "#f3f4f6" : "#111827" }}>
+							Sécurité Sociale
+						</Heading>
+						<Text
+							size='md'
+							style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+							Téléchargez votre Carte Vitale ou une attestation de
+							Sécurité Sociale
+						</Text>
+					</VStack>
+
+					{/* Status Card */}
 					{uploadedStatus && (
-						<VStack>
-							<Text>
-								You have already uploaded a {uploadedType}.
+						<Card
+							style={{
+								padding: 20,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderRadius: 12,
+								shadowColor: "#000",
+								shadowOffset: { width: 0, height: 2 },
+								shadowOpacity: 0.05,
+								shadowRadius: 8,
+								elevation: 2,
+							}}>
+							<VStack space='md'>
+								<HStack
+									style={{
+										justifyContent: "space-between",
+										alignItems: "center",
+									}}>
+									<Text
+										size='lg'
+										style={{
+											fontWeight: "600",
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										Document actuel
+									</Text>
+									{getStatusBadge()}
+								</HStack>
+
+								<Divider />
+
+								<VStack space='sm'>
+									<HStack
+										space='sm'
+										style={{ alignItems: "center" }}>
+										<Icon
+											as={
+												uploadedType === "carte_vitale"
+													? CreditCard
+													: FileText
+											}
+											size='sm'
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}
+										/>
+										<Text
+											style={{
+												color: isDark
+													? "#d1d5db"
+													: "#374151",
+											}}>
+											{getDocumentLabel(uploadedType)}
+										</Text>
+									</HStack>
+								</VStack>
+							</VStack>
+						</Card>
+					)}
+
+					{/* Document Type Selection */}
+					{!documentType && uploadedStatus !== "verified" && (
+						<VStack space='lg'>
+							<Text
+								size='lg'
+								style={{
+									fontWeight: "600",
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								Choisissez votre document
 							</Text>
-							<HStack>
-								<Badge
-									size='lg'
-									variant='solid'
-									action={
-										uploadedStatus === "verified"
-											? "success"
-											: uploadedStatus === "pending"
-												? "warning"
-												: "info"
-									}>
-									<BadgeText>
-										{uploadedStatus || "pending"}
-									</BadgeText>
-									<BadgeIcon
-										as={GlobeIcon}
-										className='ml-2'
-									/>
-								</Badge>
-							</HStack>
+
+							<TouchableOpacity
+								onPress={() => setDocumentType("carte_vitale")}
+								activeOpacity={0.7}>
+								<Card
+									style={{
+										padding: 20,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 2,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
+									<HStack
+										space='md'
+										style={{ alignItems: "center" }}>
+										<Box
+											style={{
+												width: 48,
+												height: 48,
+												borderRadius: 24,
+												backgroundColor: "#dcfce7",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={CreditCard}
+												size='xl'
+												style={{ color: "#16a34a" }}
+											/>
+										</Box>
+										<VStack style={{ flex: 1 }} space='xs'>
+											<Text
+												size='lg'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Carte Vitale
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Carte d'assurance maladie
+												française
+											</Text>
+										</VStack>
+									</HStack>
+								</Card>
+							</TouchableOpacity>
+
+							<TouchableOpacity
+								onPress={() =>
+									setDocumentType(
+										"social_security_certificate",
+									)
+								}
+								activeOpacity={0.7}>
+								<Card
+									style={{
+										padding: 20,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 2,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
+									<HStack
+										space='md'
+										style={{ alignItems: "center" }}>
+										<Box
+											style={{
+												width: 48,
+												height: 48,
+												borderRadius: 24,
+												backgroundColor: "#dbeafe",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={FileText}
+												size='xl'
+												style={{ color: "#2563eb" }}
+											/>
+										</Box>
+										<VStack style={{ flex: 1 }} space='xs'>
+											<Text
+												size='lg'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Attestation de Sécurité Sociale
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Document officiel d'attestation
+											</Text>
+										</VStack>
+									</HStack>
+								</Card>
+							</TouchableOpacity>
+						</VStack>
+					)}
+
+					{documentType && (
+						<VStack space='xl'>
+							{/* Document Type Header */}
+							<Card
+								style={{
+									padding: 16,
+									backgroundColor: isDark
+										? "#065f46"
+										: "#dcfce7",
+									borderRadius: 12,
+								}}>
+								<HStack
+									style={{
+										justifyContent: "space-between",
+										alignItems: "center",
+									}}>
+									<HStack
+										space='sm'
+										style={{ alignItems: "center" }}>
+										<Icon
+											as={
+												documentType === "carte_vitale"
+													? CreditCard
+													: FileText
+											}
+											size='lg'
+											style={{
+												color: isDark
+													? "#d1fae5"
+													: "#16a34a",
+											}}
+										/>
+										<Text
+											size='lg'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#d1fae5"
+													: "#14532d",
+											}}>
+											{getDocumentLabel(documentType)}
+										</Text>
+									</HStack>
+									<Button
+										variant='outline'
+										size='sm'
+										onPress={() => setDocumentType(null)}>
+										<ButtonIcon as={X} />
+										<ButtonText>Changer</ButtonText>
+									</Button>
+								</HStack>
+							</Card>
+
+							{/* Upload Block */}
+							<UploadBlock
+								label='Document'
+								image={documentImage}
+								onPick={pickImage}
+								onCamera={() =>
+									navigation.navigate("CameraScreen", {
+										onCapture: setDocumentImage,
+									})
+								}
+								onRemove={() => setDocumentImage(null)}
+								isDark={isDark}
+							/>
+
+							{/* Submit Button */}
+							<Button
+								size='lg'
+								isDisabled={!documentImage}
+								onPress={handleSubmit}
+								style={{
+									borderRadius: 12,
+									backgroundColor: documentImage
+										? "#16a34a"
+										: "#d1d5db",
+								}}>
+								<ButtonIcon as={Upload} />
+								<ButtonText
+									style={{ fontSize: 16, fontWeight: "600" }}>
+									Soumettre le document
+								</ButtonText>
+							</Button>
+
+							{!documentImage && (
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+										textAlign: "center",
+									}}>
+									Veuillez ajouter une photo du document
+								</Text>
+							)}
 						</VStack>
 					)}
 				</VStack>
-
-				{!documentType && uploadedStatus !== "verified" && (
-					<VStack space='md'>
-						<Text fontWeight='$medium'>Choose a document</Text>
-
-						<Pressable
-							onPress={() => setDocumentType("carte_vitale")}>
-							<Box p='$4' borderWidth={1} borderRadius='$lg'>
-								<Text fontWeight='$medium'>Carte Vitale</Text>
-								<Text size='sm' color='$textLight500'>
-									French health insurance card
-								</Text>
-							</Box>
-						</Pressable>
-
-						<Pressable
-							onPress={() =>
-								setDocumentType("social_security_certificate")
-							}>
-							<Box p='$4' borderWidth={1} borderRadius='$lg'>
-								<Text fontWeight='$medium'>
-									Social Security certificate
-								</Text>
-								<Text size='sm' color='$textLight500'>
-									Official attestation document
-								</Text>
-							</Box>
-						</Pressable>
-					</VStack>
-				)}
-
-				{documentType && (
-					<VStack space='lg'>
-						<HStack
-							style={{
-								justifyContent: "space-between",
-								alignItems: "center",
-							}}>
-							<Text>
-								{documentType === "passport"
-									? "Passeport"
-									: "Carte d'identité"}
-							</Text>
-							<Button onPress={() => setDocumentType(null)}>
-								<ButtonText>Changer</ButtonText>
-							</Button>
-						</HStack>
-						<UploadBlock
-							label='Document'
-							image={documentImage}
-							onPick={pickImage}
-							onCamera={() =>
-								navigation.navigate("CameraScreen", {
-									onCapture: setDocumentImage,
-								})
-							}
-						/>
-						<Button
-							isDisabled={!documentImage}
-							onPress={handleSubmit}>
-							<ButtonText>Submit document</ButtonText>
-						</Button>
-					</VStack>
-				)}
-			</VStack>
-		</Box>
+			</Box>
+		</ScrollView>
 	);
 }
 
@@ -235,35 +505,115 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 /* Upload block       */
 /* ------------------ */
 
-function UploadBlock({ label, image, onPick, onCamera }) {
+function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 	return (
-		<Box p='$4' borderWidth={1} borderRadius='$lg' borderStyle='dashed'>
+		<Card
+			style={{
+				padding: 20,
+				backgroundColor: isDark ? "#374151" : "#ffffff",
+				borderRadius: 12,
+				borderWidth: 2,
+				borderColor: image ? "#10b981" : isDark ? "#4b5563" : "#e5e7eb",
+				borderStyle: image ? "solid" : "dashed",
+			}}>
 			<VStack space='md'>
-				<Text fontWeight='$medium'>{label}</Text>
+				<HStack
+					style={{
+						justifyContent: "space-between",
+						alignItems: "center",
+					}}>
+					<Text
+						size='md'
+						style={{
+							fontWeight: "600",
+							color: isDark ? "#f3f4f6" : "#111827",
+						}}>
+						{label}
+					</Text>
+					{image && (
+						<TouchableOpacity onPress={onRemove}>
+							<Box
+								style={{
+									width: 32,
+									height: 32,
+									borderRadius: 16,
+									backgroundColor: "#fee2e2",
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Icon
+									as={X}
+									size='sm'
+									style={{ color: "#dc2626" }}
+								/>
+							</Box>
+						</TouchableOpacity>
+					)}
+				</HStack>
 
 				{image ? (
-					<Image
-						source={{ uri: image.uri }}
-						alt={label}
-						width='100%'
-						height={160}
-						borderRadius='$md'
-					/>
+					<Box
+						style={{
+							borderRadius: 8,
+							overflow: "hidden",
+							backgroundColor: isDark ? "#1f2937" : "#f3f4f6",
+						}}>
+						<Image
+							source={{ uri: image.uri }}
+							alt={label}
+							style={{
+								width: "100%",
+								height: 200,
+								borderRadius: 8,
+							}}
+							resizeMode='cover'
+						/>
+					</Box>
 				) : (
-					<Text size='sm' color='$textLight500'>
-						No file selected
-					</Text>
+					<Box
+						style={{
+							height: 140,
+							borderRadius: 8,
+							backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+							justifyContent: "center",
+							alignItems: "center",
+						}}>
+						<Icon
+							as={ImageIcon}
+							size='xl'
+							style={{ color: isDark ? "#6b7280" : "#d1d5db" }}
+						/>
+						<Text
+							size='sm'
+							style={{
+								color: "#9ca3af",
+								marginTop: 8,
+							}}>
+							Aucun fichier sélectionné
+						</Text>
+					</Box>
 				)}
 
 				<HStack space='sm'>
-					<Button variant='outline' flex={1} onPress={onPick}>
-						<ButtonText>Gallery</ButtonText>
+					<Button
+						variant='outline'
+						style={{ flex: 1, borderRadius: 8 }}
+						onPress={onPick}>
+						<ButtonIcon as={ImageIcon} />
+						<ButtonText>Galerie</ButtonText>
 					</Button>
-					<Button flex={1} onPress={onCamera}>
-						<ButtonText>Camera</ButtonText>
+					<Button
+						style={{
+							flex: 1,
+							borderRadius: 8,
+							backgroundColor: "#16a34a",
+						}}
+						onPress={onCamera}>
+						<ButtonIcon as={Camera} />
+						<ButtonText>Caméra</ButtonText>
 					</Button>
 				</HStack>
 			</VStack>
-		</Box>
+		</Card>
 	);
 }
