@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Constants from "expo-constants";
 import axios from "axios";
 
-import { View } from "react-native";
+import { View, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { HStack } from "@/components/ui/hstack";
@@ -10,12 +10,12 @@ import { VStack } from "@/components/ui/vstack";
 import { Pressable } from "@/components/ui/pressable";
 import { Spinner } from "@/components/ui/spinner";
 import { Center } from "@/components/ui/center";
-import { Image } from "@/components/ui/image";
 
 import { useDataContext } from "@/context/DataContext"; // your supabase axios methods
 import { useAuth } from "@/context/AuthContext"; // to get user & token
 import { useImage } from "@/context/ImageContext";
-import { Camera, Pen, User } from "lucide-react-native";
+import { useTheme } from "@/context/ThemeContext";
+import { Camera, Pen, User, Upload } from "lucide-react-native";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const BUCKET_NAME = "logos";
@@ -26,6 +26,7 @@ const LogoUploader = ({ image }) => {
 		useAuth();
 	const { update } = useDataContext(); // your method for updating `profiles`
 	const { setImage } = useImage();
+	const { isDark } = useTheme();
 
 	const [logoUrl, setLogoUrl] = useState(userCompany?.logo_url || null);
 	const [loading, setLoading] = useState(false);
@@ -73,7 +74,7 @@ const LogoUploader = ({ image }) => {
 						Authorization: `Bearer ${accessToken}`, // Required if using RLS
 						apikey: SUPABASE_API_KEY,
 					},
-				}
+				},
 			);
 			console.log("Response upload:", response.data);
 			const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${filename}`;
@@ -91,45 +92,59 @@ const LogoUploader = ({ image }) => {
 			<Pressable onPress={pickImage}>
 				<VStack space='lg' alignItems='center'>
 					{logoUrl ? (
-						<Image
-							alt='company logo'
-							source={{ uri: logoUrl }}
-							size={"xl"}
-							resizeMode='contain'
-							borderRadius={15}
-						/>
+						<View
+							style={{
+								width: 120,
+								height: 120,
+								borderRadius: 15,
+								overflow: "hidden",
+							}}>
+							<Image
+								alt='company logo'
+								source={{ uri: logoUrl }}
+								style={{
+									width: "100%",
+									height: "100%",
+								}}
+								resizeMode='cover'
+							/>
+						</View>
 					) : (
 						<View
 							style={{
 								width: 120,
 								height: 120,
-								borderWidth: 1,
+								borderWidth: 2,
 								borderRadius: 15,
-								borderColor: "black",
-								borderStyle: "dotted",
+								borderColor: isDark ? "#4b5563" : "#d1d5db",
+								borderStyle: "dashed",
 								justifyContent: "center",
 								alignItems: "center",
+								backgroundColor: isDark ? "#374151" : "#f9fafb",
 							}}>
-							<Camera />
+							<Upload
+								size={40}
+								color={isDark ? "#9ca3af" : "#6b7280"}
+							/>
 						</View>
 					)}
-
-					{/* {loading ? (
-					<Spinner size='large' />
-				) : (
-					<Button onPress={pickImage}>
-						<ButtonText>
-							{logoUrl ? "Update logo" : "Upload logo"}
-						</ButtonText>
-					</Button>
-				)} */}
 				</VStack>
 				<Button
 					onPress={pickImage}
-					size='lg'
-					className='rounded-full p-3'
-					style={{ position: "absolute", bottom: -15, right: -15 }}>
-					<ButtonIcon as={Pen} />
+					size='md'
+					className='rounded-full p-2'
+					style={{
+						position: "absolute",
+						bottom: -8,
+						right: -8,
+						backgroundColor: "#2563eb",
+						shadowColor: "#000",
+						shadowOffset: { width: 0, height: 2 },
+						shadowOpacity: 0.25,
+						shadowRadius: 3.84,
+						elevation: 5,
+					}}>
+					<ButtonIcon as={Pen} size={16} color='#ffffff' />
 				</Button>
 			</Pressable>
 		</Center>
