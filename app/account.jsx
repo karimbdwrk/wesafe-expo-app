@@ -1,66 +1,35 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { ScrollView, TouchableOpacity } from "react-native";
+import React, { useState, useCallback } from "react";
+import { View, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
-import { useLocalSearchParams } from "expo-router";
-import QRCode from "react-native-qrcode-svg";
 
-import { Text } from "@/components/ui/text";
-import { Heading } from "@/components/ui/heading";
-import { HStack } from "@/components/ui/hstack";
-import { VStack } from "@/components/ui/vstack";
 import { Box } from "@/components/ui/box";
-import { Image } from "@/components/ui/image";
-import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
-import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Divider } from "@/components/ui/divider";
+import { Text } from "@/components/ui/text";
+import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
 import { Icon } from "@/components/ui/icon";
-import {
-	Accordion,
-	AccordionItem,
-	AccordionHeader,
-	AccordionTrigger,
-	AccordionTitleText,
-	AccordionContentText,
-	AccordionIcon,
-	AccordionContent,
-} from "@/components/ui/accordion";
-import {
-	ChevronUpIcon,
-	ChevronDownIcon,
-	ChevronRight,
-} from "@/components/ui/icon";
-
+import { Card } from "@/components/ui/card";
+import { Heading } from "@/components/ui/heading";
+import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import {
 	IdCard,
-	InfoIcon,
-	CheckIcon,
-	Signature,
-	FileUserIcon,
 	BookmarkIcon,
-	Book,
-	FileText,
-	Heart,
 	Briefcase,
 	User,
-	Edit,
+	FileText,
+	Signature,
 	Upload,
+	ChevronRight,
+	CheckIcon,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
-import { useImage } from "@/context/ImageContext";
 import { useTheme } from "@/context/ThemeContext";
-
-import AvatarUploader from "@/components/AvatarUploader";
-import FlipCardProfile from "@/components/FlipCardProfile";
 
 const AccountScreen = () => {
 	const { user } = useAuth();
-	const { image } = useImage();
 	const { getById } = useDataContext();
 	const { isDark } = useTheme();
-
 	const router = useRouter();
 
 	const [profile, setProfile] = useState(null);
@@ -68,7 +37,6 @@ const AccountScreen = () => {
 	const loadData = async () => {
 		const data = await getById("profiles", user.id, `*`);
 		setProfile(data);
-		// setTotalCount(totalCount);
 	};
 
 	useFocusEffect(
@@ -78,957 +46,647 @@ const AccountScreen = () => {
 	);
 
 	return (
-		<ScrollView
+		<Box
 			style={{
 				flex: 1,
 				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
 			}}>
-			<VStack space='lg' style={{ padding: 20 }}>
-				{/* Profile Card */}
-				<Card
-					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
-						borderRadius: 12,
-						padding: 20,
-					}}>
-					<VStack space='md'>
-						<FlipCardProfile />
-						<VStack space='sm' style={{ alignItems: "center" }}>
-							<Heading
-								size='xl'
+			<ScrollView
+				style={{ flex: 1 }}
+				contentContainerStyle={{ padding: 20 }}>
+				<VStack space='2xl'>
+					{/* Profile Header Card */}
+					<Card
+						style={{
+							padding: 24,
+							backgroundColor: isDark ? "#374151" : "#ffffff",
+							borderRadius: 16,
+							borderWidth: 1,
+							borderColor: isDark ? "#4b5563" : "#e5e7eb",
+						}}>
+						<VStack space='lg' style={{ alignItems: "center" }}>
+							{/* Avatar */}
+							<View
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
-									textAlign: "center",
-								}}>
-								{profile?.firstname + " " + profile?.lastname}
-							</Heading>
-							<HStack
-								space='sm'
-								style={{
-									flexWrap: "wrap",
+									width: 100,
+									height: 100,
+									borderRadius: 10,
+									backgroundColor: isDark
+										? "#4b5563"
+										: "#e5e7eb",
 									justifyContent: "center",
+									alignItems: "center",
+									overflow: "hidden",
 								}}>
-								<Badge action='info' variant='solid'>
-									<BadgeIcon as={IdCard} />
-									<BadgeText>APS</BadgeText>
-								</Badge>
-								<Badge action='info' variant='solid'>
-									<BadgeIcon as={IdCard} />
+								{profile?.avatar_url ? (
+									<Image
+										source={{ uri: profile.avatar_url }}
+										style={{
+											width: 100,
+											height: 100,
+										}}
+										resizeMode='cover'
+									/>
+								) : (
+									<Icon
+										as={User}
+										size='xl'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}
+									/>
+								)}
+							</View>
+
+							{/* Profile Info */}
+							<VStack space='sm' style={{ alignItems: "center" }}>
+								<Heading
+									size='xl'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+										textAlign: "center",
+									}}>
+									{profile?.firstname} {profile?.lastname}
+								</Heading>
+								<Text
+									size='md'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+										textAlign: "center",
+									}}>
+									{profile?.email}
+								</Text>
+							</VStack>
+							<HStack space='sm' style={{ alignItems: "center" }}>
+								<Badge>
+									<BadgeIcon as={IdCard} className='mr-2' />
 									<BadgeText>SSIAP1</BadgeText>
+								</Badge>
+								<Badge>
+									<BadgeIcon as={IdCard} className='mr-2' />
+									<BadgeText>APS</BadgeText>
 								</Badge>
 							</HStack>
 						</VStack>
-					</VStack>
-				</Card>
+					</Card>
 
-				{/* Quick Actions */}
-				<VStack space='md'>
-					<HStack space='md'>
+					{/* Navigation Cards */}
+					<VStack space='lg'>
+						{/* Cartes professionnelles */}
 						<TouchableOpacity
-							style={{ flex: 1 }}
-							onPress={() => router.push(`/procards`)}
+							onPress={() => router.push("/procards")}
 							activeOpacity={0.7}>
 							<Card
 								style={{
+									padding: 20,
 									backgroundColor: isDark
 										? "#374151"
 										: "#ffffff",
 									borderRadius: 12,
-									padding: 20,
-									aspectRatio: 1,
-									justifyContent: "center",
-									alignItems: "center",
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
 								}}>
-								<VStack
-									space='sm'
-									style={{ alignItems: "center" }}>
-									<Box
-										style={{
-											width: 48,
-											height: 48,
-											borderRadius: 24,
-											backgroundColor: "#2563eb",
-											justifyContent: "center",
-											alignItems: "center",
-										}}>
-										<Icon
-											as={IdCard}
-											size={24}
-											color='#ffffff'
-										/>
-									</Box>
-									<Text
-										size='sm'
-										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-											fontWeight: "600",
-											textAlign: "center",
-										}}>
-										Cartes pro
-									</Text>
-								</VStack>
-							</Card>
-						</TouchableOpacity>
-
-						<TouchableOpacity
-							style={{ flex: 1 }}
-							onPress={() => router.push(`/wishlist`)}
-							activeOpacity={0.7}>
-							<Card
-								style={{
-									backgroundColor: isDark
-										? "#374151"
-										: "#ffffff",
-									borderRadius: 12,
-									padding: 20,
-									aspectRatio: 1,
-									justifyContent: "center",
-									alignItems: "center",
-								}}>
-								<VStack
-									space='sm'
-									style={{ alignItems: "center" }}>
-									<Box
-										style={{
-											width: 48,
-											height: 48,
-											borderRadius: 24,
-											backgroundColor: "#64748b",
-											justifyContent: "center",
-											alignItems: "center",
-										}}>
-										<Icon
-											as={BookmarkIcon}
-											size={24}
-											color='#ffffff'
-										/>
-									</Box>
-									<Text
-										size='sm'
-										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-											fontWeight: "600",
-											textAlign: "center",
-										}}>
-										Wishlist
-									</Text>
-								</VStack>
-							</Card>
-						</TouchableOpacity>
-
-						<TouchableOpacity
-							style={{ flex: 1 }}
-							onPress={() => router.push(`/applications`)}
-							activeOpacity={0.7}>
-							<Card
-								style={{
-									backgroundColor: isDark
-										? "#374151"
-										: "#ffffff",
-									borderRadius: 12,
-									padding: 20,
-									aspectRatio: 1,
-									justifyContent: "center",
-									alignItems: "center",
-									position: "relative",
-								}}>
-								<Badge
+								<HStack
 									style={{
-										position: "absolute",
-										top: 8,
-										right: 8,
-										backgroundColor: "#ef4444",
-										borderRadius: 12,
-										minWidth: 24,
-										height: 24,
-										justifyContent: "center",
 										alignItems: "center",
+										justifyContent: "space-between",
 									}}>
-									<BadgeText
+									<HStack
+										space='md'
 										style={{
-											color: "#ffffff",
-											fontSize: 12,
-										}}>
-										2
-									</BadgeText>
-								</Badge>
-								<VStack
-									space='sm'
-									style={{ alignItems: "center" }}>
-									<Box
-										style={{
-											width: 48,
-											height: 48,
-											borderRadius: 24,
-											backgroundColor: "#10b981",
-											justifyContent: "center",
+											flex: 1,
 											alignItems: "center",
 										}}>
-										<Icon
-											as={Briefcase}
-											size={24}
-											color='#ffffff'
-										/>
-									</Box>
-									<Text
-										size='sm'
+										<Box
+											style={{
+												width: 48,
+												height: 48,
+												borderRadius: 24,
+												backgroundColor: "#dbeafe",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={IdCard}
+												size='xl'
+												style={{ color: "#2563eb" }}
+											/>
+										</Box>
+										<VStack style={{ flex: 1 }} space='xs'>
+											<Text
+												size='lg'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Cartes professionnelles
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Gérez vos cartes pro
+											</Text>
+										</VStack>
+									</HStack>
+									<Icon
+										as={ChevronRight}
+										size='xl'
 										style={{
 											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-											fontWeight: "600",
-											textAlign: "center",
-										}}>
-										Candidatures
-									</Text>
-								</VStack>
+												? "#d1d5db"
+												: "#9ca3af",
+										}}
+									/>
+								</HStack>
 							</Card>
 						</TouchableOpacity>
-					</HStack>
-				</VStack>
 
-				{/* Accordion Sections */}
-				<Card
-					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
-						borderRadius: 12,
-						padding: 0,
-						overflow: "hidden",
-					}}>
-					<Accordion
-						size='md'
-						variant='unfilled'
-						type='single'
-						isCollapsible={true}
-						isDisabled={false}>
-						<AccordionItem
-							value='a'
-							style={{ borderBottomWidth: 0 }}>
-							<AccordionHeader
+						{/* Liste de souhaits */}
+						<TouchableOpacity
+							onPress={() => router.push("/wishlist")}
+							activeOpacity={0.7}>
+							<Card
 								style={{
-									paddingHorizontal: 20,
-									paddingVertical: 16,
+									padding: 20,
+									backgroundColor: isDark
+										? "#374151"
+										: "#ffffff",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
 								}}>
-								<AccordionTrigger>
-									{({ isExpanded }) => {
-										return (
-											<HStack
-												space='md'
-												style={{
-													width: "100%",
-													alignItems: "center",
-												}}>
-												<Box
-													style={{
-														width: 40,
-														height: 40,
-														borderRadius: 20,
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#f3f4f6",
-														justifyContent:
-															"center",
-														alignItems: "center",
-													}}>
-													<Icon
-														as={User}
-														size={20}
-														color={
-															isDark
-																? "#9ca3af"
-																: "#6b7280"
-														}
-													/>
-												</Box>
-												<VStack style={{ flex: 1 }}>
-													<Heading
-														size='sm'
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														Informations
-													</Heading>
-												</VStack>
-												{profile?.signature_url && (
-													<Badge
-														action='success'
-														size='sm'
-														variant='solid'>
-														<BadgeIcon
-															as={CheckIcon}
-														/>
-														<BadgeText>
-															Complété
-														</BadgeText>
-													</Badge>
-												)}
-												<Icon
-													as={
-														isExpanded
-															? ChevronUpIcon
-															: ChevronDownIcon
-													}
-													size={20}
-													color={
-														isDark
-															? "#9ca3af"
-															: "#6b7280"
-													}
-												/>
-											</HStack>
-										);
-									}}
-								</AccordionTrigger>
-							</AccordionHeader>
-							<AccordionContent
-								style={{
-									paddingHorizontal: 20,
-									paddingBottom: 20,
-								}}>
-								<VStack space='sm' style={{ marginBottom: 16 }}>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											paddingVertical: 8,
-										}}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												fontWeight: "600",
-											}}>
-											Genre
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Homme
-										</Text>
-									</HStack>
-									<Divider
-										style={{
-											backgroundColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}
-									/>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											paddingVertical: 8,
-										}}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												fontWeight: "600",
-											}}>
-											Date de naissance
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											02/01/1990
-										</Text>
-									</HStack>
-									<Divider
-										style={{
-											backgroundColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}
-									/>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											paddingVertical: 8,
-										}}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												fontWeight: "600",
-											}}>
-											N° de sécurité sociale
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											1 90 01 92 345 678
-										</Text>
-									</HStack>
-									<Divider
-										style={{
-											backgroundColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}
-									/>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											paddingVertical: 8,
-										}}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												fontWeight: "600",
-											}}>
-											Département
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Hauts-de-Seine (92)
-										</Text>
-									</HStack>
-									<Divider
-										style={{
-											backgroundColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}
-									/>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											paddingVertical: 8,
-										}}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												fontWeight: "600",
-											}}>
-											Ville
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Gennevilliers
-										</Text>
-									</HStack>
-									<Divider
-										style={{
-											backgroundColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}
-									/>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											paddingVertical: 8,
-										}}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												fontWeight: "600",
-											}}>
-											Permis
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											B
-										</Text>
-									</HStack>
-									<Divider
-										style={{
-											backgroundColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}
-									/>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											paddingVertical: 8,
-										}}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												fontWeight: "600",
-											}}>
-											Véhiculé
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Oui
-										</Text>
-									</HStack>
-									<Divider
-										style={{
-											backgroundColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}
-									/>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											paddingVertical: 8,
-											alignItems: "flex-start",
-										}}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												fontWeight: "600",
-												flex: 1,
-											}}>
-											Langues parlées
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-												textAlign: "right",
-												flex: 1,
-											}}>
-											Français, Anglais, Arabe, Espagnol
-										</Text>
-									</HStack>
-								</VStack>
-								<Button
-									onPress={() => {
-										router.push({
-											pathname: "/updateprofile",
-											params: {
-												firstname: profile.firstname,
-												lastname: profile.lastname,
-											},
-										});
-									}}
+								<HStack
 									style={{
-										width: "100%",
-										backgroundColor: "#2563eb",
+										alignItems: "center",
+										justifyContent: "space-between",
 									}}>
-									<ButtonIcon
-										as={Edit}
-										size={20}
-										color='#ffffff'
-									/>
-									<ButtonText style={{ color: "#ffffff" }}>
-										Modifier
-									</ButtonText>
-								</Button>
-							</AccordionContent>
-						</AccordionItem>
-						<Divider
-							style={{
-								backgroundColor: isDark ? "#4b5563" : "#e5e7eb",
-							}}
-						/>
-						<AccordionItem
-							value='b'
-							style={{ borderBottomWidth: 0 }}>
-							<AccordionHeader
-								style={{
-									paddingHorizontal: 20,
-									paddingVertical: 16,
-								}}>
-								<AccordionTrigger>
-									{({ isExpanded }) => {
-										return (
-											<HStack
-												space='md'
-												style={{
-													width: "100%",
-													alignItems: "center",
-												}}>
-												<Box
-													style={{
-														width: 40,
-														height: 40,
-														borderRadius: 20,
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#f3f4f6",
-														justifyContent:
-															"center",
-														alignItems: "center",
-													}}>
-													<Icon
-														as={FileText}
-														size={20}
-														color={
-															isDark
-																? "#9ca3af"
-																: "#6b7280"
-														}
-													/>
-												</Box>
-												<VStack style={{ flex: 1 }}>
-													<Heading
-														size='sm'
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														Curriculum Vitae
-													</Heading>
-												</VStack>
-												{profile?.signature_url && (
-													<Badge
-														action='success'
-														size='sm'
-														variant='solid'>
-														<BadgeIcon
-															as={CheckIcon}
-														/>
-														<BadgeText>
-															Complété
-														</BadgeText>
-													</Badge>
-												)}
-												<Icon
-													as={
-														isExpanded
-															? ChevronUpIcon
-															: ChevronDownIcon
-													}
-													size={20}
-													color={
-														isDark
-															? "#9ca3af"
-															: "#6b7280"
-													}
-												/>
-											</HStack>
-										);
-									}}
-								</AccordionTrigger>
-							</AccordionHeader>
-							<AccordionContent
-								style={{
-									paddingHorizontal: 20,
-									paddingBottom: 20,
-								}}>
-								<VStack space='sm' style={{ marginBottom: 16 }}>
 									<HStack
+										space='md'
 										style={{
-											justifyContent: "space-between",
-											paddingVertical: 8,
-										}}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												fontWeight: "600",
-											}}>
-											Experience 1
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											01/2015 - 09/2018
-										</Text>
-									</HStack>
-									<Divider
-										style={{
-											backgroundColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}
-									/>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											paddingVertical: 8,
-										}}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												fontWeight: "600",
-											}}>
-											Experience 2
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											01/2015 - 09/2018
-										</Text>
-									</HStack>
-									<Divider
-										style={{
-											backgroundColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}
-									/>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											paddingVertical: 8,
-										}}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												fontWeight: "600",
-											}}>
-											Experience 3
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											01/2015 - 09/2018
-										</Text>
-									</HStack>
-								</VStack>
-								<Button
-									onPress={() => {
-										router.push("/curriculum");
-									}}
-									style={{
-										width: "100%",
-										backgroundColor: "#2563eb",
-									}}>
-									<ButtonIcon
-										as={FileText}
-										size={20}
-										color='#ffffff'
-									/>
-									<ButtonText style={{ color: "#ffffff" }}>
-										Voir CV
-									</ButtonText>
-								</Button>
-							</AccordionContent>
-						</AccordionItem>
-						<Divider
-							style={{
-								backgroundColor: isDark ? "#4b5563" : "#e5e7eb",
-							}}
-						/>
-						<AccordionItem
-							value='c'
-							style={{ borderBottomWidth: 0 }}>
-							<AccordionHeader
-								style={{
-									paddingHorizontal: 20,
-									paddingVertical: 16,
-								}}>
-								<AccordionTrigger>
-									{({ isExpanded }) => {
-										return (
-											<HStack
-												space='md'
-												style={{
-													width: "100%",
-													alignItems: "center",
-												}}>
-												<Box
-													style={{
-														width: 40,
-														height: 40,
-														borderRadius: 20,
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#f3f4f6",
-														justifyContent:
-															"center",
-														alignItems: "center",
-													}}>
-													<Icon
-														as={Signature}
-														size={20}
-														color={
-															isDark
-																? "#9ca3af"
-																: "#6b7280"
-														}
-													/>
-												</Box>
-												<VStack style={{ flex: 1 }}>
-													<Heading
-														size='sm'
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														Signature
-													</Heading>
-												</VStack>
-												{profile?.signature_url && (
-													<Badge
-														action='success'
-														size='sm'
-														variant='solid'>
-														<BadgeIcon
-															as={CheckIcon}
-														/>
-														<BadgeText>
-															Complété
-														</BadgeText>
-													</Badge>
-												)}
-												<Icon
-													as={
-														isExpanded
-															? ChevronUpIcon
-															: ChevronDownIcon
-													}
-													size={20}
-													color={
-														isDark
-															? "#9ca3af"
-															: "#6b7280"
-													}
-												/>
-											</HStack>
-										);
-									}}
-								</AccordionTrigger>
-							</AccordionHeader>
-							<AccordionContent
-								style={{
-									paddingHorizontal: 20,
-									paddingBottom: 20,
-								}}>
-								{profile?.signature_url && (
-									<Box
-										style={{
+											flex: 1,
 											alignItems: "center",
-											padding: 20,
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#f9fafb",
-											borderRadius: 8,
-											marginBottom: 16,
 										}}>
-										<Image
-											source={{
-												uri: profile?.signature_url,
-											}}
-											size={"2xl"}
-											resizeMode='contain'
-											borderRadius={8}
-											alt='profile signature'
-										/>
-									</Box>
-								)}
-								<Button
-									onPress={() => {
-										router.push({
-											pathname: "/signature",
-											params: {
-												signatureUrl:
-													profile.signature_url,
-												type: "profiles",
-											},
-										});
-									}}
-									style={{
-										width: "100%",
-										backgroundColor: "#2563eb",
-									}}>
-									<ButtonIcon
-										as={Signature}
-										size={20}
-										color='#ffffff'
+										<Box
+											style={{
+												width: 48,
+												height: 48,
+												borderRadius: 24,
+												backgroundColor: "#f1f5f9",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={BookmarkIcon}
+												size='xl'
+												style={{ color: "#64748b" }}
+											/>
+										</Box>
+										<VStack style={{ flex: 1 }} space='xs'>
+											<Text
+												size='lg'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Liste de souhaits
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Vos missions favorites
+											</Text>
+										</VStack>
+									</HStack>
+									<Icon
+										as={ChevronRight}
+										size='xl'
+										style={{
+											color: isDark
+												? "#d1d5db"
+												: "#9ca3af",
+										}}
 									/>
-									<ButtonText style={{ color: "#ffffff" }}>
-										{profile?.signature_url
-											? "Modifier"
-											: "Signer"}
-									</ButtonText>
-								</Button>
-							</AccordionContent>
-						</AccordionItem>
-					</Accordion>
-				</Card>
+								</HStack>
+							</Card>
+						</TouchableOpacity>
 
-				{/* Upload Documents Button */}
-				<Button
-					onPress={() => router.push("/documents")}
-					style={{
-						backgroundColor: "#10b981",
-					}}>
-					<ButtonIcon as={Upload} size={20} color='#ffffff' />
-					<ButtonText style={{ color: "#ffffff" }}>
-						Télécharger mes documents
-					</ButtonText>
-				</Button>
-			</VStack>
-		</ScrollView>
+						{/* Candidatures */}
+						<TouchableOpacity
+							onPress={() => router.push("/applications")}
+							activeOpacity={0.7}>
+							<Card
+								style={{
+									padding: 20,
+									backgroundColor: isDark
+										? "#374151"
+										: "#ffffff",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								}}>
+								<HStack
+									style={{
+										alignItems: "center",
+										justifyContent: "space-between",
+									}}>
+									<HStack
+										space='md'
+										style={{
+											flex: 1,
+											alignItems: "center",
+										}}>
+										<Box
+											style={{
+												width: 48,
+												height: 48,
+												borderRadius: 24,
+												backgroundColor: "#dcfce7",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={Briefcase}
+												size='xl'
+												style={{ color: "#10b981" }}
+											/>
+										</Box>
+										<VStack style={{ flex: 1 }} space='xs'>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Text
+													size='lg'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Candidatures
+												</Text>
+												<Badge
+													size='sm'
+													variant='solid'
+													action='info'>
+													<BadgeText>2</BadgeText>
+												</Badge>
+											</HStack>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Suivez vos candidatures
+											</Text>
+										</VStack>
+									</HStack>
+									<Icon
+										as={ChevronRight}
+										size='xl'
+										style={{
+											color: isDark
+												? "#d1d5db"
+												: "#9ca3af",
+										}}
+									/>
+								</HStack>
+							</Card>
+						</TouchableOpacity>
+
+						{/* Informations personnelles */}
+						<TouchableOpacity
+							onPress={() => router.push("/updateprofile")}
+							activeOpacity={0.7}>
+							<Card
+								style={{
+									padding: 20,
+									backgroundColor: isDark
+										? "#374151"
+										: "#ffffff",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								}}>
+								<HStack
+									style={{
+										alignItems: "center",
+										justifyContent: "space-between",
+									}}>
+									<HStack
+										space='md'
+										style={{
+											flex: 1,
+											alignItems: "center",
+										}}>
+										<Box
+											style={{
+												width: 48,
+												height: 48,
+												borderRadius: 24,
+												backgroundColor: "#fef3c7",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={User}
+												size='xl'
+												style={{ color: "#f59e0b" }}
+											/>
+										</Box>
+										<VStack style={{ flex: 1 }} space='xs'>
+											<Text
+												size='lg'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Informations personnelles
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Modifiez votre profil
+											</Text>
+										</VStack>
+									</HStack>
+									<Icon
+										as={ChevronRight}
+										size='xl'
+										style={{
+											color: isDark
+												? "#d1d5db"
+												: "#9ca3af",
+										}}
+									/>
+								</HStack>
+							</Card>
+						</TouchableOpacity>
+
+						{/* CV */}
+						<TouchableOpacity
+							onPress={() => router.push("/curriculum")}
+							activeOpacity={0.7}>
+							<Card
+								style={{
+									padding: 20,
+									backgroundColor: isDark
+										? "#374151"
+										: "#ffffff",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								}}>
+								<HStack
+									style={{
+										alignItems: "center",
+										justifyContent: "space-between",
+									}}>
+									<HStack
+										space='md'
+										style={{
+											flex: 1,
+											alignItems: "center",
+										}}>
+										<Box
+											style={{
+												width: 48,
+												height: 48,
+												borderRadius: 24,
+												backgroundColor: "#e0e7ff",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={FileText}
+												size='xl'
+												style={{ color: "#6366f1" }}
+											/>
+										</Box>
+										<VStack style={{ flex: 1 }} space='xs'>
+											<Text
+												size='lg'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												CV
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Gérez votre curriculum vitae
+											</Text>
+										</VStack>
+									</HStack>
+									<Icon
+										as={ChevronRight}
+										size='xl'
+										style={{
+											color: isDark
+												? "#d1d5db"
+												: "#9ca3af",
+										}}
+									/>
+								</HStack>
+							</Card>
+						</TouchableOpacity>
+
+						{/* Signature */}
+						<TouchableOpacity
+							onPress={() => router.push("/signature")}
+							activeOpacity={0.7}>
+							<Card
+								style={{
+									padding: 20,
+									backgroundColor: isDark
+										? "#374151"
+										: "#ffffff",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								}}>
+								<HStack
+									style={{
+										alignItems: "center",
+										justifyContent: "space-between",
+									}}>
+									<HStack
+										space='md'
+										style={{
+											flex: 1,
+											alignItems: "center",
+										}}>
+										<Box
+											style={{
+												width: 48,
+												height: 48,
+												borderRadius: 24,
+												backgroundColor: "#fce7f3",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={Signature}
+												size='xl'
+												style={{ color: "#ec4899" }}
+											/>
+										</Box>
+										<VStack style={{ flex: 1 }} space='xs'>
+											<Text
+												size='lg'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Signature
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Créez votre signature
+											</Text>
+										</VStack>
+									</HStack>
+									<HStack
+										space='sm'
+										style={{ alignItems: "center" }}>
+										{profile?.signature_url && (
+											<Badge
+												size='sm'
+												variant='solid'
+												action='success'>
+												<BadgeIcon as={CheckIcon} />
+											</Badge>
+										)}
+										<Icon
+											as={ChevronRight}
+											size='xl'
+											style={{
+												color: isDark
+													? "#d1d5db"
+													: "#9ca3af",
+											}}
+										/>
+									</HStack>
+								</HStack>
+							</Card>
+						</TouchableOpacity>
+
+						{/* Documents */}
+						<TouchableOpacity
+							onPress={() => router.push("/documents")}
+							activeOpacity={0.7}>
+							<Card
+								style={{
+									padding: 20,
+									backgroundColor: isDark
+										? "#374151"
+										: "#ffffff",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								}}>
+								<HStack
+									style={{
+										alignItems: "center",
+										justifyContent: "space-between",
+									}}>
+									<HStack
+										space='md'
+										style={{
+											flex: 1,
+											alignItems: "center",
+										}}>
+										<Box
+											style={{
+												width: 48,
+												height: 48,
+												borderRadius: 24,
+												backgroundColor: "#dbeafe",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={Upload}
+												size='xl'
+												style={{ color: "#2563eb" }}
+											/>
+										</Box>
+										<VStack style={{ flex: 1 }} space='xs'>
+											<Text
+												size='lg'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Documents
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Documents d'identité et sécurité
+												sociale
+											</Text>
+										</VStack>
+									</HStack>
+									<Icon
+										as={ChevronRight}
+										size='xl'
+										style={{
+											color: isDark
+												? "#d1d5db"
+												: "#9ca3af",
+										}}
+									/>
+								</HStack>
+							</Card>
+						</TouchableOpacity>
+					</VStack>
+				</VStack>
+			</ScrollView>
+		</Box>
 	);
 };
 
