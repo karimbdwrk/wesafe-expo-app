@@ -145,6 +145,7 @@ function RootLayoutNav() {
 						<Stack
 							screenOptions={{
 								headerShown: false,
+								headerBackTitleStyle: { fontSize: 0 },
 								headerBackTitle: "Retour",
 							}}>
 							<Stack.Screen
@@ -265,7 +266,9 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='application'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+								}}
 							/>
 							<Stack.Screen
 								name='messaging'
