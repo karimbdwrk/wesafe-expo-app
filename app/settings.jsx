@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ScrollView, Switch, Platform } from "react-native";
+import { ScrollView, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Divider } from "@/components/ui/divider";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { Switch } from "@/components/ui/switch";
 import {
 	Bell,
 	Moon,
@@ -123,13 +124,7 @@ const Settings = () => {
 						</Text>
 					)}
 				</VStack>
-				<Switch
-					value={value}
-					onValueChange={onValueChange}
-					trackColor={{ false: "#d1d5db", true: "#2563eb" }}
-					thumbColor={value ? "#ffffff" : "#f3f4f6"}
-					ios_backgroundColor='#d1d5db'
-				/>
+				<Switch value={value} onValueChange={onValueChange} size='md' />
 			</HStack>
 			<Divider />
 		</>
