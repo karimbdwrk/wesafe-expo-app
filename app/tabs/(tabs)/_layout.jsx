@@ -87,7 +87,7 @@ const TOKEN_API_ENDPOINT =
 	"https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/store-push-token";
 
 function LogoTitle({ colorScheme }) {
-	const fillColor = colorScheme === 'dark' ? '#f3f4f6' : '#111827';
+	const fillColor = colorScheme === "dark" ? "#f3f4f6" : "#111827";
 	return (
 		<Svg viewBox='0 0 264.3 297.85' width={60} height={60}>
 			<G>
@@ -221,8 +221,10 @@ export default function TabLayout({ theme = "light" }) {
 				screenOptions={{
 					tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
 					headerShown: true,
-					headerBackTitle: "Back",
-				headerTitle: (props) => <LogoTitle {...props} colorScheme={colorScheme} />,
+					headerBackTitle: "",
+					headerTitle: (props) => (
+						<LogoTitle {...props} colorScheme={colorScheme} />
+					),
 					headerRight: () => (
 						<>
 							{!accessToken && (
@@ -271,7 +273,14 @@ export default function TabLayout({ theme = "light" }) {
 									onPress={() =>
 										router.push("/notifications")
 									}>
-								<Bell color={colorScheme === 'dark' ? '#f3f4f6' : '#111827'} size={22} />
+									<Bell
+										color={
+											colorScheme === "dark"
+												? "#f3f4f6"
+												: "#111827"
+										}
+										size={22}
+									/>
 								</Pressable>
 							</VStack>
 							{role === "candidat" && (
