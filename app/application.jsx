@@ -9,7 +9,7 @@ import {
 	Keyboard,
 	KeyboardAvoidingView,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
 import { createSupabaseClient } from "@/lib/supabase";
@@ -125,6 +125,7 @@ const STATUS_CONFIG = {
 
 const ApplicationScreen = () => {
 	const router = useRouter();
+	const navigation = useNavigation();
 	const { id, title, company_id, category, apply_id, name, openMessaging } =
 		useLocalSearchParams();
 	const { user, role, accessToken } = useAuth();
@@ -287,6 +288,17 @@ const ApplicationScreen = () => {
 			};
 		}, []),
 	);
+
+	// useEffect(() => {
+	// 	if (application?.jobs?.title) {
+	// 		navigation.setOptions({
+	// 			headerTitle: `Candidature - ${application.jobs.title}`,
+	// 			// headerBackTitle: " ",
+	// 			// headerBackTitleVisible: false,
+	// 			// headerBackTitleStyle: { fontSize: 0 },
+	// 		});
+	// 	}
+	// }, [application, navigation]);
 
 	useEffect(() => {
 		const keyboardDidShowListener = Keyboard.addListener(
