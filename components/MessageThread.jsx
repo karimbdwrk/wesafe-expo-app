@@ -3,21 +3,24 @@ import {
 	View,
 	ScrollView,
 	Platform,
-	StyleSheet,
 	Animated,
 	Easing,
 	Keyboard,
 } from "react-native";
 import { createSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
+import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
+import { Heading } from "@/components/ui/heading";
+import { Icon } from "@/components/ui/icon";
 import { Input, InputField } from "@/components/ui/input";
 import { Textarea, TextareaInput } from "@/components/ui/textarea";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Send, Check } from "lucide-react-native";
+import { Send, Check, MessageCircle, AlertCircle } from "lucide-react-native";
 
 // Animation de points pour l'indicateur de saisie
 const TypingAnimation = () => {
@@ -152,6 +155,7 @@ const MessageThread = ({
 	onTypingChange,
 }) => {
 	const { user, accessToken, role } = useAuth();
+	const { isDark } = useTheme();
 	const [messages, setMessages] = useState([]);
 	const [newMessage, setNewMessage] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -786,60 +790,117 @@ const MessageThread = ({
 			{/* Liste des messages */}
 			<ScrollView
 				ref={scrollViewRef}
-				style={styles.messagesContainer}
-				contentContainerStyle={styles.messagesContent}
+				style={{
+					flex: 1,
+					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				}}
+				contentContainerStyle={{ padding: 16, flexGrow: 1 }}
 				keyboardShouldPersistTaps='handled'
 				onContentSizeChange={() => {
 					scrollViewRef.current?.scrollToEnd({ animated: true });
 				}}>
 				{messages.length === 0 ? (
-					<View style={styles.emptyState}>
-						<Text className='text-typography-500 text-center'>
-							Aucun message pour le moment.
-							{!isReadOnly &&
-								"\nCommencez la conversation avec " +
-									otherPartyName +
-									" !"}
+					<Box
+						style={{
+							flex: 1,
+							justifyContent: "center",
+							alignItems: "center",
+							padding: 20,
+						}}>
+						<Box
+							style={{
+								width: 80,
+								height: 80,
+								borderRadius: 40,
+								backgroundColor: isDark ? "#374151" : "#e0e7ff",
+								justifyContent: "center",
+								alignItems: "center",
+								marginBottom: 16,
+							}}>
+							<Icon
+								as={MessageCircle}
+								size={40}
+								color={isDark ? "#9ca3af" : "#6366f1"}
+							/>
+						</Box>
+						<Heading
+							size='md'
+							style={{
+								color: isDark ? "#f3f4f6" : "#111827",
+								marginBottom: 8,
+								textAlign: "center",
+							}}>
+							Aucun message
+						</Heading>
+						<Text
+							size='sm'
+							style={{
+								color: isDark ? "#9ca3af" : "#6b7280",
+								textAlign: "center",
+							}}>
+							{!isReadOnly
+								? `Commencez la conversation avec ${otherPartyName} !`
+								: "Aucun message pour le moment."}
 						</Text>
-					</View>
+					</Box>
 				) : (
 					messages.map((message) => {
 						const isMyMessage = message.sender_id === user.id;
 						return (
 							<View
 								key={message.id}
-								style={[
-									styles.messageWrapper,
-									isMyMessage
-										? styles.myMessageWrapper
-										: styles.otherMessageWrapper,
-								]}>
+								style={{
+									marginBottom: 12,
+									maxWidth: "80%",
+									alignSelf: isMyMessage
+										? "flex-end"
+										: "flex-start",
+								}}>
 								<Card
-									style={[
-										styles.messageCard,
-										isMyMessage
-											? styles.myMessage
-											: styles.otherMessage,
-									]}>
+									style={{
+										paddingHorizontal: 12,
+										paddingVertical: 8,
+										borderRadius: 16,
+										backgroundColor: isMyMessage
+											? "#6366f1"
+											: isDark
+												? "#374151"
+												: "#ffffff",
+										borderWidth: isMyMessage ? 0 : 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
 									<Text
-										style={[
-											styles.messageText,
-											isMyMessage && {
-												color: "#fff",
-											},
-										]}>
+										size='md'
+										style={{
+											color: isMyMessage
+												? "#ffffff"
+												: isDark
+													? "#f3f4f6"
+													: "#111827",
+											lineHeight: 20,
+										}}>
 										{message.content}
 									</Text>
 								</Card>
 								<HStack
-									justifyContent='space-between'
+									space='xs'
 									style={{
 										paddingHorizontal: 4,
+										marginTop: 4,
 										flexDirection: isMyMessage
 											? "row-reverse"
 											: "row",
+										alignItems: "center",
 									}}>
-									<Text style={[styles.messageTime]}>
+									<Text
+										size='xs'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}>
 										{formatTime(message.created_at)}
 									</Text>
 									{isMyMessage && (
@@ -857,38 +918,37 @@ const MessageThread = ({
 				{/* Indicateur de saisie animé */}
 				{isTyping && !isReadOnly && (
 					<Animated.View
-						style={[
-							styles.messageWrapper,
-							styles.otherMessageWrapper,
-							{
-								opacity: typingIndicatorAnim,
-								transform: [
-									{
-										translateY:
-											typingIndicatorAnim.interpolate({
-												inputRange: [0, 1],
-												outputRange: [20, 0],
-											}),
-									},
-								],
-							},
-						]}>
-						<Card
-							style={[
-								styles.messageCard,
-								styles.otherMessage,
-								{ paddingVertical: 12 },
-							]}>
-							<HStack space='xs' className='items-center'>
-								<Text
-									style={[
-										styles.messageText,
+						style={{
+							marginBottom: 12,
+							maxWidth: "80%",
+							alignSelf: "flex-start",
+							opacity: typingIndicatorAnim,
+							transform: [
+								{
+									translateY: typingIndicatorAnim.interpolate(
 										{
-											fontSize: transitionMessage
-												? 14
-												: 13,
+											inputRange: [0, 1],
+											outputRange: [20, 0],
 										},
-									]}>
+									),
+								},
+							],
+						}}>
+						<Card
+							style={{
+								paddingHorizontal: 12,
+								paddingVertical: 8,
+								borderRadius: 16,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}>
+							<HStack space='xs' style={{ alignItems: "center" }}>
+								<Text
+									size='md'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
 									{transitionMessage
 										? transitionMessage.content
 										: "en train d'écrire"}
@@ -898,11 +958,16 @@ const MessageThread = ({
 						</Card>
 						{transitionMessage && showTransitionTime && (
 							<HStack
-								justifyContent='space-between'
+								space='xs'
 								style={{
 									paddingHorizontal: 4,
+									marginTop: 4,
 								}}>
-								<Text style={styles.messageTime}>
+								<Text
+									size='xs'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}>
 									{formatTime(transitionMessage.created_at)}
 								</Text>
 							</HStack>
@@ -925,12 +990,38 @@ const MessageThread = ({
 					// Candidat sans messages : attendre que le pro initie
 					if (role === "candidat" && messages.length === 0) {
 						return (
-							<View className='p-3 bg-warning-100 border-t border-warning-300'>
-								<Text className='text-warning-700 text-center text-sm'>
-									En attente que le recruteur ouvre la
-									discussion...
-								</Text>
-							</View>
+							<Card
+								style={{
+									padding: 16,
+									margin: 16,
+									backgroundColor: isDark
+										? "#374151"
+										: "#fef3c7",
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#fbbf24",
+									borderRadius: 12,
+								}}>
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Icon
+										as={AlertCircle}
+										size={20}
+										color={isDark ? "#fbbf24" : "#d97706"}
+									/>
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#fbbf24"
+												: "#d97706",
+											flex: 1,
+										}}>
+										En attente que le recruteur ouvre la
+										discussion...
+									</Text>
+								</HStack>
+							</Card>
 						);
 					}
 
@@ -940,128 +1031,132 @@ const MessageThread = ({
 						consecutiveCandidateMessages >= 3
 					) {
 						return (
-							<View className='p-3 bg-warning-100 border-t border-warning-300'>
-								<Text className='text-warning-700 text-center text-sm'>
-									Vous avez envoyé 3 messages. Veuillez
-									attendre la réponse du recruteur.
-								</Text>
-							</View>
+							<Card
+								style={{
+									padding: 16,
+									margin: 16,
+									backgroundColor: isDark
+										? "#374151"
+										: "#fef3c7",
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#fbbf24",
+									borderRadius: 12,
+								}}>
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Icon
+										as={AlertCircle}
+										size={20}
+										color={isDark ? "#fbbf24" : "#d97706"}
+									/>
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#fbbf24"
+												: "#d97706",
+											flex: 1,
+										}}>
+										Vous avez envoyé 3 messages. Veuillez
+										attendre la réponse du recruteur.
+									</Text>
+								</HStack>
+							</Card>
 						);
 					}
 
 					// Zone de saisie normale
 					return (
-						<HStack
-							space='sm'
-							className='p-3 bg-background-0 border-t border-outline-200'>
-							<Input className='flex-1'>
+						<Box
+							style={{
+								padding: 16,
+								backgroundColor: isDark ? "#1f2937" : "#ffffff",
+								borderTopWidth: 1,
+								borderTopColor: isDark ? "#4b5563" : "#e5e7eb",
+								position: "relative",
+							}}>
+							<Input
+								size='md'
+								style={{
+									width: "100%",
+									backgroundColor: isDark
+										? "#374151"
+										: "#f9fafb",
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									paddingRight: 56,
+								}}>
 								<InputField
 									placeholder='Écrivez votre message...'
 									value={newMessage}
 									onChangeText={handleTyping}
-									numberOfLines={1}
 									maxLength={500}
 									onSubmitEditing={sendMessage}
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}
 								/>
 							</Input>
-							{/* <Textarea className='flex-1'>
-									<TextareaInput
-										placeholder='Écrivez votre message...'
-										value={newMessage}
-										onChangeText={handleTyping}
-										maxLength={500}
-										onSubmitEditing={sendMessage}
-										numberOfLines={1}
-										// style={{
-										// 	height: textareaHeight,
-										// 	minHeight: 40,
-										// 	maxHeight: 120,
-										// }}
-										onContentSizeChange={(event) => {
-											const height =
-												event.nativeEvent.contentSize
-													.height;
-											setTextareaHeight(
-												Math.max(
-													40,
-													Math.min(height, 120),
-												),
-											);
-										}}
-									/>
-								</Textarea> */}
 							<Button
-								size='md'
+								size='sm'
 								onPress={sendMessage}
-								isDisabled={!newMessage.trim() || loading}>
-								<ButtonIcon as={Send} />
+								isDisabled={!newMessage.trim() || loading}
+								style={{
+									position: "absolute",
+									right: 20,
+									top: "50%",
+									transform: [{ translateY: -18 }],
+									backgroundColor:
+										!newMessage.trim() || loading
+											? isDark
+												? "#4b5563"
+												: "#e5e7eb"
+											: "#6366f1",
+									width: 40,
+									height: 40,
+									borderRadius: 999,
+									minWidth: 40,
+								}}>
+								<ButtonIcon
+									as={Send}
+									size='sm'
+									color='#ffffff'
+								/>
 							</Button>
-						</HStack>
+						</Box>
 					);
 				})()}
 
 			{isReadOnly && (
-				<View className='p-3 bg-warning-100 border-t border-warning-300'>
-					<Text className='text-warning-700 text-center text-sm'>
-						Cette conversation est en lecture seule car la
-						candidature a été refusée.
-					</Text>
-				</View>
+				<Card
+					style={{
+						padding: 16,
+						margin: 16,
+						backgroundColor: isDark ? "#374151" : "#fee2e2",
+						borderWidth: 1,
+						borderColor: isDark ? "#4b5563" : "#fca5a5",
+						borderRadius: 12,
+					}}>
+					<HStack space='sm' style={{ alignItems: "center" }}>
+						<Icon
+							as={AlertCircle}
+							size={20}
+							color={isDark ? "#ef4444" : "#dc2626"}
+						/>
+						<Text
+							size='sm'
+							style={{
+								color: isDark ? "#ef4444" : "#dc2626",
+								flex: 1,
+							}}>
+							Cette conversation est en lecture seule car la
+							candidature a été refusée.
+						</Text>
+					</HStack>
+				</Card>
 			)}
 		</VStack>
 	);
 };
-
-const styles = StyleSheet.create({
-	messagesContainer: {
-		flex: 1,
-		backgroundColor: "#f5f5f5",
-	},
-	messagesContent: {
-		padding: 12,
-		flexGrow: 1,
-	},
-	emptyState: {
-		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
-		padding: 20,
-	},
-	messageWrapper: {
-		marginBottom: 8,
-		maxWidth: "80%",
-	},
-	myMessageWrapper: {
-		alignSelf: "flex-end",
-	},
-	otherMessageWrapper: {
-		alignSelf: "flex-start",
-	},
-	messageCard: {
-		padding: 12,
-		borderRadius: 12,
-	},
-	myMessage: {
-		backgroundColor: "#667eea",
-	},
-	otherMessage: {
-		backgroundColor: "#ffffff",
-	},
-	messageText: {
-		fontSize: 15,
-		lineHeight: 20,
-		color: "#333",
-	},
-	messageTime: {
-		fontSize: 11,
-		marginTop: 4,
-		color: "#999",
-	},
-	checkContainer: {
-		flexDirection: "row",
-		alignItems: "center",
-		marginLeft: 4,
-	},
-});
 
 export default MessageThread;
