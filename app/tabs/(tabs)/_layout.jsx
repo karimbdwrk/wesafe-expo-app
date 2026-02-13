@@ -86,7 +86,8 @@ import { toast } from "sonner-native";
 const TOKEN_API_ENDPOINT =
 	"https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/store-push-token";
 
-function LogoTitle() {
+function LogoTitle({ colorScheme }) {
+	const fillColor = colorScheme === 'dark' ? '#f3f4f6' : '#111827';
 	return (
 		<Svg viewBox='0 0 264.3 297.85' width={60} height={60}>
 			<G>
@@ -96,11 +97,11 @@ function LogoTitle() {
 				/> */}
 				<G>
 					<Path
-						fill={"#333333"}
+						fill={fillColor}
 						d='M108.85,167.5v-54.85h20.57v75.42H54v-75.42h20.57v54.85h6.86v-54.85h20.57v54.85h6.86Z'
 					/>
 					<Path
-						fill={"#333333"}
+						fill={fillColor}
 						d='M211.7,133.22h-75.42v-20.57h75.42v20.57ZM211.7,160.65h-75.42v-20.57h75.42v20.57ZM211.7,188.07h-75.42v-20.57h75.42v20.57Z'
 					/>
 				</G>
@@ -221,7 +222,7 @@ export default function TabLayout({ theme = "light" }) {
 					tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
 					headerShown: true,
 					headerBackTitle: "Back",
-					headerTitle: (props) => <LogoTitle {...props} />,
+				headerTitle: (props) => <LogoTitle {...props} colorScheme={colorScheme} />,
 					headerRight: () => (
 						<>
 							{!accessToken && (
@@ -248,7 +249,7 @@ export default function TabLayout({ theme = "light" }) {
 							<VStack>
 								{contextUnreadCount > 0 && (
 									<Badge
-										className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full left-1 -top-2'
+										className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full left-1 top-1'
 										variant='solid'>
 										<BadgeText
 											className='text-white absolute right-1'
@@ -265,11 +266,12 @@ export default function TabLayout({ theme = "light" }) {
 										marginRight: 15,
 										// backgroundColor: "pink",
 										paddingHorizontal: 10,
+										paddingVertical: 10,
 									}}
 									onPress={() =>
 										router.push("/notifications")
 									}>
-									<Bell color='black' size={22} />
+								<Bell color={colorScheme === 'dark' ? '#f3f4f6' : '#111827'} size={22} />
 								</Pressable>
 							</VStack>
 							{role === "candidat" && (
