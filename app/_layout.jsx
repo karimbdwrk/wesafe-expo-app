@@ -22,6 +22,10 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { DataProvider } from "@/context/DataContext";
 import { NotificationsProvider } from "@/context/NotificationsContext";
 import { ImageProvider } from "@/context/ImageContext";
+import {
+	ThemeProvider as AppThemeProvider,
+	useTheme,
+} from "@/context/ThemeContext";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -48,15 +52,17 @@ export default function RootLayout() {
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
 			<StripeProvider publishableKey='pk_test_51RhCWfRs36t2SzSl20E1w8vTi97kdamUZ36cUp6tI7uBjzYWm3hXiNs8evBcViZpsYCHnnK7MYFl6I52jC9xS4Su000R6gOuhW'>
-				<AuthProvider>
-					<DataProvider>
-						<NotificationsProvider>
-							<ImageProvider>
-								<RootLayoutNav />
-							</ImageProvider>
-						</NotificationsProvider>
-					</DataProvider>
-				</AuthProvider>
+				<AppThemeProvider>
+					<AuthProvider>
+						<DataProvider>
+							<NotificationsProvider>
+								<ImageProvider>
+									<RootLayoutNav />
+								</ImageProvider>
+							</NotificationsProvider>
+						</DataProvider>
+					</AuthProvider>
+				</AppThemeProvider>
 			</StripeProvider>
 		</GestureHandlerRootView>
 	);
@@ -65,7 +71,7 @@ export default function RootLayout() {
 function RootLayoutNav() {
 	const pathname = usePathname();
 	const { user, role, loading: authLoading } = useAuth();
-	const [colorMode, setColorMode] = useState("light");
+	const { colorMode, toggleColorMode } = useTheme();
 
 	useEffect(() => {
 		console.log(
@@ -235,6 +241,13 @@ function RootLayoutNav() {
 								options={{ headerShown: true }}
 							/>
 							<Stack.Screen
+								name='settings'
+								options={{
+									headerShown: true,
+									headerTitle: "Paramètres",
+								}}
+							/>
+							<Stack.Screen
 								name='procards'
 								options={{ headerShown: true }}
 							/>
@@ -296,11 +309,7 @@ function RootLayoutNav() {
 						</Stack>
 						{pathname === "/" && (
 							<Fab
-								onPress={() =>
-									setColorMode(
-										colorMode === "dark" ? "light" : "dark",
-									)
-								}
+								onPress={toggleColorMode}
 								className='m-6'
 								size='lg'>
 								<FabIcon
