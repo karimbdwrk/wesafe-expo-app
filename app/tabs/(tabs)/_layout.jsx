@@ -248,25 +248,29 @@ export default function TabLayout({ theme = "light" }) {
 							<VStack>
 								{contextUnreadCount > 0 && (
 									<Badge
-										className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full -left-2'
+										className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full left-1 -top-2'
 										variant='solid'>
 										<BadgeText
 											className='text-white absolute right-1'
 											style={{ fontSize: 10 }}>
-											{contextUnreadCount > 99
-												? "99+"
+											{contextUnreadCount > 9
+												? "9+"
 												: contextUnreadCount}
 										</BadgeText>
 									</Badge>
 								)}
-								<Button
-									variant='link'
-									style={{ marginRight: 15 }}
+								<Pressable
+									// variant='link'
+									style={{
+										marginRight: 15,
+										// backgroundColor: "pink",
+										paddingHorizontal: 10,
+									}}
 									onPress={() =>
 										router.push("/notifications")
 									}>
-									<ButtonIcon as={Bell} />
-								</Button>
+									<Bell color='black' size={22} />
+								</Pressable>
 							</VStack>
 							{role === "candidat" && (
 								<Menu
