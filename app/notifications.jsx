@@ -82,6 +82,37 @@ const Notifications = () => {
 		}, []),
 	);
 
+	const handleMarkAllAsRead = async () => {
+		console.log("Marking all as read...");
+		try {
+			// Marquer toutes les notifications non lues dans la base de données
+			const unreadNotifications = notifications.filter((n) => !n.is_read);
+
+			if (unreadNotifications.length === 0) {
+				console.log("No unread notifications");
+				return;
+			}
+
+			// Mettre à jour toutes les notifications non lues
+			const updatePromises = unreadNotifications.map((notification) =>
+				update("notifications", notification.id, {
+					is_read: true,
+					read_at: new Date().toISOString(),
+				}),
+			);
+
+			await Promise.all(updatePromises);
+			console.log("All notifications marked as read");
+
+			// Rafraîchir les notifications après mise à jour
+			setTimeout(() => {
+				refreshNotifications();
+			}, 500);
+		} catch (error) {
+			console.error("Error marking all as read:", error);
+		}
+	};
+
 	// const renderNotification = ({ item }) => (
 	// 	<NotificationItem
 	// 		notification={item}
@@ -258,7 +289,7 @@ const Notifications = () => {
 							</VStack>
 						</HStack>
 						{unreadCount > 0 && (
-							<TouchableOpacity onPress={markAllAsRead}>
+							<TouchableOpacity onPress={handleMarkAllAsRead}>
 								<Box
 									style={{
 										paddingHorizontal: 12,
