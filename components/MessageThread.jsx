@@ -21,6 +21,7 @@ import { Textarea, TextareaInput } from "@/components/ui/textarea";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Send, Check, MessageCircle, AlertCircle } from "lucide-react-native";
+import { width } from "dom-helpers";
 
 // Animation de points pour l'indicateur de saisie
 const TypingAnimation = () => {
@@ -855,9 +856,15 @@ const MessageThread = ({
 									alignSelf: isMyMessage
 										? "flex-end"
 										: "flex-start",
+									justifyContent: "center",
+									alignItems: isMyMessage
+										? "flex-end"
+										: "flex-start",
+									flexDirection: "column",
 								}}>
 								<Card
 									style={{
+										width: "100%",
 										paddingHorizontal: 12,
 										paddingVertical: 8,
 										borderRadius: 16,
@@ -893,6 +900,9 @@ const MessageThread = ({
 											? "row-reverse"
 											: "row",
 										alignItems: "center",
+										justifyContent: isMyMessage
+											? "flex-end"
+											: "flex-start",
 									}}>
 									<Text
 										size='xs'
@@ -1074,55 +1084,61 @@ const MessageThread = ({
 								backgroundColor: isDark ? "#1f2937" : "#ffffff",
 								borderTopWidth: 1,
 								borderTopColor: isDark ? "#4b5563" : "#e5e7eb",
-								position: "relative",
 							}}>
-							<Input
-								size='md'
-								style={{
-									width: "100%",
-									backgroundColor: isDark
-										? "#374151"
-										: "#f9fafb",
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
-									paddingRight: 56,
-								}}>
-								<InputField
-									placeholder='Écrivez votre message...'
-									value={newMessage}
-									onChangeText={handleTyping}
-									maxLength={500}
-									onSubmitEditing={sendMessage}
+							<Box style={{ position: "relative" }}>
+								<Input
+									size='lg'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}
-								/>
-							</Input>
-							<Button
-								size='sm'
-								onPress={sendMessage}
-								isDisabled={!newMessage.trim() || loading}
-								style={{
-									position: "absolute",
-									right: 20,
-									top: "50%",
-									transform: [{ translateY: -18 }],
-									backgroundColor:
-										!newMessage.trim() || loading
-											? isDark
-												? "#4b5563"
-												: "#e5e7eb"
-											: "#6366f1",
-									width: 40,
-									height: 40,
-									borderRadius: 999,
-									minWidth: 40,
-								}}>
-								<ButtonIcon
-									as={Send}
+										width: "100%",
+										backgroundColor: isDark
+											? "#374151"
+											: "#f9fafb",
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+										paddingRight: 56,
+										borderRadius: 18,
+									}}>
+									<InputField
+										placeholder='Écrivez votre message...'
+										value={newMessage}
+										onChangeText={handleTyping}
+										maxLength={500}
+										onSubmitEditing={sendMessage}
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}
+									/>
+								</Input>
+								<Button
 									size='sm'
-									color='#ffffff'
-								/>
-							</Button>
+									onPress={sendMessage}
+									isDisabled={!newMessage.trim() || loading}
+									style={{
+										position: "absolute",
+										right: 4,
+										top: "50%",
+										transform: [{ translateY: -17 }],
+										backgroundColor:
+											!newMessage.trim() || loading
+												? isDark
+													? "#4b5563"
+													: "#e5e7eb"
+												: "#6366f1",
+										width: 32,
+										height: 32,
+										borderRadius: 15,
+										minWidth: 32,
+									}}>
+									<ButtonIcon
+										as={Send}
+										size='xs'
+										color='#ffffff'
+									/>
+								</Button>
+							</Box>
 						</Box>
 					);
 				})()}
