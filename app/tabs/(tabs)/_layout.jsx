@@ -55,6 +55,7 @@ import {
 	Box,
 	House,
 	Bell,
+	Settings,
 } from "lucide-react-native";
 
 import Colors from "@/constants/Colors";
@@ -354,10 +355,25 @@ export default function TabLayout({ theme = "light" }) {
 											Ma wishlist
 										</MenuItemLabel>
 									</MenuItem>
-									<MenuSeparator />
 									<MenuItem
 										key='Settings'
 										textValue='Settings'
+										onPress={() =>
+											router.push("/settings")
+										}>
+										<Icon
+											as={Settings}
+											size='sm'
+											className='mr-2'
+										/>
+										<MenuItemLabel size='sm'>
+											Paramètres
+										</MenuItemLabel>
+									</MenuItem>
+									<MenuSeparator />
+									<MenuItem
+										key='Signout'
+										textValue='Signout'
 										onPress={signOut}>
 										<Icon
 											as={Power}
@@ -516,6 +532,21 @@ export default function TabLayout({ theme = "light" }) {
 										/>
 										<MenuItemLabel size='sm'>
 											Mes contacts
+										</MenuItemLabel>
+									</MenuItem>
+									<MenuItem
+										key='SettingsPro'
+										textValue='SettingsPro'
+										onPress={() =>
+											router.push("/settings")
+										}>
+										<Icon
+											as={Settings}
+											size='sm'
+											className='mr-2'
+										/>
+										<MenuItemLabel size='sm'>
+											Paramètres
 										</MenuItemLabel>
 									</MenuItem>
 									<MenuSeparator />
