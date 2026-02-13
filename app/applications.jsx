@@ -23,7 +23,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
-import { useTheme } from "@/components/ui/themed/theme-provider";
+import { useTheme } from "@/context/ThemeContext";
 
 const ITEMS_PER_PAGE = 5;
 
