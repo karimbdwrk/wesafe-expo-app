@@ -12,7 +12,7 @@ import { Box } from "@/components/ui/box";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
-import { useTheme } from "@/components/ui/themed/theme-provider";
+
 import {
 	Briefcase,
 	Clock,
@@ -20,6 +20,8 @@ import {
 	CheckCircle,
 	XCircle,
 } from "lucide-react-native";
+
+import { useTheme } from "@/context/ThemeContext";
 
 const ApplyCard = ({
 	id,
