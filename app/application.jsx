@@ -14,6 +14,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 
 import { createSupabaseClient } from "@/lib/supabase";
 
+import { Box } from "@/components/ui/box";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { HStack } from "@/components/ui/hstack";
@@ -23,6 +24,7 @@ import { Divider } from "@/components/ui/divider";
 import { Text } from "@/components/ui/text";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
+import { Icon } from "@/components/ui/icon";
 import {
 	Modal,
 	ModalBackdrop,
@@ -51,10 +53,16 @@ import {
 	MapPin,
 	CalendarClock,
 	CircleCheckIcon,
+	MessageCircle,
+	FileText,
+	ChevronRight,
+	User,
+	Briefcase,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { useTheme } from "@/context/ThemeContext";
 
 import { sendApplicationSelectedEmail } from "@/utils/sendApplicationSelectedEmail";
 import { sendRecruitmentStatusEmail } from "@/utils/sendRecruitmentStatusEmail";
@@ -129,6 +137,7 @@ const ApplicationScreen = () => {
 	const { id, title, company_id, category, apply_id, name, openMessaging } =
 		useLocalSearchParams();
 	const { user, role, accessToken } = useAuth();
+	const { isDark } = useTheme();
 	const {
 		toggleWishlistJob,
 		getWishlistJobs,
@@ -289,16 +298,13 @@ const ApplicationScreen = () => {
 		}, []),
 	);
 
-	// useEffect(() => {
-	// 	if (application?.jobs?.title) {
-	// 		navigation.setOptions({
-	// 			headerTitle: `Candidature - ${application.jobs.title}`,
-	// 			// headerBackTitle: " ",
-	// 			// headerBackTitleVisible: false,
-	// 			// headerBackTitleStyle: { fontSize: 0 },
-	// 		});
-	// 	}
-	// }, [application, navigation]);
+	useEffect(() => {
+		if (title) {
+			navigation.setOptions({
+				headerTitle: `Candidature - ${title}`,
+			});
+		}
+	}, [title, navigation]);
 
 	useEffect(() => {
 		const keyboardDidShowListener = Keyboard.addListener(
@@ -482,7 +488,7 @@ const ApplicationScreen = () => {
 				recipientId: application.candidate_id,
 				actorId: application.company_id,
 				type: "application_selected",
-				title: "Profil sélectionné",
+				title: application.jobs.title,
 				body: "Le recruteur souhaite poursuivre avec vous.",
 				entityType: "application",
 				entityId: apply_id,
@@ -747,178 +753,525 @@ const ApplicationScreen = () => {
 	const timelineSteps = buildTimelineSteps(applicationStatus);
 
 	return (
-		<ScrollView style={{ flex: 1, backgroundColor: "white" }}>
-			<VStack style={{ padding: 15, gap: 15, paddingBottom: 90 }}>
-				<VStack
-					style={{
-						justifyContent: "center",
-						alignItems: "flex-start",
-						gap: 5,
-						marginBottom: 15,
-					}}>
-					<Heading>Candidature</Heading>
-					<Text size='xs' italic>
-						ID : {application.id}
-					</Text>
-				</VStack>
-				<JobCard
-					id={application?.jobs?.id}
-					title={application?.jobs?.title}
-					category={application?.jobs?.category}
-					company_id={application?.jobs?.company_id}
-					city={application?.jobs?.city}
-					department={application?.jobs?.departmentcode}
-				/>
-				{role === "pro" && (
-					<VStack>
-						<Heading size='md' className='mb-1'>
-							{application?.profiles?.lastname +
-								" " +
-								application?.profiles?.firstname}
-						</Heading>
-						<Button
-							onPress={() =>
-								router.push({
-									pathname: "/profile",
-									params: {
-										profile_id: application.candidate_id,
-									},
-								})
-							}>
-							<ButtonText>Voir profil</ButtonText>
-						</Button>
-					</VStack>
-				)}
-				<VStack
-					style={{
-						padding: 10,
-						marginTop: 15,
-						justifyContent: "flex-start",
-						gap: 10,
-					}}>
-					<VStack
+		<Box
+			style={{
+				flex: 1,
+				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+			}}>
+			<ScrollView style={{ flex: 1 }}>
+				<VStack space='lg' style={{ padding: 20, paddingBottom: 90 }}>
+					{/* Job Card */}
+					<Card
 						style={{
-							alignItems: "flex-start",
-							gap: 10,
+							padding: 20,
+							backgroundColor: isDark ? "#374151" : "#ffffff",
+							borderRadius: 12,
+							borderWidth: 1,
+							borderColor: isDark ? "#4b5563" : "#e5e7eb",
 						}}>
-						{applicationStatus &&
-							timelineSteps.map((step, index) => (
-								<StepCard
-									key={`${step.status}-${index}`}
-									status={step.status}
-									date={step.created_at}
-									isPending={step.isPending}
-									isLast={index === timelineSteps.length - 1}
+						<HStack space='md' style={{ alignItems: "flex-start" }}>
+							<Box
+								style={{
+									width: 48,
+									height: 48,
+									borderRadius: 24,
+									backgroundColor: "#dbeafe",
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Icon
+									as={Briefcase}
+									size='xl'
+									style={{ color: "#2563eb" }}
 								/>
-							))}
-					</VStack>
-				</VStack>
-
-				{/* Bouton Messagerie - Affichée si sélectionné */}
-				{currentStatus !== "applied" && currentStatus !== "" && (
-					<Button onPress={() => setShowMessaging(true)}>
-						<HStack space='sm' style={{ alignItems: "center" }}>
-							<ButtonText>💬 Ouvrir la messagerie</ButtonText>
-							{unreadMessagesCount > 0 && (
-								<Badge
-									action='error'
-									size='sm'
+							</Box>
+							<VStack style={{ flex: 1 }} space='xs'>
+								<Heading
+									size='xl'
 									style={{
-										minWidth: 20,
-										height: 20,
-										borderRadius: 10,
-										justifyContent: "center",
-										alignItems: "center",
+										color: isDark ? "#f3f4f6" : "#111827",
 									}}>
-									<BadgeText
-										style={{
-											fontSize: 12,
-											fontWeight: "bold",
-										}}>
-										{unreadMessagesCount}
-									</BadgeText>
-								</Badge>
-							)}
+									{application?.jobs?.title}
+								</Heading>
+								<Text
+									size='md'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}>
+									{application?.companies?.name ||
+										application?.jobs?.company_name}
+								</Text>
+								<HStack space='xs'>
+									<Badge
+										size='sm'
+										variant='outline'
+										action='muted'>
+										<BadgeText>
+											{application?.jobs?.category}
+										</BadgeText>
+									</Badge>
+									{application?.jobs?.city && (
+										<Badge
+											size='sm'
+											variant='outline'
+											action='muted'>
+											<BadgeText>
+												{application?.jobs?.city}
+											</BadgeText>
+										</Badge>
+									)}
+								</HStack>
+							</VStack>
 						</HStack>
-					</Button>
-				)}
+					</Card>
 
-				{role === "pro" && (
-					<VStack space='md'>
-						{currentStatus === "applied" && (
-							<HStack
+					{/* Candidat Card (si pro) */}
+					{role === "pro" && application?.profiles && (
+						<Card
+							style={{
+								padding: 20,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}>
+							<Button
+								variant='link'
+								style={{ padding: 0 }}
+								onPress={() =>
+									router.push({
+										pathname: "/profile",
+										params: {
+											profile_id:
+												application.candidate_id,
+										},
+									})
+								}>
+								<HStack
+									space='md'
+									style={{
+										alignItems: "center",
+										width: "100%",
+									}}>
+									<Box
+										style={{
+											width: 48,
+											height: 48,
+											borderRadius: 24,
+											backgroundColor: "#dcfce7",
+											justifyContent: "center",
+											alignItems: "center",
+										}}>
+										<Icon
+											as={User}
+											size='xl'
+											style={{ color: "#16a34a" }}
+										/>
+									</Box>
+									<VStack style={{ flex: 1 }} space='xs'>
+										<Text
+											size='lg'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											{application?.profiles?.lastname +
+												" " +
+												application?.profiles
+													?.firstname}
+										</Text>
+										<Text
+											size='sm'
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}>
+											Voir le profil du candidat
+										</Text>
+									</VStack>
+									<Icon
+										as={ChevronRight}
+										size='lg'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}
+									/>
+								</HStack>
+							</Button>
+						</Card>
+					)}
+
+					{/* Timeline Card */}
+					<Card
+						style={{
+							padding: 20,
+							backgroundColor: isDark ? "#374151" : "#ffffff",
+							borderRadius: 12,
+							borderWidth: 1,
+							borderColor: isDark ? "#4b5563" : "#e5e7eb",
+						}}>
+						<VStack space='lg'>
+							<Heading
+								size='lg'
 								style={{
-									gap: 10,
-									justifyContent: "center",
-									width: "100%",
+									color: isDark ? "#f3f4f6" : "#111827",
 								}}>
-								<Button
-									style={{ width: "49%" }}
-									action='positive'
-									onPress={() => handleSelect()}>
-									<ButtonText>Sélectionner</ButtonText>
-								</Button>
-								<Button
-									style={{ width: "49%" }}
-									action='negative'
-									onPress={() => handleReject()}>
-									<ButtonText>Refuser</ButtonText>
-								</Button>
-							</HStack>
-						)}
-						{currentStatus === "selected" && (
-							<HStack
-								style={{
-									gap: 10,
-									justifyContent: "center",
-									width: "100%",
-								}}>
-								<Button
-									style={{ width: "49%" }}
-									action='positive'
-									onPress={() => handleGenerateContract()}>
-									<ButtonText>Générer le contrat</ButtonText>
-								</Button>
-								<Button
-									style={{ width: "49%" }}
-									action='negative'
-									onPress={() => handleReject()}>
-									<ButtonText>Refuser</ButtonText>
-								</Button>
-							</HStack>
-						)}
-					</VStack>
-				)}
-				{contractGenerated && (
-					<Button
-						onPress={() =>
-							router.push({
-								pathname: "/contract",
-								params: {
-									apply_id: application.id,
-									candidate_id: application.candidate_id,
-									company_id: application.company_id,
-									job_id: application.job_id,
-								},
-							})
-						}>
-						<ButtonText>
-							{role === "pro"
-								? currentStatus === "contract_signed_pro"
-									? "Voir le contrat"
-									: "Voir & signer le contrat"
-								: currentStatus ===
-											"contract_signed_candidate" ||
-									  currentStatus === "contract_signed_pro"
-									? "Voir le contrat"
-									: "Voir & signer mon contrat"}
-						</ButtonText>
-					</Button>
-				)}
-			</VStack>
-			{/* <Button onPress={testSelectEmail}>
-				<ButtonText>Test Email selected application</ButtonText>
-			</Button> */}
+								Suivi de la candidature
+							</Heading>
+							<VStack space='md'>
+								{timelineSteps.map((step, index) => {
+									const config = STATUS_CONFIG[step.status];
+									if (!config) return null;
+
+									const isPending = step.isPending;
+									const description = isPending
+										? "Cette étape est en attente."
+										: role === "pro"
+											? config.descriptionPro
+											: config.descriptionCandidate;
+
+									return (
+										<HStack
+											key={`${step.status}-${index}`}
+											style={{ gap: 15 }}>
+											<VStack
+												style={{
+													alignItems: "center",
+													minWidth: 10,
+												}}>
+												<Box
+													style={{
+														width: 10,
+														height: 10,
+														borderRadius: 5,
+														backgroundColor:
+															isPending
+																? isDark
+																	? "#6b7280"
+																	: "#9ca3af"
+																: config.color,
+													}}
+												/>
+												{index !==
+													timelineSteps.length -
+														1 && (
+													<Box
+														style={{
+															width: 2,
+															flex: 1,
+															minHeight: 40,
+															backgroundColor:
+																isDark
+																	? "#4b5563"
+																	: "#e5e7eb",
+															marginTop: 4,
+														}}
+													/>
+												)}
+											</VStack>
+											<VStack
+												style={{
+													flex: 1,
+													paddingBottom:
+														index ===
+														timelineSteps.length - 1
+															? 0
+															: 8,
+												}}
+												space='xs'>
+												<Heading
+													size='sm'
+													style={{
+														color: isPending
+															? isDark
+																? "#6b7280"
+																: "#9ca3af"
+															: isDark
+																? "#f3f4f6"
+																: "#111827",
+													}}>
+													{config.title}
+												</Heading>
+												<Text
+													size='sm'
+													style={{
+														color: isPending
+															? isDark
+																? "#6b7280"
+																: "#9ca3af"
+															: isDark
+																? "#d1d5db"
+																: "#374151",
+													}}>
+													{description}
+												</Text>
+												{!isPending &&
+													step.created_at && (
+														<HStack
+															space='xs'
+															style={{
+																alignItems:
+																	"center",
+															}}>
+															<Icon
+																as={
+																	CalendarClock
+																}
+																size='xs'
+																style={{
+																	color: isDark
+																		? "#6b7280"
+																		: "#9ca3af",
+																}}
+															/>
+															<Text
+																size='xs'
+																style={{
+																	color: isDark
+																		? "#6b7280"
+																		: "#9ca3af",
+																}}>
+																{formatDate(
+																	step.created_at,
+																)}
+															</Text>
+														</HStack>
+													)}
+											</VStack>
+										</HStack>
+									);
+								})}
+							</VStack>
+						</VStack>
+					</Card>
+
+					{/* Messagerie Card */}
+					{currentStatus !== "applied" && currentStatus !== "" && (
+						<Card
+							style={{
+								padding: 20,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}>
+							<Button
+								variant='link'
+								style={{ padding: 0 }}
+								onPress={() => setShowMessaging(true)}>
+								<HStack
+									space='md'
+									style={{
+										alignItems: "center",
+										width: "100%",
+									}}>
+									<Box
+										style={{
+											width: 48,
+											height: 48,
+											borderRadius: 24,
+											backgroundColor: "#fef3c7",
+											justifyContent: "center",
+											alignItems: "center",
+										}}>
+										<Icon
+											as={MessageCircle}
+											size='xl'
+											style={{ color: "#f59e0b" }}
+										/>
+									</Box>
+									<VStack style={{ flex: 1 }} space='xs'>
+										<Text
+											size='lg'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											Messagerie
+										</Text>
+										<Text
+											size='sm'
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}>
+											Échanger avec{" "}
+											{role === "pro"
+												? "le candidat"
+												: "le recruteur"}
+										</Text>
+									</VStack>
+									{unreadMessagesCount > 0 && (
+										<Badge
+											size='md'
+											variant='solid'
+											action='error'
+											style={{ marginRight: 8 }}>
+											<BadgeText>
+												{unreadMessagesCount}
+											</BadgeText>
+										</Badge>
+									)}
+									<Icon
+										as={ChevronRight}
+										size='lg'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}
+									/>
+								</HStack>
+							</Button>
+						</Card>
+					)}
+
+					{/* Contrat Card */}
+					{contractGenerated && (
+						<Card
+							style={{
+								padding: 20,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}>
+							<Button
+								variant='link'
+								style={{ padding: 0 }}
+								onPress={() =>
+									router.push({
+										pathname: "/contract",
+										params: {
+											apply_id: application.id,
+											candidate_id:
+												application.candidate_id,
+											company_id: application.company_id,
+											job_id: application.job_id,
+										},
+									})
+								}>
+								<HStack
+									space='md'
+									style={{
+										alignItems: "center",
+										width: "100%",
+									}}>
+									<Box
+										style={{
+											width: 48,
+											height: 48,
+											borderRadius: 24,
+											backgroundColor: "#dcfce7",
+											justifyContent: "center",
+											alignItems: "center",
+										}}>
+										<Icon
+											as={FileText}
+											size='xl'
+											style={{ color: "#16a34a" }}
+										/>
+									</Box>
+									<VStack style={{ flex: 1 }} space='xs'>
+										<Text
+											size='lg'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											Contrat de mission
+										</Text>
+										<Text
+											size='sm'
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}>
+											{role === "pro"
+												? currentStatus ===
+													"contract_signed_pro"
+													? "Voir le contrat"
+													: "Voir & signer le contrat"
+												: currentStatus ===
+															"contract_signed_candidate" ||
+													  currentStatus ===
+															"contract_signed_pro"
+													? "Voir le contrat"
+													: "Voir & signer mon contrat"}
+										</Text>
+									</VStack>
+									<Icon
+										as={ChevronRight}
+										size='lg'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}
+									/>
+								</HStack>
+							</Button>
+						</Card>
+					)}
+
+					{/* Actions pour Pro */}
+					{role === "pro" && (
+						<VStack space='sm'>
+							{currentStatus === "applied" && (
+								<>
+									<Button
+										action='positive'
+										onPress={() => handleSelect()}>
+										<ButtonText>
+											Sélectionner le candidat
+										</ButtonText>
+									</Button>
+									<Button
+										variant='outline'
+										action='negative'
+										onPress={() => handleReject()}>
+										<ButtonText>
+											Refuser la candidature
+										</ButtonText>
+									</Button>
+								</>
+							)}
+							{currentStatus === "selected" && (
+								<>
+									<Button
+										action='positive'
+										onPress={() =>
+											handleGenerateContract()
+										}>
+										<ButtonText>
+											Générer le contrat
+										</ButtonText>
+									</Button>
+									<Button
+										variant='outline'
+										action='negative'
+										onPress={() => handleReject()}>
+										<ButtonText>
+											Refuser la candidature
+										</ButtonText>
+									</Button>
+								</>
+							)}
+						</VStack>
+					)}
+				</VStack>
+			</ScrollView>
 
 			{/* Modal de confirmation pour sélectionner */}
 			<Modal
@@ -1074,7 +1427,7 @@ const ApplicationScreen = () => {
 					</KeyboardAvoidingView>
 				</ActionsheetContent>
 			</Actionsheet>
-		</ScrollView>
+		</Box>
 	);
 };
 
