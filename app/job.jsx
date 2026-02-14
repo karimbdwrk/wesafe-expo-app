@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Constants from "expo-constants";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { toast } from "sonner-native";
 import { ScrollView, TouchableOpacity } from "react-native";
 
@@ -54,6 +54,7 @@ const JobScreen = () => {
 	const { id, title, company_id, category } = useLocalSearchParams();
 	const { user, role, userProfile, accessToken } = useAuth();
 	const { isDark } = useTheme();
+	const navigation = useNavigation();
 	const {
 		toggleWishlistJob,
 		getWishlistJobs,
@@ -82,6 +83,14 @@ const JobScreen = () => {
 		);
 		setJob(data);
 	};
+
+	useEffect(() => {
+		if (job?.title) {
+			navigation.setOptions({
+				headerTitle: job.title,
+			});
+		}
+	}, [job?.title, navigation]);
 
 	useFocusEffect(
 		useCallback(() => {
