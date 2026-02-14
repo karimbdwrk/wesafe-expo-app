@@ -220,6 +220,7 @@ export const NotificationsProvider = ({ children }) => {
 						params: {
 							apply_id: notification.metadata.apply_id,
 							id: user.id,
+							title: notification.title || "Candidature",
 						},
 					});
 				} else if (
@@ -233,6 +234,7 @@ export const NotificationsProvider = ({ children }) => {
 							apply_id: notification.entity_id,
 							id: user.id,
 							openMessaging: "true",
+							title: notification.title || "Candidature",
 						},
 					});
 				} else if (
@@ -245,6 +247,7 @@ export const NotificationsProvider = ({ children }) => {
 						params: {
 							apply_id: notification.entity_id,
 							id: user.id,
+							title: notification.title || "Candidature",
 						},
 					});
 				} else if (
