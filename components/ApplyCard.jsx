@@ -19,9 +19,54 @@ import {
 	MessageCircle,
 	CheckCircle,
 	XCircle,
+	FileText,
+	IdCard,
 } from "lucide-react-native";
 
 import { useTheme } from "@/context/ThemeContext";
+
+const STATUS_ORDER = [
+	"applied",
+	"selected",
+	"contract_sent",
+	"contract_signed_candidate",
+	"contract_signed_pro",
+];
+
+const STATUS_CONFIG = {
+	applied: {
+		title: "Candidature envoyée",
+		action: "success",
+		icon: CheckCircle,
+	},
+	selected: {
+		title: "Profil sélectionné",
+		action: "info",
+		icon: CheckCircle,
+	},
+	contract_sent: {
+		title: "Contrat envoyé",
+		action: "warning",
+		icon: FileText,
+	},
+	contract_signed_candidate: {
+		title: "Contrat signé",
+		action: "success",
+		icon: CheckCircle,
+	},
+	contract_signed_pro: {
+		title: "Contrat finalisé",
+		action: "success",
+		icon: CheckCircle,
+		isFinal: true,
+	},
+	rejected: {
+		title: "Candidature refusée",
+		action: "error",
+		icon: XCircle,
+		isFinal: true,
+	},
+};
 
 const ApplyCard = ({
 	id,
@@ -85,30 +130,12 @@ const ApplyCard = ({
 
 	const { isDark } = useTheme();
 
-	const getStatusConfig = (status) => {
-		switch (status) {
-			case "rejected":
-				return {
-					color: "#ef4444",
-					icon: XCircle,
-					label: "Refusé",
-				};
-			case "accepted":
-				return {
-					color: "#10b981",
-					icon: CheckCircle,
-					label: "Accepté",
-				};
-			default:
-				return {
-					color: "#f59e0b",
-					icon: Clock,
-					label: "En attente",
-				};
-		}
+	// Obtenir la config du status actuel
+	const statusConfig = STATUS_CONFIG[status] || {
+		title: "En attente",
+		action: "muted",
+		icon: Clock,
 	};
-
-	const statusConfig = getStatusConfig(status);
 
 	return (
 		<TouchableOpacity
@@ -129,33 +156,20 @@ const ApplyCard = ({
 			<Card
 				style={{
 					backgroundColor: isDark ? "#374151" : "#ffffff",
-					borderRadius: 12,
+					borderRadius: 16,
 					padding: 16,
+					marginBottom: 12,
+					borderWidth: 1,
+					borderColor: isDark ? "#4b5563" : "#e5e7eb",
 				}}>
-				<HStack space='md' style={{ alignItems: "flex-start" }}>
-					{/* Icon Circle */}
-					<Box
-						style={{
-							width: 48,
-							height: 48,
-							borderRadius: 24,
-							backgroundColor: isDark ? "#1f2937" : "#f3f4f6",
-							justifyContent: "center",
-							alignItems: "center",
-						}}>
-						<Icon
-							as={Briefcase}
-							size={24}
-							color={isDark ? "#9ca3af" : "#6b7280"}
-						/>
-					</Box>
-
-					{/* Content */}
-					<VStack style={{ flex: 1 }} space='xs'>
+				<VStack space='md'>
+					{/* Header with title and company */}
+					<VStack space='xs'>
 						<Heading
-							size='md'
+							size='lg'
 							style={{
 								color: isDark ? "#f3f4f6" : "#111827",
+								lineHeight: 24,
 							}}>
 							{title}
 						</Heading>
@@ -168,53 +182,42 @@ const ApplyCard = ({
 								{name}
 							</Text>
 						)}
-
-						{/* Badges */}
-						<HStack
-							space='sm'
-							style={{ marginTop: 8, flexWrap: "wrap" }}>
-							{/* Category Badge */}
-							<Badge
-								size='sm'
-								variant='solid'
-								style={{
-									backgroundColor: "#6366f1",
-								}}>
-								<BadgeText style={{ color: "#ffffff" }}>
-									{category}
-								</BadgeText>
-							</Badge>
-
-							{/* Status Badge */}
-							<Badge
-								size='sm'
-								variant='solid'
-								style={{
-									backgroundColor: statusConfig.color,
-								}}>
-								<BadgeIcon as={statusConfig.icon} size={12} />
-								<BadgeText style={{ color: "#ffffff" }}>
-									{statusConfig.label}
-								</BadgeText>
-							</Badge>
-
-							{/* Unread Messages Badge */}
-							{unreadMessagesCount > 0 && (
-								<Badge
-									size='sm'
-									variant='solid'
-									style={{
-										backgroundColor: "#ef4444",
-									}}>
-									<BadgeIcon as={MessageCircle} size={12} />
-									<BadgeText style={{ color: "#ffffff" }}>
-										{unreadMessagesCount}
-									</BadgeText>
-								</Badge>
-							)}
-						</HStack>
 					</VStack>
-				</HStack>
+
+					{/* Info row with badges */}
+					<HStack
+						space='sm'
+						style={{ alignItems: "center", flexWrap: "wrap" }}>
+						{/* Category */}
+						<Badge size='sm' variant='solid' action='muted'>
+							<BadgeIcon as={IdCard} className='mr-2' />
+							<BadgeText>{category}</BadgeText>
+						</Badge>
+
+						{/* Status */}
+						<Badge
+							size='sm'
+							variant='solid'
+							action={statusConfig.action}>
+							<BadgeIcon
+								as={statusConfig.icon}
+								className='mr-2'
+							/>
+							<BadgeText>{statusConfig.title}</BadgeText>
+						</Badge>
+
+						{/* Unread Messages */}
+						{unreadMessagesCount > 0 && (
+							<Badge size='sm' variant='solid' action='error'>
+								<BadgeIcon
+									as={MessageCircle}
+									className='mr-2'
+								/>
+								<BadgeText>{unreadMessagesCount}</BadgeText>
+							</Badge>
+						)}
+					</HStack>
+				</VStack>
 			</Card>
 		</TouchableOpacity>
 	);
