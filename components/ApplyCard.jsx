@@ -156,7 +156,7 @@ const ApplyCard = ({
 			<Card
 				style={{
 					backgroundColor: isDark ? "#374151" : "#ffffff",
-					borderRadius: 16,
+					borderRadius: 8,
 					padding: 16,
 					marginBottom: 12,
 					borderWidth: 1,
