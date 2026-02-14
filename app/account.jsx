@@ -25,11 +25,13 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useNotifications } from "@/context/NotificationsContext";
 
 const AccountScreen = () => {
 	const { user } = useAuth();
 	const { getById } = useDataContext();
 	const { isDark } = useTheme();
+	const { unreadCount } = useNotifications();
 	const router = useRouter();
 
 	const [profile, setProfile] = useState(null);
@@ -340,12 +342,16 @@ const AccountScreen = () => {
 													}}>
 													Candidatures
 												</Text>
-												<Badge
-													size='sm'
-													variant='solid'
-													action='info'>
-													<BadgeText>2</BadgeText>
-												</Badge>
+												{unreadCount > 0 && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='error'>
+														<BadgeText>
+															{unreadCount}
+														</BadgeText>
+													</Badge>
+												)}
 											</HStack>
 											<Text
 												size='sm'
