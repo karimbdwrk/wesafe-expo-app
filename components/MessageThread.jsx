@@ -414,6 +414,12 @@ const MessageThread = ({
 				return;
 			}
 
+			// Mettre à jour updated_at de la candidature
+			await supabase
+				.from("applies")
+				.update({ updated_at: new Date().toISOString() })
+				.eq("id", applyId);
+
 			// Vider l'input immédiatement après l'envoi réussi
 			// Ne déclenche pas handleTyping car on a déjà envoyé typing=false
 			setNewMessage("");
