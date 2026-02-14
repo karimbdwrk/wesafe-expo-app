@@ -268,6 +268,7 @@ function RootLayoutNav() {
 								name='application'
 								options={{
 									headerShown: true,
+									headerTitle: "Candidature",
 								}}
 							/>
 							<Stack.Screen
