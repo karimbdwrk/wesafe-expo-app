@@ -67,6 +67,7 @@ const JobScreen = () => {
 	} = useDataContext();
 
 	const router = useRouter();
+	const scrollViewRef = React.useRef(null);
 
 	const [job, setJob] = useState(null);
 	const [isInWishlist, setIsInWishlist] = useState(false);
@@ -190,8 +191,8 @@ const JobScreen = () => {
 				flex: 1,
 				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
 			}}>
-			<ScrollView>
-				<VStack space='lg' style={{ padding: 20 }}>
+			<ScrollView ref={scrollViewRef}>
+				<VStack space='lg' style={{ padding: 20, paddingBottom: 100 }}>
 					{/* Card Principale - Informations du poste */}
 					<Card
 						style={{
@@ -289,7 +290,7 @@ const JobScreen = () => {
 							{/* Badges */}
 							<HStack space='sm' style={{ flexWrap: "wrap" }}>
 								<Badge size='md' variant='solid' action='info'>
-									<BadgeIcon as={IdCard} />
+									<BadgeIcon as={IdCard} className='mr-2' />
 									<BadgeText>{job?.category}</BadgeText>
 								</Badge>
 								{job?.isLastMinute && (
@@ -834,6 +835,15 @@ const JobScreen = () => {
 											style={{
 												padding: 20,
 												backgroundColor: "transparent",
+											}}
+											onPress={() => {
+												setTimeout(() => {
+													scrollViewRef.current?.scrollToEnd(
+														{
+															animated: true,
+														},
+													);
+												}, 300);
 											}}>
 											{({ isExpanded }) => (
 												<>
@@ -1116,23 +1126,8 @@ const JobScreen = () => {
 					)}
 
 					{/* Boutons d'action */}
-					<VStack space='sm'>
-						{role === "candidat" && (
-							<Button
-								disabled={isApplied ? true : false}
-								action={isApplied ? "secondary" : "primary"}
-								variant={isApplied ? "outline" : "solid"}
-								size='lg'
-								onPress={handleApply}
-								style={{ width: "100%" }}>
-								<ButtonText>
-									{isApplied
-										? "Vous avez déjà postulé"
-										: "Postuler"}
-								</ButtonText>
-							</Button>
-						)}
-						{role === "pro" && user.id === company_id && (
+					{role === "pro" && user.id === company_id && (
+						<VStack space='sm'>
 							<Button
 								disabled={isArchived ? true : false}
 								action={isArchived ? "secondary" : "negative"}
@@ -1144,8 +1139,8 @@ const JobScreen = () => {
 									{isArchived ? "Job archivé" : "Archiver"}
 								</ButtonText>
 							</Button>
-						)}
-					</VStack>
+						</VStack>
+					)}
 
 					{/* Card Candidats (pour pro) */}
 					{role === "pro" && user.id === company_id && (
@@ -1277,6 +1272,34 @@ const JobScreen = () => {
 					)}
 				</VStack>
 			</ScrollView>
+
+			{/* Bouton fixe en bas pour candidat */}
+			{role === "candidat" && (
+				<Box
+					style={{
+						position: "absolute",
+						bottom: 0,
+						left: 0,
+						right: 0,
+						padding: 16,
+						paddingBottom: 35,
+						backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+						borderTopWidth: 1,
+						borderTopColor: isDark ? "#374151" : "#e5e7eb",
+					}}>
+					<Button
+						disabled={isApplied ? true : false}
+						action={isApplied ? "secondary" : "primary"}
+						variant={isApplied ? "outline" : "solid"}
+						size='lg'
+						onPress={handleApply}
+						style={{ width: "100%" }}>
+						<ButtonText>
+							{isApplied ? "Vous avez déjà postulé" : "Postuler"}
+						</ButtonText>
+					</Button>
+				</Box>
+			)}
 		</Box>
 	);
 };
