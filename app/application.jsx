@@ -8,6 +8,7 @@ import {
 	Platform,
 	Keyboard,
 	KeyboardAvoidingView,
+	Pressable,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -17,6 +18,11 @@ import { createSupabaseClient } from "@/lib/supabase";
 import { Box } from "@/components/ui/box";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
+import {
+	Avatar,
+	AvatarImage,
+	AvatarFallbackText,
+} from "@/components/ui/avatar";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import { Center } from "@/components/ui/center";
@@ -52,12 +58,16 @@ import {
 	CircleSlash,
 	MapPin,
 	CalendarClock,
+	CheckCircle,
+	XCircle,
+	FileCheck,
 	CircleCheckIcon,
 	MessageCircle,
 	FileText,
 	ChevronRight,
 	User,
 	Briefcase,
+	IdCard,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -761,69 +771,120 @@ const ApplicationScreen = () => {
 			<ScrollView style={{ flex: 1 }}>
 				<VStack space='lg' style={{ padding: 20, paddingBottom: 90 }}>
 					{/* Job Card */}
-					<Card
-						style={{
-							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
-							borderRadius: 12,
-							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
-						}}>
-						<HStack space='md' style={{ alignItems: "flex-start" }}>
-							<Box
-								style={{
-									width: 48,
-									height: 48,
-									borderRadius: 24,
-									backgroundColor: "#dbeafe",
-									justifyContent: "center",
-									alignItems: "center",
-								}}>
-								<Icon
-									as={Briefcase}
-									size='xl'
-									style={{ color: "#2563eb" }}
-								/>
-							</Box>
-							<VStack style={{ flex: 1 }} space='xs'>
-								<Heading
-									size='xl'
-									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}>
-									{application?.jobs?.title}
-								</Heading>
-								<Text
-									size='md'
-									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
-									}}>
-									{application?.companies?.name ||
-										application?.jobs?.company_name}
-								</Text>
-								<HStack space='xs'>
-									<Badge
-										size='sm'
-										variant='outline'
-										action='muted'>
-										<BadgeText>
-											{application?.jobs?.category}
-										</BadgeText>
-									</Badge>
-									{application?.jobs?.city && (
+					<Pressable
+						onPress={() =>
+							router.push({
+								pathname: "/job",
+								params: { id: application?.jobs?.id },
+							})
+						}>
+						<Card
+							style={{
+								padding: 20,
+								// paddingRight: 10,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}>
+							<HStack space='md' style={{ alignItems: "center" }}>
+								<VStack style={{ flex: 1 }} space='xs'>
+									<Heading
+										size='xl'
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										{application?.jobs?.title}
+									</Heading>
+									<HStack space='md' style={{ marginTop: 5 }}>
 										<Badge
 											size='sm'
-											variant='outline'
-											action='muted'>
+											// variant='outline'
+											action='info'>
+											<BadgeIcon
+												as={IdCard}
+												className='mr-2'
+											/>
 											<BadgeText>
-												{application?.jobs?.city}
+												{application?.jobs?.category}
 											</BadgeText>
 										</Badge>
+										{application?.jobs?.city && (
+											<Badge
+												size='sm'
+												// variant='outline'
+												action='success'>
+												<BadgeIcon
+													as={MapPin}
+													className='mr-2'
+												/>
+												<BadgeText>
+													{application?.jobs?.city +
+														" (" +
+														application?.jobs
+															?.department_code +
+														" | " +
+														application?.jobs
+															?.department +
+														")"}
+												</BadgeText>
+											</Badge>
+										)}
+									</HStack>
+									{role === "candidat" && (
+										<HStack
+											space='md'
+											className='items-center mt-4'>
+											{application?.companies
+												?.logo_url && (
+												<Avatar size='md'>
+													<AvatarFallbackText>
+														{application?.companies
+															?.name ||
+															application?.jobs
+																?.company_name}
+													</AvatarFallbackText>
+													<AvatarImage
+														source={{
+															uri: application
+																?.companies
+																?.logo_url,
+														}}
+													/>
+												</Avatar>
+											)}
+											<VStack>
+												<Heading
+													size='md'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													{application?.companies
+														?.name ||
+														application?.jobs
+															?.company_name}
+												</Heading>
+												<Text size='sm'>
+													Nursing Assistant
+												</Text>
+											</VStack>
+										</HStack>
 									)}
-								</HStack>
-							</VStack>
-						</HStack>
-					</Card>
+								</VStack>
+								<Icon
+									as={ChevronRight}
+									size='lg'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}
+								/>
+							</HStack>
+						</Card>
+					</Pressable>
 
 					{/* Candidat Card (si pro) */}
 					{role === "pro" && application?.profiles && (
@@ -831,7 +892,6 @@ const ApplicationScreen = () => {
 							style={{
 								padding: 20,
 								backgroundColor: isDark ? "#374151" : "#ffffff",
-								borderRadius: 12,
 								borderWidth: 1,
 								borderColor: isDark ? "#4b5563" : "#e5e7eb",
 							}}>
@@ -1278,31 +1338,67 @@ const ApplicationScreen = () => {
 				isOpen={showSelectModal}
 				onClose={() => setShowSelectModal(false)}>
 				<ModalBackdrop />
-				<ModalContent className='max-w-[375px]'>
-					<ModalHeader>
-						<Heading size='md'>Confirmer la sélection</Heading>
-					</ModalHeader>
-					<ModalBody>
-						<Text>
-							Êtes-vous sûr de vouloir sélectionner ce candidat
-							pour la suite du processus de recrutement ?
-						</Text>
-					</ModalBody>
-					<ModalFooter className='w-full gap-3'>
-						<Button
-							variant='outline'
-							action='secondary'
-							onPress={() => setShowSelectModal(false)}
-							className='flex-1'>
-							<ButtonText>Annuler</ButtonText>
-						</Button>
-						<Button
-							action='positive'
-							onPress={confirmSelect}
-							className='flex-1'>
-							<ButtonText>Confirmer</ButtonText>
-						</Button>
-					</ModalFooter>
+				<ModalContent
+					style={{
+						maxWidth: 400,
+						backgroundColor: isDark ? "#374151" : "#ffffff",
+						borderRadius: 16,
+						padding: 24,
+					}}>
+					<VStack space='lg' style={{ alignItems: "center" }}>
+						<Box
+							style={{
+								width: 64,
+								height: 64,
+								borderRadius: 32,
+								backgroundColor: "#dcfce7",
+								justifyContent: "center",
+								alignItems: "center",
+							}}>
+							<Icon
+								as={CheckCircle}
+								size='2xl'
+								style={{ color: "#16a34a" }}
+							/>
+						</Box>
+						<VStack space='sm' style={{ alignItems: "center" }}>
+							<Heading
+								size='xl'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+									textAlign: "center",
+								}}>
+								Confirmer la sélection
+							</Heading>
+							<Text
+								size='md'
+								style={{
+									color: isDark ? "#d1d5db" : "#6b7280",
+									textAlign: "center",
+								}}>
+								Êtes-vous sûr de vouloir sélectionner ce
+								candidat pour la suite du processus de
+								recrutement ?
+							</Text>
+						</VStack>
+						<HStack
+							space='md'
+							style={{ width: "100%", marginTop: 8 }}>
+							<Button
+								variant='outline'
+								action='secondary'
+								onPress={() => setShowSelectModal(false)}
+								style={{ flex: 1 }}>
+								<ButtonText>Annuler</ButtonText>
+							</Button>
+							<Button
+								action='positive'
+								onPress={confirmSelect}
+								style={{ flex: 1 }}>
+								<ButtonText>Confirmer</ButtonText>
+							</Button>
+						</HStack>
+					</VStack>
 				</ModalContent>
 			</Modal>
 
@@ -1311,31 +1407,66 @@ const ApplicationScreen = () => {
 				isOpen={showRejectModal}
 				onClose={() => setShowRejectModal(false)}>
 				<ModalBackdrop />
-				<ModalContent className='max-w-[375px]'>
-					<ModalHeader>
-						<Heading size='md'>Confirmer le refus</Heading>
-					</ModalHeader>
-					<ModalBody>
-						<Text>
-							Êtes-vous sûr de vouloir refuser cette candidature ?
-							Cette action est définitive.
-						</Text>
-					</ModalBody>
-					<ModalFooter className='w-full gap-3'>
-						<Button
-							variant='outline'
-							action='secondary'
-							onPress={() => setShowRejectModal(false)}
-							className='flex-1'>
-							<ButtonText>Annuler</ButtonText>
-						</Button>
-						<Button
-							action='negative'
-							onPress={confirmReject}
-							className='flex-1'>
-							<ButtonText>Refuser</ButtonText>
-						</Button>
-					</ModalFooter>
+				<ModalContent
+					style={{
+						maxWidth: 400,
+						backgroundColor: isDark ? "#374151" : "#ffffff",
+						borderRadius: 16,
+						padding: 24,
+					}}>
+					<VStack space='lg' style={{ alignItems: "center" }}>
+						<Box
+							style={{
+								width: 64,
+								height: 64,
+								borderRadius: 32,
+								backgroundColor: "#fee2e2",
+								justifyContent: "center",
+								alignItems: "center",
+							}}>
+							<Icon
+								as={XCircle}
+								size='2xl'
+								style={{ color: "#dc2626" }}
+							/>
+						</Box>
+						<VStack space='sm' style={{ alignItems: "center" }}>
+							<Heading
+								size='xl'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+									textAlign: "center",
+								}}>
+								Confirmer le refus
+							</Heading>
+							<Text
+								size='md'
+								style={{
+									color: isDark ? "#d1d5db" : "#6b7280",
+									textAlign: "center",
+								}}>
+								Êtes-vous sûr de vouloir refuser cette
+								candidature ? Cette action est définitive.
+							</Text>
+						</VStack>
+						<HStack
+							space='md'
+							style={{ width: "100%", marginTop: 8 }}>
+							<Button
+								variant='outline'
+								action='secondary'
+								onPress={() => setShowRejectModal(false)}
+								style={{ flex: 1 }}>
+								<ButtonText>Annuler</ButtonText>
+							</Button>
+							<Button
+								action='negative'
+								onPress={confirmReject}
+								style={{ flex: 1 }}>
+								<ButtonText>Refuser</ButtonText>
+							</Button>
+						</HStack>
+					</VStack>
 				</ModalContent>
 			</Modal>
 
@@ -1344,33 +1475,68 @@ const ApplicationScreen = () => {
 				isOpen={showGenerateContractModal}
 				onClose={() => setShowGenerateContractModal(false)}>
 				<ModalBackdrop />
-				<ModalContent className='max-w-[375px]'>
-					<ModalHeader>
-						<Heading size='md'>
-							Confirmer la génération du contrat
-						</Heading>
-					</ModalHeader>
-					<ModalBody>
-						<Text>
-							Êtes-vous sûr de vouloir générer et envoyer le
-							contrat à ce candidat ?
-						</Text>
-					</ModalBody>
-					<ModalFooter className='w-full gap-3'>
-						<Button
-							variant='outline'
-							action='secondary'
-							onPress={() => setShowGenerateContractModal(false)}
-							className='flex-1'>
-							<ButtonText>Annuler</ButtonText>
-						</Button>
-						<Button
-							action='positive'
-							onPress={confirmGenerateContract}
-							className='flex-1'>
-							<ButtonText>Confirmer</ButtonText>
-						</Button>
-					</ModalFooter>
+				<ModalContent
+					style={{
+						maxWidth: 400,
+						backgroundColor: isDark ? "#374151" : "#ffffff",
+						borderRadius: 16,
+						padding: 24,
+					}}>
+					<VStack space='lg' style={{ alignItems: "center" }}>
+						<Box
+							style={{
+								width: 64,
+								height: 64,
+								borderRadius: 32,
+								backgroundColor: "#dbeafe",
+								justifyContent: "center",
+								alignItems: "center",
+							}}>
+							<Icon
+								as={FileCheck}
+								size='2xl'
+								style={{ color: "#2563eb" }}
+							/>
+						</Box>
+						<VStack space='sm' style={{ alignItems: "center" }}>
+							<Heading
+								size='xl'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+									textAlign: "center",
+								}}>
+								Confirmer la génération du contrat
+							</Heading>
+							<Text
+								size='md'
+								style={{
+									color: isDark ? "#d1d5db" : "#6b7280",
+									textAlign: "center",
+								}}>
+								Êtes-vous sûr de vouloir générer et envoyer le
+								contrat à ce candidat ?
+							</Text>
+						</VStack>
+						<HStack
+							space='md'
+							style={{ width: "100%", marginTop: 8 }}>
+							<Button
+								variant='outline'
+								action='secondary'
+								onPress={() =>
+									setShowGenerateContractModal(false)
+								}
+								style={{ flex: 1 }}>
+								<ButtonText>Annuler</ButtonText>
+							</Button>
+							<Button
+								action='positive'
+								onPress={confirmGenerateContract}
+								style={{ flex: 1 }}>
+								<ButtonText>Confirmer</ButtonText>
+							</Button>
+						</HStack>
+					</VStack>
 				</ModalContent>
 			</Modal>
 
