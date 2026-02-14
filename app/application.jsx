@@ -477,10 +477,16 @@ const ApplicationScreen = () => {
 		console.log("Candidat sélectionné :", isNowSelected);
 		setCurrentStatus("selected");
 
+		// Mettre à jour updated_at
+		const supabase = createSupabaseClient(accessToken);
+		await supabase
+			.from("applies")
+			.update({ updated_at: new Date().toISOString() })
+			.eq("id", apply_id);
+
 		setShowSelectModal(false);
 
 		// Vérifier si le destinataire est actif sur le screen
-		const supabase = createSupabaseClient(accessToken);
 		const { data: presenceData } = await supabase
 			.from("user_presence")
 			.select("apply_id")
@@ -539,11 +545,17 @@ const ApplicationScreen = () => {
 		console.log("Candidat sélectionné :", isNowSelected);
 		setCurrentStatus("contract_sent");
 
+		// Mettre à jour updated_at
+		const supabase = createSupabaseClient(accessToken);
+		await supabase
+			.from("applies")
+			.update({ updated_at: new Date().toISOString() })
+			.eq("id", apply_id);
+
 		setContractGenerated(true);
 		setShowGenerateContractModal(false);
 
 		// Vérifier si le destinataire est actif sur le screen
-		const supabase = createSupabaseClient(accessToken);
 		const { data: presenceData } = await supabase
 			.from("user_presence")
 			.select("apply_id")
@@ -592,10 +604,17 @@ const ApplicationScreen = () => {
 		);
 		console.log("Candidat refusé :", isNowRejected);
 		setCurrentStatus("rejected");
+
+		// Mettre à jour updated_at
+		const supabase = createSupabaseClient(accessToken);
+		await supabase
+			.from("applies")
+			.update({ updated_at: new Date().toISOString() })
+			.eq("id", apply_id);
+
 		setShowRejectModal(false);
 
 		// Vérifier si le destinataire est actif sur le screen
-		const supabase = createSupabaseClient(accessToken);
 		const { data: presenceData } = await supabase
 			.from("user_presence")
 			.select("apply_id")
