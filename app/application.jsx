@@ -68,6 +68,7 @@ import {
 	User,
 	Briefcase,
 	IdCard,
+	Building2,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -184,6 +185,7 @@ const ApplicationScreen = () => {
 
 	const [contractGenerated, setContractGenerated] = useState(false);
 	const presenceIntervalRef = React.useRef(null);
+	const hasAutoOpenedMessaging = React.useRef(false);
 
 	const loadData = async () => {
 		const data = await getById(
@@ -262,13 +264,23 @@ const ApplicationScreen = () => {
 
 	useFocusEffect(
 		useCallback(() => {
+			console.warn("openMessaging on useFocusEffect :", openMessaging);
 			loadData();
 			loadApplicationStatus();
 			loadUnreadMessagesCount();
 			markApplicationNotificationsAsRead();
 
 			// Ouvrir automatiquement l'ActionSheet si on vient d'une notification de message
+			const shouldOpenMessaging =
+				openMessaging === "true" && !hasAutoOpenedMessaging.current;
+
+			// Nettoyer le paramètre immédiatement pour éviter les réouvertures
 			if (openMessaging === "true") {
+				router.setParams({ openMessaging: undefined });
+			}
+
+			if (shouldOpenMessaging) {
+				hasAutoOpenedMessaging.current = true;
 				setTimeout(() => {
 					setShowMessaging(true);
 				}, 600);
@@ -300,13 +312,21 @@ const ApplicationScreen = () => {
 				.subscribe();
 
 			return () => {
+				// Fermer l'ActionSheet quand on quitte la page
+				setShowMessaging(false);
+
 				if (presenceIntervalRef.current) {
 					clearInterval(presenceIntervalRef.current);
 				}
 				supabase.removeChannel(channel);
 			};
-		}, []),
+		}, [openMessaging, apply_id]),
 	);
+
+	// Réinitialiser le flag quand on change de candidature
+	useEffect(() => {
+		hasAutoOpenedMessaging.current = false;
+	}, [apply_id]);
 
 	useEffect(() => {
 		if (title) {
@@ -844,9 +864,6 @@ const ApplicationScreen = () => {
 														" (" +
 														application?.jobs
 															?.department_code +
-														" | " +
-														application?.jobs
-															?.department +
 														")"}
 												</BadgeText>
 											</Badge>
@@ -1575,25 +1592,95 @@ const ApplicationScreen = () => {
 						<VStack
 							className='flex-1 w-full pt-2'
 							style={{ paddingBottom: keyboardPadding }}>
+							{/* Header avec avatar et bouton fermer */}
 							<HStack
 								space='md'
-								className='items-center px-4 pb-3 border-b border-outline-200'>
-								<Heading size='md'>
-									{role === "pro"
-										? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
-										: application?.companies?.name ||
-											application?.jobs?.company_name}
-								</Heading>
-								{isOtherPartyOnline && (
-									<View
-										style={{
-											width: 10,
-											height: 10,
-											borderRadius: 5,
-											backgroundColor: "#22c55e",
-										}}
+								className='items-center px-4 pb-3 border-b border-outline-200'
+								style={{ justifyContent: "space-between" }}>
+								<HStack
+									space='md'
+									style={{ alignItems: "center", flex: 1 }}>
+									<Avatar size='md'>
+										{role === "pro" ? (
+											application?.profiles?.avatar ? (
+												<AvatarImage
+													source={{
+														uri: application
+															.profiles.avatar,
+													}}
+												/>
+											) : (
+												<AvatarFallbackText>
+													{`${application?.profiles?.firstname} ${application?.profiles?.lastname}`}
+												</AvatarFallbackText>
+											)
+										) : application?.companies?.logo_url ? (
+											<AvatarImage
+												source={{
+													uri: application.companies
+														.logo_url,
+												}}
+											/>
+										) : (
+											<AvatarFallbackText>
+												{application?.companies?.name ||
+													application?.jobs
+														?.company_name}
+											</AvatarFallbackText>
+										)}
+									</Avatar>
+									<VStack style={{ flex: 1 }}>
+										<HStack
+											space='xs'
+											style={{ alignItems: "center" }}>
+											<Heading
+												size='md'
+												style={{
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												{role === "pro"
+													? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
+													: application?.companies
+															?.name ||
+														application?.jobs
+															?.company_name}
+											</Heading>
+											{isOtherPartyOnline && (
+												<View
+													style={{
+														width: 8,
+														height: 8,
+														borderRadius: 4,
+														backgroundColor:
+															"#22c55e",
+													}}
+												/>
+											)}
+										</HStack>
+										<Text
+											size='sm'
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}>
+											{application?.jobs?.title}
+										</Text>
+									</VStack>
+								</HStack>
+								<Pressable
+									onPress={() => setShowMessaging(false)}
+									style={{
+										padding: 8,
+									}}>
+									<Icon
+										as={X}
+										size='xl'
+										color={isDark ? "#9ca3af" : "#6b7280"}
 									/>
-								)}
+								</Pressable>
 							</HStack>
 							<MessageThread
 								applyId={apply_id}
