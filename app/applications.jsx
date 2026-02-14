@@ -54,7 +54,7 @@ const ApplicationsScreen = () => {
 			`&jobs.isArchived=eq.FALSE&jobs=not.is.null&candidate_id=eq.${user.id}`,
 			page,
 			ITEMS_PER_PAGE,
-			"created_at.desc",
+			"updated_at.desc.nullslast,created_at.desc",
 		);
 		setApplications(data);
 		setTotalCount(totalCount);
@@ -85,7 +85,7 @@ const ApplicationsScreen = () => {
 			refreshControl={
 				<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
 			}>
-			<VStack space='lg' style={{ padding: 16 }}>
+			<VStack space='sm' style={{ padding: 16 }}>
 				{/* Header Card */}
 				<Card
 					style={{
