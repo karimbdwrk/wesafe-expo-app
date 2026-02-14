@@ -157,7 +157,7 @@ const Notifications = () => {
 				params: {
 					apply_id: notification.metadata.apply_id,
 					id: user.id,
-					title: notification.title || "Candidature",
+					// title: notification.title || "Candidature",
 				},
 			});
 		} else if (
@@ -171,7 +171,7 @@ const Notifications = () => {
 					apply_id: notification.entity_id,
 					id: user.id,
 					openMessaging: "true",
-					title: notification.title || "Candidature",
+					// title: notification.title || "Candidature",
 				},
 			});
 		} else if (
@@ -183,7 +183,7 @@ const Notifications = () => {
 				params: {
 					apply_id: notification.entity_id,
 					id: user.id,
-					title: notification.title || "Candidature",
+					// title: notification.title || "Candidature",
 				},
 			});
 		} else if (
