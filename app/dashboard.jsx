@@ -25,6 +25,7 @@ import {
 	QrCode,
 	CreditCard,
 	ChevronRight,
+	FileText,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -237,32 +238,56 @@ const DashboardScreen = () => {
 							<Divider />
 
 							{/* Subscription Status */}
-							<HStack
-								style={{
-									alignItems: "center",
-									justifyContent: "space-between",
-								}}>
-								<Text
-									size='sm'
+							<TouchableOpacity
+								onPress={() => router.push("/subscription")}
+								activeOpacity={0.7}>
+								<HStack
 									style={{
-										fontWeight: "600",
-										color: isDark ? "#f3f4f6" : "#111827",
+										alignItems: "center",
+										justifyContent: "space-between",
 									}}>
-									Statut d'abonnement
-								</Text>
-								<Badge
-									size='md'
-									variant='solid'
-									action={
-										hasSubscription ? "success" : "warning"
-									}>
-									<BadgeText>
-										{hasSubscription
-											? "Abonné"
-											: "Non abonné"}
-									</BadgeText>
-								</Badge>
-							</HStack>
+									<HStack
+										space='sm'
+										style={{
+											alignItems: "center",
+											flex: 1,
+										}}>
+										<Text
+											size='sm'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											Statut d'abonnement
+										</Text>
+										<Badge
+											size='md'
+											variant='solid'
+											action={
+												hasSubscription
+													? "success"
+													: "warning"
+											}>
+											<BadgeText>
+												{hasSubscription
+													? "Abonné"
+													: "Non abonné"}
+											</BadgeText>
+										</Badge>
+									</HStack>
+									<Icon
+										as={ChevronRight}
+										size='sm'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}
+									/>
+								</HStack>
+							</TouchableOpacity>
 						</VStack>
 					</Card>
 
@@ -330,6 +355,17 @@ const DashboardScreen = () => {
 							onPress={() => {
 								router.push({
 									pathname: "/scanner",
+								});
+							}}
+						/>
+
+						<ActionCard
+							icon={FileText}
+							title='Vérification KBIS'
+							subtitle='Télécharger votre extrait KBIS'
+							onPress={() => {
+								router.push({
+									pathname: "/kbisdocumentverification",
 								});
 							}}
 						/>
