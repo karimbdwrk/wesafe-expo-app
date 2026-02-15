@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { ScrollView, TouchableOpacity, Platform } from "react-native";
+import { ScrollView, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import {
 	User,
@@ -25,6 +25,7 @@ import { HStack } from "@/components/ui/hstack";
 import { Box } from "@/components/ui/box";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
+import { Pressable } from "@/components/ui/pressable";
 import { Input, InputField, InputSlot, InputIcon } from "@/components/ui/input";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -216,11 +217,13 @@ const UpdateProfile = () => {
 		}
 	};
 
-	const onDateChange = (event, selectedDate) => {
-		setShowDatePicker(Platform.OS === "ios");
-		if (selectedDate) {
-			setBirthday(selectedDate);
-		}
+	const handleConfirmDate = (selectedDate) => {
+		setShowDatePicker(false);
+		setBirthday(selectedDate);
+	};
+
+	const handleCancelDate = () => {
+		setShowDatePicker(false);
 	};
 
 	if (loading) {
@@ -442,58 +445,68 @@ const UpdateProfile = () => {
 
 						{/* Date de naissance */}
 						<VStack space='sm'>
-							<Text
-								size='sm'
-								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
-									fontWeight: "600",
-								}}>
-								Date de naissance
-							</Text>
-							<TouchableOpacity
-								onPress={() => setShowDatePicker(true)}>
-								<Input
-									isDisabled
-									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f9fafb",
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
-									}}>
-									<InputSlot style={{ paddingLeft: 12 }}>
-										<InputIcon
-											as={Calendar}
-											size={20}
-											color={
-												isDark ? "#9ca3af" : "#6b7280"
-											}
-										/>
-									</InputSlot>
-									<InputField
-										value={birthday.toLocaleDateString(
-											"fr-FR",
-										)}
+							<Pressable onPress={() => setShowDatePicker(true)}>
+								<VStack space='sm'>
+									<Text
+										size='sm'
 										style={{
 											color: isDark
 												? "#f3f4f6"
 												: "#111827",
-										}}
-									/>
-								</Input>
-							</TouchableOpacity>
-							{showDatePicker && (
-								<DateTimePicker
-									value={birthday}
-									mode='date'
-									display='default'
-									onChange={onDateChange}
-									maximumDate={new Date()}
-								/>
-							)}
+											fontWeight: "600",
+											marginBottom: 6,
+										}}>
+										Date de naissance
+									</Text>
+									<Input
+										// isDisabled
+										isReadOnly
+										pointerEvents='none'
+										style={{
+											backgroundColor: isDark
+												? "#1f2937"
+												: "#f9fafb",
+											borderColor: isDark
+												? "#4b5563"
+												: "#d1d5db",
+										}}>
+										<InputSlot style={{ paddingLeft: 12 }}>
+											<InputIcon
+												as={Calendar}
+												size={20}
+												color={
+													isDark
+														? "#9ca3af"
+														: "#6b7280"
+												}
+											/>
+										</InputSlot>
+										<InputField
+											value={birthday.toLocaleDateString(
+												"fr-FR",
+											)}
+											editable={false}
+											style={{
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}
+										/>
+									</Input>
+								</VStack>
+							</Pressable>
+							<DateTimePickerModal
+								isVisible={showDatePicker}
+								mode='date'
+								date={birthday}
+								onConfirm={handleConfirmDate}
+								onCancel={handleCancelDate}
+								maximumDate={new Date()}
+								locale='fr_FR'
+								cancelTextIOS='Annuler'
+								confirmTextIOS='Confirmer'
+							/>
 						</VStack>
-
 						<Divider
 							style={{
 								backgroundColor: isDark ? "#4b5563" : "#e5e7eb",
