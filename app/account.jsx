@@ -11,6 +11,8 @@ import { Icon } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
+import { Divider } from "@/components/ui/divider";
+import AvatarUploader from "@/components/AvatarUploader";
 import {
 	IdCard,
 	BookmarkIcon,
@@ -29,12 +31,15 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useNotifications } from "@/context/NotificationsContext";
+import { useImage } from "@/context/ImageContext";
+import { width } from "dom-helpers";
 
 const AccountScreen = () => {
 	const { user } = useAuth();
 	const { getById } = useDataContext();
 	const { isDark } = useTheme();
 	const { unreadCount } = useNotifications();
+	const { image } = useImage();
 	const router = useRouter();
 
 	const [profile, setProfile] = useState(null);
@@ -230,91 +235,86 @@ const AccountScreen = () => {
 						{/* Profile Header Card */}
 						<Card
 							style={{
-								padding: 24,
+								padding: 20,
 								backgroundColor: isDark ? "#374151" : "#ffffff",
-								borderRadius: 16,
+								borderRadius: 12,
 								borderWidth: 1,
 								borderColor: isDark ? "#4b5563" : "#e5e7eb",
 							}}>
 							<VStack space='lg' style={{ alignItems: "center" }}>
-								{/* Avatar */}
-								<View
-									style={{
-										width: 100,
-										height: 100,
-										borderRadius: 10,
-										backgroundColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-										justifyContent: "center",
-										alignItems: "center",
-										overflow: "hidden",
-									}}>
-									{profile?.avatar_url ? (
-										<Image
-											source={{ uri: profile.avatar_url }}
-											style={{
-												width: 100,
-												height: 100,
-											}}
-											resizeMode='cover'
-										/>
-									) : (
-										<Icon
-											as={User}
-											size='xl'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}
-										/>
-									)}
-								</View>
-
-								{/* Profile Info */}
+								{/* Avatar Section - Centré et cliquable */}
 								<VStack
-									space='sm'
-									style={{ alignItems: "center" }}>
-									<Heading
-										size='xl'
-										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-											textAlign: "center",
-										}}>
-										{profile?.firstname} {profile?.lastname}
-									</Heading>
-									<Text
-										size='md'
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-											textAlign: "center",
-										}}>
-										{profile?.email}
-									</Text>
+									space='md'
+									style={{
+										alignItems: "center",
+										justifyContent: "center",
+										height: 120,
+										width: 120,
+										// backgroundColor: "pink",
+									}}>
+									<AvatarUploader image={image} />
 								</VStack>
+
+								<Divider />
+
 								<HStack
-									space='sm'
-									style={{ alignItems: "center" }}>
-									<Badge>
-										<BadgeIcon
-											as={IdCard}
-											className='mr-2'
-										/>
-										<BadgeText>SSIAP1</BadgeText>
-									</Badge>
-									<Badge>
-										<BadgeIcon
-											as={IdCard}
-											className='mr-2'
-										/>
-										<BadgeText>APS</BadgeText>
-									</Badge>
+									style={{
+										alignItems: "center",
+										justifyContent: "space-between",
+									}}>
+									<VStack style={{ flex: 1 }} space='xs'>
+										<Text
+											size='lg'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											{profile?.firstname}{" "}
+											{profile?.lastname}
+										</Text>
+										{profile?.email && (
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												{profile.email}
+											</Text>
+										)}
+									</VStack>
 								</HStack>
+
+								{profile?.qualifications &&
+									profile.qualifications.length > 0 && (
+										<>
+											<Divider />
+											<HStack
+												space='sm'
+												style={{
+													flexWrap: "wrap",
+												}}>
+												{profile.qualifications.map(
+													(qual, index) => (
+														<Badge
+															key={index}
+															size='sm'>
+															<BadgeIcon
+																as={IdCard}
+																className='mr-1'
+															/>
+															<BadgeText>
+																{qual}
+															</BadgeText>
+														</Badge>
+													),
+												)}
+											</HStack>
+										</>
+									)}
 							</VStack>
 						</Card>
 
