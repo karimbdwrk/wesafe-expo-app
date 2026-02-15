@@ -87,7 +87,7 @@ export default function JobsList({
 	const [userLon, setUserLon] = useState(userProfile?.longitude || null);
 	const [userCity, setUserCity] = useState(userProfile?.city || "");
 	const [userCitySelected, setUserCitySelected] = useState(
-		Boolean(userProfile?.city)
+		Boolean(userProfile?.city),
 	);
 	const [results, setResults] = useState([]);
 	const [distanceKm, setDistanceKm] = useState(0);
@@ -131,7 +131,7 @@ export default function JobsList({
 							limit: 5,
 							boost: "population",
 						},
-					}
+					},
 				);
 				setResults(res.data || []);
 			} catch (err) {
@@ -168,7 +168,7 @@ export default function JobsList({
 				setUserCitySelected(Boolean(userProfile?.city));
 				setDistanceKm(0);
 			}
-		}, [userProfile])
+		}, [userProfile]),
 	);
 
 	// load jobs
@@ -176,7 +176,7 @@ export default function JobsList({
 		try {
 			const { data, totalCount } = await getAll(
 				"jobs",
-				"*,companies(logo_url)",
+				"*,companies(logo_url, name)",
 				`&isArchived=eq.FALSE${filters}&isLastMinute=eq.${isLastMinute}${
 					isLastMinute
 						? "&date=gte." + today.toISOString().split("T")[0]
@@ -184,7 +184,7 @@ export default function JobsList({
 				}`,
 				page,
 				itemsPerPage,
-				"date.desc"
+				"date.desc",
 			);
 			setJobs(data || []);
 			setTotalCount(totalCount || 0);
@@ -221,7 +221,7 @@ export default function JobsList({
 		if (keywords.trim() !== "") {
 			const encodedKeyword = encodeURIComponent(`%${keywords}%`);
 			setFilters(
-				`&or=(title.ilike.${encodedKeyword},category.ilike.${encodedKeyword})`
+				`&or=(title.ilike.${encodedKeyword},category.ilike.${encodedKeyword})`,
 			);
 		} else {
 			// when keywords cleared, recompute from values/distance — handled by previous effect
@@ -510,8 +510,10 @@ export default function JobsList({
 									category={job?.category}
 									company_id={job?.company_id}
 									city={job?.city}
+									postcode={job?.postcode}
 									department={job?.department_code}
 									logo={job?.companies?.logo_url}
+									company_name={job?.companies?.name}
 								/>
 							))
 						)}
