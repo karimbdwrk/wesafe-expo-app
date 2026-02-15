@@ -54,6 +54,8 @@ import {
 	IdCard,
 	Briefcase,
 	Building2,
+	BadgeEuro,
+	FileText,
 	Users,
 	Clock,
 	Mail,
@@ -95,7 +97,7 @@ const JobScreen = () => {
 		const data = await getById(
 			"jobs",
 			id,
-			`*, companies(name, email, logo_url), applies(id, candidate_id, profiles(firstname, lastname))`,
+			`*, companies(name, email, logo_url), applies(id, candidate_id, current_status, profiles(firstname, lastname))`,
 		);
 		setJob(data);
 	};
@@ -386,10 +388,33 @@ const JobScreen = () => {
 							</HStack>
 
 							{/* Badges */}
-							<HStack space='sm' style={{ flexWrap: "wrap" }}>
+							<HStack
+								space='sm'
+								style={{ flexWrap: "wrap", marginTop: 10 }}>
 								<Badge size='md' variant='solid' action='info'>
 									<BadgeIcon as={IdCard} className='mr-2' />
 									<BadgeText>{job?.category}</BadgeText>
+								</Badge>
+								<Badge
+									size='sm'
+									variant='solid'
+									action='success'>
+									<BadgeIcon as={FileText} className='mr-2' />
+									<BadgeText>CDD</BadgeText>
+								</Badge>
+								<Badge size='sm' variant='solid' action='muted'>
+									<BadgeIcon as={Clock} className='mr-2' />
+									<BadgeText>Plein temps</BadgeText>
+								</Badge>
+								<Badge
+									size='sm'
+									variant='solid'
+									action='warning'>
+									<BadgeIcon
+										as={BadgeEuro}
+										className='mr-2'
+									/>
+									<BadgeText>Non spécifié</BadgeText>
 								</Badge>
 								{job?.isLastMinute && (
 									<Badge
@@ -916,47 +941,221 @@ const JobScreen = () => {
 					</Card>
 
 					{/* Card Entreprise avec Accordion */}
-					{job?.companies && (
-						<Card
-							style={{
-								padding: 0,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
-								borderRadius: 12,
-								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
-								overflow: "hidden",
-							}}>
-							<Accordion type='single' variant='unfilled'>
-								<AccordionItem value='company'>
-									<AccordionHeader>
-										<AccordionTrigger
+					{job?.companies &&
+						!(role === "pro" && user.id === company_id) && (
+							<Card
+								style={{
+									padding: 0,
+									backgroundColor: isDark
+										? "#374151"
+										: "#ffffff",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									overflow: "hidden",
+								}}>
+								<Accordion type='single' variant='unfilled'>
+									<AccordionItem value='company'>
+										<AccordionHeader>
+											<AccordionTrigger
+												style={{
+													padding: 20,
+													backgroundColor:
+														"transparent",
+												}}
+												onPress={() => {
+													setTimeout(() => {
+														scrollViewRef.current?.scrollToEnd(
+															{
+																animated: true,
+															},
+														);
+													}, 300);
+												}}>
+												{({ isExpanded }) => (
+													<>
+														<HStack
+															space='sm'
+															style={{
+																alignItems:
+																	"center",
+																flex: 1,
+															}}>
+															<Avatar size='md'>
+																<AvatarFallbackText>
+																	{job
+																		?.companies
+																		?.name?.[0] ||
+																		"?"}
+																</AvatarFallbackText>
+																{job?.companies
+																	?.logo_url && (
+																	<AvatarImage
+																		source={{
+																			uri: job
+																				?.companies
+																				?.logo_url,
+																		}}
+																	/>
+																)}
+															</Avatar>
+															<VStack
+																style={{
+																	flex: 1,
+																}}>
+																<Text
+																	size='xs'
+																	style={{
+																		color: isDark
+																			? "#9ca3af"
+																			: "#6b7280",
+																	}}>
+																	Entreprise
+																</Text>
+																<Text
+																	size='lg'
+																	style={{
+																		fontWeight:
+																			"600",
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}>
+																	{
+																		job
+																			.companies
+																			.name
+																	}
+																</Text>
+															</VStack>
+															<Icon
+																as={
+																	isExpanded
+																		? ChevronUp
+																		: ChevronDown
+																}
+																size='lg'
+																style={{
+																	color: isDark
+																		? "#9ca3af"
+																		: "#6b7280",
+																}}
+															/>
+														</HStack>
+													</>
+												)}
+											</AccordionTrigger>
+										</AccordionHeader>
+										<AccordionContent
 											style={{
-												padding: 20,
-												backgroundColor: "transparent",
-											}}
-											onPress={() => {
-												setTimeout(() => {
-													scrollViewRef.current?.scrollToEnd(
-														{
-															animated: true,
-														},
-													);
-												}, 300);
+												paddingHorizontal: 20,
+												paddingBottom: 20,
 											}}>
-											{({ isExpanded }) => (
-												<>
+											<VStack space='md'>
+												<Divider
+													style={{
+														backgroundColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}
+												/>
+
+												{/* Description */}
+												<VStack space='xs'>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														À propos
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															color: isDark
+																? "#d1d5db"
+																: "#374151",
+															lineHeight: 20,
+														}}>
+														{job.companies
+															.description ||
+															"Entreprise spécialisée dans les services de sécurité et de surveillance. Nous offrons des solutions professionnelles adaptées à tous types d'établissements."}
+													</Text>
+												</VStack>
+
+												{/* Localisation */}
+												{job.city && (
 													<HStack
 														space='sm'
 														style={{
 															alignItems:
 																"center",
-															flex: 1,
 														}}>
 														<Box
 															style={{
-																width: 48,
-																height: 48,
-																borderRadius: 24,
+																width: 40,
+																height: 40,
+																borderRadius: 20,
+																backgroundColor:
+																	"#fef3c7",
+																justifyContent:
+																	"center",
+																alignItems:
+																	"center",
+															}}>
+															<Icon
+																as={MapPin}
+																size='lg'
+																style={{
+																	color: "#f59e0b",
+																}}
+															/>
+														</Box>
+														<VStack>
+															<Text
+																size='xs'
+																style={{
+																	color: isDark
+																		? "#9ca3af"
+																		: "#6b7280",
+																}}>
+																Localisation
+															</Text>
+															<Text
+																size='sm'
+																style={{
+																	fontWeight:
+																		"500",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																{job.city} (
+																{
+																	job.department_code
+																}
+																)
+															</Text>
+														</VStack>
+													</HStack>
+												)}
+
+												{/* Email */}
+												{job.companies.email && (
+													<HStack
+														space='sm'
+														style={{
+															alignItems:
+																"center",
+														}}>
+														<Box
+															style={{
+																width: 40,
+																height: 40,
+																borderRadius: 20,
 																backgroundColor:
 																	"#dbeafe",
 																justifyContent:
@@ -965,15 +1164,14 @@ const JobScreen = () => {
 																	"center",
 															}}>
 															<Icon
-																as={Building2}
-																size='xl'
+																as={Mail}
+																size='lg'
 																style={{
 																	color: "#2563eb",
 																}}
 															/>
 														</Box>
-														<VStack
-															style={{ flex: 1 }}>
+														<VStack>
 															<Text
 																size='xs'
 																style={{
@@ -981,13 +1179,13 @@ const JobScreen = () => {
 																		? "#9ca3af"
 																		: "#6b7280",
 																}}>
-																Entreprise
+																Email
 															</Text>
 															<Text
-																size='lg'
+																size='sm'
 																style={{
 																	fontWeight:
-																		"600",
+																		"500",
 																	color: isDark
 																		? "#f3f4f6"
 																		: "#111827",
@@ -995,233 +1193,70 @@ const JobScreen = () => {
 																{
 																	job
 																		.companies
-																		.name
+																		.email
 																}
 															</Text>
 														</VStack>
-														<Icon
-															as={
-																isExpanded
-																	? ChevronUp
-																	: ChevronDown
-															}
-															size='lg'
-															style={{
-																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
-															}}
-														/>
 													</HStack>
-												</>
-											)}
-										</AccordionTrigger>
-									</AccordionHeader>
-									<AccordionContent
-										style={{
-											paddingHorizontal: 20,
-											paddingBottom: 20,
-										}}>
-										<VStack space='md'>
-											<Divider
-												style={{
-													backgroundColor: isDark
-														? "#4b5563"
-														: "#e5e7eb",
-												}}
-											/>
+												)}
 
-											{/* Description */}
-											<VStack space='xs'>
-												<Text
-													size='sm'
+												{/* Téléphone (exemple fictif) */}
+												<HStack
+													space='sm'
 													style={{
-														fontWeight: "600",
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
+														alignItems: "center",
 													}}>
-													À propos
-												</Text>
-												<Text
-													size='sm'
-													style={{
-														color: isDark
-															? "#d1d5db"
-															: "#374151",
-														lineHeight: 20,
-													}}>
-													{job.companies
-														.description ||
-														"Entreprise spécialisée dans les services de sécurité et de surveillance. Nous offrons des solutions professionnelles adaptées à tous types d'établissements."}
-												</Text>
+													<Box
+														style={{
+															width: 40,
+															height: 40,
+															borderRadius: 20,
+															backgroundColor:
+																"#dcfce7",
+															justifyContent:
+																"center",
+															alignItems:
+																"center",
+														}}>
+														<Icon
+															as={Phone}
+															size='lg'
+															style={{
+																color: "#16a34a",
+															}}
+														/>
+													</Box>
+													<VStack>
+														<Text
+															size='xs'
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+															}}>
+															Téléphone
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"500",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															{job.companies
+																.phone ||
+																"01 23 45 67 89"}
+														</Text>
+													</VStack>
+												</HStack>
 											</VStack>
-
-											{/* Localisation */}
-											{job.city && (
-												<HStack
-													space='sm'
-													style={{
-														alignItems: "center",
-													}}>
-													<Box
-														style={{
-															width: 40,
-															height: 40,
-															borderRadius: 20,
-															backgroundColor:
-																"#fef3c7",
-															justifyContent:
-																"center",
-															alignItems:
-																"center",
-														}}>
-														<Icon
-															as={MapPin}
-															size='lg'
-															style={{
-																color: "#f59e0b",
-															}}
-														/>
-													</Box>
-													<VStack>
-														<Text
-															size='xs'
-															style={{
-																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
-															}}>
-															Localisation
-														</Text>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"500",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															{job.city} (
-															{
-																job.department_code
-															}
-															)
-														</Text>
-													</VStack>
-												</HStack>
-											)}
-
-											{/* Email */}
-											{job.companies.email && (
-												<HStack
-													space='sm'
-													style={{
-														alignItems: "center",
-													}}>
-													<Box
-														style={{
-															width: 40,
-															height: 40,
-															borderRadius: 20,
-															backgroundColor:
-																"#dbeafe",
-															justifyContent:
-																"center",
-															alignItems:
-																"center",
-														}}>
-														<Icon
-															as={Mail}
-															size='lg'
-															style={{
-																color: "#2563eb",
-															}}
-														/>
-													</Box>
-													<VStack>
-														<Text
-															size='xs'
-															style={{
-																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
-															}}>
-															Email
-														</Text>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"500",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															{
-																job.companies
-																	.email
-															}
-														</Text>
-													</VStack>
-												</HStack>
-											)}
-
-											{/* Téléphone (exemple fictif) */}
-											<HStack
-												space='sm'
-												style={{
-													alignItems: "center",
-												}}>
-												<Box
-													style={{
-														width: 40,
-														height: 40,
-														borderRadius: 20,
-														backgroundColor:
-															"#dcfce7",
-														justifyContent:
-															"center",
-														alignItems: "center",
-													}}>
-													<Icon
-														as={Phone}
-														size='lg'
-														style={{
-															color: "#16a34a",
-														}}
-													/>
-												</Box>
-												<VStack>
-													<Text
-														size='xs'
-														style={{
-															color: isDark
-																? "#9ca3af"
-																: "#6b7280",
-														}}>
-														Téléphone
-													</Text>
-													<Text
-														size='sm'
-														style={{
-															fontWeight: "500",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														{job.companies.phone ||
-															"01 23 45 67 89"}
-													</Text>
-												</VStack>
-											</HStack>
-										</VStack>
-									</AccordionContent>
-								</AccordionItem>
-							</Accordion>
-						</Card>
-					)}
+										</AccordionContent>
+									</AccordionItem>
+								</Accordion>
+							</Card>
+						)}
 
 					{/* Boutons d'action */}
 					{role === "pro" && user.id === company_id && (
@@ -1309,7 +1344,7 @@ const JobScreen = () => {
 														alignItems: "center",
 														paddingVertical: 8,
 													}}>
-													<VStack>
+													<VStack style={{ flex: 1 }}>
 														<Text
 															size='md'
 															style={{
@@ -1328,6 +1363,47 @@ const JobScreen = () => {
 																	.lastname
 															}
 														</Text>
+														{apply.current_status && (
+															<Badge
+																size='sm'
+																variant='solid'
+																action={
+																	apply.current_status ===
+																	"rejected"
+																		? "error"
+																		: apply.current_status ===
+																			  "contract_signed_pro"
+																			? "success"
+																			: "info"
+																}
+																style={{
+																	marginTop: 4,
+																	alignSelf:
+																		"flex-start",
+																}}>
+																<BadgeText>
+																	{apply.current_status ===
+																	"applied"
+																		? "Candidature envoyée"
+																		: apply.current_status ===
+																			  "selected"
+																			? "Sélectionné"
+																			: apply.current_status ===
+																				  "contract_sent"
+																				? "Contrat envoyé"
+																				: apply.current_status ===
+																					  "contract_signed_candidate"
+																					? "Contrat signé (candidat)"
+																					: apply.current_status ===
+																						  "contract_signed_pro"
+																						? "Contrat finalisé"
+																						: apply.current_status ===
+																							  "rejected"
+																							? "Refusé"
+																							: apply.current_status}
+																</BadgeText>
+															</Badge>
+														)}
 													</VStack>
 													<Button
 														size='sm'
