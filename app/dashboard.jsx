@@ -21,7 +21,7 @@ import {
 	Building2,
 	Pencil,
 	Stamp,
-	FileSignature,
+	Signature,
 	QrCode,
 	CreditCard,
 	ChevronRight,
@@ -334,7 +334,7 @@ const DashboardScreen = () => {
 						/>
 
 						<ActionCard
-							icon={FileSignature}
+							icon={Signature}
 							title='Signature'
 							subtitle='Gérer votre signature'
 							onPress={() => {
