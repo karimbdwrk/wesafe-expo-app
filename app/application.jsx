@@ -47,6 +47,8 @@ import {
 	ActionsheetDragIndicatorWrapper,
 	ActionsheetDragIndicator,
 } from "@/components/ui/actionsheet";
+import { Spinner } from "@/components/ui/spinner";
+
 import MessageThread from "@/components/MessageThread";
 
 import {
@@ -164,6 +166,8 @@ const ApplicationScreen = () => {
 		createNotification,
 	} = useDataContext();
 
+	const [isLoading, setIsLoading] = useState(false);
+
 	const [showModal, setShowModal] = useState(false);
 	const [showSelectModal, setShowSelectModal] = useState(false);
 	const [showRejectModal, setShowRejectModal] = useState(false);
@@ -186,8 +190,12 @@ const ApplicationScreen = () => {
 	const [contractGenerated, setContractGenerated] = useState(false);
 	const presenceIntervalRef = React.useRef(null);
 	const hasAutoOpenedMessaging = React.useRef(false);
+	const hasLoadedOnce = React.useRef(false);
 
-	const loadData = async () => {
+	const loadData = async (showLoading = true) => {
+		if (showLoading) {
+			setIsLoading(true);
+		}
 		const data = await getById(
 			"applies",
 			apply_id,
@@ -195,6 +203,10 @@ const ApplicationScreen = () => {
 		);
 		setApplication(data);
 		setCurrentStatus(data.current_status);
+		hasLoadedOnce.current = true;
+		if (showLoading) {
+			setIsLoading(false);
+		}
 	};
 
 	const loadApplicationStatus = async () => {
@@ -265,7 +277,8 @@ const ApplicationScreen = () => {
 	useFocusEffect(
 		useCallback(() => {
 			console.warn("openMessaging on useFocusEffect :", openMessaging);
-			loadData();
+			// Ne pas afficher le spinner si on a déjà chargé les données (retour depuis contract)
+			loadData(!hasLoadedOnce.current);
 			loadApplicationStatus();
 			loadUnreadMessagesCount();
 			markApplicationNotificationsAsRead();
@@ -328,13 +341,13 @@ const ApplicationScreen = () => {
 		hasAutoOpenedMessaging.current = false;
 	}, [apply_id]);
 
-	useEffect(() => {
-		if (title) {
-			navigation.setOptions({
-				headerTitle: `Candidature - ${title}`,
-			});
-		}
-	}, [title, navigation]);
+	// useEffect(() => {
+	// 	if (title) {
+	// 		navigation.setOptions({
+	// 			headerTitle: `Candidature - ${title}`,
+	// 		});
+	// 	}
+	// }, [title, navigation]);
 
 	useEffect(() => {
 		const keyboardDidShowListener = Keyboard.addListener(
@@ -801,6 +814,20 @@ const ApplicationScreen = () => {
 
 	const timelineSteps = buildTimelineSteps(applicationStatus);
 
+	if (isLoading) {
+		return (
+			<Box
+				style={{
+					flex: 1,
+					justifyContent: "center",
+					alignItems: "center",
+					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				}}>
+				<Spinner size='large' />
+			</Box>
+		);
+	}
+
 	return (
 		<Box
 			style={{
@@ -896,8 +923,8 @@ const ApplicationScreen = () => {
 													size='md'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? "#f3f4f6"
+															: "#111827",
 													}}>
 													{application?.companies
 														?.name ||
@@ -944,50 +971,50 @@ const ApplicationScreen = () => {
 									})
 								}>
 								<HStack
-									space='md'
 									style={{
+										justifyContent: "space-between",
 										alignItems: "center",
 										width: "100%",
 									}}>
-									<Box
+									<HStack
+										space='md'
 										style={{
-											width: 48,
-											height: 48,
-											borderRadius: 24,
-											backgroundColor: "#dcfce7",
-											justifyContent: "center",
 											alignItems: "center",
 										}}>
-										<Icon
-											as={User}
-											size='xl'
-											style={{ color: "#16a34a" }}
-										/>
-									</Box>
-									<VStack style={{ flex: 1 }} space='xs'>
-										<Text
-											size='lg'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											{application?.profiles?.lastname +
-												" " +
-												application?.profiles
-													?.firstname}
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											Voir le profil du candidat
-										</Text>
-									</VStack>
+										<Avatar size='md'>
+											<AvatarFallbackText>
+												{application?.profiles
+													?.lastname +
+													" " +
+													application?.profiles
+														?.firstname}
+											</AvatarFallbackText>
+											<AvatarImage
+												source={{
+													uri: application?.profiles
+														?.avatar_url,
+												}}
+											/>
+										</Avatar>
+										<VStack>
+											<Heading
+												size='md'
+												style={{
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												{application?.profiles
+													?.lastname +
+													" " +
+													application?.profiles
+														?.firstname}
+											</Heading>
+											<Text size='sm'>
+												Voir le profil du candidat
+											</Text>
+										</VStack>
+									</HStack>
 									<Icon
 										as={ChevronRight}
 										size='lg'
