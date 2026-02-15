@@ -143,8 +143,7 @@ const AccountScreen = () => {
 					headerRight: () => (
 						<TouchableOpacity
 							onPress={() => setShowQRModal(true)}
-							activeOpacity={0.7}
-							style={{ marginRight: 15 }}>
+							activeOpacity={0.7}>
 							<Icon
 								as={QrCode}
 								size='xl'
