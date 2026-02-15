@@ -231,7 +231,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='updateprofile'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Mettre à jour mon profil",
+								}}
 							/>
 							<Stack.Screen
 								name='curriculum'
