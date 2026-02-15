@@ -86,12 +86,13 @@ const MiniJobsList = ({
 	const loadDataJobs = async () => {
 		const { data, totalCount } = await getAll(
 			"jobs",
-			"*,companies(logo_url)",
+			"*,companies(logo_url, name)",
 			`&isArchived=eq.FALSE${filtersSup}&region_code=eq.${regionCode}${filters}`,
 			1,
 			itemsPerPage,
-			"date.desc"
+			"date.desc",
 		);
+		console.log("Loaded jobs:", data);
 		setJobs(data);
 		setTotalCount(totalCount);
 	};
@@ -162,6 +163,9 @@ const MiniJobsList = ({
 						city={job?.city}
 						department={job?.department_code}
 						isLastMinute={job?.isLastMinute}
+						logo={job?.companies?.logo_url}
+						company_name={job?.companies?.name}
+						postcode={job?.postcode}
 					/>
 				))}
 			</VStack>
