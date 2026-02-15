@@ -51,7 +51,7 @@ const JobCard = ({
 }) => {
 	const router = useRouter();
 	const { isDark } = useTheme();
-	const { user } = useAuth();
+	const { user, role } = useAuth();
 	const { toggleWishlistJob, isJobInWishlist } = useDataContext();
 	const isFocused = useIsFocused();
 	const [isInWishlist, setIsInWishlist] = useState(false);
@@ -111,27 +111,29 @@ const JobCard = ({
 						style={{ position: "absolute", right: 50, top: 16 }}
 					/>
 				)}
-				<TouchableOpacity
-					onPress={handleToggleWishlist}
-					style={{
-						position: "absolute",
-						right: 16,
-						top: 16,
-						zIndex: 10,
-					}}
-					activeOpacity={0.7}>
-					<Icon
-						as={isInWishlist ? BookmarkCheck : Bookmark}
-						size='xl'
+				{role !== "pro" && (
+					<TouchableOpacity
+						onPress={handleToggleWishlist}
 						style={{
-							color: isInWishlist
-								? "#3b82f6"
-								: isDark
-									? "#9ca3af"
-									: "#6b7280",
+							position: "absolute",
+							right: 16,
+							top: 16,
+							zIndex: 10,
 						}}
-					/>
-				</TouchableOpacity>
+						activeOpacity={0.7}>
+						<Icon
+							as={isInWishlist ? BookmarkCheck : Bookmark}
+							size='xl'
+							style={{
+								color: isInWishlist
+									? "#3b82f6"
+									: isDark
+										? "#9ca3af"
+										: "#6b7280",
+							}}
+						/>
+					</TouchableOpacity>
+				)}
 				<VStack space='md'>
 					<Heading
 						size='lg'
