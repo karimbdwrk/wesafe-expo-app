@@ -12,6 +12,11 @@ import { Box } from "@/components/ui/box";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
+import {
+	Avatar,
+	AvatarImage,
+	AvatarFallbackText,
+} from "@/components/ui/avatar";
 
 import {
 	Briefcase,
@@ -21,6 +26,7 @@ import {
 	XCircle,
 	FileText,
 	IdCard,
+	ChevronRight,
 } from "lucide-react-native";
 
 import { useTheme } from "@/context/ThemeContext";
@@ -76,6 +82,7 @@ const ApplyCard = ({
 	company_id,
 	isRefused,
 	apply_id,
+	application,
 	status,
 }) => {
 	const router = useRouter();
@@ -162,62 +169,97 @@ const ApplyCard = ({
 					borderWidth: 1,
 					borderColor: isDark ? "#4b5563" : "#e5e7eb",
 				}}>
-				<VStack space='md'>
-					{/* Header with title and company */}
-					<VStack space='xs'>
-						<Heading
-							size='lg'
-							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
-								lineHeight: 24,
-							}}>
-							{title}
-						</Heading>
-						{name && (
-							<Text
-								size='sm'
+				<HStack
+					space='md'
+					className='items-center justify-between mb-2'>
+					<VStack space='md'>
+						{/* Header with title and company */}
+						<VStack space='xs'>
+							<Heading
+								size='lg'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: isDark ? "#f3f4f6" : "#111827",
+									lineHeight: 24,
 								}}>
-								{name}
-							</Text>
-						)}
-					</VStack>
+								{title}
+							</Heading>
+							{name && (
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}>
+									{name}
+								</Text>
+							)}
+						</VStack>
 
-					{/* Info row with badges */}
-					<HStack
-						space='sm'
-						style={{ alignItems: "center", flexWrap: "wrap" }}>
-						{/* Category */}
-						<Badge size='sm' variant='solid' action='muted'>
-							<BadgeIcon as={IdCard} className='mr-2' />
-							<BadgeText>{category}</BadgeText>
-						</Badge>
+						<HStack space='md' className='items-center'>
+							<Avatar size='md'>
+								<AvatarFallbackText>
+									{application?.companies?.name}
+								</AvatarFallbackText>
+								<AvatarImage
+									source={{
+										uri: application?.companies?.logo_url,
+									}}
+								/>
+							</Avatar>
+							<VStack>
+								<Heading
+									size='md'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									{application?.companies?.name}
+								</Heading>
+								<Text size='sm'>Nursing Assistant</Text>
+							</VStack>
+						</HStack>
 
-						{/* Status */}
-						<Badge
-							size='sm'
-							variant='solid'
-							action={statusConfig.action}>
-							<BadgeIcon
-								as={statusConfig.icon}
-								className='mr-2'
-							/>
-							<BadgeText>{statusConfig.title}</BadgeText>
-						</Badge>
+						{/* Info row with badges */}
+						<HStack
+							space='sm'
+							style={{ alignItems: "center", flexWrap: "wrap" }}
+							className='mt-2'>
+							{/* Category */}
+							<Badge size='sm' variant='solid' action='muted'>
+								<BadgeIcon as={IdCard} className='mr-2' />
+								<BadgeText>{category}</BadgeText>
+							</Badge>
 
-						{/* Unread Messages */}
-						{unreadMessagesCount > 0 && (
-							<Badge size='sm' variant='solid' action='error'>
+							{/* Status */}
+							<Badge
+								size='sm'
+								variant='solid'
+								action={statusConfig.action}>
 								<BadgeIcon
-									as={MessageCircle}
+									as={statusConfig.icon}
 									className='mr-2'
 								/>
-								<BadgeText>{unreadMessagesCount}</BadgeText>
+								<BadgeText>{statusConfig.title}</BadgeText>
 							</Badge>
-						)}
-					</HStack>
-				</VStack>
+
+							{/* Unread Messages */}
+							{unreadMessagesCount > 0 && (
+								<Badge size='sm' variant='solid' action='error'>
+									<BadgeIcon
+										as={MessageCircle}
+										className='mr-2'
+									/>
+									<BadgeText>{unreadMessagesCount}</BadgeText>
+								</Badge>
+							)}
+						</HStack>
+					</VStack>
+					<Icon
+						as={ChevronRight}
+						size='lg'
+						style={{
+							color: isDark ? "#9ca3af" : "#6b7280",
+						}}
+					/>
+				</HStack>
 			</Card>
 		</TouchableOpacity>
 	);
