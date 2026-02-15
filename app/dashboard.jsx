@@ -144,7 +144,7 @@ const DashboardScreen = () => {
 			<Box style={{ padding: 20, paddingBottom: 40 }}>
 				<VStack space='2xl'>
 					{/* Header */}
-					<VStack space='md'>
+					{/* <VStack space='md'>
 						<Heading
 							size='2xl'
 							style={{ color: isDark ? "#f3f4f6" : "#111827" }}>
@@ -155,7 +155,7 @@ const DashboardScreen = () => {
 							style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
 							Gérez votre entreprise et vos documents
 						</Text>
-					</VStack>
+					</VStack> */}
 
 					{/* Company Info Card */}
 					<Card
