@@ -8,6 +8,11 @@ import { ScrollView, TouchableOpacity } from "react-native";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Box } from "@/components/ui/box";
+import {
+	Avatar,
+	AvatarImage,
+	AvatarFallbackText,
+} from "@/components/ui/avatar";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
@@ -24,6 +29,15 @@ import {
 	AccordionIcon,
 	AccordionContent,
 } from "@/components/ui/accordion";
+import {
+	Modal,
+	ModalBackdrop,
+	ModalContent,
+	ModalHeader,
+	ModalCloseButton,
+	ModalBody,
+	ModalFooter,
+} from "@/components/ui/modal";
 
 import { useLocalSearchParams, useRouter } from "expo-router";
 
@@ -46,6 +60,7 @@ import {
 	Phone,
 	ChevronDown,
 	ChevronUp,
+	CheckCircle,
 } from "lucide-react-native";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
@@ -74,12 +89,13 @@ const JobScreen = () => {
 	const [isInWishlist, setIsInWishlist] = useState(false);
 	const [isApplied, setIsApplied] = useState(false);
 	const [isArchived, setIsArchived] = useState(false);
+	const [showApplyModal, setShowApplyModal] = useState(false);
 
 	const loadJob = async () => {
 		const data = await getById(
 			"jobs",
 			id,
-			`*, companies(name, email), applies(id, candidate_id, profiles(firstname, lastname))`,
+			`*, companies(name, email, logo_url), applies(id, candidate_id, profiles(firstname, lastname))`,
 		);
 		setJob(data);
 	};
@@ -101,15 +117,19 @@ const JobScreen = () => {
 	const handleToggle = async () => {
 		const isNowInWishlist = await toggleWishlistJob(id, user.id);
 		setIsInWishlist(isNowInWishlist);
-		toast.success(`Operation sur wishlist! ${isNowInWishlist}`, {
-			// style: { backgroundColor: "blue" },
-			description: "Everything worked as expected.",
-			duration: 2500,
-			icon: <Check />,
-		});
+		toast.success(
+			isNowInWishlist ? "Ajouté aux favoris" : "Retiré des favoris",
+			{
+				description: isNowInWishlist
+					? "Cette offre a été ajoutée à votre liste de favoris"
+					: "Cette offre a été retirée de votre liste de favoris",
+				duration: 2000,
+				icon: <Check />,
+			},
+		);
 	};
 
-	const handleApply = async () => {
+	const confirmApply = async () => {
 		const edgeFunctionUrl = `https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/send-push-notification`;
 
 		const isNowApplied = await applyToJob(
@@ -143,6 +163,7 @@ const JobScreen = () => {
 		);
 
 		setIsApplied(isNowApplied);
+		setShowApplyModal(false);
 		toast.success(`Vous avez postulé à l'offre d'emploi avec succés!`, {
 			// style: { backgroundColor: "blue" },
 			description:
@@ -159,6 +180,10 @@ const JobScreen = () => {
 			entityType: "application",
 			entityId: isNowApplied[0].id,
 		});
+	};
+
+	const handleApply = () => {
+		setShowApplyModal(true);
 	};
 
 	const handleArchive = async () => {
@@ -264,7 +289,7 @@ const JobScreen = () => {
 							</HStack>
 
 							{/* Localisation */}
-							{job?.city && (
+							{/* {job?.city && (
 								<HStack
 									space='sm'
 									style={{ alignItems: "center" }}>
@@ -294,7 +319,71 @@ const JobScreen = () => {
 										{job?.department_code})
 									</Text>
 								</HStack>
-							)}
+							)} */}
+
+							<HStack space='md' style={{ alignItems: "center" }}>
+								<Avatar size='md'>
+									<AvatarFallbackText>
+										{job?.companies?.name || "Company"}
+									</AvatarFallbackText>
+									{job?.companies?.logo_url && (
+										<AvatarImage
+											source={{
+												uri: job?.companies?.logo_url,
+											}}
+										/>
+									)}
+								</Avatar>
+								<VStack style={{ flex: 1 }}>
+									<HStack
+										space='xs'
+										style={{
+											alignItems: "center",
+											marginTop: 2,
+										}}>
+										{/* <Building2
+																size={14}
+																color={isDark ? "#f3f4f6" : "#111827"}
+															/> */}
+										<Text
+											size='md'
+											style={{
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+												fontWeight: "500",
+											}}>
+											{job?.companies?.name ||
+												"Entreprise"}
+										</Text>
+									</HStack>
+									{job?.city && (
+										<HStack
+											space='xs'
+											style={{
+												alignItems: "center",
+												marginTop: 2,
+											}}>
+											{/* <MapPin
+																	size={14}
+																	color={isDark ? "#9ca3af" : "#6b7280"}
+																/> */}
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												{job?.city +
+													" (" +
+													job?.postcode +
+													")"}
+											</Text>
+										</HStack>
+									)}
+								</VStack>
+							</HStack>
 
 							{/* Badges */}
 							<HStack space='sm' style={{ flexWrap: "wrap" }}>
@@ -1309,6 +1398,75 @@ const JobScreen = () => {
 					</Button>
 				</Box>
 			)}
+
+			{/* Modal de confirmation pour postuler */}
+			<Modal
+				isOpen={showApplyModal}
+				onClose={() => setShowApplyModal(false)}>
+				<ModalBackdrop />
+				<ModalContent
+					style={{
+						maxWidth: 400,
+						backgroundColor: isDark ? "#374151" : "#ffffff",
+						borderRadius: 16,
+						padding: 24,
+					}}>
+					<VStack space='lg' style={{ alignItems: "center" }}>
+						<Box
+							style={{
+								width: 64,
+								height: 64,
+								borderRadius: 32,
+								backgroundColor: "#dbeafe",
+								justifyContent: "center",
+								alignItems: "center",
+							}}>
+							<Icon
+								as={CheckCircle}
+								size='2xl'
+								style={{ color: "#2563eb" }}
+							/>
+						</Box>
+						<VStack space='sm' style={{ alignItems: "center" }}>
+							<Heading
+								size='xl'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+									textAlign: "center",
+								}}>
+								Confirmer la candidature
+							</Heading>
+							<Text
+								size='md'
+								style={{
+									color: isDark ? "#d1d5db" : "#6b7280",
+									textAlign: "center",
+								}}>
+								Êtes-vous sûr de vouloir postuler à cette offre
+								d'emploi ? Vous recevrez une notification pour
+								suivre l'avancée de votre candidature.
+							</Text>
+						</VStack>
+						<HStack
+							space='md'
+							style={{ width: "100%", marginTop: 8 }}>
+							<Button
+								variant='outline'
+								action='secondary'
+								onPress={() => setShowApplyModal(false)}
+								style={{ flex: 1 }}>
+								<ButtonText>Annuler</ButtonText>
+							</Button>
+							<Button
+								action='primary'
+								onPress={confirmApply}
+								style={{ flex: 1 }}>
+								<ButtonText>Postuler</ButtonText>
+							</Button>
+						</HStack>
+					</VStack>
+				</ModalContent>
+			</Modal>
 		</Box>
 	);
 };
