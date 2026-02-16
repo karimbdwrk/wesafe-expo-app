@@ -1629,11 +1629,13 @@ const ApplicationScreen = () => {
 									style={{ alignItems: "center", flex: 1 }}>
 									<Avatar size='md'>
 										{role === "pro" ? (
-											application?.profiles?.avatar ? (
+											application?.profiles
+												?.avatar_url ? (
 												<AvatarImage
 													source={{
 														uri: application
-															.profiles.avatar,
+															.profiles
+															.avatar_url,
 													}}
 												/>
 											) : (
