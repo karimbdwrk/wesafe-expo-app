@@ -14,6 +14,7 @@ import {
 	CheckCircle,
 	AlertCircle,
 	ChevronDown,
+	Ruler,
 } from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
@@ -74,6 +75,8 @@ const UpdateProfile = () => {
 	const [formerSoldier, setFormerSoldier] = useState(false);
 	const [drivingLicenses, setDrivingLicenses] = useState("");
 	const [languages, setLanguages] = useState("");
+	const [height, setHeight] = useState("");
+	const [weight, setWeight] = useState("");
 	const [cities, setCities] = useState([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [loading, setLoading] = useState(true);
@@ -103,6 +106,8 @@ const UpdateProfile = () => {
 				setFormerSoldier(profile.former_soldier || false);
 				setDrivingLicenses(profile.driving_licenses || "");
 				setLanguages(profile.languages || "");
+				setHeight(profile.height?.toString() || "");
+				setWeight(profile.weight?.toString() || "");
 			}
 		} catch (error) {
 			console.error("Error loading profile:", error);
@@ -175,6 +180,8 @@ const UpdateProfile = () => {
 				former_soldier: formerSoldier,
 				driving_licenses: drivingLicenses,
 				languages,
+				height: height ? parseFloat(height) : null,
+				weight: weight ? parseFloat(weight) : null,
 			});
 
 			toast.show({
@@ -250,7 +257,7 @@ const UpdateProfile = () => {
 			}}>
 			<VStack space='lg' style={{ padding: 20 }}>
 				{/* Header Card */}
-				<Card
+				{/* <Card
 					style={{
 						backgroundColor: isDark ? "#374151" : "#ffffff",
 						borderRadius: 12,
@@ -286,7 +293,7 @@ const UpdateProfile = () => {
 							</Text>
 						</VStack>
 					</HStack>
-				</Card>
+				</Card> */}
 
 				{/* Form Card */}
 				<Card
@@ -815,6 +822,106 @@ const UpdateProfile = () => {
 									color: isDark ? "#9ca3af" : "#6b7280",
 								}}>
 								Séparez par des virgules
+							</Text>
+						</VStack>
+
+						<Divider
+							style={{
+								backgroundColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}
+						/>
+
+						{/* Taille */}
+						<VStack space='sm'>
+							<Text
+								size='sm'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+									fontWeight: "600",
+								}}>
+								Taille
+							</Text>
+							<Input
+								style={{
+									backgroundColor: isDark
+										? "#1f2937"
+										: "#f9fafb",
+									borderColor: isDark ? "#4b5563" : "#d1d5db",
+								}}>
+								<InputSlot style={{ paddingLeft: 12 }}>
+									<InputIcon
+										as={Ruler}
+										size={20}
+										color={isDark ? "#9ca3af" : "#6b7280"}
+									/>
+								</InputSlot>
+								<InputField
+									type='text'
+									placeholder='Votre taille en cm'
+									value={height}
+									onChangeText={setHeight}
+									keyboardType='numeric'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}
+								/>
+							</Input>
+							<Text
+								size='xs'
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+								}}>
+								En centimètres (ex: 175)
+							</Text>
+						</VStack>
+
+						<Divider
+							style={{
+								backgroundColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}
+						/>
+
+						{/* Poids */}
+						<VStack space='sm'>
+							<Text
+								size='sm'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+									fontWeight: "600",
+								}}>
+								Poids
+							</Text>
+							<Input
+								style={{
+									backgroundColor: isDark
+										? "#1f2937"
+										: "#f9fafb",
+									borderColor: isDark ? "#4b5563" : "#d1d5db",
+								}}>
+								<InputSlot style={{ paddingLeft: 12 }}>
+									<InputIcon
+										as={Ruler}
+										size={20}
+										color={isDark ? "#9ca3af" : "#6b7280"}
+									/>
+								</InputSlot>
+								<InputField
+									type='text'
+									placeholder='Votre poids en kg'
+									value={weight}
+									onChangeText={setWeight}
+									keyboardType='numeric'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}
+								/>
+							</Input>
+							<Text
+								size='xs'
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+								}}>
+								En kilogrammes (ex: 70)
 							</Text>
 						</VStack>
 					</VStack>
