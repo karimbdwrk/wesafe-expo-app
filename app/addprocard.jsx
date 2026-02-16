@@ -1,22 +1,25 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useFocusEffect } from "expo-router";
-
 import {
-	Animated,
 	Keyboard,
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
-	TextInput,
-	View,
-	StyleSheet,
 	TouchableOpacity,
 } from "react-native";
 
-import EditScreenInfo from "@/components/EditScreenInfo";
+import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
+import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
+import { Card } from "@/components/ui/card";
+import { Heading } from "@/components/ui/heading";
+import { Icon } from "@/components/ui/icon";
+import { IdCard, GraduationCap } from "lucide-react-native";
+
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { useTheme } from "@/context/ThemeContext";
 import ProCardForm from "@/components/ProCardForm";
 import SSIAPDiploma from "@/components/SSIAPDiploma";
 
@@ -25,6 +28,7 @@ const ITEMS_PER_PAGE = 10;
 export default function AddProCardScreen() {
 	const { signIn, user } = useAuth();
 	const { getAll } = useDataContext();
+	const { isDark } = useTheme();
 
 	const [cardType, setCardType] = useState(null); // 'procard' ou 'ssiap'
 
@@ -57,150 +61,255 @@ export default function AddProCardScreen() {
 		<KeyboardAvoidingView
 			style={{ flex: 1 }}
 			behavior={Platform.OS === "ios" ? "padding" : "height"}
-			keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0} // Ajuste si tu as un header
-		>
+			keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}>
 			<ScrollView
-				contentContainerStyle={{ flexGrow: 1 }}
-				keyboardShouldPersistTaps='handled'>
-				<View style={styles.container}>
-					<Text style={styles.title}>Ajouter un document</Text>
-
-					{/* Sélecteur de type de carte */}
-					<View style={styles.cardTypeSelector}>
-						<TouchableOpacity
-							style={[
-								styles.cardTypeButton,
-								cardType === "procard" &&
-									styles.cardTypeButtonActive,
-							]}
-							onPress={() => setCardType("procard")}>
+				style={{
+					flex: 1,
+					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				}}
+				showsVerticalScrollIndicator={false}>
+				<Box style={{ padding: 20, paddingBottom: 40 }}>
+					<VStack space='2xl'>
+						{/* Header */}
+						<VStack space='md'>
+							<Heading
+								size='2xl'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								Ajouter un document
+							</Heading>
 							<Text
-								style={[
-									styles.cardTypeButtonText,
-									cardType === "procard" &&
-										styles.cardTypeButtonTextActive,
-								]}>
-								Carte Pro
+								size='md'
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+								}}>
+								Sélectionnez le type de document à ajouter à
+								votre profil
 							</Text>
-						</TouchableOpacity>
+						</VStack>
 
-						<TouchableOpacity
-							style={[
-								styles.cardTypeButton,
-								cardType === "ssiap" &&
-									styles.cardTypeButtonActive,
-							]}
-							onPress={() => setCardType("ssiap")}>
-							<Text
-								style={[
-									styles.cardTypeButtonText,
-									cardType === "ssiap" &&
-										styles.cardTypeButtonTextActive,
-								]}>
-								Diplôme SSIAP
-							</Text>
-						</TouchableOpacity>
-					</View>
+						{/* Document Type Selection */}
+						{!cardType && (
+							<VStack space='lg'>
+								<Text
+									size='lg'
+									style={{
+										fontWeight: "600",
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									Choisissez votre type de document
+								</Text>
 
-					{/* Affichage conditionnel des formulaires */}
-					{cardType === "procard" && (
-						<View style={styles.formContainer}>
-							<Text style={styles.subtitle}>
-								Nouvelle carte pro
-							</Text>
-							<ProCardForm procards={procards} />
-						</View>
-					)}
+								<TouchableOpacity
+									onPress={() => setCardType("procard")}
+									activeOpacity={0.7}>
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 2,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<HStack
+											space='md'
+											style={{ alignItems: "center" }}>
+											<Box
+												style={{
+													width: 48,
+													height: 48,
+													borderRadius: 24,
+													backgroundColor: isDark
+														? "#1f2937"
+														: "#f3f4f6",
+													justifyContent: "center",
+													alignItems: "center",
+												}}>
+												<Icon
+													as={IdCard}
+													size='xl'
+													style={{
+														color: isDark
+															? "#60a5fa"
+															: "#2563eb",
+													}}
+												/>
+											</Box>
+											<VStack
+												space='xs'
+												style={{ flex: 1 }}>
+												<Text
+													size='lg'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Carte Professionnelle
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													Agents de sécurité,
+													cynophiles, etc.
+												</Text>
+											</VStack>
+										</HStack>
+									</Card>
+								</TouchableOpacity>
 
-					{cardType === "ssiap" && (
-						<View style={styles.formContainer}>
-							<Text style={styles.subtitle}>
-								Nouveau diplôme SSIAP
-							</Text>
-							<SSIAPDiploma />
-						</View>
-					)}
+								<TouchableOpacity
+									onPress={() => setCardType("ssiap")}
+									activeOpacity={0.7}>
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 2,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<HStack
+											space='md'
+											style={{ alignItems: "center" }}>
+											<Box
+												style={{
+													width: 48,
+													height: 48,
+													borderRadius: 24,
+													backgroundColor: isDark
+														? "#1f2937"
+														: "#f3f4f6",
+													justifyContent: "center",
+													alignItems: "center",
+												}}>
+												<Icon
+													as={GraduationCap}
+													size='xl'
+													style={{
+														color: isDark
+															? "#60a5fa"
+															: "#2563eb",
+													}}
+												/>
+											</Box>
+											<VStack
+												space='xs'
+												style={{ flex: 1 }}>
+												<Text
+													size='lg'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Diplôme SSIAP
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													Service de Sécurité Incendie
+													et d'Assistance aux
+													Personnes
+												</Text>
+											</VStack>
+										</HStack>
+									</Card>
+								</TouchableOpacity>
+							</VStack>
+						)}
 
-					{!cardType && (
-						<View style={styles.placeholder}>
-							<Text style={styles.placeholderText}>
-								Sélectionnez un type de document à ajouter
-							</Text>
-						</View>
-					)}
-				</View>
+						{/* ProCard Form */}
+						{cardType === "procard" && (
+							<VStack space='lg'>
+								<HStack
+									style={{
+										justifyContent: "space-between",
+										alignItems: "center",
+									}}>
+									<Text
+										size='xl'
+										style={{
+											fontWeight: "600",
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										Nouvelle carte pro
+									</Text>
+									<TouchableOpacity
+										onPress={() => setCardType(null)}
+										activeOpacity={0.7}>
+										<Text
+											size='sm'
+											style={{
+												color: "#2563eb",
+												fontWeight: "600",
+											}}>
+											Changer
+										</Text>
+									</TouchableOpacity>
+								</HStack>
+								<ProCardForm procards={procards} />
+							</VStack>
+						)}
+
+						{/* SSIAP Diploma Form */}
+						{cardType === "ssiap" && (
+							<VStack space='lg'>
+								<HStack
+									style={{
+										justifyContent: "space-between",
+										alignItems: "center",
+									}}>
+									<Text
+										size='xl'
+										style={{
+											fontWeight: "600",
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										Nouveau diplôme SSIAP
+									</Text>
+									<TouchableOpacity
+										onPress={() => setCardType(null)}
+										activeOpacity={0.7}>
+										<Text
+											size='sm'
+											style={{
+												color: "#2563eb",
+												fontWeight: "600",
+											}}>
+											Changer
+										</Text>
+									</TouchableOpacity>
+								</HStack>
+								<SSIAPDiploma />
+							</VStack>
+						)}
+					</VStack>
+				</Box>
 			</ScrollView>
 		</KeyboardAvoidingView>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "flex-start",
-		width: "100%",
-		paddingTop: 20,
-	},
-	title: {
-		fontSize: 24,
-		fontWeight: "bold",
-		marginBottom: 20,
-	},
-	subtitle: {
-		fontSize: 18,
-		fontWeight: "600",
-		marginBottom: 15,
-		marginTop: 10,
-	},
-	cardTypeSelector: {
-		flexDirection: "row",
-		gap: 15,
-		marginBottom: 30,
-		paddingHorizontal: 20,
-	},
-	cardTypeButton: {
-		flex: 1,
-		paddingVertical: 12,
-		paddingHorizontal: 20,
-		borderRadius: 8,
-		borderWidth: 2,
-		borderColor: "#ccc",
-		backgroundColor: "#fff",
-		alignItems: "center",
-	},
-	cardTypeButtonActive: {
-		borderColor: "#007AFF",
-		backgroundColor: "#007AFF",
-	},
-	cardTypeButtonText: {
-		fontSize: 16,
-		fontWeight: "600",
-		color: "#333",
-	},
-	cardTypeButtonTextActive: {
-		color: "#fff",
-	},
-	formContainer: {
-		width: "100%",
-		paddingHorizontal: 20,
-	},
-	placeholder: {
-		marginTop: 50,
-		paddingHorizontal: 40,
-	},
-	placeholderText: {
-		fontSize: 16,
-		color: "#999",
-		textAlign: "center",
-	},
-	separator: {
-		marginVertical: 30,
-		height: 1,
-		width: "80%",
-	},
-	uuid: {
-		fontSize: 16,
-		color: "gray",
-	},
-});
