@@ -700,8 +700,8 @@ const AccountScreen = () => {
 
 							<ActionCard
 								icon={IdCard}
-								title='Cartes professionnelles'
-								subtitle='Gérez vos cartes pro'
+								title='Documents professionnelles'
+								subtitle='Cartes professionnels, diplômes, attestations...'
 								onPress={() => router.push("/procards")}
 							/>
 
@@ -735,7 +735,7 @@ const AccountScreen = () => {
 								icon={FileText}
 								title='CV'
 								subtitle='Gérez votre curriculum vitae'
-								onPress={() => router.push("/curriculum")}
+								onPress={() => router.push("/curriculumvitae")}
 							/>
 
 							<ActionCard
