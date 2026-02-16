@@ -62,7 +62,7 @@ const ApplicationsScreen = () => {
 		setRefreshing(true);
 		try {
 			const { data, totalCount } = await getAll(
-				"applies",
+				"applications",
 				"*,jobs(*), companies(*)",
 				`&jobs.isArchived=eq.FALSE&jobs=not.is.null&candidate_id=eq.${user.id}`,
 				page,
