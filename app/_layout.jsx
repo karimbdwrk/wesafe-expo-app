@@ -293,7 +293,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='wishlist'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Ma Wishlist",
+								}}
 							/>
 							<Stack.Screen
 								name='job'
