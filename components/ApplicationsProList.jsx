@@ -18,7 +18,7 @@ const ApplicationsProList = ({ userId, title }) => {
 
 	const loadDataApplications = async () => {
 		const { data } = await getAll(
-			"applies",
+			"applications",
 			"*,jobs(*),profiles(*)",
 			`&jobs.isArchived=eq.FALSE&jobs=not.is.null&company_id=eq.${userId}`,
 			1,

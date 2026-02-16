@@ -1323,111 +1323,118 @@ const JobScreen = () => {
 									}}
 								/>
 
-								{job?.applies && job.applies.length > 0 ? (
+								{job?.applications &&
+								job.applications.length > 0 ? (
 									<VStack space='sm'>
-										{job.applies.map((apply, index) => (
-											<React.Fragment key={apply.id}>
-												{index > 0 && (
-													<Divider
-														style={{
-															backgroundColor:
-																isDark
-																	? "#374151"
-																	: "#f3f4f6",
-														}}
-													/>
-												)}
-												<HStack
-													style={{
-														justifyContent:
-															"space-between",
-														alignItems: "center",
-														paddingVertical: 8,
-													}}>
-													<VStack style={{ flex: 1 }}>
-														<Text
-															size='md'
+										{job.applications.map(
+											(apply, index) => (
+												<React.Fragment key={apply.id}>
+													{index > 0 && (
+														<Divider
 															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															{
-																apply.profiles
-																	.firstname
-															}{" "}
-															{
-																apply.profiles
-																	.lastname
-															}
-														</Text>
-														{apply.current_status && (
-															<Badge
-																size='sm'
-																variant='solid'
-																action={
-																	apply.current_status ===
-																	"rejected"
-																		? "error"
-																		: apply.current_status ===
-																			  "contract_signed_pro"
-																			? "success"
-																			: "info"
-																}
+																backgroundColor:
+																	isDark
+																		? "#374151"
+																		: "#f3f4f6",
+															}}
+														/>
+													)}
+													<HStack
+														style={{
+															justifyContent:
+																"space-between",
+															alignItems:
+																"center",
+															paddingVertical: 8,
+														}}>
+														<VStack
+															style={{ flex: 1 }}>
+															<Text
+																size='md'
 																style={{
-																	marginTop: 4,
-																	alignSelf:
-																		"flex-start",
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
 																}}>
-																<BadgeText>
-																	{apply.current_status ===
-																	"applied"
-																		? "Candidature envoyée"
-																		: apply.current_status ===
-																			  "selected"
-																			? "Sélectionné"
+																{
+																	apply
+																		.profiles
+																		.firstname
+																}{" "}
+																{
+																	apply
+																		.profiles
+																		.lastname
+																}
+															</Text>
+															{apply.current_status && (
+																<Badge
+																	size='sm'
+																	variant='solid'
+																	action={
+																		apply.current_status ===
+																		"rejected"
+																			? "error"
 																			: apply.current_status ===
-																				  "contract_sent"
-																				? "Contrat envoyé"
+																				  "contract_signed_pro"
+																				? "success"
+																				: "info"
+																	}
+																	style={{
+																		marginTop: 4,
+																		alignSelf:
+																			"flex-start",
+																	}}>
+																	<BadgeText>
+																		{apply.current_status ===
+																		"applied"
+																			? "Candidature envoyée"
+																			: apply.current_status ===
+																				  "selected"
+																				? "Sélectionné"
 																				: apply.current_status ===
-																					  "contract_signed_candidate"
-																					? "Contrat signé (candidat)"
+																					  "contract_sent"
+																					? "Contrat envoyé"
 																					: apply.current_status ===
-																						  "contract_signed_pro"
-																						? "Contrat finalisé"
+																						  "contract_signed_candidate"
+																						? "Contrat signé (candidat)"
 																						: apply.current_status ===
-																							  "rejected"
-																							? "Refusé"
-																							: apply.current_status}
-																</BadgeText>
-															</Badge>
-														)}
-													</VStack>
-													<Button
-														size='sm'
-														action='primary'
-														onPress={() =>
-															router.push({
-																pathname:
-																	"/application",
-																params: {
-																	id: job.id,
-																	company_id:
-																		job.company_id,
-																	apply_id:
-																		apply.id,
-																},
-															})
-														}>
-														<ButtonText>
-															Voir
-														</ButtonText>
-													</Button>
-												</HStack>
-											</React.Fragment>
-										))}
+																							  "contract_signed_pro"
+																							? "Contrat finalisé"
+																							: apply.current_status ===
+																								  "rejected"
+																								? "Refusé"
+																								: apply.current_status}
+																	</BadgeText>
+																</Badge>
+															)}
+														</VStack>
+														<Button
+															size='sm'
+															action='primary'
+															onPress={() =>
+																router.push({
+																	pathname:
+																		"/application",
+																	params: {
+																		id: job.id,
+																		company_id:
+																			job.company_id,
+																		apply_id:
+																			apply.id,
+																	},
+																})
+															}>
+															<ButtonText>
+																Voir
+															</ButtonText>
+														</Button>
+													</HStack>
+												</React.Fragment>
+											),
+										)}
 									</VStack>
 								) : (
 									<Text

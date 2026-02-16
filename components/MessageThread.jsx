@@ -416,7 +416,7 @@ const MessageThread = ({
 
 			// Mettre à jour updated_at de la candidature
 			await supabase
-				.from("applies")
+				.from("applications")
 				.update({ updated_at: new Date().toISOString() })
 				.eq("id", applyId);
 
@@ -426,7 +426,7 @@ const MessageThread = ({
 
 			// Récupérer l'apply pour trouver le destinataire
 			const { data: applyData, error: applyError } = await supabase
-				.from("applies")
+				.from("applications")
 				.select(
 					"candidate_id, job:jobs(company_id, title), candidate:profiles!candidate_id(firstname, lastname)",
 				)

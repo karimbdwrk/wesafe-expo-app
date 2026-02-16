@@ -115,7 +115,7 @@ const MessagingScreen = () => {
 		const loadApplicationStatus = async () => {
 			console.log("📥 Loading application status for:", apply_id);
 			const { data, error } = await supabase
-				.from("applies")
+				.from("applications")
 				.select("current_status")
 				.eq("id", apply_id)
 				.single();

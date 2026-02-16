@@ -147,9 +147,9 @@ export const DataProvider = ({ children }) => {
 			applicantEmail,
 		);
 		try {
-			// 1. Créer la candidature dans /applies
+			// 1. Créer la candidature dans /applications
 			const applyRes = await axiosInstance.post(
-				`/applies`,
+				`/applications`,
 				{
 					candidate_id: candidateId,
 					job_id: jobId,
@@ -212,7 +212,7 @@ export const DataProvider = ({ children }) => {
 	const isJobApplied = async (candidateId, jobId) => {
 		try {
 			const res = await axiosInstance.get(
-				`/applies?candidate_id=eq.${candidateId}&job_id=eq.${jobId}&select=id`,
+				`/applications?candidate_id=eq.${candidateId}&job_id=eq.${jobId}&select=id`,
 			);
 			return res.data.length > 0; // true if applied
 		} catch (err) {
@@ -236,9 +236,9 @@ export const DataProvider = ({ children }) => {
 			updatedBy,
 		);
 		try {
-			// 1. Mettre à jour le statut dans /applies
+			// 1. Mettre à jour le statut dans /applications
 			const updateRes = await axiosInstance.patch(
-				`/applies?id=eq.${applicationId}`,
+				`/applications?id=eq.${applicationId}`,
 				{
 					current_status: newStatus,
 				},
@@ -321,7 +321,7 @@ export const DataProvider = ({ children }) => {
 		console.warn("Confirmation applicationId :", applicationId);
 		try {
 			const res = await axiosInstance.patch(
-				`/applies?id=eq.${applicationId}`,
+				`/applications?id=eq.${applicationId}`,
 				{
 					isConfirmed: true,
 					isRefused: false,
@@ -347,7 +347,7 @@ export const DataProvider = ({ children }) => {
 		console.warn("Selected applicationId :", applicationId);
 		try {
 			const res = await axiosInstance.patch(
-				`/applies?id=eq.${applicationId}`,
+				`/applications?id=eq.${applicationId}`,
 				{
 					isSelected: bool,
 				},
@@ -372,7 +372,7 @@ export const DataProvider = ({ children }) => {
 		console.warn("Selected applicationId :", applicationId);
 		try {
 			const res = await axiosInstance.patch(
-				`/applies?id=eq.${applicationId}`,
+				`/applications?id=eq.${applicationId}`,
 				{
 					isRefused: true,
 					isConfirmed: false,
