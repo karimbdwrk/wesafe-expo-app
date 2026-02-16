@@ -1,469 +1,622 @@
-import React, { useState, useEffect, useCallback, useRef, use } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
 	ScrollView,
-	StyleSheet,
-	View,
 	RefreshControl,
-	KeyboardAvoidingView,
-	Platform,
 	TouchableOpacity,
+	TextInput,
 } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
-import axios from "axios";
-import PagerView from "react-native-pager-view";
-import { useActionSheet } from "@expo/react-native-action-sheet";
-// import Modal from "react-native-modal";
+import { useRouter, useFocusEffect } from "expo-router";
 
+import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { Heading } from "@/components/ui/heading";
-import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
-import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
-import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
-import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
-// import {
-// 	Actionsheet,
-// 	ActionsheetContent,
-// 	ActionsheetItem,
-// 	ActionsheetItemText,
-// 	ActionsheetDragIndicator,
-// 	ActionsheetDragIndicatorWrapper,
-// 	ActionsheetBackdrop,
-// 	ActionsheetScrollView,
-// } from "@/components/ui/actionsheet";
+import { HStack } from "@/components/ui/hstack";
+import { Card } from "@/components/ui/card";
+import { Divider } from "@/components/ui/divider";
+import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
+import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
+import { Input, InputField, InputSlot, InputIcon } from "@/components/ui/input";
+import { Icon } from "@/components/ui/icon";
 import {
-	Checkbox,
-	CheckboxIndicator,
-	CheckboxLabel,
-	CheckboxIcon,
-	CheckboxGroup,
-} from "@/components/ui/checkbox";
-import { Center } from "@/components/ui/center";
-import {
-	Slider,
-	SliderThumb,
-	SliderTrack,
-	SliderFilledTrack,
-} from "@/components/ui/slider";
-
-import JobCard from "@/components/JobCard";
+	Avatar,
+	AvatarImage,
+	AvatarFallbackText,
+} from "@/components/ui/avatar";
 
 import {
-	ChevronLeft,
-	ChevronRight,
-	Info,
-	SlidersHorizontal,
-	Check,
 	Search,
-	X,
-	Pin,
 	MapPin,
+	Briefcase,
+	TrendingUp,
+	Users,
+	Building2,
+	FileText,
+	ClipboardList,
+	Plus,
+	ChevronRight,
+	Clock,
+	CheckCircle,
+	AlertCircle,
+	Bookmark,
+	BadgeCheck,
+	Timer,
+	Sparkles,
 } from "lucide-react-native";
 
-import { useDataContext } from "@/context/DataContext";
+import JobCard from "@/components/JobCard";
 import { useAuth } from "@/context/AuthContext";
-import JobsList from "@/components/JobsList";
-import MiniJobsList from "@/components/MiniJobsList";
-import ApplicationsProList from "@/components/ApplicationsProList";
-
-const ITEMS_PER_PAGE = 5;
-const today = new Date();
+import { useDataContext } from "@/context/DataContext";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function Tab1() {
-	const scrollRef = useRef(null);
-	const { user, accessToken, role, userProfile, userCompany, loadSession } =
-		useAuth();
-	const { getAll, isLoading } = useDataContext();
-
 	const router = useRouter();
-
-	const { showActionSheetWithOptions } = useActionSheet();
-	const [visible, setVisible] = useState(false);
-
-	const openSheet = () => setVisible(true);
-	const closeSheet = () => setVisible(false);
-
-	const pagerRef = useRef(null);
-	const [activePage, setActivePage] = useState(0);
-	const numPages = 2;
-
-	const goToPage = (pageIndex) => {
-		pagerRef.current?.setPage(pageIndex);
-	};
-
-	const [showActionsheet, setShowActionsheet] = useState(false);
-	const handleClose = () => setShowActionsheet(false);
-
-	const [showActionsheet2, setShowActionsheet2] = useState(false);
-	const handleClose2 = () => setShowActionsheet2(false);
-
-	const [values, setValues] = useState([]);
-	const [resetValues, setResetValues] = useState(false);
-	const [filters, setFilters] = useState("");
-	const [keywords, setKeywords] = useState("");
-	const [switchToKeywords, setSwitchToKeywords] = useState(false);
-
-	const [userLat, setUserLat] = useState(userProfile?.latitude || null);
-	const [userLon, setUserLon] = useState(userProfile?.longitude || null);
-	const [userCity, setUserCity] = useState(userProfile?.city || null);
-	const [userCitySelected, setUserCitySelected] = useState(true);
-	const [results, setResults] = useState([]);
-
-	const [myProcards, setMyProcards] = useState([]);
-	const [myCategories, setMyCategories] = useState([]);
-
-	const [minLat, setMinLat] = useState(null);
-	const [maxLat, setMaxLat] = useState(null);
-	const [minLon, setMinLon] = useState(null);
-	const [maxLon, setMaxLon] = useState(null);
-	const [distanceKm, setDistanceKm] = useState(0);
+	const { user, role, userCompany } = useAuth();
+	const { getAll } = useDataContext();
+	const { isDark } = useTheme();
 
 	const [refreshing, setRefreshing] = useState(false);
-	const [page, setPage] = useState(1);
-	const [jobs, setJobs] = useState([]);
+	const [searchQuery, setSearchQuery] = useState("");
+	const [recentJobs, setRecentJobs] = useState([]);
+	const [stats, setStats] = useState({
+		totalJobs: 0,
+		applications: 0,
+		pending: 0,
+	});
 
-	const [totalCount, setTotalCount] = useState(0);
-	const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+	const loadData = async () => {
+		if (role === "pro") {
+			// Stats pour les pros
+			const { data: jobs, totalCount: jobsCount } = await getAll(
+				"jobs",
+				"*",
+				`&company_id=eq.${user.id}&isArchived=eq.false`,
+				1,
+				100,
+			);
+			const { totalCount: appsCount } = await getAll(
+				"applications",
+				"*",
+				`&company_id=eq.${user.id}`,
+				1,
+				1,
+			);
+			const { totalCount: pendingCount } = await getAll(
+				"applications",
+				"*",
+				`&company_id=eq.${user.id}&status=eq.pending`,
+				1,
+				1,
+			);
+			setStats({
+				totalJobs: jobsCount || 0,
+				applications: appsCount || 0,
+				pending: pendingCount || 0,
+			});
+			setRecentJobs(jobs?.slice(0, 3) || []);
+		} else {
+			// Offres récentes pour les candidats
+			const { data: jobs } = await getAll(
+				"jobs",
+				"*, companies(name, logo_url)",
+				`&isArchived=eq.false`,
+				1,
+				5,
+				"created_at.desc",
+			);
+			setRecentJobs(jobs || []);
 
-	useFocusEffect(
-		useCallback(() => {
-			if (userProfile) {
-				setMyProcards(userProfile.procards || []);
-			}
-		}, [userProfile]),
-	);
-
-	useEffect(() => {
-		const newCategories = new Set();
-
-		const today = new Date();
-		today.setHours(0, 0, 0, 0);
-
-		myProcards.forEach((card) => {
-			const cardValidityDate = new Date(card.validity_date);
-			cardValidityDate.setHours(0, 0, 0, 0);
-			if (card.status === "verified" && cardValidityDate >= today) {
-				newCategories.add(card.category);
-			}
-		});
-		setMyCategories(Array.from(newCategories));
-	}, [myProcards]);
-
-	useEffect(() => {
-		const fetchCities = async () => {
-			if (userCity && userCity.length < 2) return setResults([]);
-			try {
-				const res = await axios.get(
-					`https://geo.api.gouv.fr/communes`,
-					{
-						params: {
-							nom: userCity,
-							fields: "nom,codesPostaux,codeDepartement,centre",
-							limit: 5,
-							boost: "population",
-						},
-					},
-				);
-				setResults(res.data);
-			} catch (err) {
-				console.error("Erreur de géolocalisation :", err);
-			}
-		};
-		const timeout = setTimeout(fetchCities, 300); // debounce
-		return () => clearTimeout(timeout);
-	}, [userCity]);
-
-	const getBoundingBox = (centerLat, centerLon, distanceKm) => {
-		const earthRadiusKm = 6371; // Rayon moyen de la Terre en kilomètres
-
-		// Convertir la latitude centrale en radians pour le calcul du cosinus
-		const centerLatRad = centerLat * (Math.PI / 180);
-
-		// Calcul de la variation en degrés de latitude pour la distance donnée
-		// 1 degré de latitude est environ 111 km
-		const deltaLat = (distanceKm / earthRadiusKm) * (180 / Math.PI); // Variation en degrés de latitude
-
-		// Calcul de la variation en degrés de longitude pour la distance donnée
-		// La distance d'un degré de longitude diminue avec la latitude (cosinus)
-		const deltaLon =
-			(distanceKm / (earthRadiusKm * Math.cos(centerLatRad))) *
-			(180 / Math.PI); // Variation en degrés de longitude
-
-		// Calcul des min/max latitudes et longitudes
-		const minLat = centerLat - deltaLat;
-		const maxLat = centerLat + deltaLat;
-		const minLon = centerLon - deltaLon;
-		const maxLon = centerLon + deltaLon;
-
-		// Retourne les valeurs
-		return { minLat, maxLat, minLon, maxLon };
+			// Stats candidat
+			const { totalCount: wishlistCount } = await getAll(
+				"wishlist",
+				"*",
+				`&profile_id=eq.${user.id}`,
+				1,
+				1,
+			);
+			const { totalCount: appsCount } = await getAll(
+				"applications",
+				"*",
+				`&profile_id=eq.${user.id}`,
+				1,
+				1,
+			);
+			setStats({
+				wishlist: wishlistCount || 0,
+				applications: appsCount || 0,
+			});
+		}
 	};
 
 	useFocusEffect(
 		useCallback(() => {
-			if (userProfile && !userCity) {
-				setUserLat(userProfile.latitude);
-				setUserLon(userProfile.longitude);
-				setUserCity(userProfile.city);
-				setDistanceKm(0);
-			}
-		}, [userProfile]),
+			loadData();
+		}, [role]),
 	);
-
-	const loadDataJobs = async () => {
-		const { data, totalCount } = await getAll(
-			"jobs",
-			"*",
-			`&isArchived=eq.FALSE${filters}`,
-			page,
-			ITEMS_PER_PAGE,
-			"date.desc",
-		);
-		setJobs(data);
-		setTotalCount(totalCount);
-	};
-
-	const handleFilterByValues = () => {
-		let filterString = ""; // Variable locale pour construire la chaîne de filtre
-
-		// 1. Gérer le filtre de catégorie
-		if (values.length > 0) {
-			const formattedCategories = values.map((c) => `"${c}"`).join(",");
-			filterString += `&category=in.(${formattedCategories})`;
-		}
-
-		// 2. Gérer le filtre de distance
-		if (userLat !== null && userLon !== null && distanceKm > 0) {
-			const bbox = getBoundingBox(userLat, userLon, distanceKm);
-
-			// AJOUT DES FILTRES LATITUDE ET LONGITUDE (GTE/LTE)
-			filterString += `&latitude=gte.${bbox.minLat}&latitude=lte.${bbox.maxLat}`;
-			filterString += `&longitude=gte.${bbox.minLon}&longitude=lte.${bbox.maxLon}`;
-		}
-
-		// Mettre à jour l'état `filters` et déclencher le chargement des jobs
-		setFilters(filterString);
-		// loadDataJobs(filterString);
-	};
-
-	const handleFilterByKeywords = () => {
-		let filter = "";
-		if (keywords.trim() !== "") {
-			setSwitchToKeywords(true);
-			const encodedKeyword = encodeURIComponent(`%${keywords}%`);
-			filter = `&or=(title.ilike.${encodedKeyword},category.ilike.${encodedKeyword})`;
-		}
-		setFilters(filter);
-	};
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
-		await loadDataJobs();
+		await loadData();
 		setRefreshing(false);
-	}, [filters, page]);
+	}, []);
 
-	useEffect(() => {
-		handleFilterByValues();
-	}, [values, distanceKm, userCity]);
-
-	useEffect(() => {
-		handleFilterByKeywords();
-	}, [keywords]);
-
-	useEffect(() => {
-		loadDataJobs();
-	}, [page, filters]);
-
-	return (
-		<ScrollView backgroundColor='white'>
-			<VStack style={{ flex: 1 }}>
-				<VStack
+	const ActionCard = ({ icon, title, subtitle, onPress, badge }) => (
+		<TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+			<Card
+				style={{
+					padding: 16,
+					backgroundColor: isDark ? "#374151" : "#ffffff",
+					borderRadius: 12,
+					borderWidth: 1,
+					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+				}}>
+				<HStack
 					style={{
-						height: 75,
-						padding: 15,
+						alignItems: "center",
+						justifyContent: "space-between",
 					}}>
-					<Text>Bienvenue,</Text>
-					{role === "candidat" ? (
-						<Heading>
-							{userProfile?.firstname +
-								" " +
-								userProfile?.lastname}
+					<HStack
+						space='md'
+						style={{ flex: 1, alignItems: "center" }}>
+						<Box
+							style={{
+								width: 48,
+								height: 48,
+								borderRadius: 24,
+								backgroundColor: isDark ? "#1f2937" : "#f3f4f6",
+								justifyContent: "center",
+								alignItems: "center",
+							}}>
+							<Icon
+								as={icon}
+								size='xl'
+								style={{
+									color: isDark ? "#60a5fa" : "#2563eb",
+								}}
+							/>
+						</Box>
+						<VStack style={{ flex: 1 }} space='xs'>
+							<Text
+								size='md'
+								style={{
+									fontWeight: "600",
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								{title}
+							</Text>
+							{subtitle && (
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}>
+									{subtitle}
+								</Text>
+							)}
+						</VStack>
+					</HStack>
+					<HStack space='sm' style={{ alignItems: "center" }}>
+						{badge && (
+							<Badge size='md' variant='solid' action='success'>
+								<BadgeText>{badge}</BadgeText>
+							</Badge>
+						)}
+						<Icon
+							as={ChevronRight}
+							size='lg'
+							style={{
+								color: isDark ? "#9ca3af" : "#6b7280",
+							}}
+						/>
+					</HStack>
+				</HStack>
+			</Card>
+		</TouchableOpacity>
+	);
+
+	const StatCard = ({ icon, value, label, color = "#3b82f6" }) => (
+		<Card
+			style={{
+				flex: 1,
+				padding: 16,
+				backgroundColor: isDark ? "#374151" : "#ffffff",
+				borderRadius: 12,
+				borderWidth: 1,
+				borderColor: isDark ? "#4b5563" : "#e5e7eb",
+			}}>
+			<VStack space='sm'>
+				<Icon as={icon} size='lg' style={{ color }} />
+				<Text
+					size='2xl'
+					style={{
+						fontWeight: "700",
+						color: isDark ? "#f3f4f6" : "#111827",
+					}}>
+					{value}
+				</Text>
+				<Text
+					size='sm'
+					style={{
+						color: isDark ? "#9ca3af" : "#6b7280",
+					}}>
+					{label}
+				</Text>
+			</VStack>
+		</Card>
+	);
+
+	// Version PRO
+	if (role === "pro") {
+		return (
+			<ScrollView
+				style={{
+					flex: 1,
+					backgroundColor: isDark ? "#111827" : "#f9fafb",
+				}}
+				refreshControl={
+					<RefreshControl
+						refreshing={refreshing}
+						onRefresh={onRefresh}
+					/>
+				}>
+				<VStack
+					space='xl'
+					style={{
+						padding: 16,
+						paddingBottom: 40,
+					}}>
+					{/* Header */}
+					<VStack space='sm'>
+						<Heading
+							size='2xl'
+							style={{
+								color: isDark ? "#f3f4f6" : "#111827",
+							}}>
+							Tableau de bord
 						</Heading>
-					) : (
-						<Heading>{userCompany?.name}</Heading>
+						<Text
+							size='md'
+							style={{
+								color: isDark ? "#9ca3af" : "#6b7280",
+							}}>
+							Bonjour {userCompany?.name || ""}
+						</Text>
+					</VStack>
+
+					{/* Stats Cards */}
+					<VStack space='md'>
+						<Text
+							size='lg'
+							style={{
+								fontWeight: "600",
+								color: isDark ? "#f3f4f6" : "#111827",
+							}}>
+							Vue d'ensemble
+						</Text>
+						<HStack space='md'>
+							<StatCard
+								icon={Briefcase}
+								value={stats.totalJobs}
+								label='Offres actives'
+								color='#3b82f6'
+							/>
+							<StatCard
+								icon={Users}
+								value={stats.applications}
+								label='Candidatures'
+								color='#10b981'
+							/>
+						</HStack>
+						<StatCard
+							icon={Clock}
+							value={stats.pending}
+							label='En attente de validation'
+							color='#f59e0b'
+						/>
+					</VStack>
+
+					{/* Quick Actions */}
+					<VStack space='md'>
+						<Text
+							size='lg'
+							style={{
+								fontWeight: "600",
+								color: isDark ? "#f3f4f6" : "#111827",
+							}}>
+							Actions rapides
+						</Text>
+						<ActionCard
+							icon={Plus}
+							title='Créer une offre'
+							subtitle="Publier une nouvelle offre d'emploi"
+							onPress={() => router.push("/newjob")}
+						/>
+						<ActionCard
+							icon={ClipboardList}
+							title='Mes offres'
+							subtitle="Gérer vos offres d'emploi"
+							badge={stats.totalJobs}
+							onPress={() => router.push("/offers")}
+						/>
+						<ActionCard
+							icon={Users}
+							title='Candidatures'
+							subtitle='Consulter les candidatures reçues'
+							badge={stats.pending > 0 ? stats.pending : null}
+							onPress={() => router.push("/applicationspro")}
+						/>
+						<ActionCard
+							icon={Building2}
+							title='Mon entreprise'
+							subtitle='Gérer les informations'
+							onPress={() => router.push("/dashboard")}
+						/>
+					</VStack>
+
+					{/* Recent Jobs */}
+					{recentJobs.length > 0 && (
+						<VStack space='md'>
+							<HStack
+								style={{
+									justifyContent: "space-between",
+									alignItems: "center",
+								}}>
+								<Text
+									size='lg'
+									style={{
+										fontWeight: "600",
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									Offres récentes
+								</Text>
+								<TouchableOpacity
+									onPress={() => router.push("/offers")}>
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#60a5fa"
+												: "#2563eb",
+											fontWeight: "500",
+										}}>
+										Voir tout
+									</Text>
+								</TouchableOpacity>
+							</HStack>
+							{recentJobs.map((job) => (
+								<JobCard
+									key={job.id}
+									id={job.id}
+									title={job.title}
+									category={job.category}
+									company_id={job.company_id}
+									company_name={userCompany?.name}
+									city={job.city}
+									postcode={job.postcode}
+									logo={userCompany?.logo_url}
+									contract_type={job.contract_type}
+									working_time={job.working_time}
+									salary={job.salary}
+									isArchived={job.isArchived}
+									isLastMinute={job.isLastMinute}
+								/>
+							))}
+						</VStack>
 					)}
 				</VStack>
-				<VStack>
-					<PagerView
-						ref={pagerRef}
-						style={styles.pagerView}
-						initialPage={0}
-						onPageSelected={(e) => {
-							setActivePage(e.nativeEvent.position); // Met à jour la page active
+			</ScrollView>
+		);
+	}
+
+	// Version CANDIDAT
+	return (
+		<ScrollView
+			style={{
+				flex: 1,
+				backgroundColor: isDark ? "#111827" : "#f9fafb",
+			}}
+			refreshControl={
+				<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+			}>
+			<VStack
+				space='xl'
+				style={{
+					padding: 16,
+					paddingBottom: 40,
+				}}>
+				{/* Header with Search */}
+				<VStack space='md'>
+					<Heading
+						size='2xl'
+						style={{
+							color: isDark ? "#f3f4f6" : "#111827",
 						}}>
-						<View key='1' style={{ backgroundColor: "lightgreen" }}>
-							<Text>First page</Text>
-						</View>
-						<View key='2' style={{ backgroundColor: "lightcoral" }}>
-							<Text>Second page</Text>
-						</View>
-					</PagerView>
-					<View style={styles.paginationDotsContainer}>
-						{Array.from({ length: numPages }).map((_, index) => (
+						Trouvez votre emploi
+					</Heading>
+					<Text
+						size='md'
+						style={{
+							color: isDark ? "#9ca3af" : "#6b7280",
+						}}>
+						Les meilleures offres dans la sécurité
+					</Text>
+
+					{/* Search Bar */}
+					<TouchableOpacity
+						onPress={() => router.push("/lastminute")}
+						activeOpacity={0.8}>
+						<Input
+							variant='outline'
+							size='lg'
+							isReadOnly
+							pointerEvents='none'
+							style={{
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderColor: isDark ? "#4b5563" : "#d1d5db",
+							}}>
+							<InputSlot pl='$3'>
+								<InputIcon as={Search} />
+							</InputSlot>
+							<InputField
+								placeholder='Rechercher un poste, une ville...'
+								editable={false}
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}
+							/>
+						</Input>
+					</TouchableOpacity>
+				</VStack>
+
+				{/* Stats */}
+				<HStack space='md'>
+					<StatCard
+						icon={Bookmark}
+						value={stats.wishlist || 0}
+						label='Favoris'
+						color='#f59e0b'
+					/>
+					<StatCard
+						icon={FileText}
+						value={stats.applications || 0}
+						label='Candidatures'
+						color='#3b82f6'
+					/>
+				</HStack>
+
+				{/* Quick Categories */}
+				<VStack space='md'>
+					<Text
+						size='lg'
+						style={{
+							fontWeight: "600",
+							color: isDark ? "#f3f4f6" : "#111827",
+						}}>
+						Catégories populaires
+					</Text>
+					<HStack
+						space='sm'
+						style={{
+							flexWrap: "wrap",
+						}}>
+						{[
+							"APS",
+							"SSIAP",
+							"Agent Cynophile",
+							"APR",
+							"Surveillance",
+							"Accueil",
+						].map((cat) => (
 							<TouchableOpacity
-								key={index}
-								style={[
-									styles.dot,
-									activePage === index
-										? styles.activeDot
-										: styles.inactiveDot, // Applique un style différent pour la page active
-								]}
-								onPress={() => goToPage(index)} // Navigue vers la page correspondante au clic sur le dot
+								key={cat}
+								onPress={() =>
+									router.push({
+										pathname: "/lastminute",
+										params: { category: cat },
+									})
+								}
+								style={{ marginBottom: 8 }}>
+								<Badge
+									size='lg'
+									variant='outline'
+									action='info'>
+									<BadgeIcon as={Briefcase} />
+									<BadgeText>{cat}</BadgeText>
+								</Badge>
+							</TouchableOpacity>
+						))}
+					</HStack>
+				</VStack>
+
+				{/* Quick Access */}
+				<VStack space='md'>
+					<Text
+						size='lg'
+						style={{
+							fontWeight: "600",
+							color: isDark ? "#f3f4f6" : "#111827",
+						}}>
+						Accès rapide
+					</Text>
+					<ActionCard
+						icon={Timer}
+						title='Offres dernière minute'
+						subtitle='Missions urgentes disponibles'
+						onPress={() => router.push("/lastminute")}
+					/>
+					<ActionCard
+						icon={Bookmark}
+						title='Mes favoris'
+						subtitle='Offres sauvegardées'
+						badge={stats.wishlist > 0 ? stats.wishlist : null}
+						onPress={() => router.push("/wishlist")}
+					/>
+					<ActionCard
+						icon={FileText}
+						title='Mes candidatures'
+						subtitle='Suivre vos candidatures'
+						badge={
+							stats.applications > 0 ? stats.applications : null
+						}
+						onPress={() => router.push("/applications")}
+					/>
+					<ActionCard
+						icon={BadgeCheck}
+						title='Mon profil'
+						subtitle='Compléter votre CV'
+						onPress={() => router.push("/account")}
+					/>
+				</VStack>
+
+				{/* Recent Jobs */}
+				{recentJobs.length > 0 && (
+					<VStack space='md'>
+						<HStack
+							style={{
+								justifyContent: "space-between",
+								alignItems: "center",
+							}}>
+							<Text
+								size='lg'
+								style={{
+									fontWeight: "600",
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								Offres récentes
+							</Text>
+							<TouchableOpacity
+								onPress={() => router.push("/lastminute")}>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#60a5fa" : "#2563eb",
+										fontWeight: "500",
+									}}>
+									Voir tout
+								</Text>
+							</TouchableOpacity>
+						</HStack>
+						{recentJobs.map((job) => (
+							<JobCard
+								key={job.id}
+								id={job.id}
+								title={job.title}
+								category={job.category}
+								company_id={job.company_id}
+								company_name={job.companies?.name}
+								city={job.city}
+								postcode={job.postcode}
+								logo={job.companies?.logo_url}
+								contract_type={job.contract_type}
+								working_time={job.working_time}
+								salary={job.salary}
+								isArchived={job.isArchived}
+								isLastMinute={job.isLastMinute}
 							/>
 						))}
-					</View>
-				</VStack>
-				{role === "candidat" ? (
-					<>
-						<VStack style={{ padding: 15 }}>
-							<MiniJobsList
-								heading='Nos offres Last Minute'
-								subtitle='Voici nos offres de dernière minute dans votre secteur'
-								pageNbr={1}
-								itemsPerPage={3}
-								regionCode={userProfile?.region_code}
-								regionName={userProfile?.region}
-								category={myCategories}
-								filtersSup={
-									"&isLastMinute=eq.true&date=gte." +
-									today.toISOString().split("T")[0]
-								}
-							/>
-							<Button onPress={() => router.push("/lastminute")}>
-								<ButtonText>
-									Voir toutes les offres Last Minute
-								</ButtonText>
-							</Button>
-						</VStack>
-						<VStack style={{ padding: 15 }}>
-							{/* <JobsList pageNbr={1} itemsPerPage={5} /> */}
-							<MiniJobsList
-								heading='Offres recommandées'
-								subtitle='* Basées sur vos informations personnelles'
-								pageNbr={1}
-								itemsPerPage={5}
-								regionCode={userProfile?.region_code}
-								regionName={userProfile?.region}
-								category={myCategories}
-								filtersSup={"&isLastMinute=eq.false"}
-							/>
-							<Button
-								onPress={() =>
-									router.push("/tabs/(tabs)/tab2")
-								}>
-								<ButtonText>Voir toutes les offres</ButtonText>
-							</Button>
-						</VStack>
-					</>
-				) : (
-					<VStack style={{ padding: 15 }}>
-						{user && (
-							<ApplicationsProList
-								title='Vos dernières candidatures'
-								userId={user.id}
-							/>
-						)}
 					</VStack>
 				)}
-				<VStack style={{ padding: 15 }}>
-					<Button
-						variant='outline'
-						onPress={() => router.push("/contactus")}>
-						<ButtonText>Contactez-nous</ButtonText>
-					</Button>
-				</VStack>
 			</VStack>
 		</ScrollView>
 	);
 }
-
-const styles = StyleSheet.create({
-	pagerView: {
-		// flex: 1,
-		height: 200,
-		backgroundColor: "lightblue",
-	},
-	paginationDotsContainer: {
-		flexDirection: "row",
-		justifyContent: "center",
-		alignItems: "center",
-		paddingVertical: 10,
-		backgroundColor: "#fff", // Fond pour les dots
-		borderTopWidth: 1,
-		borderTopColor: "#eee",
-	},
-	dot: {
-		width: 10,
-		height: 10,
-		borderRadius: 5, // Pour faire un cercle
-		marginHorizontal: 5, // Espacement entre les dots
-	},
-	activeDot: {
-		backgroundColor: "#303030", // Couleur du dot actif (bleu par défaut)
-	},
-	inactiveDot: {
-		backgroundColor: "#d0d0d0", // Couleur du dot inactif (gris clair)
-	},
-	container: {
-		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
-		backgroundColor: "#f0f0f0",
-	},
-	button: {
-		backgroundColor: "#3478f6",
-		padding: 14,
-		borderRadius: 8,
-	},
-	buttonText: {
-		color: "white",
-		fontSize: 18,
-		fontWeight: "600",
-	},
-	modal: {
-		justifyContent: "flex-end",
-		margin: 0,
-	},
-	sheet: {
-		backgroundColor: "white", // ← SANS ÇA = INVISIBLE
-		padding: 20,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-	},
-	title: {
-		fontSize: 20,
-		fontWeight: "700",
-		marginBottom: 20,
-	},
-	option: {
-		paddingVertical: 14,
-	},
-	optionText: {
-		fontSize: 18,
-	},
-	deleteText: {
-		fontSize: 18,
-		color: "red",
-	},
-	cancel: {
-		marginTop: 10,
-		borderTopWidth: 1,
-		borderTopColor: "#ddd",
-	},
-	cancelText: {
-		fontSize: 18,
-		textAlign: "center",
-		marginTop: 10,
-	},
-});
