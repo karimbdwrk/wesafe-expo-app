@@ -237,7 +237,7 @@ function RootLayoutNav() {
 								}}
 							/>
 							<Stack.Screen
-								name='curriculum'
+								name='curriculumvitae'
 								options={{ headerShown: true }}
 							/>
 							<Stack.Screen
