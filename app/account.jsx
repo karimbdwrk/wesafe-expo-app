@@ -25,6 +25,12 @@ import {
 	CheckIcon,
 	QrCode,
 	X,
+	Calendar,
+	MapPin,
+	Shield,
+	Car,
+	Languages,
+	Ruler,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -160,14 +166,16 @@ const AccountScreen = () => {
 				transparent={true}
 				animationType='fade'
 				onRequestClose={() => setShowQRModal(false)}>
-				<View
+				<TouchableOpacity
 					style={{
 						flex: 1,
-						backgroundColor: "rgba(0, 0, 0, 0.5)",
+						backgroundColor: "rgba(0, 0, 0, 0.75)",
 						justifyContent: "center",
 						alignItems: "center",
-					}}>
-					<View
+					}}
+					activeOpacity={1}
+					onPress={() => setShowQRModal(false)}>
+					<TouchableOpacity
 						style={{
 							backgroundColor: isDark ? "#374151" : "#ffffff",
 							borderRadius: 20,
@@ -175,7 +183,8 @@ const AccountScreen = () => {
 							alignItems: "center",
 							width: "85%",
 							maxWidth: 400,
-						}}>
+						}}
+						activeOpacity={1}>
 						<TouchableOpacity
 							onPress={() => setShowQRModal(false)}
 							activeOpacity={0.7}
@@ -208,7 +217,16 @@ const AccountScreen = () => {
 								padding: 20,
 								borderRadius: 15,
 							}}>
-							{qrUrl && <SvgQRCode value={qrUrl} size={200} />}
+							{qrUrl && (
+								<SvgQRCode
+									value={qrUrl}
+									size={200}
+									logo={require("@/assets/images/logo-wesafe-v2.png")}
+									logoSize={40}
+									logoBackgroundColor='#ffffff'
+									logoBorderRadius={8}
+								/>
+							)}
 						</View>
 						<Text
 							size='sm'
@@ -219,8 +237,8 @@ const AccountScreen = () => {
 							}}>
 							Partagez ce code pour afficher votre profil
 						</Text>
-					</View>
-				</View>
+					</TouchableOpacity>
+				</TouchableOpacity>
 			</Modal>
 			<Box
 				style={{
@@ -286,6 +304,229 @@ const AccountScreen = () => {
 										)}
 									</VStack>
 								</HStack>
+
+								<Divider />
+
+								{/* Informations personnelles */}
+								<VStack space='md' style={{ width: "100%" }}>
+									{profile?.gender && (
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={User}
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}
+											/>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#d1d5db"
+														: "#374151",
+												}}>
+												{profile.gender === "male"
+													? "Homme"
+													: profile.gender ===
+														  "female"
+														? "Femme"
+														: "Autre"}
+											</Text>
+										</HStack>
+									)}
+
+									{profile?.birthday && (
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={Calendar}
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}
+											/>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#d1d5db"
+														: "#374151",
+												}}>
+												{new Date(
+													profile.birthday,
+												).toLocaleDateString("fr-FR")}
+											</Text>
+										</HStack>
+									)}
+
+									{(profile?.height || profile?.weight) && (
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={Ruler}
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}
+											/>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#d1d5db"
+														: "#374151",
+												}}>
+												{profile?.height &&
+													`${profile.height} cm`}
+												{profile?.height &&
+													profile?.weight &&
+													" • "}
+												{profile?.weight &&
+													`${profile.weight} kg`}
+											</Text>
+										</HStack>
+									)}
+
+									{(profile?.city ||
+										profile?.department ||
+										profile?.region) && (
+										<HStack
+											space='sm'
+											style={{
+												alignItems: "flex-start",
+											}}>
+											<Icon
+												as={MapPin}
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+													marginTop: 2,
+												}}
+											/>
+											<VStack style={{ flex: 1 }}>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#d1d5db"
+															: "#374151",
+													}}>
+													{[
+														profile?.postcode,
+														profile?.city,
+													]
+														.filter(Boolean)
+														.join(" ")}
+												</Text>
+												{(profile?.department ||
+													profile?.region) && (
+													<Text
+														size='xs'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}>
+														{[
+															profile?.department,
+															profile?.region,
+														]
+															.filter(Boolean)
+															.join(", ")}
+													</Text>
+												)}
+											</VStack>
+										</HStack>
+									)}
+
+									{profile?.former_soldier && (
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={Shield}
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}
+											/>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#d1d5db"
+														: "#374151",
+												}}>
+												Ancien militaire
+											</Text>
+										</HStack>
+									)}
+
+									{profile?.driving_licenses && (
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={Car}
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}
+											/>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#d1d5db"
+														: "#374151",
+												}}>
+												Permis{" "}
+												{profile.driving_licenses}
+											</Text>
+										</HStack>
+									)}
+
+									{profile?.languages && (
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={Languages}
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}
+											/>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#d1d5db"
+														: "#374151",
+												}}>
+												{profile.languages}
+											</Text>
+										</HStack>
+									)}
+								</VStack>
 
 								{profile?.qualifications &&
 									profile.qualifications.length > 0 && (
