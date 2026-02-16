@@ -41,7 +41,7 @@ export default function AddProCardScreen() {
 	const loadData = async () => {
 		const { data, totalCount } = await getAll(
 			"procards",
-			"category, isValid, validity_date",
+			"category, status, validity_date",
 			`&profile_id=eq.${user.id}&isDeleted=eq.false`,
 			page,
 			ITEMS_PER_PAGE,
