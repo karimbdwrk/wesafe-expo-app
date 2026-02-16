@@ -97,7 +97,7 @@ const JobScreen = () => {
 		const data = await getById(
 			"jobs",
 			id,
-			`*, companies(name, email, logo_url), applies(id, candidate_id, current_status, profiles(firstname, lastname))`,
+			`*, companies(name, email, logo_url), applications(id, candidate_id, current_status, profiles(firstname, lastname))`,
 		);
 		setJob(data);
 	};
