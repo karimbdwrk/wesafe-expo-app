@@ -143,7 +143,7 @@ export default function Tab1() {
 		myProcards.forEach((card) => {
 			const cardValidityDate = new Date(card.validity_date);
 			cardValidityDate.setHours(0, 0, 0, 0);
-			if (card.isValid && cardValidityDate >= today) {
+			if (card.status === "verified" && cardValidityDate >= today) {
 				newCategories.add(card.category);
 			}
 		});
