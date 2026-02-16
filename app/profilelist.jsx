@@ -66,7 +66,7 @@ const ProfileListScreen = () => {
 			"*, profiles(*, procards(*))",
 			`&company_id=eq.${
 				user.id
-			}&profiles.procards.isValid=eq.true&profiles.procards.validity_date=gte.${today(
+			}&profiles.procards.status=eq.verified&profiles.procards.validity_date=gte.${today(
 				"UTC"
 			).toString()}`,
 			page,
