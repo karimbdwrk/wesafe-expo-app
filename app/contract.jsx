@@ -75,7 +75,7 @@ const ContractScreen = () => {
 
 	const getAllData = async () => {
 		const response = await getById(
-			"applies",
+			"applications",
 			apply_id,
 			"*,jobs(*), profiles(*), companies(*)",
 		);

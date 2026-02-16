@@ -36,7 +36,7 @@ const ApplicationsProScreen = () => {
 
 	const loadDataApplications = async () => {
 		const { data, totalCount } = await getAll(
-			"applies",
+			"applications",
 			"*,jobs(*),profiles(*)",
 			`&jobs.isArchived=eq.FALSE&jobs=not.is.null&company_id=eq.${user.id}`,
 			page,

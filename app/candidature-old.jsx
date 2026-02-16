@@ -168,7 +168,7 @@ const ApplicationScreen = () => {
 
 	const loadData = async () => {
 		const data = await getById(
-			"applies",
+			"applications",
 			apply_id,
 			"*,jobs(*), profiles(*), companies(*)",
 		);

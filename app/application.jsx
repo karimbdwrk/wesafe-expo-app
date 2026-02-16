@@ -197,7 +197,7 @@ const ApplicationScreen = () => {
 			setIsLoading(true);
 		}
 		const data = await getById(
-			"applies",
+			"applications",
 			apply_id,
 			"*,jobs(*), profiles(*), companies(*)",
 		);
@@ -513,7 +513,7 @@ const ApplicationScreen = () => {
 		// Mettre à jour updated_at
 		const supabase = createSupabaseClient(accessToken);
 		await supabase
-			.from("applies")
+			.from("applications")
 			.update({ updated_at: new Date().toISOString() })
 			.eq("id", apply_id);
 
@@ -581,7 +581,7 @@ const ApplicationScreen = () => {
 		// Mettre à jour updated_at
 		const supabase = createSupabaseClient(accessToken);
 		await supabase
-			.from("applies")
+			.from("applications")
 			.update({ updated_at: new Date().toISOString() })
 			.eq("id", apply_id);
 
@@ -641,7 +641,7 @@ const ApplicationScreen = () => {
 		// Mettre à jour updated_at
 		const supabase = createSupabaseClient(accessToken);
 		await supabase
-			.from("applies")
+			.from("applications")
 			.update({ updated_at: new Date().toISOString() })
 			.eq("id", apply_id);
 
