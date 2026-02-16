@@ -31,6 +31,7 @@ import {
 	Car,
 	Languages,
 	Ruler,
+	GraduationCap,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -42,13 +43,14 @@ import { width } from "dom-helpers";
 
 const AccountScreen = () => {
 	const { user } = useAuth();
-	const { getById } = useDataContext();
+	const { getById, getAll } = useDataContext();
 	const { isDark } = useTheme();
 	const { unreadCount } = useNotifications();
 	const { image } = useImage();
 	const router = useRouter();
 
 	const [profile, setProfile] = useState(null);
+	const [procards, setProcards] = useState([]);
 	const [showQRModal, setShowQRModal] = useState(false);
 
 	const loadData = async () => {
@@ -56,9 +58,27 @@ const AccountScreen = () => {
 		setProfile(data);
 	};
 
+	const loadProcards = async () => {
+		try {
+			const { data } = await getAll(
+				"procards",
+				"*",
+				`&profile_id=eq.${user.id}&isDeleted=eq.false`,
+				1,
+				100,
+				"created_at.desc",
+			);
+			setProcards(data || []);
+		} catch (error) {
+			console.error("Error loading procards:", error);
+			setProcards([]);
+		}
+	};
+
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
+			loadProcards();
 		}, []),
 	);
 
@@ -247,7 +267,7 @@ const AccountScreen = () => {
 				}}>
 				<ScrollView
 					style={{ flex: 1 }}
-					contentContainerStyle={{ padding: 20 }}>
+					contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
 					<VStack space='2xl'>
 						{/* Profile Header Card */}
 						<Card
@@ -555,6 +575,115 @@ const AccountScreen = () => {
 											</HStack>
 										</>
 									)}
+
+								{/* Cartes professionnelles */}
+								{procards && procards.length > 0 && (
+									<>
+										<Divider />
+										<VStack
+											space='xs'
+											style={{ width: "100%" }}>
+											{/* <Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Cartes professionnelles
+											</Text> */}
+											<HStack
+												space='sm'
+												style={{
+													flexWrap: "wrap",
+													justifyContent:
+														"flex-start",
+													width: "100%",
+												}}>
+												{profile?.ssiap1_verification_status ===
+													"verified" && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='success'>
+														<BadgeIcon
+															as={GraduationCap}
+															className='mr-1'
+														/>
+														<BadgeText>
+															SSIAP 1
+														</BadgeText>
+													</Badge>
+												)}
+												{profile?.ssiap2_verification_status ===
+													"verified" && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='success'>
+														<BadgeIcon
+															as={GraduationCap}
+															className='mr-1'
+														/>
+														<BadgeText>
+															SSIAP 2
+														</BadgeText>
+													</Badge>
+												)}
+												{profile?.ssiap3_verification_status ===
+													"verified" && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='success'>
+														<BadgeIcon
+															as={GraduationCap}
+															className='mr-1'
+														/>
+														<BadgeText>
+															SSIAP 3
+														</BadgeText>
+													</Badge>
+												)}
+												{procards
+													.filter((card) => {
+														const validityDate =
+															new Date(
+																card.validity_date,
+															);
+														const isExpired =
+															validityDate <
+															new Date();
+														return (
+															card.status ===
+																"verified" &&
+															!isExpired
+														);
+													})
+													.map((card) => {
+														return (
+															<Badge
+																key={card.id}
+																size='sm'
+																variant='solid'
+																action='success'>
+																<BadgeIcon
+																	as={IdCard}
+																	className='mr-1'
+																/>
+																<BadgeText>
+																	{
+																		card.category
+																	}
+																</BadgeText>
+															</Badge>
+														);
+													})}
+											</HStack>
+										</VStack>
+									</>
+								)}
 							</VStack>
 						</Card>
 
