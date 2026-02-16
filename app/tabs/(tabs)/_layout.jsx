@@ -325,7 +325,7 @@ export default function TabLayout({ theme = "light" }) {
 											Mon compte
 										</MenuItemLabel>
 									</MenuItem>
-									<MenuItem
+									{/* <MenuItem
 										key='ProCard'
 										textValue='ProCard'
 										onPress={() =>
@@ -339,7 +339,7 @@ export default function TabLayout({ theme = "light" }) {
 										<MenuItemLabel size='sm'>
 											Mes cartes professionnelles
 										</MenuItemLabel>
-									</MenuItem>
+									</MenuItem> */}
 									<MenuItem
 										key='Community'
 										textValue='Community'
