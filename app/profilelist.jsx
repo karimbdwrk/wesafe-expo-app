@@ -67,11 +67,11 @@ const ProfileListScreen = () => {
 			`&company_id=eq.${
 				user.id
 			}&profiles.procards.status=eq.verified&profiles.procards.validity_date=gte.${today(
-				"UTC"
+				"UTC",
 			).toString()}`,
 			page,
 			ITEMS_PER_PAGE,
-			"created_at.desc"
+			"created_at.desc",
 		);
 		console.log("data profile list :", data, data.length);
 		setProfileList(data);
@@ -81,7 +81,7 @@ const ProfileListScreen = () => {
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
-		}, [page])
+		}, [page]),
 	);
 
 	const handleNext = () => {
