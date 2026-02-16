@@ -74,13 +74,8 @@ const ProCardScreen = () => {
 									<BadgeText>Validé par WeSafe</BadgeText>
 								</Badge>
 							) : proCard.status === "rejected" ? (
-								<Badge
-									size='md'
-									variant='solid'
-									action='error'>
-									<BadgeText>
-										Rejetée
-									</BadgeText>
+								<Badge size='md' variant='solid' action='error'>
+									<BadgeText>Rejetée</BadgeText>
 								</Badge>
 							) : (
 								<Badge
