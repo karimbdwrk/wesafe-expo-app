@@ -66,12 +66,21 @@ const ProCardScreen = () => {
 				<HStack style={{ paddingVertical: 15, gap: 10 }}>
 					{checkDateValidity(proCard.validity_date) && (
 						<>
-							{proCard.isValid ? (
+							{proCard.status === "verified" ? (
 								<Badge
 									size='md'
 									variant='solid'
 									action='success'>
 									<BadgeText>Validé par WeSafe</BadgeText>
+								</Badge>
+							) : proCard.status === "rejected" ? (
+								<Badge
+									size='md'
+									variant='solid'
+									action='error'>
+									<BadgeText>
+										Rejetée
+									</BadgeText>
 								</Badge>
 							) : (
 								<Badge
@@ -85,7 +94,7 @@ const ProCardScreen = () => {
 							)}
 						</>
 					)}
-					{proCard.isValid &&
+					{proCard.status === "verified" &&
 						!checkDateValidity(proCard.validity_date) && (
 							<Badge size='md' variant='solid' action='error'>
 								<BadgeText>Expirée</BadgeText>
