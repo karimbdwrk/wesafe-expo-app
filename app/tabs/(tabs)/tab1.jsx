@@ -65,65 +65,77 @@ export default function Tab1() {
 	});
 
 	const loadData = async () => {
-		if (role === "pro") {
-			// Stats pour les pros
-			const { data: jobs, totalCount: jobsCount } = await getAll(
-				"jobs",
-				"*",
-				`&company_id=eq.${user.id}&isArchived=eq.false`,
-				1,
-				100,
-			);
-			const { totalCount: appsCount } = await getAll(
-				"applications",
-				"*",
-				`&company_id=eq.${user.id}`,
-				1,
-				1,
-			);
-			const { totalCount: pendingCount } = await getAll(
-				"applications",
-				"*",
-				`&company_id=eq.${user.id}&status=eq.pending`,
-				1,
-				1,
-			);
-			setStats({
-				totalJobs: jobsCount || 0,
-				applications: appsCount || 0,
-				pending: pendingCount || 0,
-			});
-			setRecentJobs(jobs?.slice(0, 3) || []);
-		} else {
-			// Offres récentes pour les candidats
-			const { data: jobs } = await getAll(
-				"jobs",
-				"*, companies(name, logo_url)",
-				`&isArchived=eq.false`,
-				1,
-				5,
-				"created_at.desc",
-			);
-			setRecentJobs(jobs || []);
+		try {
+			if (role === "pro") {
+				// Stats pour les pros
+				const { data: jobs, totalCount: jobsCount } = await getAll(
+					"jobs",
+					"*",
+					`&company_id=eq.${user.id}&isArchived=eq.false`,
+					1,
+					100,
+				);
+				const { totalCount: appsCount } = await getAll(
+					"applications",
+					"*",
+					`&company_id=eq.${user.id}`,
+					1,
+					1,
+				);
+				const { totalCount: pendingCount } = await getAll(
+					"applications",
+					"*",
+					`&company_id=eq.${user.id}&status=eq.pending`,
+					1,
+					1,
+				);
+				setStats({
+					totalJobs: jobsCount || 0,
+					applications: appsCount || 0,
+					pending: pendingCount || 0,
+				});
+				setRecentJobs(jobs?.slice(0, 3) || []);
+			} else {
+				// Offres récentes pour les candidats
+				const { data: jobs } = await getAll(
+					"jobs",
+					"*, companies(name, logo_url)",
+					`&isArchived=eq.false`,
+					1,
+					5,
+					"created_at.desc",
+				);
+				setRecentJobs(jobs || []);
 
-			// Stats candidat
-			const { totalCount: wishlistCount } = await getAll(
-				"wishlist",
-				"*",
-				`&profile_id=eq.${user.id}`,
-				1,
-				1,
-			);
-			const { totalCount: appsCount } = await getAll(
-				"applications",
-				"*",
-				`&profile_id=eq.${user.id}`,
-				1,
-				1,
-			);
+				// Stats candidat
+				const { totalCount: wishlistCount } = await getAll(
+					"wishlists",
+					"wish_id",
+					`&profile_id=eq.${user.id}`,
+					1,
+					1,
+					"created_at.desc",
+				);
+				const { totalCount: appsCount } = await getAll(
+					"applications",
+					"id",
+					`&candidate_id=eq.${user.id}`,
+					1,
+					1,
+					"created_at.desc",
+				);
+				setStats({
+					wishlist: wishlistCount || 0,
+					applications: appsCount || 0,
+				});
+			}
+		} catch (error) {
+			console.error("Error fetching data:", error);
 			setStats({
-				wishlist: wishlistCount || 0,
-				applications: appsCount || 0,
+				wishlist: 0,
+				applications: 0,
+				totalJobs: 0,
+				pending: 0,
 			});
 		}
 	};
