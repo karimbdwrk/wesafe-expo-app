@@ -56,6 +56,7 @@ import {
 	House,
 	Bell,
 	Settings,
+	BookmarkCheck,
 } from "lucide-react-native";
 
 import Colors from "@/constants/Colors";
@@ -362,7 +363,7 @@ export default function TabLayout({ theme = "light" }) {
 											router.push("/wishlist")
 										}>
 										<Icon
-											as={Bookmark}
+											as={BookmarkCheck}
 											size='sm'
 											className='mr-2'
 										/>
