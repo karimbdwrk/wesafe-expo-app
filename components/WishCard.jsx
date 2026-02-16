@@ -1,47 +1,231 @@
 import React, { useState, useEffect } from "react";
-import { ScrollView, StyleSheet } from "react-native";
+import { TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
+import { useIsFocused } from "@react-navigation/native";
+import { useTheme } from "@/context/ThemeContext";
+import { useAuth } from "@/context/AuthContext";
+import { useDataContext } from "@/context/DataContext";
+import { toast } from "sonner-native";
 
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { HStack } from "@/components/ui/hstack";
-// import { Image } from "@/components/ui/image";
-// import { Link, LinkText } from "@/components/ui/link";
+import { VStack } from "@/components/ui/vstack";
+import {
+	Avatar,
+	AvatarImage,
+	AvatarFallbackText,
+} from "@/components/ui/avatar";
 import { Text } from "@/components/ui/text";
-import { Button, ButtonText } from "@/components/ui/button";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
-import { GlobeIcon } from "@/components/ui/icon";
+import { Icon } from "@/components/ui/icon";
+import {
+	MapPin,
+	Timer,
+	IdCard,
+	Bookmark,
+	BookmarkCheck,
+	Check,
+	Building2,
+	FileText,
+	Clock,
+	Banknote,
+	BadgeEuro,
+} from "lucide-react-native";
 
-const WishCard = ({ id, title, category, company_id, isArchived }) => {
+const WishCard = ({
+	id,
+	title,
+	category,
+	company_id,
+	company_name,
+	company_logo,
+	city,
+	postcode,
+	department,
+	isArchived,
+	isLastMinute,
+	logo,
+	contract_type = "CDI",
+	working_time = "Temps plein",
+	salary = "Non spécifié",
+}) => {
 	const router = useRouter();
+	const { isDark } = useTheme();
+	const { user, role } = useAuth();
+	const { toggleWishlistJob, isJobInWishlist } = useDataContext();
+	const isFocused = useIsFocused();
+	const [isInWishlist, setIsInWishlist] = useState(false);
+
+	useEffect(() => {
+		const checkWishlist = async () => {
+			if (user?.id && id) {
+				const inWishlist = await isJobInWishlist(id, user.id);
+				setIsInWishlist(inWishlist);
+			}
+		};
+		checkWishlist();
+	}, [id, user?.id, isFocused]);
+
+	const handleToggleWishlist = async (e) => {
+		e.stopPropagation();
+		const isNowInWishlist = await toggleWishlistJob(id, user.id);
+		setIsInWishlist(isNowInWishlist);
+		toast.success(
+			isNowInWishlist ? "Ajouté aux favoris" : "Retiré des favoris",
+			{
+				description: isNowInWishlist
+					? "Cette offre a été ajoutée à votre liste de favoris"
+					: "Cette offre a été retirée de votre liste de favoris",
+				duration: 2000,
+				icon: <Check />,
+			},
+		);
+	};
+
 	return (
-		<Card size='lg' variant='filled' style={styles.card}>
-			<Heading size='md' className='mb-1'>
-				{title} {isArchived && "Archivé"}
-			</Heading>
-			<Text>{id}</Text>
-			<HStack style={{ paddingVertical: 15 }}>
-				<Badge size='md' variant='solid' action='warning'>
-					<BadgeText>{category}</BadgeText>
-				</Badge>
-			</HStack>
-			<Button
-				onPress={() =>
-					router.push({
-						pathname: "/job",
-						params: { id, title, company_id, category },
-					})
-				}>
-				<ButtonText>Voir l'offre d'emploi</ButtonText>
-			</Button>
-		</Card>
+		<TouchableOpacity
+			onPress={() =>
+				router.push({
+					pathname: "/job",
+					params: { id, title, company_id, category },
+				})
+			}
+			activeOpacity={0.7}>
+			<Card
+				style={{
+					backgroundColor: isDark ? "#374151" : "#ffffff",
+					borderRadius: 8,
+					padding: 16,
+					marginBottom: 12,
+					borderWidth: 1,
+					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+				}}>
+				{isLastMinute && (
+					<Timer
+						size={20}
+						color='#f59e0b'
+						style={{ position: "absolute", right: 50, top: 16 }}
+					/>
+				)}
+				{/* {role !== "pro" && (
+					<TouchableOpacity
+						onPress={handleToggleWishlist}
+						style={{
+							position: "absolute",
+							right: 16,
+							top: 16,
+							zIndex: 10,
+						}}
+						activeOpacity={0.7}>
+						<Icon
+							as={isInWishlist ? BookmarkCheck : Bookmark}
+							size='xl'
+							style={{
+								color: isInWishlist
+									? "#3b82f6"
+									: isDark
+										? "#9ca3af"
+										: "#6b7280",
+							}}
+						/>
+					</TouchableOpacity>
+				)} */}
+				<VStack space='md'>
+					<Heading
+						size='lg'
+						style={{
+							color: isDark ? "#f3f4f6" : "#111827",
+							lineHeight: 24,
+						}}>
+						{title}
+					</Heading>
+
+					<HStack space='md' style={{ alignItems: "center" }}>
+						<Avatar size='md'>
+							<AvatarFallbackText>
+								{company_name || "Company"}
+							</AvatarFallbackText>
+							{company_logo && (
+								<AvatarImage source={{ uri: company_logo }} />
+							)}
+						</Avatar>
+						<VStack style={{ flex: 1 }}>
+							<HStack
+								space='xs'
+								style={{
+									alignItems: "center",
+									marginTop: 2,
+								}}>
+								<Text
+									size='md'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+										fontWeight: "500",
+									}}>
+									{company_name || "Entreprise"}
+								</Text>
+							</HStack>
+							{city && (
+								<HStack
+									space='xs'
+									style={{
+										alignItems: "center",
+										marginTop: 2,
+									}}>
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}>
+										{city + " (" + postcode + ")"}
+									</Text>
+								</HStack>
+							)}
+						</VStack>
+					</HStack>
+
+					<HStack
+						space='sm'
+						style={{
+							alignItems: "center",
+							flexWrap: "wrap",
+							marginTop: 5,
+						}}>
+						<Badge size='sm' variant='solid' action='info'>
+							<BadgeIcon as={IdCard} className='mr-2' />
+							<BadgeText>{category}</BadgeText>
+						</Badge>
+						{contract_type && (
+							<Badge size='sm' variant='solid' action='success'>
+								<BadgeIcon as={FileText} className='mr-2' />
+								<BadgeText>{contract_type}</BadgeText>
+							</Badge>
+						)}
+						{working_time && (
+							<Badge size='sm' variant='solid' action='muted'>
+								<BadgeIcon as={Clock} className='mr-2' />
+								<BadgeText>{working_time}</BadgeText>
+							</Badge>
+						)}
+						{salary && (
+							<Badge size='sm' variant='solid' action='warning'>
+								<BadgeIcon as={BadgeEuro} className='mr-2' />
+								<BadgeText>{salary}</BadgeText>
+							</Badge>
+						)}
+						{isArchived && (
+							<Badge size='sm' variant='solid' action='error'>
+								<BadgeText>Archivé</BadgeText>
+							</Badge>
+						)}
+					</HStack>
+				</VStack>
+			</Card>
+		</TouchableOpacity>
 	);
 };
-
-const styles = StyleSheet.create({
-	card: {
-		width: "100%",
-	},
-});
 
 export default WishCard;
