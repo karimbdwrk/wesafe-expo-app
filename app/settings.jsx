@@ -313,16 +313,15 @@ const Settings = () => {
 						/>
 					</VStack>
 				</Card>
-
-				{/* Déconnexion */}
+				<Divider />
 				<Button
 					action='negative'
-					onPress={handleLogout}
+					variant='link'
+					// onPress={handleLogout}
 					style={{ marginTop: 8 }}>
-					<ButtonIcon as={LogOut} />
-					<ButtonText>Déconnexion</ButtonText>
+					{/* <ButtonIcon as={LogOut} /> */}
+					<ButtonText>Supprimer mon compte</ButtonText>
 				</Button>
-
 				<Text
 					style={{
 						textAlign: "center",
