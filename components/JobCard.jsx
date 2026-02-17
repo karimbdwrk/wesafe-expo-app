@@ -31,7 +31,9 @@ import {
 	Clock,
 	Banknote,
 	BadgeEuro,
+	ChevronRight,
 } from "lucide-react-native";
+import { width } from "dom-helpers";
 
 const JobCard = ({
 	id,
@@ -103,6 +105,8 @@ const JobCard = ({
 					marginBottom: 12,
 					borderWidth: 1,
 					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+					flexDirection: "row",
+					justifyContent: "space-between",
 				}}>
 				{isLastMinute && (
 					<Timer
@@ -134,7 +138,7 @@ const JobCard = ({
 						/>
 					</TouchableOpacity>
 				)}
-				<VStack space='md'>
+				<VStack space='md' style={{ width: "90%" }}>
 					<Heading
 						size='lg'
 						style={{
@@ -232,6 +236,21 @@ const JobCard = ({
 						)}
 					</HStack>
 				</VStack>
+				<HStack
+					space='sm'
+					style={{
+						alignItems: "center",
+						justifyContent: "flex-end",
+						width: "10%",
+					}}>
+					<Icon
+						as={ChevronRight}
+						size='lg'
+						style={{
+							color: isDark ? "#9ca3af" : "#6b7280",
+						}}
+					/>
+				</HStack>
 			</Card>
 		</TouchableOpacity>
 	);
