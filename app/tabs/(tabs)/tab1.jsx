@@ -3,9 +3,10 @@ import {
 	ScrollView,
 	RefreshControl,
 	TouchableOpacity,
-	TextInput,
+	Dimensions,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
+import { LineChart, BarChart, PieChart } from "react-native-gifted-charts";
 
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
@@ -58,15 +59,45 @@ export default function Tab1() {
 	const [refreshing, setRefreshing] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [recentJobs, setRecentJobs] = useState([]);
+	const [timePeriod, setTimePeriod] = useState("7d"); // 7d, 1m, 6m, 1y, all
+	const [chartData, setChartData] = useState([]);
 	const [stats, setStats] = useState({
 		totalJobs: 0,
 		applications: 0,
 		pending: 0,
+		approved: 0,
+		rejected: 0,
 	});
 
 	const loadData = async () => {
 		try {
 			if (role === "pro") {
+				// Calculer la date de début selon la période sélectionnée
+				const now = new Date();
+				let startDate = new Date();
+
+				switch (timePeriod) {
+					case "7d":
+						startDate.setDate(now.getDate() - 7);
+						break;
+					case "1m":
+						startDate.setMonth(now.getMonth() - 1);
+						break;
+					case "6m":
+						startDate.setMonth(now.getMonth() - 6);
+						break;
+					case "1y":
+						startDate.setFullYear(now.getFullYear() - 1);
+						break;
+					case "all":
+						startDate = null;
+						break;
+				}
+
+				const dateFilter = startDate
+					? `&created_at=gte.${startDate.toISOString()}`
+					: "";
+
 				// Stats pour les pros
 				const { data: jobs, totalCount: jobsCount } = await getAll(
 					"jobs",
@@ -74,27 +105,61 @@ export default function Tab1() {
 					`&company_id=eq.${user.id}&isArchived=eq.false`,
 					1,
 					100,
+					"created_at.desc",
 				);
+
 				const { totalCount: appsCount } = await getAll(
 					"applications",
 					"*",
-					`&company_id=eq.${user.id}`,
+					`&company_id=eq.${user.id}${dateFilter}`,
 					1,
 					1,
+					"created_at.desc",
 				);
+
 				const { totalCount: pendingCount } = await getAll(
 					"applications",
 					"*",
-					`&company_id=eq.${user.id}&status=eq.pending`,
+					`&company_id=eq.${user.id}&current_status=eq.pending${dateFilter}`,
 					1,
 					1,
+					"created_at.desc",
 				);
+
+				const { totalCount: approvedCount } = await getAll(
+					"applications",
+					"*",
+					`&company_id=eq.${user.id}&current_status=eq.approved${dateFilter}`,
+					1,
+					1,
+					"created_at.desc",
+				);
+
+				const { totalCount: rejectedCount } = await getAll(
+					"applications",
+					"*",
+					`&company_id=eq.${user.id}&current_status=eq.rejected${dateFilter}`,
+					1,
+					1,
+					"created_at.desc",
+				);
+
 				setStats({
 					totalJobs: jobsCount || 0,
 					applications: appsCount || 0,
 					pending: pendingCount || 0,
+					approved: approvedCount || 0,
+					rejected: rejectedCount || 0,
 				});
 				setRecentJobs(jobs?.slice(0, 3) || []);
+
+				// Générer les données pour le graphique
+				generateChartData(
+					appsCount || 0,
+					pendingCount || 0,
+					approvedCount || 0,
+					rejectedCount || 0,
+				);
 			} else {
 				// Offres récentes pour les candidats
 				const { data: jobs } = await getAll(
@@ -143,7 +208,7 @@ export default function Tab1() {
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
-		}, [role]),
+		}, [role, timePeriod]),
 	);
 
 	const onRefresh = useCallback(async () => {
@@ -151,6 +216,29 @@ export default function Tab1() {
 		await loadData();
 		setRefreshing(false);
 	}, []);
+
+	const generateChartData = (total, pending, approved, rejected) => {
+		setChartData([
+			{
+				value: pending,
+				label: "En attente",
+				frontColor: "#f59e0b",
+				color: "#f59e0b",
+			},
+			{
+				value: approved,
+				label: "Acceptées",
+				frontColor: "#10b981",
+				color: "#10b981",
+			},
+			{
+				value: rejected,
+				label: "Refusées",
+				frontColor: "#ef4444",
+				color: "#ef4444",
+			},
+		]);
+	};
 
 	const ActionCard = ({ icon, title, subtitle, onPress, badge }) => (
 		<TouchableOpacity onPress={onPress} activeOpacity={0.7}>
@@ -295,6 +383,47 @@ export default function Tab1() {
 						</Text>
 					</VStack>
 
+					{/* Time Period Filter */}
+					<VStack space='md'>
+						<Text
+							size='lg'
+							style={{
+								fontWeight: "600",
+								color: isDark ? "#f3f4f6" : "#111827",
+							}}>
+							Période
+						</Text>
+						<HStack
+							space='sm'
+							style={{
+								flexWrap: "wrap",
+							}}>
+							{[
+								{ value: "7d", label: "7 jours" },
+								{ value: "1m", label: "1 mois" },
+								{ value: "6m", label: "6 mois" },
+								{ value: "1y", label: "1 an" },
+								{ value: "all", label: "Tout" },
+							].map((period) => (
+								<TouchableOpacity
+									key={period.value}
+									onPress={() => setTimePeriod(period.value)}
+									style={{ marginBottom: 8 }}>
+									<Badge
+										size='lg'
+										variant='solid'
+										action={
+											timePeriod === period.value
+												? "info"
+												: "muted"
+										}>
+										<BadgeText>{period.label}</BadgeText>
+									</Badge>
+								</TouchableOpacity>
+							))}
+						</HStack>
+					</VStack>
+
 					{/* Stats Cards */}
 					<VStack space='md'>
 						<Text
@@ -303,7 +432,7 @@ export default function Tab1() {
 								fontWeight: "600",
 								color: isDark ? "#f3f4f6" : "#111827",
 							}}>
-							Vue d'ensemble
+							Statistiques
 						</Text>
 						<HStack space='md'>
 							<StatCard
@@ -319,16 +448,151 @@ export default function Tab1() {
 								color='#10b981'
 							/>
 						</HStack>
-						<StatCard
-							icon={Clock}
-							value={stats.pending}
-							label='En attente de validation'
-							color='#f59e0b'
-						/>
 					</VStack>
 
+					{/* Graphique en barres */}
+					{chartData.length > 0 && (
+						<VStack space='md'>
+							<Text
+								size='lg'
+								style={{
+									fontWeight: "600",
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								Répartition des candidatures
+							</Text>
+							<Card
+								style={{
+									padding: 16,
+									backgroundColor: isDark
+										? "#374151"
+										: "#ffffff",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								}}>
+								<BarChart
+									data={chartData}
+									width={Dimensions.get("window").width - 80}
+									height={220}
+									barWidth={50}
+									spacing={30}
+									hideRules
+									xAxisThickness={0}
+									yAxisThickness={0}
+									yAxisTextStyle={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+										fontSize: 12,
+									}}
+									noOfSections={4}
+									maxValue={
+										Math.max(
+											stats.pending,
+											stats.approved,
+											stats.rejected,
+										) + 5
+									}
+									labelTextStyle={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+										fontSize: 10,
+										marginTop: 5,
+									}}
+								/>
+							</Card>
+						</VStack>
+					)}
+
+					{/* Graphique circulaire */}
+					{chartData.length > 0 && stats.applications > 0 && (
+						<VStack space='md'>
+							<Text
+								size='lg'
+								style={{
+									fontWeight: "600",
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								Statut des candidatures
+							</Text>
+							<Card
+								style={{
+									padding: 16,
+									backgroundColor: isDark
+										? "#374151"
+										: "#ffffff",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									alignItems: "center",
+								}}>
+								<PieChart
+									data={chartData}
+									donut
+									radius={90}
+									innerRadius={60}
+									innerCircleColor={
+										isDark ? "#374151" : "#ffffff"
+									}
+									centerLabelComponent={() => (
+										<VStack
+											style={{
+												alignItems: "center",
+											}}>
+											<Text
+												size='2xl'
+												style={{
+													fontWeight: "700",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												{stats.applications}
+											</Text>
+											<Text
+												size='xs'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Total
+											</Text>
+										</VStack>
+									)}
+								/>
+								<VStack space='sm' style={{ marginTop: 20 }}>
+									{chartData.map((item, index) => (
+										<HStack
+											key={index}
+											space='sm'
+											style={{
+												alignItems: "center",
+											}}>
+											<Box
+												style={{
+													width: 12,
+													height: 12,
+													borderRadius: 6,
+													backgroundColor: item.color,
+												}}
+											/>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												{item.label}: {item.value}
+											</Text>
+										</HStack>
+									))}
+								</VStack>
+							</Card>
+						</VStack>
+					)}
+
 					{/* Quick Actions */}
-					<VStack space='md'>
+					{/* <VStack space='md'>
 						<Text
 							size='lg'
 							style={{
@@ -363,7 +627,7 @@ export default function Tab1() {
 							subtitle='Gérer les informations'
 							onPress={() => router.push("/dashboard")}
 						/>
-					</VStack>
+					</VStack> */}
 
 					{/* Recent Jobs */}
 					{recentJobs.length > 0 && (
@@ -538,46 +802,6 @@ export default function Tab1() {
 							</TouchableOpacity>
 						))}
 					</HStack>
-				</VStack>
-
-				{/* Quick Access */}
-				<VStack space='md'>
-					<Text
-						size='lg'
-						style={{
-							fontWeight: "600",
-							color: isDark ? "#f3f4f6" : "#111827",
-						}}>
-						Accès rapide
-					</Text>
-					<ActionCard
-						icon={Timer}
-						title='Offres dernière minute'
-						subtitle='Missions urgentes disponibles'
-						onPress={() => router.push("/lastminute")}
-					/>
-					<ActionCard
-						icon={Bookmark}
-						title='Mes favoris'
-						subtitle='Offres sauvegardées'
-						badge={stats.wishlist > 0 ? stats.wishlist : null}
-						onPress={() => router.push("/wishlist")}
-					/>
-					<ActionCard
-						icon={FileText}
-						title='Mes candidatures'
-						subtitle='Suivre vos candidatures'
-						badge={
-							stats.applications > 0 ? stats.applications : null
-						}
-						onPress={() => router.push("/applications")}
-					/>
-					<ActionCard
-						icon={BadgeCheck}
-						title='Mon profil'
-						subtitle='Compléter votre CV'
-						onPress={() => router.push("/account")}
-					/>
 				</VStack>
 
 				{/* Recent Jobs */}
