@@ -9,7 +9,7 @@ import {
 	Animated,
 	Easing,
 	KeyboardAvoidingView,
-	Keyboard,
+	ActivityIndicator,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
@@ -20,7 +20,6 @@ import { Box } from "@/components/ui/box";
 import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import {
@@ -62,6 +61,7 @@ import {
 	X,
 	MapPin,
 	Ticket,
+	IdCard,
 } from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
@@ -156,7 +156,6 @@ export default function JobsList({
 
 	// single source of truth for sheets: null | 'values' | 'keywords'
 	const [activeSheet, setActiveSheet] = useState(null);
-	const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
 	// filters & UI state
 	const [values, setValues] = useState([]);
@@ -195,32 +194,6 @@ export default function JobsList({
 		}
 	};
 	const handleCloseSheet = () => setActiveSheet(null);
-
-	// Keyboard listeners
-	useEffect(() => {
-		const keyboardDidShowListener = Keyboard.addListener(
-			"keyboardDidShow",
-			() => {
-				setKeyboardVisible(true);
-				// Force re-render by closing and reopening
-				if (activeSheet === "keywords") {
-					setActiveSheet(null);
-					setTimeout(() => setActiveSheet("keywords"), 100);
-				}
-			},
-		);
-		const keyboardDidHideListener = Keyboard.addListener(
-			"keyboardDidHide",
-			() => {
-				setKeyboardVisible(false);
-			},
-		);
-
-		return () => {
-			keyboardDidShowListener.remove();
-			keyboardDidHideListener.remove();
-		};
-	}, [activeSheet]);
 
 	// debounce fetch cities
 	useEffect(() => {
@@ -501,8 +474,6 @@ export default function JobsList({
 				</KeyboardAvoidingView>
 			</Actionsheet>
 			<Actionsheet
-				key={`keywords-${isKeyboardVisible}`}
-				snapPoints={isKeyboardVisible ? [90] : [40]}
 				isOpen={activeSheet === "keywords"}
 				onClose={handleCloseSheet}>
 				<ActionsheetBackdrop />
@@ -575,7 +546,7 @@ export default function JobsList({
 									size='md'
 									variant='solid'
 									action='muted'>
-									<BadgeIcon as={Ticket} className='mr-2' />
+									<BadgeIcon as={IdCard} className='mr-2' />
 									<BadgeText>{value}</BadgeText>
 									<BadgeIcon
 										as={X}
@@ -633,9 +604,8 @@ export default function JobsList({
 					}>
 					{isLoading ? (
 						<Center style={{ paddingVertical: 90 }}>
-							{/* <CustomLoader isDark={isDark} /> */}
-							<Spinner
-								size='lg'
+							<ActivityIndicator
+								size='large'
 								color={isDark ? "#3b82f6" : "#2563eb"}
 							/>
 						</Center>
