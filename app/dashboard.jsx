@@ -26,6 +26,7 @@ import {
 	CreditCard,
 	ChevronRight,
 	FileText,
+	Settings,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -379,6 +380,13 @@ const DashboardScreen = () => {
 									pathname: "/buycredits",
 								});
 							}}
+						/>
+
+						<ActionCard
+							icon={Settings}
+							title='Paramètres'
+							subtitle="Paramètres de l'application"
+							onPress={() => router.push("/settings")}
 						/>
 					</VStack>
 				</VStack>
