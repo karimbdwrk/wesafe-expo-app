@@ -983,7 +983,13 @@ export default function Tab1() {
 												// router.push(
 												// 	`/(tabs)/tab2?search=${encodeURIComponent(searchQuery)}`,
 												// )
-												router.push(`/tabs/(tabs)/tab2`)
+												router.push({
+													pathname:
+														"/tabs/(tabs)/tab2",
+													params: {
+														search: searchQuery,
+													},
+												})
 											)}
 											variant='link'
 											style={{ marginTop: 8 }}>
