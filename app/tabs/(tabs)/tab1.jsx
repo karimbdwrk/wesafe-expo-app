@@ -747,21 +747,21 @@ export default function Tab1() {
 				{/* Stats */}
 				<HStack space='md'>
 					<StatCard
-						icon={Bookmark}
-						value={stats.wishlist || 0}
-						label='Favoris'
-						color='#f59e0b'
-					/>
-					<StatCard
 						icon={FileText}
 						value={stats.applications || 0}
 						label='Candidatures'
 						color='#3b82f6'
 					/>
+					<StatCard
+						icon={Bookmark}
+						value={stats.wishlist || 0}
+						label='Favoris'
+						color='#f59e0b'
+					/>
 				</HStack>
 
 				{/* Quick Categories */}
-				<VStack space='md'>
+				{/* <VStack space='md'>
 					<Text
 						size='lg'
 						style={{
@@ -802,7 +802,7 @@ export default function Tab1() {
 							</TouchableOpacity>
 						))}
 					</HStack>
-				</VStack>
+				</VStack> */}
 
 				{/* Recent Jobs */}
 				{recentJobs.length > 0 && (
