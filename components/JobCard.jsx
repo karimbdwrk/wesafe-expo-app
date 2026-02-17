@@ -239,7 +239,7 @@ const JobCard = ({
 				<HStack
 					space='sm'
 					style={{
-						alignItems: "center",
+						alignItems: role === "pro" ? "center" : "flex-end",
 						justifyContent: "flex-end",
 						width: "10%",
 					}}>
