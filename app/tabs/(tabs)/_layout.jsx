@@ -263,7 +263,7 @@ export default function TabLayout({ theme = "light" }) {
 							<VStack>
 								{contextUnreadCount > 0 && (
 									<Badge
-										className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full left-1 top-1'
+										className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full left-0 top-1'
 										variant='solid'>
 										<BadgeText
 											className='text-white absolute right-1'
@@ -279,7 +279,7 @@ export default function TabLayout({ theme = "light" }) {
 									style={{
 										marginRight: 15,
 										// backgroundColor: "pink",
-										paddingHorizontal: 10,
+										paddingHorizontal: 5,
 										paddingVertical: 10,
 									}}
 									onPress={() =>
