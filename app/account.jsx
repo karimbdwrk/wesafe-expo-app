@@ -10,6 +10,7 @@ import { HStack } from "@/components/ui/hstack";
 import { Icon } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
+import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import { Divider } from "@/components/ui/divider";
 import AvatarUploader from "@/components/AvatarUploader";
@@ -33,6 +34,7 @@ import {
 	Ruler,
 	GraduationCap,
 	Settings,
+	LogOut,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -43,7 +45,7 @@ import { useImage } from "@/context/ImageContext";
 import { width } from "dom-helpers";
 
 const AccountScreen = () => {
-	const { user } = useAuth();
+	const { user, signOut } = useAuth();
 	const { getById, getAll } = useDataContext();
 	const { isDark } = useTheme();
 	const { unreadCount } = useNotifications();
@@ -760,6 +762,15 @@ const AccountScreen = () => {
 								subtitle="Paramètres de l'application"
 								onPress={() => router.push("/settings")}
 							/>
+							<Divider />
+							{/* Déconnexion */}
+							<Button
+								action='negative'
+								onPress={signOut}
+								style={{ marginTop: 8 }}>
+								<ButtonIcon as={LogOut} />
+								<ButtonText>Déconnexion</ButtonText>
+							</Button>
 						</VStack>
 					</VStack>
 				</ScrollView>
