@@ -43,6 +43,7 @@ import {
 	BadgeCheck,
 	Timer,
 	Sparkles,
+	BookmarkCheck,
 } from "lucide-react-native";
 
 import JobCard from "@/components/JobCard";
@@ -64,8 +65,8 @@ export default function Tab1() {
 	const [stats, setStats] = useState({
 		totalJobs: 0,
 		applications: 0,
-		pending: 0,
-		approved: 0,
+		applied: 0,
+		inProgress: 0,
 		rejected: 0,
 	});
 
@@ -117,23 +118,25 @@ export default function Tab1() {
 					"created_at.desc",
 				);
 
-				const { totalCount: pendingCount } = await getAll(
+				const { totalCount: appliedCount } = await getAll(
 					"applications",
 					"*",
-					`&company_id=eq.${user.id}&current_status=eq.pending${dateFilter}`,
+					`&company_id=eq.${user.id}&current_status=eq.applied${dateFilter}`,
 					1,
 					1,
 					"created_at.desc",
 				);
 
-				const { totalCount: approvedCount } = await getAll(
+				// En cours = selected + contract_sent + contract_signed_candidate + contract_signed_pro
+				const { data: inProgressApps } = await getAll(
 					"applications",
 					"*",
-					`&company_id=eq.${user.id}&current_status=eq.approved${dateFilter}`,
+					`&company_id=eq.${user.id}&current_status=in.(selected,contract_sent,contract_signed_candidate,contract_signed_pro)${dateFilter}`,
 					1,
-					1,
+					1000,
 					"created_at.desc",
 				);
+				const inProgressCount = inProgressApps?.length || 0;
 
 				const { totalCount: rejectedCount } = await getAll(
 					"applications",
@@ -147,17 +150,16 @@ export default function Tab1() {
 				setStats({
 					totalJobs: jobsCount || 0,
 					applications: appsCount || 0,
-					pending: pendingCount || 0,
-					approved: approvedCount || 0,
+					applied: appliedCount || 0,
+					inProgress: inProgressCount || 0,
 					rejected: rejectedCount || 0,
 				});
 				setRecentJobs(jobs?.slice(0, 3) || []);
 
 				// Générer les données pour le graphique
 				generateChartData(
-					appsCount || 0,
-					pendingCount || 0,
-					approvedCount || 0,
+					appliedCount || 0,
+					inProgressCount || 0,
 					rejectedCount || 0,
 				);
 			} else {
@@ -200,7 +202,9 @@ export default function Tab1() {
 				wishlist: 0,
 				applications: 0,
 				totalJobs: 0,
-				pending: 0,
+				applied: 0,
+				inProgress: 0,
+				rejected: 0,
 			});
 		}
 	};
@@ -217,19 +221,19 @@ export default function Tab1() {
 		setRefreshing(false);
 	}, []);
 
-	const generateChartData = (total, pending, approved, rejected) => {
+	const generateChartData = (applied, inProgress, rejected) => {
 		setChartData([
 			{
-				value: pending,
-				label: "En attente",
-				frontColor: "#f59e0b",
-				color: "#f59e0b",
+				value: applied,
+				label: "Postulées",
+				frontColor: "#3b82f6",
+				color: "#3b82f6",
 			},
 			{
-				value: approved,
-				label: "Acceptées",
-				frontColor: "#10b981",
-				color: "#10b981",
+				value: inProgress,
+				label: "En cours",
+				frontColor: "#f59e0b",
+				color: "#f59e0b",
 			},
 			{
 				value: rejected,
@@ -475,8 +479,8 @@ export default function Tab1() {
 									data={chartData}
 									width={Dimensions.get("window").width - 80}
 									height={220}
-									barWidth={50}
-									spacing={30}
+									barWidth={60}
+									spacing={40}
 									hideRules
 									xAxisThickness={0}
 									yAxisThickness={0}
@@ -487,8 +491,8 @@ export default function Tab1() {
 									noOfSections={4}
 									maxValue={
 										Math.max(
-											stats.pending,
-											stats.approved,
+											stats.applied,
+											stats.inProgress,
 											stats.rejected,
 										) + 5
 									}
@@ -618,7 +622,7 @@ export default function Tab1() {
 							icon={Users}
 							title='Candidatures'
 							subtitle='Consulter les candidatures reçues'
-							badge={stats.pending > 0 ? stats.pending : null}
+						badge={stats.applied > 0 ? stats.applied : null}
 							onPress={() => router.push("/applicationspro")}
 						/>
 						<ActionCard
@@ -753,7 +757,7 @@ export default function Tab1() {
 						color='#3b82f6'
 					/>
 					<StatCard
-						icon={Bookmark}
+						icon={BookmarkCheck}
 						value={stats.wishlist || 0}
 						label='Favoris'
 						color='#f59e0b'
