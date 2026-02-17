@@ -12,6 +12,7 @@ import axios from "axios";
 
 import { Text } from "@/components/ui/text";
 import { Heading } from "@/components/ui/heading";
+import { Box } from "@/components/ui/box";
 import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
@@ -58,8 +59,10 @@ import {
 
 import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import { position } from "dom-helpers";
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 100;
 const today = new Date();
 
 export default function JobsList({
@@ -70,6 +73,7 @@ export default function JobsList({
 	const scrollRef = useRef(null);
 	const { userProfile } = useAuth();
 	const { getAll } = useDataContext();
+	const { isDark } = useTheme();
 
 	const [showActionsheet, setShowActionsheet] = React.useState(false);
 	const handleClose = () => setShowActionsheet(false);
@@ -410,23 +414,32 @@ export default function JobsList({
 				</ActionsheetContent>
 			</Actionsheet>
 			<VStack style={styles.container}>
-				<Button
-					onPress={() => handleOpenBottomSheet("values")}
-					size='xl'
-					className='rounded-full p-3.5'
-					action='secondary'
-					style={styles.fabValues}>
-					<ButtonIcon as={SlidersHorizontal} />
-				</Button>
-
-				<Button
-					onPress={() => handleOpenBottomSheet("keywords")}
-					size='xl'
-					className='rounded-full p-3.5'
-					action='secondary'
-					style={styles.fabKeywords}>
-					<ButtonIcon as={Search} />
-				</Button>
+				<HStack
+					style={{
+						width: "100%",
+						justifyContent: "flex-end",
+						position: "absolute",
+						bottom: totalPages > 1 ? 60 : 0,
+						right: 0,
+						zIndex: 999,
+					}}>
+					<Button
+						onPress={() => handleOpenBottomSheet("values")}
+						size='xl'
+						className='rounded-full p-3.5'
+						action='secondary'
+						style={styles.fabValues}>
+						<ButtonIcon as={SlidersHorizontal} />
+					</Button>
+					<Button
+						onPress={() => handleOpenBottomSheet("keywords")}
+						size='xl'
+						className='rounded-full p-3.5'
+						action='secondary'
+						style={styles.fabKeywords}>
+						<ButtonIcon as={Search} />
+					</Button>
+				</HStack>
 				{(values.length > 0 ||
 					keywords ||
 					(userCity && distanceKm > 0)) && (
@@ -481,7 +494,13 @@ export default function JobsList({
 				{/* main list */}
 				<ScrollView
 					ref={scrollRef}
-					style={styles.scrollView}
+					style={[
+						styles.scrollView,
+						{ backgroundColor: isDark ? "#111827" : "#f9fafb" },
+					]}
+					contentContainerStyle={{
+						paddingBottom: totalPages > 1 ? 80 : 0,
+					}}
 					refreshControl={
 						<RefreshControl
 							refreshing={refreshing}
@@ -517,31 +536,70 @@ export default function JobsList({
 								/>
 							))
 						)}
-
-						{totalPages > 1 && (
-							<HStack
-								justifyContent='center'
-								alignItems='center'
-								space='md'>
-								<Button
-									isDisabled={page === 1}
-									onPress={handlePrev}
-									variant='link'>
-									<ButtonIcon as={ChevronLeft} />
-								</Button>
-								<Text>
-									Page {page} / {totalPages}
-								</Text>
-								<Button
-									isDisabled={page >= totalPages}
-									onPress={handleNext}
-									variant='link'>
-									<ButtonIcon as={ChevronRight} />
-								</Button>
-							</HStack>
-						)}
 					</View>
 				</ScrollView>
+
+				{/* Pagination (fixed bottom) */}
+				{totalPages > 1 && (
+					<Box
+						style={{
+							position: "absolute",
+							left: 0,
+							right: 0,
+							bottom: 0,
+							backgroundColor: isDark ? "#23272f" : "#fff",
+							shadowColor: "#000",
+							shadowOffset: { width: 0, height: -2 },
+							shadowOpacity: 0.08,
+							shadowRadius: 8,
+							elevation: 8,
+							borderTopLeftRadius: 16,
+							borderTopRightRadius: 16,
+							paddingVertical: 12,
+							paddingHorizontal: 24,
+							paddingBottom: 12,
+							alignItems: "center",
+						}}>
+						<HStack
+							space='md'
+							className='w-full justify-between items-center'>
+							<Button
+								isDisabled={page === 1}
+								onPress={handlePrev}
+								variant='outline'
+								style={{
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									borderRadius: 12,
+								}}>
+								<ButtonIcon
+									as={ChevronLeft}
+									color={isDark ? "#f3f4f6" : "#111827"}
+								/>
+							</Button>
+							<Text
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+									fontWeight: "600",
+									fontSize: 16,
+								}}>
+								Page {page} / {totalPages}
+							</Text>
+							<Button
+								isDisabled={page >= totalPages}
+								onPress={handleNext}
+								variant='outline'
+								style={{
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									borderRadius: 12,
+								}}>
+								<ButtonIcon
+									as={ChevronRight}
+									color={isDark ? "#f3f4f6" : "#111827"}
+								/>
+							</Button>
+						</HStack>
+					</Box>
+				)}
 			</VStack>
 		</>
 	);
@@ -552,7 +610,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignItems: "center",
 		width: "100%",
-		backgroundColor: "white",
+		// backgroundColor: "white",
 	},
 	fabValues: {
 		position: "absolute",
