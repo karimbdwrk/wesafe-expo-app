@@ -978,11 +978,13 @@ export default function Tab1() {
 											</Pressable>
 										))}
 										<Button
-											onPress={() =>
-												router.push(
-													`/offers?search=${encodeURIComponent(searchQuery)}`,
-												)
-											}
+											onPress={() => (
+												setSearchQuery(""),
+												// router.push(
+												// 	`/(tabs)/tab2?search=${encodeURIComponent(searchQuery)}`,
+												// )
+												router.push(`/tabs/(tabs)/tab2`)
+											)}
 											variant='link'
 											style={{ marginTop: 8 }}>
 											<ButtonText
@@ -1118,7 +1120,9 @@ export default function Tab1() {
 								Offres récentes
 							</Text>
 							<TouchableOpacity
-								onPress={() => router.push("/lastminute")}>
+								onPress={() =>
+									router.push("/tabs/(tabs)/tab2")
+								}>
 								<Text
 									size='sm'
 									style={{
