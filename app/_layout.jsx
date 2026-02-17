@@ -15,7 +15,7 @@ import { MoonIcon, SunIcon } from "@/components/ui/icon";
 
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Toaster } from "sonner-native";
-import { StripeProvider } from "@stripe/stripe-react-native";
+// import { StripeProvider } from "@stripe/stripe-react-native"; // Commenté temporairement - nécessite dev build
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider, useAuth } from "@/context/AuthContext";
@@ -51,19 +51,19 @@ export default function RootLayout() {
 
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
-			<StripeProvider publishableKey='pk_test_51RhCWfRs36t2SzSl20E1w8vTi97kdamUZ36cUp6tI7uBjzYWm3hXiNs8evBcViZpsYCHnnK7MYFl6I52jC9xS4Su000R6gOuhW'>
-				<AppThemeProvider>
-					<AuthProvider>
-						<DataProvider>
-							<NotificationsProvider>
-								<ImageProvider>
-									<RootLayoutNav />
-								</ImageProvider>
-							</NotificationsProvider>
-						</DataProvider>
-					</AuthProvider>
-				</AppThemeProvider>
-			</StripeProvider>
+			{/* <StripeProvider publishableKey='pk_test_51RhCWfRs36t2SzSl20E1w8vTi97kdamUZ36cUp6tI7uBjzYWm3hXiNs8evBcViZpsYCHnnK7MYFl6I52jC9xS4Su000R6gOuhW'> */}
+			<AppThemeProvider>
+				<AuthProvider>
+					<DataProvider>
+						<NotificationsProvider>
+							<ImageProvider>
+								<RootLayoutNav />
+							</ImageProvider>
+						</NotificationsProvider>
+					</DataProvider>
+				</AuthProvider>
+			</AppThemeProvider>
+			{/* </StripeProvider> */}
 		</GestureHandlerRootView>
 	);
 }
