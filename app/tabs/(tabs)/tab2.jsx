@@ -82,6 +82,10 @@ export default function Tab2() {
 	const [totalCount, setTotalCount] = useState(0);
 	const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
+	useEffect(() => {
+		console.log("Received search params:", params);
+	}, [params]);
+
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
 		await loadDataJobs();
