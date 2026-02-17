@@ -16,6 +16,7 @@ import { Box } from "@/components/ui/box";
 import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import {
@@ -97,6 +98,7 @@ export default function JobsList({
 	const [distanceKm, setDistanceKm] = useState(0);
 
 	// jobs data + pagination
+	const [isLoading, setIsLoading] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
 	const [page, setPage] = useState(pageNbr);
 	const [jobs, setJobs] = useState([]);
@@ -177,6 +179,7 @@ export default function JobsList({
 
 	// load jobs
 	const loadDataJobs = useCallback(async () => {
+		setIsLoading(true);
 		try {
 			const { data, totalCount } = await getAll(
 				"jobs",
@@ -194,6 +197,8 @@ export default function JobsList({
 			setTotalCount(totalCount || 0);
 		} catch (err) {
 			console.error("Erreur chargement jobs:", err);
+		} finally {
+			setIsLoading(false);
 		}
 	}, [filters, page, itemsPerPage, isLastMinute, getAll]);
 
@@ -507,36 +512,40 @@ export default function JobsList({
 							onRefresh={onRefresh}
 						/>
 					}>
-					<View style={styles.jobList}>
-						{!jobs.length ? (
-							<HStack
-								justifyContent='center'
-								style={{ paddingVertical: 90 }}>
-								<Badge
-									size='md'
-									variant='solid'
-									action='warning'>
-									<BadgeIcon as={Info} className='mr-2' />
-									<BadgeText>Aucun résultat</BadgeText>
-								</Badge>
-							</HStack>
-						) : (
-							jobs.map((job) => (
-								<JobCard
-									key={job?.id}
-									id={job?.id}
-									title={job?.title}
-									category={job?.category}
-									company_id={job?.company_id}
-									city={job?.city}
-									postcode={job?.postcode}
-									department={job?.department_code}
-									logo={job?.companies?.logo_url}
-									company_name={job?.companies?.name}
-								/>
-							))
-						)}
-					</View>
+					{isLoading ? (
+						<Spinner />
+					) : (
+						<View style={styles.jobList}>
+							{!jobs.length ? (
+								<HStack
+									justifyContent='center'
+									style={{ paddingVertical: 90 }}>
+									<Badge
+										size='md'
+										variant='solid'
+										action='warning'>
+										<BadgeIcon as={Info} className='mr-2' />
+										<BadgeText>Aucun résultat</BadgeText>
+									</Badge>
+								</HStack>
+							) : (
+								jobs.map((job) => (
+									<JobCard
+										key={job?.id}
+										id={job?.id}
+										title={job?.title}
+										category={job?.category}
+										company_id={job?.company_id}
+										city={job?.city}
+										postcode={job?.postcode}
+										department={job?.department_code}
+										logo={job?.companies?.logo_url}
+										company_name={job?.companies?.name}
+									/>
+								))
+							)}
+						</View>
+					)}
 				</ScrollView>
 
 				{/* Pagination (fixed bottom) */}
