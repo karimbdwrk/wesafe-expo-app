@@ -146,7 +146,7 @@ const Settings = () => {
 				</VStack> */}
 
 				{/* Compte */}
-				<Card
+				{/* <Card
 					style={{
 						padding: 16,
 						backgroundColor: isDark ? "#374151" : "#ffffff",
@@ -182,7 +182,7 @@ const Settings = () => {
 							onPress={() => {}}
 						/>
 					</VStack>
-				</Card>
+				</Card> */}
 
 				{/* Apparence */}
 				<Card
@@ -248,7 +248,7 @@ const Settings = () => {
 				</Card>
 
 				{/* Sécurité */}
-				<Card
+				{/* <Card
 					style={{
 						padding: 16,
 						backgroundColor: isDark ? "#374151" : "#ffffff",
@@ -279,7 +279,7 @@ const Settings = () => {
 							onPress={() => {}}
 						/>
 					</VStack>
-				</Card>
+				</Card> */}
 
 				{/* Autres */}
 				<Card
