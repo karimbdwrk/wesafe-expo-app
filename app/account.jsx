@@ -32,6 +32,7 @@ import {
 	Languages,
 	Ruler,
 	GraduationCap,
+	Settings,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -751,6 +752,13 @@ const AccountScreen = () => {
 								title='Documents'
 								subtitle="Documents d'identité et sécurité sociale"
 								onPress={() => router.push("/documents")}
+							/>
+
+							<ActionCard
+								icon={Settings}
+								title='Paramètres'
+								subtitle="Paramètres de l'application"
+								onPress={() => router.push("/settings")}
 							/>
 						</VStack>
 					</VStack>
