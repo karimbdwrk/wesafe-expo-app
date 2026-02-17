@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { View, Alert, ActivityIndicator } from "react-native";
 import axios from "axios";
 import Constants from "expo-constants";
-import {
-	initPaymentSheet,
-	presentPaymentSheet,
-} from "@stripe/stripe-react-native";
+// import {
+// 	initPaymentSheet,
+// 	presentPaymentSheet,
+// } from "@stripe/stripe-react-native"; // Commenté - nécessite dev build
 
 import { Button, ButtonText } from "@/components/ui/button";
 
@@ -36,7 +36,7 @@ export default function SubscriptionPaymentSheet({ company_id, email }) {
 						Authorization: `Bearer ${SUPABASE_API_KEY}`,
 						"Content-Type": "application/json",
 					},
-				}
+				},
 			);
 
 			const { clientSecret, subscriptionId } = response.data;
@@ -46,7 +46,7 @@ export default function SubscriptionPaymentSheet({ company_id, email }) {
 		} catch (error) {
 			console.error(
 				"❌ Erreur create-subscription:",
-				error.response?.data || error.message
+				error.response?.data || error.message,
 			);
 			Alert.alert("Erreur", "Impossible de créer la souscription.");
 			return null;
@@ -54,6 +54,15 @@ export default function SubscriptionPaymentSheet({ company_id, email }) {
 	};
 
 	const initializePaymentSheet = async () => {
+		// Version mock pour le développement sans Stripe natif
+		Alert.alert(
+			"Paiement non disponible",
+			"Stripe nécessite un development build. Cette fonctionnalité sera disponible dans la version de production.",
+			[{ text: "OK" }],
+		);
+		return null;
+
+		/* Code original - décommenter pour production avec dev build
 		const result = await fetchPaymentSheetParams();
 		if (!result) return null;
 
@@ -71,6 +80,7 @@ export default function SubscriptionPaymentSheet({ company_id, email }) {
 		}
 
 		return clientSecret;
+		*/
 	};
 
 	const openPaymentSheet = async () => {
@@ -79,6 +89,7 @@ export default function SubscriptionPaymentSheet({ company_id, email }) {
 			const clientSecret = await initializePaymentSheet();
 			if (!clientSecret) return;
 
+			/* Code original - décommenter pour production avec dev build
 			const { error } = await presentPaymentSheet();
 			if (error) {
 				Alert.alert("Paiement échoué", error.message);
@@ -88,11 +99,12 @@ export default function SubscriptionPaymentSheet({ company_id, email }) {
 				// verifySubscription();
 				checkSubscription(company_id, accessToken);
 			}
+			*/
 		} catch (err) {
 			console.error("❌ Erreur Payment Sheet:", err.message);
 			Alert.alert(
 				"Erreur",
-				"Une erreur est survenue pendant le paiement."
+				"Une erreur est survenue pendant le paiement.",
 			);
 		} finally {
 			setLoading(false);
