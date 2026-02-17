@@ -130,6 +130,7 @@ export default function TabLayout({ theme = "light" }) {
 	const router = useRouter();
 	const toast = useToast();
 	const segments = useSegments();
+	const [menuOpen, setMenuOpen] = useState(false);
 
 	// const [unreadCount, setUnreadCount] = useState(0);
 	const {
@@ -144,6 +145,16 @@ export default function TabLayout({ theme = "light" }) {
 			refreshUnreadCount();
 		}, [refreshUnreadCount]),
 	);
+
+	// Fermer le menu quand la route change
+	useEffect(() => {
+		setMenuOpen(false);
+	}, [segments]);
+
+	useEffect(() => {
+		// Fermer le menu quand la route change
+		setMenuOpen(false);
+	}, [segments]);
 
 	useEffect(() => {
 		if (user && !authLoading && role === "unknown") {
@@ -285,308 +296,65 @@ export default function TabLayout({ theme = "light" }) {
 								</Pressable>
 							</VStack>
 							{role === "candidat" && (
-								<Menu
-									style={{ marginRight: 5, marginTop: 5 }}
-									placement='top left'
-									offset={5}
-									trigger={({ ...triggerProps }) => {
-										return (
-											<Button
-												variant='link'
-												{...triggerProps}
-												style={{
-													marginRight: 10,
-													marginBottom: 5,
-												}}>
-												<Avatar size='sm'>
-													<AvatarFallbackText>
-														{userProfile?.firstname +
-															" " +
-															userProfile?.lastname}
-													</AvatarFallbackText>
-													<AvatarImage
-														source={{
-															uri: userProfile?.avatar_url,
-														}}
-													/>
-												</Avatar>
-											</Button>
-										);
-									}}>
-									<MenuItem
-										key='Add account'
-										textValue='Add account'
-										onPress={() => router.push("/account")}>
-										<Icon
-											as={ShieldUser}
-											size='sm'
-											className='mr-2'
-										/>
-										<MenuItemLabel size='sm'>
-											Mon compte
-										</MenuItemLabel>
-									</MenuItem>
-									{/* <MenuItem
-										key='ProCard'
-										textValue='ProCard'
-										onPress={() =>
-											router.push("/procards")
-										}>
-										<Icon
-											as={IdCard}
-											size='sm'
-											className='mr-2'
-										/>
-										<MenuItemLabel size='sm'>
-											Mes cartes professionnelles
-										</MenuItemLabel>
-									</MenuItem> */}
-									<MenuItem
-										key='Community'
-										textValue='Community'
-										onPress={() =>
-											router.push("/applications")
-										}>
-										<Icon
-											as={FileText}
-											size='sm'
-											className='mr-2'
-										/>
-										<MenuItemLabel size='sm'>
-											Mes candidatures
-										</MenuItemLabel>
-									</MenuItem>
-									<MenuItem
-										key='Plugins'
-										textValue='Plugins'
-										onPress={() =>
-											router.push("/wishlist")
-										}>
-										<Icon
-											as={BookmarkCheck}
-											size='sm'
-											className='mr-2'
-										/>
-										<MenuItemLabel size='sm'>
-											Ma wishlist
-										</MenuItemLabel>
-									</MenuItem>
-									<MenuItem
-										key='Settings'
-										textValue='Settings'
-										onPress={() =>
-											router.push("/settings")
-										}>
-										<Icon
-											as={Settings}
-											size='sm'
-											className='mr-2'
-										/>
-										<MenuItemLabel size='sm'>
-											Paramètres
-										</MenuItemLabel>
-									</MenuItem>
-									<MenuSeparator />
-									<MenuItem
-										key='Signout'
-										textValue='Signout'
-										onPress={signOut}>
-										<Icon
-											as={Power}
-											size='sm'
-											className='mr-2'
-											style={{
-												color: Colors[theme].danger,
+								<Pressable
+									onPress={() => router.push("/account")}
+									style={{ marginRight: 15 }}>
+									<Avatar size='sm'>
+										<AvatarFallbackText>
+											{userProfile?.firstname +
+												" " +
+												userProfile?.lastname}
+										</AvatarFallbackText>
+										<AvatarImage
+											source={{
+												uri: userProfile?.avatar_url,
 											}}
 										/>
-										<MenuItemLabel
-											size='sm'
-											style={{
-												color: Colors[theme].danger,
-											}}>
-											Se deconnecter
-										</MenuItemLabel>
-									</MenuItem>
-								</Menu>
+									</Avatar>
+								</Pressable>
 							)}
 							{role === "pro" && (
-								<Menu
-									style={{ marginRight: 5 }}
-									placement='top left'
-									offset={5}
-									trigger={({ ...triggerProps }) => {
-										return (
-											<VStack>
-												<Button
-													variant='link'
-													size='md'
-													{...triggerProps}
-													style={{ marginRight: 10 }}>
-													<Avatar size='sm'>
-														<AvatarFallbackText>
-															{userCompany?.name}
-														</AvatarFallbackText>
-														<AvatarImage
-															source={{
-																uri: userCompany?.logo_url,
-															}}
-														/>
-													</Avatar>
-												</Button>
-												{userCompany &&
-													!userCompany.isConfirmed && (
-														<Badge
-															className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
-															style={{
-																display: "flex",
-																justifyContent:
-																	"center",
-																alignItems:
-																	"center",
-																position:
-																	"absolute",
-																left: -5,
-																padding: 0,
-															}}
-															variant='solid'>
-															<BadgeText
-																className='text-white font-semibold'
-																style={{
-																	position:
-																		"absolute",
-																	top: 1,
-																}}>
-																!
-															</BadgeText>
-														</Badge>
-													)}
-											</VStack>
-										);
-									}}>
-									<MenuItem
-										key='Premium'
-										textValue='Premium'
-										className='pt-5 pb-5 justify-between'
-										onPress={() =>
-											router.push("/subscription")
-										}>
-										{/* <Icon
-											as={Box}
-											size='sm'
-											className='mr-2'
-										/> */}
-										<MenuItemLabel size='sm'>
-											Membership
-										</MenuItemLabel>
-										<Badge
-											action={
-												hasSubscription
-													? "success"
-													: "muted"
-											}
-											className='rounded-full'>
-											<BadgeText className='text-2xs capitalize'>
-												{hasSubscription
-													? "Premium"
-													: "Standard"}
-											</BadgeText>
-										</Badge>
-									</MenuItem>
-									<MenuItem
-										key='Add account'
-										textValue='Add account'
+								<VStack>
+									<Pressable
 										onPress={() =>
 											router.push("/dashboard")
-										}>
-										<Icon
-											as={LayoutDashboard}
-											size='sm'
-											className='mr-2'
-										/>
-										<MenuItemLabel size='sm'>
-											Dashboard Pro
-										</MenuItemLabel>
-									</MenuItem>
-									<MenuItem
-										key='Community'
-										textValue='Community'
-										onPress={() => router.push("/offers")}>
-										<Icon
-											as={FolderKanban}
-											size='sm'
-											className='mr-2'
-										/>
-										<MenuItemLabel size='sm'>
-											Nos offres d'emploi
-										</MenuItemLabel>
-									</MenuItem>
-									<MenuItem
-										key='Plugins'
-										textValue='Plugins'
-										onPress={() =>
-											router.push("/applicationspro")
-										}>
-										<Icon
-											as={Layers}
-											size='sm'
-											className='mr-2'
-										/>
-										<MenuItemLabel size='sm'>
-											Nos candidatures
-										</MenuItemLabel>
-									</MenuItem>
-									<MenuItem
-										key='Plugins2'
-										textValue='Plugins2'
-										onPress={() =>
-											router.push("/profilelist")
-										}>
-										<Icon
-											as={BookUser}
-											size='sm'
-											className='mr-2'
-										/>
-										<MenuItemLabel size='sm'>
-											Mes contacts
-										</MenuItemLabel>
-									</MenuItem>
-									<MenuItem
-										key='SettingsPro'
-										textValue='SettingsPro'
-										onPress={() =>
-											router.push("/settings")
-										}>
-										<Icon
-											as={Settings}
-											size='sm'
-											className='mr-2'
-										/>
-										<MenuItemLabel size='sm'>
-											Paramètres
-										</MenuItemLabel>
-									</MenuItem>
-									<MenuSeparator />
-									<MenuItem
-										key='Settings'
-										textValue='Settings'
-										onPress={signOut}>
-										<Icon
-											as={Power}
-											size='sm'
-											className='mr-2'
-											style={{
-												color: Colors[theme].danger,
-											}}
-										/>
-										<MenuItemLabel
-											size='sm'
-											style={{
-												color: Colors[theme].danger,
-											}}>
-											Se deconnecter
-										</MenuItemLabel>
-									</MenuItem>
-								</Menu>
+										}
+										style={{ marginRight: 15 }}>
+										<Avatar size='sm'>
+											<AvatarFallbackText>
+												{userCompany?.name}
+											</AvatarFallbackText>
+											<AvatarImage
+												source={{
+													uri: userCompany?.logo_url,
+												}}
+											/>
+										</Avatar>
+									</Pressable>
+									{userCompany &&
+										!userCompany.isConfirmed && (
+											<Badge
+												className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
+												style={{
+													display: "flex",
+													justifyContent: "center",
+													alignItems: "center",
+													position: "absolute",
+													left: -5,
+													padding: 0,
+												}}
+												variant='solid'>
+												<BadgeText
+													className='text-white font-semibold'
+													style={{
+														position: "absolute",
+														top: 1,
+													}}>
+													!
+												</BadgeText>
+											</Badge>
+										)}
+								</VStack>
 							)}
 						</>
 					),
