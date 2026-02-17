@@ -6,6 +6,8 @@ import {
 	RefreshControl,
 	Platform,
 	TouchableOpacity,
+	Animated,
+	Easing,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
@@ -44,6 +46,8 @@ import {
 	SliderFilledTrack,
 } from "@/components/ui/slider";
 
+import { LoaderKitView } from "react-native-loader-kit";
+
 import JobCard from "@/components/JobCard";
 
 import {
@@ -61,7 +65,76 @@ import {
 import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-import { position } from "dom-helpers";
+
+const CustomLoader = ({ isDark }) => {
+	const spinValue = useRef(new Animated.Value(0)).current;
+	const scaleValue = useRef(new Animated.Value(1)).current;
+
+	useEffect(() => {
+		const spin = Animated.loop(
+			Animated.timing(spinValue, {
+				toValue: 1,
+				duration: 1000,
+				easing: Easing.linear,
+				useNativeDriver: true,
+			}),
+		);
+
+		const pulse = Animated.loop(
+			Animated.sequence([
+				Animated.timing(scaleValue, {
+					toValue: 1.2,
+					duration: 500,
+					easing: Easing.ease,
+					useNativeDriver: true,
+				}),
+				Animated.timing(scaleValue, {
+					toValue: 1,
+					duration: 500,
+					easing: Easing.ease,
+					useNativeDriver: true,
+				}),
+			]),
+		);
+
+		spin.start();
+		pulse.start();
+
+		return () => {
+			spin.stop();
+			pulse.stop();
+		};
+	}, []);
+
+	const rotate = spinValue.interpolate({
+		inputRange: [0, 1],
+		outputRange: ["0deg", "360deg"],
+	});
+
+	return (
+		<Animated.View
+			style={{
+				width: 60,
+				height: 60,
+				transform: [
+					{ rotate },
+					//  { scale: scaleValue }
+				],
+			}}>
+			<View
+				style={{
+					width: 40,
+					height: 40,
+					borderRadius: 20,
+					borderWidth: 8,
+					borderColor: "transparent",
+					borderTopColor: isDark ? "#3b82f6" : "#2563eb",
+					borderRightColor: isDark ? "#60a5fa" : "#3b82f6",
+				}}
+			/>
+		</Animated.View>
+	);
+};
 
 const ITEMS_PER_PAGE = 100;
 const today = new Date();
@@ -513,7 +586,13 @@ export default function JobsList({
 						/>
 					}>
 					{isLoading ? (
-						<Spinner />
+						<Center style={{ paddingVertical: 90 }}>
+							{/* <CustomLoader isDark={isDark} /> */}
+							<Spinner
+								size='lg'
+								color={isDark ? "#3b82f6" : "#2563eb"}
+							/>
+						</Center>
 					) : (
 						<View style={styles.jobList}>
 							{!jobs.length ? (
