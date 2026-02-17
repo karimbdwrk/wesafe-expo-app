@@ -182,10 +182,10 @@ const JobCard = ({
 										alignItems: "center",
 										marginTop: 2,
 									}}>
-									{/* <MapPin
-										size={14}
+									<MapPin
+										size={12}
 										color={isDark ? "#9ca3af" : "#6b7280"}
-									/> */}
+									/>
 									<Text
 										size='sm'
 										style={{
