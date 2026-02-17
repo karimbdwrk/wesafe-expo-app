@@ -45,6 +45,7 @@ import {
 	Timer,
 	Sparkles,
 	BookmarkCheck,
+	IdCard,
 } from "lucide-react-native";
 
 import JobCard from "@/components/JobCard";
@@ -61,6 +62,7 @@ export default function Tab1() {
 
 	const [refreshing, setRefreshing] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [filteredJobs, setFilteredJobs] = useState([]);
 	const [recentJobs, setRecentJobs] = useState([]);
 	const [timePeriod, setTimePeriod] = useState("7d"); // 7d, 1m, 6m, 1y, all
 	const [chartData, setChartData] = useState([]);
@@ -71,6 +73,30 @@ export default function Tab1() {
 		inProgress: 0,
 		rejected: 0,
 	});
+
+	const searchJobs = async (query) => {
+		if (!query || query.trim().length < 2) {
+			setFilteredJobs([]);
+			return;
+		}
+
+		try {
+			// Recherche dans title, description, city, department, region
+			const searchTerm = query.toLowerCase();
+			const { data: jobs } = await getAll(
+				"jobs",
+				"*, companies(name, logo_url)",
+				`&isArchived=eq.false&or=(title.ilike.*${searchTerm}*,description.ilike.*${searchTerm}*,city.ilike.*${searchTerm}*,department.ilike.*${searchTerm}*,region.ilike.*${searchTerm}*,category.ilike.*${searchTerm}*)`,
+				1,
+				3,
+				"created_at.desc",
+			);
+			setFilteredJobs(jobs || []);
+		} catch (error) {
+			console.error("Erreur recherche jobs:", error);
+			setFilteredJobs([]);
+		}
+	};
 
 	const loadData = async () => {
 		try {
@@ -216,7 +242,14 @@ export default function Tab1() {
 			loadData();
 		}, [role, timePeriod]),
 	);
+	// Recherche avec debounce
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			searchJobs(searchQuery);
+		}, 500);
 
+		return () => clearTimeout(timer);
+	}, [searchQuery]);
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
 		await loadData();
@@ -767,30 +800,231 @@ export default function Tab1() {
 					</Text>
 
 					{/* Search Bar */}
-					<TouchableOpacity
-						onPress={() => router.push("/lastminute")}
-						activeOpacity={0.8}>
+					<VStack>
 						<Input
 							variant='outline'
-							size='lg'
-							isReadOnly
-							pointerEvents='none'
 							style={{
 								backgroundColor: isDark ? "#374151" : "#ffffff",
 								borderColor: isDark ? "#4b5563" : "#d1d5db",
 							}}>
-							<InputSlot pl='$3'>
-								<InputIcon as={Search} />
-							</InputSlot>
 							<InputField
 								placeholder='Rechercher un poste, une ville...'
-								editable={false}
-								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
-								}}
+								value={searchQuery}
+								onChangeText={setSearchQuery}
 							/>
+							<InputSlot className='mr-4'>
+								<InputIcon as={Search} />
+							</InputSlot>
 						</Input>
-					</TouchableOpacity>
+
+						{/* Resultat de la recherche filtrée */}
+						{searchQuery.length >= 2 && (
+							<VStack
+								style={{
+									marginTop: 15,
+									backgroundColor: isDark
+										? "#1f2937"
+										: "#ffffff",
+									borderRadius: 12,
+									padding: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#374151" : "#e5e7eb",
+								}}>
+								{filteredJobs.length > 0 ? (
+									<>
+										{filteredJobs.map((job) => (
+											<Pressable
+												key={job.id}
+												onPress={() =>
+													router.push(
+														`/job?id=${job.id}`,
+													)
+												}
+												style={{
+													paddingVertical: 8,
+													borderBottomWidth: 1,
+													borderBottomColor: isDark
+														? "#374151"
+														: "#f3f4f6",
+												}}>
+												<HStack
+													space='sm'
+													style={{
+														alignItems: "center",
+													}}>
+													<VStack
+														style={{
+															justifyContent:
+																"flex-start",
+															alignItems:
+																"center",
+															width: 30,
+															height: "100%",
+															paddingTop: 2,
+														}}>
+														<Avatar size='xs'>
+															<AvatarFallbackText>
+																{job.companies
+																	?.name ||
+																	"?"}
+															</AvatarFallbackText>
+															{job.companies
+																?.logo_url && (
+																<AvatarImage
+																	source={{
+																		uri: job
+																			.companies
+																			.logo_url,
+																	}}
+																/>
+															)}
+														</Avatar>
+													</VStack>
+													<VStack style={{ flex: 1 }}>
+														<Text
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+																fontWeight:
+																	"600",
+																fontSize: 14,
+															}}>
+															{job.title}
+														</Text>
+														<HStack
+															space='xs'
+															style={{
+																alignItems:
+																	"center",
+															}}>
+															<MapPin
+																size={12}
+																color={
+																	isDark
+																		? "#9ca3af"
+																		: "#6b7280"
+																}
+															/>
+															<Text
+																style={{
+																	color: isDark
+																		? "#9ca3af"
+																		: "#6b7280",
+																	fontSize: 12,
+																}}>
+																{job.city}
+																{job.department
+																	? ` (${job.department})`
+																	: ""}
+															</Text>
+														</HStack>
+														<HStack space='sm'>
+															{job.category && (
+																<Badge
+																	size='sm'
+																	variant='solid'
+																	action='info'
+																	style={{
+																		marginVertical: 4,
+																		alignSelf:
+																			"flex-start",
+																	}}>
+																	<BadgeIcon
+																		as={
+																			IdCard
+																		}
+																		className='mr-2'
+																	/>
+																	<BadgeText>
+																		{
+																			job.category
+																		}
+																	</BadgeText>
+																</Badge>
+															)}
+															<Badge
+																size='sm'
+																variant='solid'
+																action='muted'
+																style={{
+																	marginVertical: 4,
+																	alignSelf:
+																		"flex-start",
+																}}>
+																<BadgeIcon
+																	as={
+																		FileText
+																	}
+																	className='mr-2'
+																/>
+																<BadgeText>
+																	{job.contract_type ||
+																		"CDI"}
+																</BadgeText>
+															</Badge>
+														</HStack>
+													</VStack>
+													<Icon
+														as={ChevronRight}
+														size='sm'
+														color={
+															isDark
+																? "#9ca3af"
+																: "#6b7280"
+														}
+													/>
+												</HStack>
+											</Pressable>
+										))}
+										<Button
+											onPress={() =>
+												router.push(
+													`/offers?search=${encodeURIComponent(searchQuery)}`,
+												)
+											}
+											variant='link'
+											style={{ marginTop: 8 }}>
+											<ButtonText
+												style={{
+													color: "#3b82f6",
+													fontSize: 13,
+												}}>
+												Voir tous les résultats
+											</ButtonText>
+											<ButtonIcon as={ChevronRight} />
+										</Button>
+									</>
+								) : (
+									<VStack
+										style={{
+											alignItems: "center",
+											paddingVertical: 20,
+										}}>
+										<Icon
+											as={AlertCircle}
+											size='xl'
+											color={
+												isDark ? "#6b7280" : "#9ca3af"
+											}
+										/>
+										<Text
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+												marginTop: 8,
+												fontSize: 14,
+												textAlign: "center",
+											}}>
+											Aucun résultat trouvé pour "
+											{searchQuery}"
+										</Text>
+									</VStack>
+								)}
+							</VStack>
+						)}
+					</VStack>
 				</VStack>
 
 				{/* Stats */}
