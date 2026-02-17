@@ -64,6 +64,7 @@ import {
 	ChevronUp,
 	CheckCircle,
 } from "lucide-react-native";
+import { position } from "dom-helpers";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
@@ -270,7 +271,13 @@ const JobScreen = () => {
 									</HStack>
 								</VStack>
 								{role === "candidat" && (
-									<TouchableOpacity onPress={handleToggle}>
+									<TouchableOpacity
+										onPress={handleToggle}
+										style={{
+											position: "absolute",
+											right: -5,
+											top: -5,
+										}}>
 										<Icon
 											as={
 												isInWishlist
