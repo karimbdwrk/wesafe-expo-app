@@ -8,6 +8,7 @@ import {
 	Platform,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useLocalSearchParams } from "expo-router";
 import { today } from "@internationalized/date";
 
 import { Text } from "@/components/ui/text";
@@ -48,6 +49,7 @@ import {
 
 import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 
 import JobsList from "@/components/JobsList";
 
@@ -58,6 +60,9 @@ export default function Tab2() {
 	const scrollRef = useRef(null);
 	const { user } = useAuth();
 	const { getAll, isLoading } = useDataContext();
+	const { isDark } = useTheme();
+	const params = useLocalSearchParams();
+	// const [searchParams, setSearchParams] = useState(params.search || "");
 
 	const [showActionsheet, setShowActionsheet] = useState(false);
 	const handleClose = () => setShowActionsheet(false);
@@ -90,7 +95,7 @@ export default function Tab2() {
 			`&isArchived=eq.FALSE${filters}&isLastMinute=eq.TRUE&date=eq.${currentDate}`,
 			page,
 			ITEMS_PER_PAGE,
-			"date.desc"
+			"date.desc",
 		);
 		setJobs(data);
 		setTotalCount(totalCount);
@@ -127,7 +132,7 @@ export default function Tab2() {
 	useFocusEffect(
 		useCallback(() => {
 			loadDataJobs();
-		}, [page])
+		}, [page]),
 	);
 
 	const handleResetKeywords = () => {
@@ -148,8 +153,12 @@ export default function Tab2() {
 	};
 
 	return (
-		<VStack style={{ flex: 1 }}>
-			<JobsList pageNbr={1} itemsPerPage={5} isLastMinute={false} />
+		<VStack
+			style={{
+				flex: 1,
+				backgroundColor: isDark ? "#111827" : "#f9fafb",
+			}}>
+			<JobsList pageNbr={1} itemsPerPage={10} isLastMinute={false} />
 		</VStack>
 	);
 }
