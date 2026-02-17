@@ -258,6 +258,7 @@ const JobScreen = () => {
 												color: isDark
 													? "#f3f4f6"
 													: "#111827",
+												paddingRight: 30,
 											}}>
 											{job?.title}
 										</Heading>
