@@ -1,18 +1,56 @@
 import axios from "axios";
-import { useStripe } from "@stripe/stripe-react-native";
+// import { useStripe } from "@stripe/stripe-react-native"; // Commenté - nécessite dev build
 import { Alert } from "react-native";
 
 const CREATE_STRIPE_PAYMENT_URL =
 	"https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/create-stripe-payment";
 
 export const useStripePaymentHandler = () => {
-	const { initPaymentSheet, presentPaymentSheet } = useStripe();
+	// const { initPaymentSheet, presentPaymentSheet } = useStripe(); // Commenté - nécessite dev build
 
 	const initiateAndPresentPayment = async (
 		companyId,
 		amountInCents,
-		paymentType
+		paymentType,
 	) => {
+		// Version mock pour le développement sans Stripe natif
+		Alert.alert(
+			"Paiement non disponible",
+			"Stripe nécessite un development build. Cette fonctionnalité sera disponible dans la version de production.",
+			[{ text: "OK" }],
+		);
+		return { success: false, error: "Stripe non disponible en dev" };
+
+		/* Code original - décommenter pour production avec dev build
+		try {
+			// 1. Appeler votre fonction Edge pour obtenir les clés nécessaires
+			const response = await axios.post(CREATE_STRIPE_PAYMENT_URL, {
+				company_id: companyId,
+				amount_in_cents: amountInCents,
+				payment_type: paymentType,
+			});
+
+			const {
+				paymentIntentClientSecret,
+				ephemeralKeySecret,
+				customerId,
+				publishableKey,
+			} = response.data;
+
+			// 2. Initialiser la PaymentSheet
+			const { error: initError } = await initPaymentSheet({
+				merchantDisplayName: "WeSafeApp", // Nom de votre entreprise affiché sur la PaymentSheet
+				customerId: customerId,
+				customerEphemeralKeySecret: ephemeralKeySecret,
+				paymentIntentClientSecret: paymentIntentClientSecret,
+				allowsDelayedPaymentMethods: true,
+			});
+
+			if (initError) {
+		);
+		return { success: false, error: "Stripe non disponible en dev" };
+
+		/* Code original - décommenter pour production avec dev build
 		try {
 			// 1. Appeler votre fonction Edge pour obtenir les clés nécessaires
 			const response = await axios.post(CREATE_STRIPE_PAYMENT_URL, {
@@ -74,6 +112,7 @@ export const useStripePaymentHandler = () => {
 					"Failed to initiate payment.",
 			};
 		}
+		*/
 	};
 
 	return { initiateAndPresentPayment };
@@ -93,7 +132,7 @@ export const postLastMinuteJob = async (companyId, jobData, paymentType) => {
 	} catch (error) {
 		console.error(
 			"Error posting Last Minute job:",
-			error.response?.data || error.message
+			error.response?.data || error.message,
 		);
 		return {
 			success: false,
