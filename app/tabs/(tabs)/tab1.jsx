@@ -16,6 +16,7 @@ import { HStack } from "@/components/ui/hstack";
 import { Card } from "@/components/ui/card";
 import { Divider } from "@/components/ui/divider";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
+import { Pressable } from "@/components/ui/pressable";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import { Input, InputField, InputSlot, InputIcon } from "@/components/ui/input";
 import { Icon } from "@/components/ui/icon";
@@ -50,6 +51,7 @@ import JobCard from "@/components/JobCard";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import { width } from "dom-helpers";
 
 export default function Tab1() {
 	const router = useRouter();
@@ -318,34 +320,63 @@ export default function Tab1() {
 		</TouchableOpacity>
 	);
 
-	const StatCard = ({ icon, value, label, color = "#3b82f6" }) => (
+	const StatCard = ({ icon, value, label, color = "#3b82f6", pressed }) => (
 		<Card
 			style={{
 				flex: 1,
+				width: "100%",
+				minWidth: 0,
 				padding: 16,
 				backgroundColor: isDark ? "#374151" : "#ffffff",
 				borderRadius: 12,
 				borderWidth: 1,
 				borderColor: isDark ? "#4b5563" : "#e5e7eb",
+				opacity: pressed ? 0.6 : 1,
+				transform: pressed ? [{ scale: 0.97 }] : [{ scale: 1 }],
 			}}>
-			<VStack space='sm'>
-				<Icon as={icon} size='lg' style={{ color }} />
-				<Text
-					size='2xl'
-					style={{
-						fontWeight: "700",
-						color: isDark ? "#f3f4f6" : "#111827",
-					}}>
-					{value}
-				</Text>
-				<Text
-					size='sm'
+			<HStack
+				style={{
+					alignItems: "center",
+					justifyContent: "space-between",
+				}}>
+				<VStack space='sm'>
+					<Box
+						style={{
+							backgroundColor: "#F7F7F7",
+							width: 40,
+							height: 40,
+							borderRadius: 5,
+							justifyContent: "center",
+							alignItems: "center",
+						}}>
+						<Icon as={icon} size='lg' style={{ color }} />
+					</Box>
+					<VStack space='sm' style={{ paddingLeft: 5 }}>
+						<Text
+							size='2xl'
+							style={{
+								fontWeight: "700",
+								color: isDark ? "#f3f4f6" : "#111827",
+							}}>
+							{value}
+						</Text>
+						<Text
+							size='sm'
+							style={{
+								color: isDark ? "#9ca3af" : "#6b7280",
+							}}>
+							{label}
+						</Text>
+					</VStack>
+				</VStack>
+				<Icon
+					as={ChevronRight}
+					size='lg'
 					style={{
 						color: isDark ? "#9ca3af" : "#6b7280",
-					}}>
-					{label}
-				</Text>
-			</VStack>
+					}}
+				/>
+			</HStack>
 		</Card>
 	);
 
@@ -439,18 +470,32 @@ export default function Tab1() {
 							Statistiques
 						</Text>
 						<HStack space='md'>
-							<StatCard
-								icon={Briefcase}
-								value={stats.totalJobs}
-								label='Offres actives'
-								color='#3b82f6'
-							/>
-							<StatCard
-								icon={Users}
-								value={stats.applications}
-								label='Candidatures'
-								color='#10b981'
-							/>
+							<Pressable
+								onPress={() => router.push("/offers")}
+								style={{ flex: 1 }}>
+								{({ pressed }) => (
+									<StatCard
+										icon={Briefcase}
+										value={stats.totalJobs}
+										label='Offres actives'
+										color='#3b82f6'
+										pressed={pressed}
+									/>
+								)}
+							</Pressable>
+							<Pressable
+								onPress={() => router.push("/applicationspro")}
+								style={{ flex: 1 }}>
+								{({ pressed }) => (
+									<StatCard
+										icon={Users}
+										value={stats.applications}
+										label='Candidatures'
+										color='#10b981'
+										pressed={pressed}
+									/>
+								)}
+							</Pressable>
 						</HStack>
 					</VStack>
 
@@ -749,19 +794,33 @@ export default function Tab1() {
 				</VStack>
 
 				{/* Stats */}
-				<HStack space='md'>
-					<StatCard
-						icon={FileText}
-						value={stats.applications || 0}
-						label='Candidatures'
-						color='#3b82f6'
-					/>
-					<StatCard
-						icon={BookmarkCheck}
-						value={stats.wishlist || 0}
-						label='Favoris'
-						color='#f59e0b'
-					/>
+				<HStack space='md' style={{ width: "100%" }}>
+					<Pressable
+						onPress={() => router.push("/applications")}
+						style={{ flex: 1 }}>
+						{({ pressed }) => (
+							<StatCard
+								icon={FileText}
+								value={stats.applications || 0}
+								label='Candidatures'
+								color='#3b82f6'
+								pressed={pressed}
+							/>
+						)}
+					</Pressable>
+					<Pressable
+						onPress={() => router.push("/wishlist")}
+						style={{ flex: 1 }}>
+						{({ pressed }) => (
+							<StatCard
+								icon={BookmarkCheck}
+								value={stats.wishlist || 0}
+								label='Favoris'
+								color='#f59e0b'
+								pressed={pressed}
+							/>
+						)}
+					</Pressable>
 				</HStack>
 
 				{/* Quick Categories */}
