@@ -157,6 +157,13 @@ function RootLayoutNav() {
 								options={{ headerShown: false }}
 							/>
 							<Stack.Screen
+								name='postjob'
+								options={{
+									headerShown: true,
+									headerTitle: "Publier une offre",
+								}}
+							/>
+							<Stack.Screen
 								name='dashboard'
 								options={{
 									headerShown: true,
@@ -308,10 +315,10 @@ function RootLayoutNav() {
 								name='job'
 								options={{ headerShown: true }}
 							/>
-							<Stack.Screen
+							{/* <Stack.Screen
 								name='addjob'
 								options={{ headerShown: true }}
-							/>
+							/> */}
 							<Stack.Screen
 								name='lastminute'
 								options={{ headerShown: true }}
