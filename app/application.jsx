@@ -274,6 +274,51 @@ const ApplicationScreen = () => {
 		}
 	};
 
+	const resetApplicationNotification = async () => {
+		console.log(
+			"🔄 resetApplicationNotification appelée - role:",
+			role,
+			"user:",
+			user?.id,
+			"apply_id:",
+			apply_id,
+		);
+
+		if (!user?.id || !apply_id || !accessToken) {
+			console.warn("⚠️ resetApplicationNotification: données manquantes");
+			return;
+		}
+
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			// Si pro, on met company_notification à false
+			// Si candidat, on met candidate_notification à false
+			const updateField =
+				role === "pro"
+					? { company_notification: false }
+					: { candidate_notification: false };
+
+			console.log("📝 Update field:", updateField);
+
+			const { data, error } = await supabase
+				.from("applications")
+				.update(updateField)
+				.eq("id", apply_id)
+				.select();
+
+			if (error) {
+				console.error("❌ Erreur resetApplicationNotification:", error);
+			} else {
+				console.log(
+					`✅ Notification application réinitialisée pour ${role}`,
+					data,
+				);
+			}
+		} catch (error) {
+			console.error("Error resetting application notification:", error);
+		}
+	};
+
 	useFocusEffect(
 		useCallback(() => {
 			console.warn("openMessaging on useFocusEffect :", openMessaging);
@@ -282,6 +327,7 @@ const ApplicationScreen = () => {
 			loadApplicationStatus();
 			loadUnreadMessagesCount();
 			markApplicationNotificationsAsRead();
+			resetApplicationNotification();
 
 			// Ouvrir automatiquement l'ActionSheet si on vient d'une notification de message
 			const shouldOpenMessaging =
