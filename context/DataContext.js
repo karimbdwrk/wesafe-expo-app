@@ -40,6 +40,19 @@ export const DataProvider = ({ children }) => {
 		[accessToken],
 	);
 
+	// Helper pour vérifier si un utilisateur est présent sur le screen application
+	const isUserPresentOnApplication = async (userId, applicationId) => {
+		try {
+			const { data } = await axiosInstance.get(
+				`/user_presence?user_id=eq.${userId}&apply_id=eq.${applicationId}&last_seen=gte.${new Date(Date.now() - 5000).toISOString()}`,
+			);
+			return data && data.length > 0;
+		} catch (error) {
+			console.error("Error checking user presence:", error);
+			return false;
+		}
+	};
+
 	const sendNotification = async (payload) => {
 		const EDGE_FUNCTION_URL =
 			"https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/send-notification";
@@ -164,8 +177,31 @@ export const DataProvider = ({ children }) => {
 			);
 			console.log("Applied to job:", applyRes.data);
 
-			// 2. Créer l'événement de statut dans /application_status_events
 			const applicationId = applyRes.data[0]?.id;
+
+			// Vérifier si le pro est présent avant de notifier
+			if (applicationId) {
+				const isProPresent = await isUserPresentOnApplication(
+					companyId,
+					applicationId,
+				);
+				if (!isProPresent) {
+					// Le pro n'est pas sur le screen, on le notifie
+					await axiosInstance.patch(
+						`/applications?id=eq.${applicationId}`,
+						{ company_notification: true },
+					);
+					console.log(
+						"✅ company_notification mis à true (pro absent)",
+					);
+				} else {
+					console.log(
+						"⏩ company_notification reste false (pro présent)",
+					);
+				}
+			}
+
+			// 2. Créer l'événement de statut dans /application_status_events
 			if (applicationId) {
 				const statusEventRes = await axiosInstance.post(
 					`/application_status_events`,
@@ -236,11 +272,58 @@ export const DataProvider = ({ children }) => {
 			updatedBy,
 		);
 		try {
-			// 1. Mettre à jour le statut dans /applications
+			// 1. Récupérer les infos de la candidature pour vérifier la présence
+			const { data: appData } = await axiosInstance.get(
+				`/applications?id=eq.${applicationId}&select=candidate_id,company_id`,
+			);
+
+			const application = appData?.[0];
+			if (!application) {
+				throw new Error("Application not found");
+			}
+
+			// 2. Déterminer qui notifier et vérifier sa présence
+			let notificationField = {};
+			if (updatedBy === "candidate") {
+				// Le candidat fait une action, vérifier si le pro est présent
+				const isProPresent = await isUserPresentOnApplication(
+					application.company_id,
+					applicationId,
+				);
+				if (!isProPresent) {
+					notificationField = { company_notification: true };
+					console.log(
+						"✅ company_notification mis à true (pro absent)",
+					);
+				} else {
+					console.log(
+						"⏩ company_notification reste inchangé (pro présent)",
+					);
+				}
+			} else {
+				// Le pro fait une action, vérifier si le candidat est présent
+				const isCandidatePresent = await isUserPresentOnApplication(
+					application.candidate_id,
+					applicationId,
+				);
+				if (!isCandidatePresent) {
+					notificationField = { candidate_notification: true };
+					console.log(
+						"✅ candidate_notification mis à true (candidat absent)",
+					);
+				} else {
+					console.log(
+						"⏩ candidate_notification reste inchangé (candidat présent)",
+					);
+				}
+			}
+
+			// 3. Mettre à jour le statut dans /applications
 			const updateRes = await axiosInstance.patch(
 				`/applications?id=eq.${applicationId}`,
 				{
 					current_status: newStatus,
+					...notificationField,
 				},
 				{
 					headers: {
@@ -320,15 +403,40 @@ export const DataProvider = ({ children }) => {
 	const confirmApplication = async (applicationId) => {
 		console.warn("Confirmation applicationId :", applicationId);
 		try {
+			// Récupérer le candidate_id pour vérifier sa présence
+			const { data: appData } = await axiosInstance.get(
+				`/applications?id=eq.${applicationId}&select=candidate_id`,
+			);
+
+			const candidateId = appData?.[0]?.candidate_id;
+			const isCandidatePresent = candidateId
+				? await isUserPresentOnApplication(candidateId, applicationId)
+				: false;
+
+			const notificationField = !isCandidatePresent
+				? { candidate_notification: true }
+				: {};
+
+			if (!isCandidatePresent) {
+				console.log(
+					"✅ candidate_notification mis à true (candidat absent)",
+				);
+			} else {
+				console.log(
+					"⏩ candidate_notification reste inchangé (candidat présent)",
+				);
+			}
+
 			const res = await axiosInstance.patch(
 				`/applications?id=eq.${applicationId}`,
 				{
 					isConfirmed: true,
 					isRefused: false,
+					...notificationField,
 				},
 				{
 					headers: {
-						Prefer: "return=representation", // Optional, but helpful for confirmation
+						Prefer: "return=representation",
 					},
 				},
 			);
@@ -346,14 +454,39 @@ export const DataProvider = ({ children }) => {
 	const selectApplication = async (applicationId, bool) => {
 		console.warn("Selected applicationId :", applicationId);
 		try {
+			// Récupérer le candidate_id pour vérifier sa présence
+			const { data: appData } = await axiosInstance.get(
+				`/applications?id=eq.${applicationId}&select=candidate_id`,
+			);
+
+			const candidateId = appData?.[0]?.candidate_id;
+			const isCandidatePresent = candidateId
+				? await isUserPresentOnApplication(candidateId, applicationId)
+				: false;
+
+			const notificationField = !isCandidatePresent
+				? { candidate_notification: true }
+				: {};
+
+			if (!isCandidatePresent) {
+				console.log(
+					"✅ candidate_notification mis à true (candidat absent)",
+				);
+			} else {
+				console.log(
+					"⏩ candidate_notification reste inchangé (candidat présent)",
+				);
+			}
+
 			const res = await axiosInstance.patch(
 				`/applications?id=eq.${applicationId}`,
 				{
 					isSelected: bool,
+					...notificationField,
 				},
 				{
 					headers: {
-						Prefer: "return=representation", // Optional, but helpful for confirmation
+						Prefer: "return=representation",
 					},
 				},
 			);
@@ -371,15 +504,40 @@ export const DataProvider = ({ children }) => {
 	const refuseApplication = async (applicationId) => {
 		console.warn("Selected applicationId :", applicationId);
 		try {
+			// Récupérer le candidate_id pour vérifier sa présence
+			const { data: appData } = await axiosInstance.get(
+				`/applications?id=eq.${applicationId}&select=candidate_id`,
+			);
+
+			const candidateId = appData?.[0]?.candidate_id;
+			const isCandidatePresent = candidateId
+				? await isUserPresentOnApplication(candidateId, applicationId)
+				: false;
+
+			const notificationField = !isCandidatePresent
+				? { candidate_notification: true }
+				: {};
+
+			if (!isCandidatePresent) {
+				console.log(
+					"✅ candidate_notification mis à true (candidat absent)",
+				);
+			} else {
+				console.log(
+					"⏩ candidate_notification reste inchangé (candidat présent)",
+				);
+			}
+
 			const res = await axiosInstance.patch(
 				`/applications?id=eq.${applicationId}`,
 				{
 					isRefused: true,
 					isConfirmed: false,
+					...notificationField,
 				},
 				{
 					headers: {
-						Prefer: "return=representation", // Optional, but helpful for confirmation
+						Prefer: "return=representation",
 					},
 				},
 			);
