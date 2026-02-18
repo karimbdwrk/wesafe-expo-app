@@ -86,9 +86,34 @@ const ApplyCard = ({
 	status,
 }) => {
 	const router = useRouter();
-	const { user, accessToken } = useAuth();
-	const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+	const { user, accessToken, role } = useAuth();
+	const { isDark } = useTheme();
 
+	// États locaux pour les données real-time
+	const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+	const [currentStatus, setCurrentStatus] = useState(status);
+	const [candidateNotification, setCandidateNotification] = useState(
+		application?.candidate_notification || false,
+	);
+	const [companyNotification, setCompanyNotification] = useState(
+		application?.company_notification || false,
+	);
+
+	// Synchroniser avec les props si elles changent
+	useEffect(() => {
+		setCurrentStatus(status);
+	}, [status, apply_id]);
+
+	useEffect(() => {
+		setCandidateNotification(Boolean(application?.candidate_notification));
+		setCompanyNotification(Boolean(application?.company_notification));
+	}, [
+		application?.candidate_notification,
+		application?.company_notification,
+		apply_id,
+	]);
+
+	// Abonnement real-time pour les messages
 	useEffect(() => {
 		if (!user?.id || !apply_id || !accessToken) return;
 
@@ -112,9 +137,8 @@ const ApplyCard = ({
 
 		loadUnreadMessagesCount();
 
-		// Abonnement real-time pour les messages
 		const supabase = createSupabaseClient(accessToken);
-		const channel = supabase
+		const messagesChannel = supabase
 			.channel(`messages-card-${apply_id}`)
 			.on(
 				"postgres_changes",
@@ -131,18 +155,21 @@ const ApplyCard = ({
 			.subscribe();
 
 		return () => {
-			supabase.removeChannel(channel);
+			supabase.removeChannel(messagesChannel);
 		};
 	}, [user?.id, apply_id, accessToken]);
 
-	const { isDark } = useTheme();
-
 	// Obtenir la config du status actuel
-	const statusConfig = STATUS_CONFIG[status] || {
+	const statusConfig = STATUS_CONFIG[currentStatus] || {
 		title: "En attente",
 		action: "muted",
 		icon: Clock,
 	};
+
+	// Déterminer si la carte doit être mise en évidence avec une bordure spéciale
+	const hasNotification =
+		(role === "candidat" && candidateNotification) ||
+		(role === "pro" && companyNotification);
 
 	return (
 		<TouchableOpacity
@@ -167,7 +194,11 @@ const ApplyCard = ({
 					padding: 16,
 					marginBottom: 12,
 					borderWidth: 1,
-					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+					borderColor: hasNotification
+						? "#3b82f6"
+						: isDark
+							? "#4b5563"
+							: "#e5e7eb",
 				}}>
 				<HStack
 					space='md'
