@@ -27,6 +27,7 @@ import {
 	ChevronRight,
 	FileText,
 	Settings,
+	LogOut,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -40,7 +41,7 @@ import SubscriptionPaymentSheet from "../components/SubscriptionPaymentSheet";
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
 const DashboardScreen = () => {
-	const { accessToken, userCompany, user, hasSubscription } = useAuth();
+	const { signOut, user, hasSubscription } = useAuth();
 	const { getById } = useDataContext();
 	const { image } = useImage();
 	const { isDark } = useTheme();
@@ -389,6 +390,15 @@ const DashboardScreen = () => {
 							onPress={() => router.push("/settings")}
 						/>
 					</VStack>
+					<Divider />
+					{/* Déconnexion */}
+					<Button
+						action='negative'
+						onPress={signOut}
+						style={{ marginTop: 8 }}>
+						<ButtonIcon as={LogOut} />
+						<ButtonText>Déconnexion</ButtonText>
+					</Button>
 				</VStack>
 			</Box>
 		</ScrollView>
