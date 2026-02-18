@@ -192,11 +192,17 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='offers'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Mes offres",
+								}}
 							/>
 							<Stack.Screen
 								name='applicationspro'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Candidatures",
+								}}
 							/>
 							<Stack.Screen
 								name='profilelist'
