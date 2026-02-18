@@ -385,7 +385,7 @@ export default function TabLayout({ theme = "light" }) {
 							size='xl'
 							className={`rounded-full p-3.5`}
 							onPress={() => {
-								router.push("/addjob");
+								router.push("/postjob");
 							}}>
 							<ButtonIcon size='xl' as={Plus} />
 						</Button>
