@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ScrollView, StyleSheet, View, RefreshControl } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { createSupabaseClient } from "@/lib/supabase";
 import { Text } from "@/components/ui/text";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
@@ -47,11 +48,60 @@ const ApplicationsProScreen = () => {
 		setTotalCount(totalCount);
 	};
 
-	useFocusEffect(
-		useCallback(() => {
+	useEffect(() => {
+		if (user?.id) {
 			loadDataApplications();
-		}, [page]),
-	);
+		}
+	}, [page, user?.id]);
+
+	// Abonnement real-time pour mettre à jour les applications
+	useEffect(() => {
+		if (!user?.id || !accessToken) return;
+
+		const supabase = createSupabaseClient(accessToken);
+		const channel = supabase
+			.channel(`applications-list-pro-${user.id}`)
+			.on(
+				"postgres_changes",
+				{
+					event: "UPDATE",
+					schema: "public",
+					table: "applications",
+					filter: `company_id=eq.${user.id}`,
+				},
+				(payload) => {
+					console.log(
+						"✅ Real-time applications pro:",
+						payload.new.id,
+						"- company_notification:",
+						payload.new.company_notification,
+					);
+					// Mettre à jour l'application dans la liste en préservant les relations
+					setApplications((prevApps) =>
+						prevApps.map((app) =>
+							app.id === payload.new.id
+								? {
+										...app,
+										current_status:
+											payload.new.current_status,
+										candidate_notification:
+											payload.new.candidate_notification,
+										company_notification:
+											payload.new.company_notification,
+										updated_at: payload.new.updated_at,
+										isRefused: payload.new.isRefused,
+									}
+								: app,
+						),
+					);
+				},
+			)
+			.subscribe();
+
+		return () => {
+			supabase.removeChannel(channel);
+		};
+	}, [user?.id, accessToken]);
 
 	const handleNext = () => {
 		setPage((prev) => prev + 1);
@@ -82,7 +132,7 @@ const ApplicationsProScreen = () => {
 				)}
 				{applications.map((app) => (
 					<ApplyCard
-						key={app.id}
+						key={`${app.id}-${app.candidate_notification}-${app.company_notification}-${app.current_status}`}
 						id={app.job_id}
 						name={
 							app.profiles.lastname + " " + app.profiles.firstname
@@ -93,6 +143,7 @@ const ApplicationsProScreen = () => {
 						isRefused={app.isRefused}
 						apply_id={app.id}
 						status={app.current_status}
+						application={app}
 					/>
 				))}
 				{totalPages > 1 && (
