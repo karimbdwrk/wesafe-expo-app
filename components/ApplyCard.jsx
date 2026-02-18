@@ -27,6 +27,7 @@ import {
 	FileText,
 	IdCard,
 	ChevronRight,
+	MapPin,
 } from "lucide-react-native";
 
 import { useTheme } from "@/context/ThemeContext";
@@ -244,7 +245,12 @@ const ApplyCard = ({
 									}}>
 									{application?.companies?.name}
 								</Heading>
-								<Text size='sm'>Nursing Assistant</Text>
+								<HStack space='xs' className='items-center'>
+									<MapPin size={12} />
+									<Text size='sm'>
+										{application?.jobs?.city}
+									</Text>
+								</HStack>
 							</VStack>
 						</HStack>
 
