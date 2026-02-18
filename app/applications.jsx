@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ScrollView, RefreshControl } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { createSupabaseClient } from "@/lib/supabase";
 import { Text } from "@/components/ui/text";
 import { Heading } from "@/components/ui/heading";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
@@ -29,22 +30,9 @@ import { useTheme } from "@/context/ThemeContext";
 const ITEMS_PER_PAGE = 10;
 
 const ApplicationsScreen = () => {
-	// Rafraîchissement manuel
-	const onRefresh = () => {
-		loadDataApplications();
-	};
-
-	// Chargement initial et à chaque changement de page
-	React.useEffect(() => {
-		if (user && user.id) {
-			loadDataApplications();
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [page, user && user.id]);
-
 	// Fonctions de pagination
 	const scrollRef = useRef(null);
-	const { accessToken, user, signOut } = useAuth();
+	const { accessToken, user, signOut, role } = useAuth();
 	const { getAll, isLoading } = useDataContext();
 	const { isDark } = useTheme();
 
@@ -79,12 +67,158 @@ const ApplicationsScreen = () => {
 		}
 	};
 
+	// Rafraîchissement manuel
+	const onRefresh = () => {
+		loadDataApplications();
+	};
+
+	// Chargement initial et à chaque changement de page
 	useEffect(() => {
 		if (user && user.id) {
 			loadDataApplications();
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [page, user]);
+
+	// Recharger les applications quand on revient sur le screen
+	useFocusEffect(
+		useCallback(() => {
+			if (!user?.id || !accessToken) return;
+
+			// Recharger uniquement les applications qui ont candidate_notification=true
+			const appsWithNotification = applications.filter(
+				(app) => app.candidate_notification,
+			);
+
+			if (appsWithNotification.length === 0) return;
+
+			console.log(
+				"🔄 Refresh applications avec notifications:",
+				appsWithNotification.length,
+			);
+
+			const supabase = createSupabaseClient(accessToken);
+			Promise.all(
+				appsWithNotification.map((app) =>
+					supabase
+						.from("applications")
+						.select("*")
+						.eq("id", app.id)
+						.single(),
+				),
+			).then((results) => {
+				results.forEach(({ data, error }) => {
+					if (!error && data) {
+						console.log(
+							"✅ App rechargée:",
+							data.id,
+							"candidate_notification:",
+							data.candidate_notification,
+						);
+						setApplications((prevApps) =>
+							prevApps.map((app) =>
+								app.id === data.id
+									? {
+											...app,
+											candidate_notification:
+												data.candidate_notification,
+											company_notification:
+												data.company_notification,
+											current_status: data.current_status,
+											updated_at: data.updated_at,
+										}
+									: app,
+							),
+						);
+					}
+				});
+			});
+		}, [user?.id, accessToken, applications]),
+	);
+
+	// Mettre à jour une application quand une notification arrive
+	useEffect(() => {
+		if (!user?.id || !accessToken) return;
+
+		const supabase = createSupabaseClient(accessToken);
+
+		// Écouter les INSERT sur la table notifications
+		const channel = supabase
+			.channel(`notifications-trigger-${user.id}`)
+			.on(
+				"postgres_changes",
+				{
+					event: "INSERT",
+					schema: "public",
+					table: "notifications",
+					filter: `recipient_id=eq.${user.id}`,
+				},
+				async (payload) => {
+					console.log(
+						"📢 Notification INSERT:",
+						payload.new.entity_id,
+					);
+
+					// Si c'est une notification de type message, recharger l'application
+					if (
+						payload.new.entity_type === "message" &&
+						payload.new.entity_id
+					) {
+						console.log(
+							"🔔 Notification reçue, refresh application:",
+							payload.new.entity_id,
+						);
+
+						const { data, error } = await supabase
+							.from("applications")
+							.select("*")
+							.eq("id", payload.new.entity_id)
+							.single();
+
+						if (!error && data) {
+							console.log(
+								"✅ App rechargée:",
+								data.id,
+								"candidate_notification:",
+								data.candidate_notification,
+							);
+							setApplications((prevApps) => {
+								// Retirer l'application de sa position actuelle
+								const otherApps = prevApps.filter(
+									(app) => app.id !== data.id,
+								);
+
+								// Trouver l'application originale pour conserver les relations
+								const originalApp = prevApps.find(
+									(app) => app.id === data.id,
+								);
+
+								if (!originalApp) return prevApps;
+
+								// Créer l'application mise à jour avec relations préservées
+								const updatedApp = {
+									...originalApp,
+									candidate_notification:
+										data.candidate_notification,
+									company_notification:
+										data.company_notification,
+									current_status: data.current_status,
+									updated_at: data.updated_at,
+								};
+
+								// Remettre l'application mise à jour en premier
+								return [updatedApp, ...otherApps];
+							});
+						}
+					}
+				},
+			)
+			.subscribe();
+
+		return () => {
+			supabase.removeChannel(channel);
+		};
+	}, [user?.id, accessToken]);
 
 	const handleNext = () => {
 		setPage((prev) => prev + 1);
@@ -169,7 +303,7 @@ const ApplicationsScreen = () => {
 					)}
 					{applications.map((app) => (
 						<ApplyCard
-							key={app.id}
+							key={`${app.id}-${app.candidate_notification}-${app.company_notification}-${app.current_status}`}
 							id={app.job_id}
 							title={app.jobs.title}
 							category={app.jobs.category}
