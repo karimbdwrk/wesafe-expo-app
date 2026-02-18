@@ -414,17 +414,7 @@ const MessageThread = ({
 				return;
 			}
 
-			// Mettre à jour updated_at de la candidature
-			await supabase
-				.from("applications")
-				.update({ updated_at: new Date().toISOString() })
-				.eq("id", applyId);
-
-			// Vider l'input immédiatement après l'envoi réussi
-			// Ne déclenche pas handleTyping car on a déjà envoyé typing=false
-			setNewMessage("");
-
-			// Récupérer l'apply pour trouver le destinataire
+			// Récupérer l'apply pour trouver le destinataire et vérifier sa présence
 			const { data: applyData, error: applyError } = await supabase
 				.from("applications")
 				.select(
@@ -442,6 +432,75 @@ const MessageThread = ({
 				user.id === applyData.candidate_id
 					? applyData.job.company_id
 					: applyData.candidate_id;
+
+			// Vérifier si le destinataire est présent sur le screen application
+			const { data: presenceData } = await supabase
+				.from("user_presence")
+				.select("apply_id")
+				.eq("user_id", receiverId)
+				.eq("apply_id", applyId)
+				.gte("last_seen", new Date(Date.now() - 5000).toISOString())
+				.single();
+
+			const isReceiverPresent = !!presenceData;
+			console.log(
+				"👁️ Check présence destinataire:",
+				receiverId,
+				"sur apply:",
+				applyId,
+				"présent:",
+				isReceiverPresent,
+			);
+
+			// Mettre à jour updated_at de la candidature ET le flag de notification
+			// Si le candidat envoie un message, on notifie le pro (company_notification)
+			// Si le pro envoie un message, on notifie le candidat (candidate_notification)
+			// SAUF si le destinataire est présent sur le screen
+			let notificationUpdate = {};
+			if (!isReceiverPresent) {
+				notificationUpdate =
+					role === "candidat"
+						? { company_notification: true }
+						: { candidate_notification: true };
+				console.log(
+					"📨 Message envoyé - role:",
+					role,
+					"destinataire absent, notificationUpdate:",
+					notificationUpdate,
+				);
+			} else {
+				console.log(
+					"⏩ Message envoyé - role:",
+					role,
+					"destinataire présent, notification non mise à jour",
+				);
+			}
+
+			const { data: updateData, error: updateError } = await supabase
+				.from("applications")
+				.update({
+					updated_at: new Date().toISOString(),
+					...notificationUpdate,
+				})
+				.eq("id", applyId)
+				.select();
+
+			if (updateError) {
+				console.error("❌ Erreur update notification:", updateError);
+			} else {
+				console.log(
+					"✅ Application UPDATE effectué:",
+					updateData?.[0]?.id,
+					"candidate_notification:",
+					updateData?.[0]?.candidate_notification,
+					"company_notification:",
+					updateData?.[0]?.company_notification,
+				);
+			}
+
+			// Vider l'input immédiatement après l'envoi réussi
+			// Ne déclenche pas handleTyping car on a déjà envoyé typing=false
+			setNewMessage("");
 
 			const jobTitle = applyData?.job?.title || "Offre d'emploi";
 			const candidateName = applyData?.candidate
