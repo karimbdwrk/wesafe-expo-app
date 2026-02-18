@@ -168,6 +168,7 @@ export const DataProvider = ({ children }) => {
 					job_id: jobId,
 					company_id: companyId,
 					current_status: "applied",
+					updated_at: new Date().toISOString(),
 				},
 				{
 					headers: {
@@ -189,7 +190,10 @@ export const DataProvider = ({ children }) => {
 					// Le pro n'est pas sur le screen, on le notifie
 					await axiosInstance.patch(
 						`/applications?id=eq.${applicationId}`,
-						{ company_notification: true },
+						{
+							company_notification: true,
+							updated_at: new Date().toISOString(),
+						},
 					);
 					console.log(
 						"✅ company_notification mis à true (pro absent)",
