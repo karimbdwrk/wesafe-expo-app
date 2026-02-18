@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, Platform, TouchableOpacity } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import { toast } from "sonner-native";
 
@@ -28,12 +29,12 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
-	Radio,
-	RadioGroup,
-	RadioIcon,
-	RadioIndicator,
-	RadioLabel,
-} from "@/components/ui/radio";
+	Checkbox,
+	CheckboxGroup,
+	CheckboxIcon,
+	CheckboxIndicator,
+	CheckboxLabel,
+} from "@/components/ui/checkbox";
 
 import {
 	Briefcase,
@@ -78,6 +79,8 @@ const PostJob = () => {
 	const [currentMission, setCurrentMission] = useState("");
 	const [profileList, setProfileList] = useState([]);
 	const [currentProfile, setCurrentProfile] = useState("");
+	const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+	const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 	const [formData, setFormData] = useState({
 		title: "",
 		category: "",
@@ -88,8 +91,8 @@ const PostJob = () => {
 		contract_type: "CDI",
 		work_time: "Temps plein",
 		work_schedule: "Jour",
-		start_date: "",
-		end_date: "",
+		start_date: null,
+		end_date: null,
 		salary_type: "mois",
 		salary_amount: "",
 		weekly_hours: "",
@@ -122,6 +125,33 @@ const PostJob = () => {
 
 	const removeProfile = (index) => {
 		setProfileList((prev) => prev.filter((_, i) => i !== index));
+	};
+
+	const handleStartDateChange = (event, selectedDate) => {
+		if (Platform.OS === "android") {
+			setShowStartDatePicker(false);
+		}
+		if (selectedDate) {
+			updateField("start_date", selectedDate);
+		}
+	};
+
+	const handleEndDateChange = (event, selectedDate) => {
+		if (Platform.OS === "android") {
+			setShowEndDatePicker(false);
+		}
+		if (selectedDate) {
+			updateField("end_date", selectedDate);
+		}
+	};
+
+	const formatDate = (date) => {
+		if (!date) return "Sélectionner une date";
+		const d = new Date(date);
+		const day = String(d.getDate()).padStart(2, "0");
+		const month = String(d.getMonth() + 1).padStart(2, "0");
+		const year = d.getFullYear();
+		return `${day}/${month}/${year}`;
 	};
 
 	const handleSubmit = async () => {
@@ -162,8 +192,18 @@ const PostJob = () => {
 				}
 			}
 
+			// Formater les dates au format ISO pour la base de données
+			const startDateISO = formData.start_date
+				? formData.start_date.toISOString().split("T")[0]
+				: null;
+			const endDateISO = formData.end_date
+				? formData.end_date.toISOString().split("T")[0]
+				: null;
+
 			await create("jobs", {
 				...formData,
+				start_date: startDateISO,
+				end_date: endDateISO,
 				missions: missionsString,
 				profile_sought: profileString,
 				salary: salaryString,
@@ -404,7 +444,7 @@ const PostJob = () => {
 							</VStack>
 
 							{/* Missions */}
-							<VStack space='xs'>
+							<VStack space='xs' style={{ marginTop: 20 }}>
 								<Text
 									size='sm'
 									style={{
@@ -708,46 +748,47 @@ const PostJob = () => {
 									}}>
 									Type de contrat
 								</Text>
-								<RadioGroup
-									value={formData.contract_type}
-									onChange={(value) =>
-										updateField("contract_type", value)
-									}>
-									<HStack
-										space='lg'
-										style={{ flexWrap: "wrap" }}>
-										{CONTRACT_TYPES.map((type) => (
-											<Radio
-												key={type}
-												value={type}
-												size='md'>
-												<RadioIndicator
+								<VStack space='sm' style={{ flexWrap: "wrap" }}>
+									{CONTRACT_TYPES.map((type) => (
+										<Checkbox
+											key={type}
+											value={type}
+											isChecked={
+												formData.contract_type === type
+											}
+											onChange={() =>
+												updateField(
+													"contract_type",
+													type,
+												)
+											}
+											size='md'>
+											<CheckboxIndicator
+												style={{
+													borderColor: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												<CheckboxIcon
 													style={{
-														borderColor: isDark
-															? "#9ca3af"
-															: "#6b7280",
-													}}>
-													<RadioIcon
-														style={{
-															color: "#3b82f6",
-														}}
-													/>
-												</RadioIndicator>
-												<RadioLabel
-													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}>
-													{type}
-												</RadioLabel>
-											</Radio>
-										))}
-									</HStack>
-								</RadioGroup>
+														color: "#3b82f6",
+													}}
+												/>
+											</CheckboxIndicator>
+											<CheckboxLabel
+												style={{
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												{type}
+											</CheckboxLabel>
+										</Checkbox>
+									))}
+								</VStack>
 							</VStack>
 
-							{/* Dates */}
+							{/* Date de début */}
 							<VStack space='xs'>
 								<Text
 									size='sm'
@@ -757,33 +798,70 @@ const PostJob = () => {
 									}}>
 									Date de début *
 								</Text>
-								<Input
-									variant='outline'
-									size='md'
-									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#ffffff",
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<InputField
-										placeholder='JJ/MM/AAAA'
-										value={formData.start_date}
-										onChangeText={(value) =>
-											updateField("start_date", value)
-										}
+								<TouchableOpacity
+									onPress={() =>
+										setShowStartDatePicker(true)
+									}>
+									<Input
+										variant='outline'
+										size='md'
+										isDisabled
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-										}}
+											pointerEvents: "none",
+											backgroundColor: isDark
+												? "#1f2937"
+												: "#ffffff",
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<InputField
+											value={formatDate(
+												formData.start_date,
+											)}
+											editable={false}
+											style={{
+												color: formData.start_date
+													? isDark
+														? "#f3f4f6"
+														: "#111827"
+													: "#9ca3af",
+											}}
+										/>
+									</Input>
+								</TouchableOpacity>
+								{showStartDatePicker && (
+									<DateTimePicker
+										value={
+											formData.start_date || new Date()
+										}
+										mode='date'
+										display={
+											Platform.OS === "ios"
+												? "spinner"
+												: "default"
+										}
+										onChange={handleStartDateChange}
+										minimumDate={new Date()}
 									/>
-								</Input>
+								)}
+								{Platform.OS === "ios" &&
+									showStartDatePicker && (
+										<Button
+											size='sm'
+											onPress={() =>
+												setShowStartDatePicker(false)
+											}
+											style={{
+												marginTop: 8,
+												backgroundColor: "#3b82f6",
+											}}>
+											<ButtonText>Confirmer</ButtonText>
+										</Button>
+									)}
 							</VStack>
 
-							{/* Date de fin (seulement si CDD, Intérim ou Vacation) */}
+							{/* Date de fin (conditionnelle pour non-CDI) */}
 							{formData.contract_type !== "CDI" && (
 								<VStack space='xs'>
 									<Text
@@ -796,30 +874,73 @@ const PostJob = () => {
 										}}>
 										Date de fin *
 									</Text>
-									<Input
-										variant='outline'
-										size='md'
-										style={{
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#ffffff",
-											borderColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}>
-										<InputField
-											placeholder='JJ/MM/AAAA'
-											value={formData.end_date}
-											onChangeText={(value) =>
-												updateField("end_date", value)
-											}
+									<TouchableOpacity
+										onPress={() =>
+											setShowEndDatePicker(true)
+										}>
+										<Input
+											variant='outline'
+											size='md'
+											isDisabled
 											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}
+												backgroundColor: isDark
+													? "#1f2937"
+													: "#ffffff",
+												borderColor: isDark
+													? "#4b5563"
+													: "#e5e7eb",
+											}}>
+											<InputField
+												value={formatDate(
+													formData.end_date,
+												)}
+												editable={false}
+												style={{
+													color: formData.end_date
+														? isDark
+															? "#f3f4f6"
+															: "#111827"
+														: "#9ca3af",
+												}}
+											/>
+										</Input>
+									</TouchableOpacity>
+									{showEndDatePicker && (
+										<DateTimePicker
+											value={
+												formData.end_date ||
+												formData.start_date ||
+												new Date()
+											}
+											mode='date'
+											display={
+												Platform.OS === "ios"
+													? "spinner"
+													: "default"
+											}
+											onChange={handleEndDateChange}
+											minimumDate={
+												formData.start_date ||
+												new Date()
+											}
 										/>
-									</Input>
+									)}
+									{Platform.OS === "ios" &&
+										showEndDatePicker && (
+											<Button
+												size='sm'
+												onPress={() =>
+													setShowEndDatePicker(false)
+												}
+												style={{
+													marginTop: 8,
+													backgroundColor: "#3b82f6",
+												}}>
+												<ButtonText>
+													Confirmer
+												</ButtonText>
+											</Button>
+										)}
 								</VStack>
 							)}
 
@@ -831,43 +952,43 @@ const PostJob = () => {
 										fontWeight: "600",
 										color: isDark ? "#f3f4f6" : "#111827",
 									}}>
-									Temps de travail
+									Temps de travail *
 								</Text>
-								<RadioGroup
-									value={formData.work_time}
-									onChange={(value) =>
-										updateField("work_time", value)
-									}>
-									<HStack space='lg'>
-										{WORK_TIME.map((time) => (
-											<Radio
-												key={time}
-												value={time}
-												size='md'>
-												<RadioIndicator
+								<VStack space='sm'>
+									{WORK_TIME.map((time) => (
+										<Checkbox
+											key={time}
+											value={time}
+											isChecked={
+												formData.work_time === time
+											}
+											onChange={() =>
+												updateField("work_time", time)
+											}
+											size='md'>
+											<CheckboxIndicator
+												style={{
+													borderColor: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												<CheckboxIcon
 													style={{
-														borderColor: isDark
-															? "#9ca3af"
-															: "#6b7280",
-													}}>
-													<RadioIcon
-														style={{
-															color: "#3b82f6",
-														}}
-													/>
-												</RadioIndicator>
-												<RadioLabel
-													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}>
-													{time}
-												</RadioLabel>
-											</Radio>
-										))}
-									</HStack>
-								</RadioGroup>
+														color: "#3b82f6",
+													}}
+												/>
+											</CheckboxIndicator>
+											<CheckboxLabel
+												style={{
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												{time}
+											</CheckboxLabel>
+										</Checkbox>
+									))}
+								</VStack>
 							</VStack>
 
 							{/* Horaires de travail */}
@@ -880,41 +1001,44 @@ const PostJob = () => {
 									}}>
 									Horaires de travail
 								</Text>
-								<RadioGroup
-									value={formData.work_schedule}
-									onChange={(value) =>
-										updateField("work_schedule", value)
-									}>
-									<HStack space='lg'>
-										{WORK_SCHEDULE.map((schedule) => (
-											<Radio
-												key={schedule}
-												value={schedule}
-												size='md'>
-												<RadioIndicator
+								<VStack space='sm'>
+									{WORK_SCHEDULE.map((schedule) => (
+										<Checkbox
+											key={schedule}
+											size='md'
+											isChecked={
+												formData.work_schedule ===
+												schedule
+											}
+											onChange={() =>
+												updateField(
+													"work_schedule",
+													schedule,
+												)
+											}>
+											<CheckboxIndicator
+												style={{
+													borderColor: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												<CheckboxIcon
 													style={{
-														borderColor: isDark
-															? "#9ca3af"
-															: "#6b7280",
-													}}>
-													<RadioIcon
-														style={{
-															color: "#3b82f6",
-														}}
-													/>
-												</RadioIndicator>
-												<RadioLabel
-													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}>
-													{schedule}
-												</RadioLabel>
-											</Radio>
-										))}
-									</HStack>
-								</RadioGroup>
+														color: "#3b82f6",
+													}}
+												/>
+											</CheckboxIndicator>
+											<CheckboxLabel
+												style={{
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												{schedule}
+											</CheckboxLabel>
+										</Checkbox>
+									))}
+								</VStack>
 							</VStack>
 
 							{/* Salaire */}
@@ -927,58 +1051,66 @@ const PostJob = () => {
 									}}>
 									Type de rémunération
 								</Text>
-								<RadioGroup
-									value={formData.salary_type}
-									onChange={(value) =>
-										updateField("salary_type", value)
-									}>
-									<HStack space='lg'>
-										<Radio value='heure' size='md'>
-											<RadioIndicator
+								<VStack space='sm'>
+									<Checkbox
+										size='md'
+										isChecked={
+											formData.salary_type === "heure"
+										}
+										onChange={() =>
+											updateField("salary_type", "heure")
+										}>
+										<CheckboxIndicator
+											style={{
+												borderColor: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}>
+											<CheckboxIcon
 												style={{
-													borderColor: isDark
-														? "#9ca3af"
-														: "#6b7280",
-												}}>
-												<RadioIcon
-													style={{
-														color: "#3b82f6",
-													}}
-												/>
-											</RadioIndicator>
-											<RadioLabel
+													color: "#3b82f6",
+												}}
+											/>
+										</CheckboxIndicator>
+										<CheckboxLabel
+											style={{
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											À l'heure
+										</CheckboxLabel>
+									</Checkbox>
+									<Checkbox
+										size='md'
+										isChecked={
+											formData.salary_type === "mois"
+										}
+										onChange={() =>
+											updateField("salary_type", "mois")
+										}>
+										<CheckboxIndicator
+											style={{
+												borderColor: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}>
+											<CheckboxIcon
 												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												À l'heure
-											</RadioLabel>
-										</Radio>
-										<Radio value='mois' size='md'>
-											<RadioIndicator
-												style={{
-													borderColor: isDark
-														? "#9ca3af"
-														: "#6b7280",
-												}}>
-												<RadioIcon
-													style={{
-														color: "#3b82f6",
-													}}
-												/>
-											</RadioIndicator>
-											<RadioLabel
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Au mois
-											</RadioLabel>
-										</Radio>
-									</HStack>
-								</RadioGroup>
+													color: "#3b82f6",
+												}}
+											/>
+										</CheckboxIndicator>
+										<CheckboxLabel
+											style={{
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											Au mois
+										</CheckboxLabel>
+									</Checkbox>
+								</VStack>
 							</VStack>
 
 							<HStack space='md'>
