@@ -76,25 +76,70 @@ const result = {
 	department: "Hauts-de-Seine",
 	department_code: "92",
 	description: "Pirhozegopienrgoif",
-	diplomas_required: "",
-	driving_licenses: "",
-	end_date: null,
+	diplomas_required: ["CQP", "SST"],
+	driving_licenses: ["Permis B", "Permis A"],
+	end_date: "2026-03-25",
 	end_time: "23:33",
-	experience_required: "2",
-	isLastMinute: true,
-	languages: "",
+	// experience_required: "2",
+	isLastMinute: false,
+	languages: ["Français", "Anglais"],
 	latitude: 48.8946,
 	longitude: 2.2874,
+	missions: [
+		"Assurer la sécurité des biens et des personnes",
+		"Réaliser des rondes de surveillance",
+		"Intervenir en cas d'incident ou d'urgence",
+	],
 	packed_lunch: true,
 	postcode: "92300",
 	region: "Île-de-France",
 	region_code: "11",
-	reimbursements: "",
+	reimbursements: true,
 	salary_hourly: "15",
-	start_date: "2026-03-19T04:16:53.000Z",
+	searched_profile: [
+		"Carte professionnelle en cours de validité",
+		"Experience en surveillance de site industriel",
+	],
+	start_date: "2026-03-19",
 	start_time: "22:22",
 	title: "Uerhgeonmrgop",
 	weekly_hours: "35",
+	daily_hours: "",
+	work_hours_type: "semaine",
+	work_schedule: "day",
+	work_time: "fulltime",
+};
+
+const result2 = {
+	accommodations: true,
+	category: "Agent SSIAP",
+	city: "Besançon",
+	contract_type: "CDD",
+	daily_hours: "",
+	department: "Doubs",
+	department_code: "25",
+	description: "Fhg’c",
+	diplomas_required: ["SSIAP 1", "CQP", "SST"],
+	driving_licenses: ["Ttt"],
+	end_date: "2026-03-19T23:05:43.000Z",
+	end_time: "23:00",
+	isLastMinute: true,
+	languages: ["Gggg"],
+	latitude: 47.2602,
+	longitude: 6.0123,
+	missions: ["Mission 1", "Mission 2"],
+	packed_lunch: true,
+	postcode: "25000",
+	region: "Bourgogne-Franche-Comté",
+	region_code: "27",
+	reimbursements: ["Ggg"],
+	salary_hourly: "15",
+	searched_profile: ["Profil 1", "Profil 2"],
+	start_date: "2026-03-19T23:05:43.000Z",
+	start_time: "15:00",
+	title: "Hhh",
+	weekly_hours: "25",
+	work_hours_type: "semaine",
 	work_schedule: "Jour",
 	work_time: "Temps plein",
 };
@@ -108,7 +153,7 @@ const CATEGORIES = [
 	"Autres",
 ];
 
-const CONTRACT_TYPES = ["CDI", "CDD", "Intérim", "Vacation"];
+const CONTRACT_TYPES = ["CDI", "CDD"];
 const WORK_TIME = ["Temps plein", "Temps partiel"];
 const WORK_SCHEDULE = ["Jour", "Nuit", "Variable"];
 
@@ -117,7 +162,7 @@ const STEPS = [
 	{ id: 1, title: "Informations principales" },
 	{ id: 2, title: "Localisation et contrat" },
 	{ id: 3, title: "Rémunération" },
-	{ id: 4, title: "Détails" },
+	// { id: 4, title: "Détails" },
 ];
 
 const PostJob = () => {
@@ -129,13 +174,18 @@ const PostJob = () => {
 	const [loading, setLoading] = useState(false);
 	const [currentStep, setCurrentStep] = useState(1);
 	const scrollX = useRef(new Animated.Value(0)).current;
-	const scrollViewRefs = useRef([null, null, null, null]);
+	const scrollViewRefs = useRef([null, null, null]);
 	const startTimeInputRef = useRef(null);
 	const endTimeInputRef = useRef(null);
 	const diplomaInputRef = useRef(null);
 	const drivingLicenseInputRef = useRef(null);
 	const languageInputRef = useRef(null);
 	const reimbursementInputRef = useRef(null);
+	const startDateInputRef = useRef(null);
+	const endDateInputRef = useRef(null);
+	const missionInputRef = useRef(null);
+	const profileInputRef = useRef(null);
+	const hoursInputRef = useRef(null);
 	const [missionsList, setMissionsList] = useState([]);
 	const [currentMission, setCurrentMission] = useState("");
 	const [profileList, setProfileList] = useState([]);
@@ -174,7 +224,9 @@ const PostJob = () => {
 		end_time: "",
 		salary_hourly: "",
 		weekly_hours: "",
-		experience_required: "",
+		daily_hours: "",
+		work_hours_type: "semaine",
+		// experience_required: "",
 		diplomas_required: "",
 		driving_licenses: "",
 		languages: "",
@@ -185,7 +237,17 @@ const PostJob = () => {
 	});
 
 	const updateField = (field, value) => {
-		setFormData((prev) => ({ ...prev, [field]: value }));
+		// Si on change le type d'heures, réinitialiser les deux champs d'heures
+		if (field === "work_hours_type") {
+			setFormData((prev) => ({
+				...prev,
+				[field]: value,
+				weekly_hours: "",
+				daily_hours: "",
+			}));
+		} else {
+			setFormData((prev) => ({ ...prev, [field]: value }));
+		}
 	};
 
 	const searchCities = async (postalCode) => {
@@ -435,7 +497,7 @@ const PostJob = () => {
 				if (!formData.city || !formData.start_date) {
 					toast.error("Erreur", {
 						description:
-							"Veuillez remplir tous les champs obligatoires",
+							"Veuillez remplir tous les champs obligatoires (localisation et dates)",
 					});
 					return false;
 				}
@@ -446,15 +508,39 @@ const PostJob = () => {
 					});
 					return false;
 				}
-				break;
-			case 3:
+				if (!formData.contract_type) {
+					toast.error("Erreur", {
+						description: "Veuillez sélectionner un type de contrat",
+					});
+					return false;
+				}
+				if (!formData.work_time) {
+					toast.error("Erreur", {
+						description:
+							"Veuillez sélectionner un temps de travail",
+					});
+					return false;
+				}
 				if (!formData.salary_hourly) {
 					toast.error("Erreur", {
 						description: "Veuillez indiquer le salaire horaire",
 					});
 					return false;
 				}
-				if (!formData.weekly_hours) {
+				if (
+					formData.work_hours_type === "jour" &&
+					!formData.daily_hours
+				) {
+					toast.error("Erreur", {
+						description:
+							"Veuillez indiquer le nombre d'heures par jour",
+					});
+					return false;
+				}
+				if (
+					formData.work_hours_type === "semaine" &&
+					!formData.weekly_hours
+				) {
 					toast.error("Erreur", {
 						description:
 							"Veuillez indiquer le nombre d'heures par semaine",
@@ -462,8 +548,8 @@ const PostJob = () => {
 					return false;
 				}
 				break;
-			case 4:
-				// Pas de validation obligatoire pour l'étape 4
+			case 3:
+				// Pas de validation obligatoire pour l'étape 3 (Détails)
 				break;
 		}
 		return true;
@@ -480,7 +566,18 @@ const PostJob = () => {
 	};
 
 	const handleSubmit = async () => {
-		console.log("form data to submit:", formData);
+		// Construire l'objet complet avec toutes les données
+		const dataToSubmit = {
+			...formData,
+			missions: missionsList,
+			searched_profile: profileList,
+			diplomas_required: diplomasList,
+			driving_licenses: drivingLicensesList,
+			languages: languagesList,
+			reimbursements: reimbursementsList,
+		};
+
+		console.log("form data to submit:", dataToSubmit);
 		// setLoading(true);
 		// try {
 		// 	// Convertir les listes en strings (une par ligne)
@@ -623,79 +720,42 @@ const PostJob = () => {
 				}}>
 				{/* Étape 1: Informations principales */}
 				<Box style={{ width: SCREEN_WIDTH }}>
-					<ScrollView
-						ref={(ref) => (scrollViewRefs.current[0] = ref)}>
-						<VStack
-							space='lg'
-							style={{ padding: 20, paddingBottom: 100 }}>
-							<Card
-								style={{
-									padding: 20,
-									paddingBottom: 40,
-									backgroundColor: isDark
-										? "#374151"
-										: "#ffffff",
-									borderRadius: 12,
-									borderWidth: 1,
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
-								}}>
-								<VStack space='md'>
-									{/* Titre */}
-									<VStack space='xs'>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Titre du poste *
-										</Text>
-										<Input
-											variant='outline'
-											size='md'
-											style={{
-												backgroundColor: isDark
-													? "#1f2937"
-													: "#ffffff",
-												borderColor: isDark
-													? "#4b5563"
-													: "#e5e7eb",
-											}}>
-											<InputField
-												placeholder='Ex: Agent de sécurité H/F'
-												value={formData.title}
-												onChangeText={(value) =>
-													updateField("title", value)
-												}
+					<KeyboardAvoidingView
+						behavior={Platform.OS === "ios" ? "padding" : "height"}
+						style={{ flex: 1 }}
+						keyboardVerticalOffset={100}>
+						<ScrollView
+							ref={(ref) => (scrollViewRefs.current[0] = ref)}>
+							<VStack
+								space='lg'
+								style={{ padding: 20, paddingBottom: 100 }}>
+								<Card
+									style={{
+										padding: 20,
+										paddingBottom: 40,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
+									<VStack space='md'>
+										{/* Titre */}
+										<VStack space='xs'>
+											<Text
+												size='sm'
 												style={{
+													fontWeight: "600",
 													color: isDark
 														? "#f3f4f6"
 														: "#111827",
-												}}
-											/>
-										</Input>
-									</VStack>
-
-									{/* Catégorie */}
-									<VStack space='xs'>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Catégorie *
-										</Text>
-										<Select
-											selectedValue={formData.category}
-											onValueChange={(value) =>
-												updateField("category", value)
-											}>
-											<SelectTrigger
+												}}>
+												Titre du poste *
+											</Text>
+											<Input
 												variant='outline'
 												size='md'
 												style={{
@@ -706,85 +766,602 @@ const PostJob = () => {
 														? "#4b5563"
 														: "#e5e7eb",
 												}}>
-												<SelectInput
-													placeholder='Sélectionnez une catégorie'
+												<InputField
+													placeholder='Ex: Agent de sécurité H/F'
+													value={formData.title}
+													onChangeText={(value) =>
+														updateField(
+															"title",
+															value,
+														)
+													}
 													style={{
 														color: isDark
 															? "#f3f4f6"
 															: "#111827",
 													}}
 												/>
-												<SelectIcon
-													as={ChevronDown}
-													style={{
-														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
-													}}
-												/>
-											</SelectTrigger>
-											<SelectPortal>
-												<SelectBackdrop />
-												<SelectContent>
-													<SelectDragIndicatorWrapper>
-														<SelectDragIndicator />
-													</SelectDragIndicatorWrapper>
-													{CATEGORIES.map((cat) => (
-														<SelectItem
-															key={cat}
-															label={cat}
-															value={cat}
-														/>
-													))}
-												</SelectContent>
-											</SelectPortal>
-										</Select>
-									</VStack>
+											</Input>
+										</VStack>
 
-									{/* Description */}
-									<VStack space='xs'>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Description du poste *
-										</Text>
-										<Textarea
-											size='md'
-											style={{
-												backgroundColor: isDark
-													? "#1f2937"
-													: "#ffffff",
-												borderColor: isDark
-													? "#4b5563"
-													: "#e5e7eb",
-												minHeight: 120,
-											}}>
-											<TextareaInput
-												placeholder='Décrivez le poste et les responsabilités...'
-												value={formData.description}
-												onChangeText={(value) =>
+										{/* Catégorie */}
+										<VStack space='xs'>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Catégorie *
+											</Text>
+											<Select
+												selectedValue={
+													formData.category
+												}
+												onValueChange={(value) =>
 													updateField(
-														"description",
+														"category",
 														value,
 													)
-												}
+												}>
+												<SelectTrigger
+													variant='outline'
+													size='md'
+													style={{
+														backgroundColor: isDark
+															? "#1f2937"
+															: "#ffffff",
+														borderColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}>
+													<SelectInput
+														placeholder='Sélectionnez une catégorie'
+														style={{
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}
+													/>
+													<SelectIcon
+														as={ChevronDown}
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}
+													/>
+												</SelectTrigger>
+												<SelectPortal>
+													<SelectBackdrop />
+													<SelectContent>
+														<SelectDragIndicatorWrapper>
+															<SelectDragIndicator />
+														</SelectDragIndicatorWrapper>
+														{CATEGORIES.map(
+															(cat) => (
+																<SelectItem
+																	key={cat}
+																	label={cat}
+																	value={cat}
+																/>
+															),
+														)}
+													</SelectContent>
+												</SelectPortal>
+											</Select>
+										</VStack>
+
+										{/* Description */}
+										<VStack space='xs'>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Description du poste *
+											</Text>
+											<Textarea
+												size='md'
+												style={{
+													backgroundColor: isDark
+														? "#1f2937"
+														: "#ffffff",
+													borderColor: isDark
+														? "#4b5563"
+														: "#e5e7eb",
+													minHeight: 120,
+												}}>
+												<TextareaInput
+													placeholder='Décrivez le poste et les responsabilités...'
+													value={formData.description}
+													onChangeText={(value) =>
+														updateField(
+															"description",
+															value,
+														)
+													}
+													style={{
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}
+												/>
+											</Textarea>
+										</VStack>
+									</VStack>
+								</Card>
+
+								{/* Missions principales */}
+								<Card
+									style={{
+										padding: 20,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
+									<VStack space='md'>
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={FileText}
+												size='lg'
 												style={{
 													color: isDark
 														? "#f3f4f6"
 														: "#111827",
 												}}
 											/>
-										</Textarea>
+											<Heading
+												size='md'
+												style={{
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Missions principales
+											</Heading>
+										</HStack>
+
+										<Divider
+											style={{
+												backgroundColor: isDark
+													? "#4b5563"
+													: "#e5e7eb",
+											}}
+										/>
+
+										<HStack space='sm'>
+											<VStack
+												ref={missionInputRef}
+												style={{ flex: 1 }}>
+												<Input
+													variant='outline'
+													size='md'
+													style={{
+														backgroundColor: isDark
+															? "#1f2937"
+															: "#ffffff",
+														borderColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}>
+													<InputField
+														placeholder='Ajouter une mission...'
+														value={currentMission}
+														onChangeText={
+															setCurrentMission
+														}
+														onFocus={() =>
+															scrollToInput(
+																missionInputRef,
+																0,
+															)
+														}
+														onSubmitEditing={
+															addMission
+														}
+														returnKeyType='done'
+														style={{
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}
+													/>
+												</Input>
+											</VStack>
+											<Button
+												size='md'
+												onPress={addMission}
+												style={{
+													backgroundColor: "#3b82f6",
+												}}>
+												<ButtonIcon
+													as={Plus}
+													style={{ color: "#ffffff" }}
+												/>
+											</Button>
+										</HStack>
+										{missionsList.length > 0 && (
+											<VStack
+												space='xs'
+												style={{ marginTop: 8 }}>
+												{missionsList.map(
+													(mission, index) => (
+														<HStack
+															key={index}
+															space='sm'
+															style={{
+																alignItems:
+																	"center",
+																padding: 8,
+																backgroundColor:
+																	isDark
+																		? "#1f2937"
+																		: "#f3f4f6",
+																borderRadius: 8,
+															}}>
+															<Box
+																style={{
+																	width: 6,
+																	height: 6,
+																	borderRadius: 3,
+																	backgroundColor:
+																		"#3b82f6",
+																}}
+															/>
+															<Text
+																size='sm'
+																style={{
+																	flex: 1,
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																{mission}
+															</Text>
+															<Button
+																size='xs'
+																variant='link'
+																onPress={() =>
+																	removeMission(
+																		index,
+																	)
+																}>
+																<ButtonIcon
+																	as={Trash2}
+																	size='sm'
+																	style={{
+																		color: "#ef4444",
+																	}}
+																/>
+															</Button>
+														</HStack>
+													),
+												)}
+											</VStack>
+										)}
 									</VStack>
-								</VStack>
-							</Card>
-						</VStack>
-					</ScrollView>
+								</Card>
+
+								{/* Profil recherché */}
+								<Card
+									style={{
+										padding: 20,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
+									<VStack space='md'>
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={Users}
+												size='lg'
+												style={{
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}
+											/>
+											<Heading
+												size='md'
+												style={{
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Profil recherché
+											</Heading>
+										</HStack>
+
+										<Divider
+											style={{
+												backgroundColor: isDark
+													? "#4b5563"
+													: "#e5e7eb",
+											}}
+										/>
+
+										<HStack space='sm'>
+											<VStack
+												ref={profileInputRef}
+												style={{ flex: 1 }}>
+												<Input
+													variant='outline'
+													size='md'
+													style={{
+														backgroundColor: isDark
+															? "#1f2937"
+															: "#ffffff",
+														borderColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}>
+													<InputField
+														placeholder='Ajouter une compétence...'
+														value={currentProfile}
+														onChangeText={
+															setCurrentProfile
+														}
+														onFocus={() =>
+															scrollToInput(
+																profileInputRef,
+																0,
+															)
+														}
+														onSubmitEditing={
+															addProfile
+														}
+														returnKeyType='done'
+														style={{
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}
+													/>
+												</Input>
+											</VStack>
+											<Button
+												size='md'
+												onPress={addProfile}
+												style={{
+													backgroundColor: "#3b82f6",
+												}}>
+												<ButtonIcon
+													as={Plus}
+													style={{ color: "#ffffff" }}
+												/>
+											</Button>
+										</HStack>
+										{profileList.length > 0 && (
+											<VStack
+												space='xs'
+												style={{ marginTop: 8 }}>
+												{profileList.map(
+													(profile, index) => (
+														<HStack
+															key={index}
+															space='sm'
+															style={{
+																alignItems:
+																	"center",
+																padding: 8,
+																backgroundColor:
+																	isDark
+																		? "#1f2937"
+																		: "#f3f4f6",
+																borderRadius: 8,
+															}}>
+															<Box
+																style={{
+																	width: 6,
+																	height: 6,
+																	borderRadius: 3,
+																	backgroundColor:
+																		"#10b981",
+																}}
+															/>
+															<Text
+																size='sm'
+																style={{
+																	flex: 1,
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																{profile}
+															</Text>
+															<Button
+																size='xs'
+																variant='link'
+																onPress={() =>
+																	removeProfile(
+																		index,
+																	)
+																}>
+																<ButtonIcon
+																	as={Trash2}
+																	size='sm'
+																	style={{
+																		color: "#ef4444",
+																	}}
+																/>
+															</Button>
+														</HStack>
+													),
+												)}
+											</VStack>
+										)}
+									</VStack>
+								</Card>
+
+								{/* Diplômes requis */}
+								<Card
+									style={{
+										padding: 20,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
+									<VStack space='md'>
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={GraduationCap}
+												size='lg'
+												style={{
+													color: isDark
+														? "#60a5fa"
+														: "#3b82f6",
+												}}
+											/>
+											<Text
+												size='md'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Diplômes requis
+											</Text>
+										</HStack>
+										<HStack space='sm'>
+											<VStack
+												ref={diplomaInputRef}
+												style={{ flex: 1 }}>
+												<Input
+													variant='outline'
+													size='md'
+													style={{
+														backgroundColor: isDark
+															? "#1f2937"
+															: "#ffffff",
+														borderColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}>
+													<InputField
+														placeholder='Ex: SSIAP 1'
+														value={currentDiploma}
+														onChangeText={
+															setCurrentDiploma
+														}
+														onFocus={() =>
+															scrollToInput(
+																diplomaInputRef,
+																0,
+															)
+														}
+														style={{
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}
+													/>
+												</Input>
+											</VStack>
+											<Button
+												size='md'
+												onPress={addDiploma}
+												style={{
+													backgroundColor: "#3b82f6",
+												}}>
+												<ButtonIcon
+													as={Plus}
+													style={{ color: "#ffffff" }}
+												/>
+											</Button>
+										</HStack>
+										{/* Liste des diplômes */}
+										{diplomasList.length > 0 && (
+											<VStack
+												space='xs'
+												style={{ marginTop: 8 }}>
+												{diplomasList.map(
+													(diploma, index) => (
+														<HStack
+															key={index}
+															space='sm'
+															style={{
+																alignItems:
+																	"center",
+																padding: 8,
+																backgroundColor:
+																	isDark
+																		? "#1f2937"
+																		: "#f3f4f6",
+																borderRadius: 8,
+															}}>
+															<Box
+																style={{
+																	width: 6,
+																	height: 6,
+																	borderRadius: 3,
+																	backgroundColor:
+																		"#3b82f6",
+																}}
+															/>
+															<Text
+																size='sm'
+																style={{
+																	flex: 1,
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																{diploma}
+															</Text>
+															<Button
+																size='xs'
+																variant='link'
+																onPress={() =>
+																	removeDiploma(
+																		index,
+																	)
+																}>
+																<ButtonIcon
+																	as={Trash2}
+																	size='sm'
+																	style={{
+																		color: "#ef4444",
+																	}}
+																/>
+															</Button>
+														</HStack>
+													),
+												)}
+											</VStack>
+										)}
+									</VStack>
+								</Card>
+							</VStack>
+						</ScrollView>
+					</KeyboardAvoidingView>
 				</Box>
 
 				{/* Étape 2: Localisation et contrat */}
@@ -1144,7 +1721,9 @@ const PostJob = () => {
 									}}>
 									<VStack space='md'>
 										{/* Date de début */}
-										<VStack space='xs'>
+										<VStack
+											space='xs'
+											ref={startDateInputRef}>
 											<Text
 												size='sm'
 												style={{
@@ -1161,6 +1740,37 @@ const PostJob = () => {
 													setShowStartDatePicker(
 														true,
 													);
+													if (
+														startDateInputRef.current &&
+														scrollViewRefs
+															.current[1]
+													) {
+														setTimeout(() => {
+															startDateInputRef.current.measureLayout(
+																scrollViewRefs
+																	.current[1],
+																(x, y) => {
+																	const screenHeight =
+																		Dimensions.get(
+																			"window",
+																		).height;
+																	const centerOffset =
+																		screenHeight /
+																			2 -
+																		150;
+																	scrollViewRefs.current[1].scrollTo(
+																		{
+																			y:
+																				y -
+																				centerOffset,
+																			animated: true,
+																		},
+																	);
+																},
+																() => {},
+															);
+														}, 150);
+													}
 												}}>
 												<Input
 													variant='outline'
@@ -1231,7 +1841,9 @@ const PostJob = () => {
 
 										{/* Date de fin (conditionnelle pour non-CDI) */}
 										{formData.contract_type !== "CDI" && (
-											<VStack space='xs'>
+											<VStack
+												space='xs'
+												ref={endDateInputRef}>
 												<Text
 													size='sm'
 													style={{
@@ -1248,6 +1860,37 @@ const PostJob = () => {
 														setShowEndDatePicker(
 															true,
 														);
+														if (
+															endDateInputRef.current &&
+															scrollViewRefs
+																.current[1]
+														) {
+															setTimeout(() => {
+																endDateInputRef.current.measureLayout(
+																	scrollViewRefs
+																		.current[1],
+																	(x, y) => {
+																		const screenHeight =
+																			Dimensions.get(
+																				"window",
+																			).height;
+																		const centerOffset =
+																			screenHeight /
+																				2 -
+																			150;
+																		scrollViewRefs.current[1].scrollTo(
+																			{
+																				y:
+																					y -
+																					centerOffset,
+																				animated: true,
+																			},
+																		);
+																	},
+																	() => {},
+																);
+															}, 150);
+														}
 													}}>
 													<Input
 														variant='outline'
@@ -1592,24 +2235,7 @@ const PostJob = () => {
 										</HStack>
 									</VStack>
 								</Card>
-							</VStack>
-						</ScrollView>
-					</KeyboardAvoidingView>
-				</Box>
 
-				{/* Étape 3: Rémunération */}
-				<Box style={{ width: SCREEN_WIDTH }}>
-					<KeyboardAvoidingView
-						behavior={Platform.OS === "ios" ? "padding" : "height"}
-						style={{ flex: 1 }}
-						keyboardVerticalOffset={100}>
-						<ScrollView
-							ref={(ref) => (scrollViewRefs.current[2] = ref)}
-							keyboardShouldPersistTaps='handled'>
-							<VStack
-								space='lg'
-								style={{ padding: 20, paddingBottom: 100 }}>
-								{/* Type de rémunération */}
 								<Card
 									style={{
 										padding: 20,
@@ -1700,11 +2326,126 @@ const PostJob = () => {
 													/>
 												</Input>
 											</VStack>
+										</HStack>
 
-											{/* Heures par semaine */}
+										{/* Sélecteur semaine/jour */}
+										<VStack space='xs'>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Période de travail *
+											</Text>
+											<HStack space='sm'>
+												<Pressable
+													onPress={() =>
+														updateField(
+															"work_hours_type",
+															"semaine",
+														)
+													}
+													style={{ flex: 1 }}>
+													<Box
+														style={{
+															padding: 12,
+															borderRadius: 10,
+															borderWidth: 2,
+															borderColor:
+																formData.work_hours_type ===
+																"semaine"
+																	? "#3b82f6"
+																	: isDark
+																		? "#4b5563"
+																		: "#e5e7eb",
+															backgroundColor:
+																formData.work_hours_type ===
+																"semaine"
+																	? isDark
+																		? "#1e3a8a"
+																		: "#dbeafe"
+																	: isDark
+																		? "#1f2937"
+																		: "#f9fafb",
+															alignItems:
+																"center",
+														}}>
+														<Text
+															style={{
+																fontWeight:
+																	"600",
+																color:
+																	formData.work_hours_type ===
+																	"semaine"
+																		? "#3b82f6"
+																		: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+															}}>
+															Par semaine
+														</Text>
+													</Box>
+												</Pressable>
+												<Pressable
+													onPress={() =>
+														updateField(
+															"work_hours_type",
+															"jour",
+														)
+													}
+													style={{ flex: 1 }}>
+													<Box
+														style={{
+															padding: 12,
+															borderRadius: 10,
+															borderWidth: 2,
+															borderColor:
+																formData.work_hours_type ===
+																"jour"
+																	? "#3b82f6"
+																	: isDark
+																		? "#4b5563"
+																		: "#e5e7eb",
+															backgroundColor:
+																formData.work_hours_type ===
+																"jour"
+																	? isDark
+																		? "#1e3a8a"
+																		: "#dbeafe"
+																	: isDark
+																		? "#1f2937"
+																		: "#f9fafb",
+															alignItems:
+																"center",
+														}}>
+														<Text
+															style={{
+																fontWeight:
+																	"600",
+																color:
+																	formData.work_hours_type ===
+																	"jour"
+																		? "#3b82f6"
+																		: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+															}}>
+															Par jour
+														</Text>
+													</Box>
+												</Pressable>
+											</HStack>
+										</VStack>
+
+										{/* Input heures par semaine */}
+										{formData.work_hours_type ===
+											"semaine" && (
 											<VStack
 												space='xs'
-												style={{ flex: 1 }}>
+												ref={hoursInputRef}>
 												<Text
 													size='sm'
 													style={{
@@ -1737,6 +2478,12 @@ const PostJob = () => {
 																value,
 															)
 														}
+														onFocus={() =>
+															scrollToInput(
+																hoursInputRef,
+																1,
+															)
+														}
 														keyboardType='decimal-pad'
 														style={{
 															color: isDark
@@ -1746,11 +2493,70 @@ const PostJob = () => {
 													/>
 												</Input>
 											</VStack>
-										</HStack>
+										)}
 
+										{/* Input heures par jour */}
+										{formData.work_hours_type ===
+											"jour" && (
+											<VStack
+												space='xs'
+												ref={hoursInputRef}>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Heures/jour *
+												</Text>
+												<Input
+													variant='outline'
+													size='md'
+													style={{
+														backgroundColor: isDark
+															? "#1f2937"
+															: "#ffffff",
+														borderColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}>
+													<InputField
+														placeholder='Ex: 7'
+														value={
+															formData.daily_hours
+														}
+														onChangeText={(value) =>
+															updateField(
+																"daily_hours",
+																value,
+															)
+														}
+														onFocus={() =>
+															scrollToInput(
+																hoursInputRef,
+																1,
+															)
+														}
+														keyboardType='decimal-pad'
+														style={{
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}
+													/>
+												</Input>
+											</VStack>
+										)}
 										{/* Calcul du salaire mensuel */}
 										{formData.salary_hourly &&
-											formData.weekly_hours && (
+											((formData.work_hours_type ===
+												"jour" &&
+												formData.daily_hours) ||
+												(formData.work_hours_type ===
+													"semaine" &&
+													formData.weekly_hours)) && (
 												<Box
 													style={{
 														padding: 16,
@@ -1781,16 +2587,30 @@ const PostJob = () => {
 																	"700",
 																color: "#3b82f6",
 															}}>
-															{(
-																(parseFloat(
-																	formData.salary_hourly,
-																) *
-																	parseFloat(
-																		formData.weekly_hours,
-																	) *
-																	52) /
-																12
-															).toFixed(2)}{" "}
+															{formData.work_hours_type ===
+															"jour"
+																? (
+																		(parseFloat(
+																			formData.salary_hourly,
+																		) *
+																			parseFloat(
+																				formData.daily_hours,
+																			) *
+																			22) /
+																		1
+																	).toFixed(2)
+																: (
+																		(parseFloat(
+																			formData.salary_hourly,
+																		) *
+																			parseFloat(
+																				formData.weekly_hours,
+																			) *
+																			52) /
+																		12
+																	).toFixed(
+																		2,
+																	)}{" "}
 															€
 														</Text>
 														<Text
@@ -1800,248 +2620,14 @@ const PostJob = () => {
 																	? "#93c5fd"
 																	: "#1e40af",
 															}}>
-															Calcul :{" "}
-															{
-																formData.salary_hourly
-															}
-															€/h ×{" "}
-															{
-																formData.weekly_hours
-															}
-															h/sem × 52 sem ÷ 12
-															mois
+															{formData.work_hours_type ===
+															"jour"
+																? `Calcul : ${formData.salary_hourly}€/h × ${formData.daily_hours}h/jour × 22 jours`
+																: `Calcul : ${formData.salary_hourly}€/h × ${formData.weekly_hours}h/sem × 52 sem ÷ 12 mois`}
 														</Text>
 													</VStack>
 												</Box>
 											)}
-									</VStack>
-								</Card>
-
-								{/* Expérience requise */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<VStack space='xs'>
-											<Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Expérience requise
-											</Text>
-											<HStack
-												space='md'
-												style={{
-													alignItems: "center",
-												}}>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														flex: 1,
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ex: 2'
-														value={
-															formData.experience_required
-														}
-														onChangeText={(value) =>
-															updateField(
-																"experience_required",
-																value,
-															)
-														}
-														keyboardType='numeric'
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Input>
-												<Text
-													size='sm'
-													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-														fontWeight: "500",
-													}}>
-													{formData.experience_required &&
-													parseInt(
-														formData.experience_required,
-													) === 1
-														? "an minimum"
-														: "ans minimum"}
-												</Text>
-											</HStack>
-										</VStack>
-									</VStack>
-								</Card>
-
-								{/* Diplômes requis */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={GraduationCap}
-												size='lg'
-												style={{
-													color: isDark
-														? "#60a5fa"
-														: "#3b82f6",
-												}}
-											/>
-											<Text
-												size='md'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Diplômes requis
-											</Text>
-										</HStack>
-										<HStack space='sm'>
-											<VStack
-												ref={diplomaInputRef}
-												style={{ flex: 1 }}>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ex: SSIAP 1'
-														value={currentDiploma}
-														onChangeText={
-															setCurrentDiploma
-														}
-														onFocus={() =>
-															scrollToInput(
-																diplomaInputRef,
-																2,
-															)
-														}
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Input>
-											</VStack>
-											<Button
-												size='md'
-												onPress={addDiploma}
-												style={{
-													backgroundColor: "#3b82f6",
-												}}>
-												<ButtonIcon
-													as={Plus}
-													style={{ color: "#ffffff" }}
-												/>
-											</Button>
-										</HStack>
-										{/* Liste des diplômes */}
-										{diplomasList.length > 0 && (
-											<VStack
-												space='xs'
-												style={{ marginTop: 8 }}>
-												{diplomasList.map(
-													(diploma, index) => (
-														<HStack
-															key={index}
-															space='sm'
-															style={{
-																alignItems:
-																	"center",
-																padding: 8,
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#f3f4f6",
-																borderRadius: 8,
-															}}>
-															<Box
-																style={{
-																	width: 6,
-																	height: 6,
-																	borderRadius: 3,
-																	backgroundColor:
-																		"#3b82f6",
-																}}
-															/>
-															<Text
-																size='sm'
-																style={{
-																	flex: 1,
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}>
-																{diploma}
-															</Text>
-															<Button
-																size='xs'
-																variant='link'
-																onPress={() =>
-																	removeDiploma(
-																		index,
-																	)
-																}>
-																<ButtonIcon
-																	as={Trash2}
-																	size='sm'
-																	style={{
-																		color: "#ef4444",
-																	}}
-																/>
-															</Button>
-														</HStack>
-													),
-												)}
-											</VStack>
-										)}
 									</VStack>
 								</Card>
 							</VStack>
@@ -2049,313 +2635,17 @@ const PostJob = () => {
 					</KeyboardAvoidingView>
 				</Box>
 
-				{/* Étape 4: Détails */}
+				{/* Étape 3: Détails */}
 				<Box style={{ width: SCREEN_WIDTH }}>
 					<KeyboardAvoidingView
 						behavior={Platform.OS === "ios" ? "padding" : "height"}
 						style={{ flex: 1 }}
 						keyboardVerticalOffset={100}>
 						<ScrollView
-							ref={(ref) => (scrollViewRefs.current[3] = ref)}>
+							ref={(ref) => (scrollViewRefs.current[2] = ref)}>
 							<VStack
 								space='lg'
 								style={{ padding: 20, paddingBottom: 100 }}>
-								{/* Missions */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={FileText}
-												size='lg'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}
-											/>
-											<Heading
-												size='md'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Missions principales
-											</Heading>
-										</HStack>
-
-										<Divider
-											style={{
-												backgroundColor: isDark
-													? "#4b5563"
-													: "#e5e7eb",
-											}}
-										/>
-
-										<HStack space='sm'>
-											<Input
-												variant='outline'
-												size='md'
-												style={{
-													flex: 1,
-													backgroundColor: isDark
-														? "#1f2937"
-														: "#ffffff",
-													borderColor: isDark
-														? "#4b5563"
-														: "#e5e7eb",
-												}}>
-												<InputField
-													placeholder='Ajouter une mission...'
-													value={currentMission}
-													onChangeText={
-														setCurrentMission
-													}
-													onSubmitEditing={addMission}
-													returnKeyType='done'
-													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}
-												/>
-											</Input>
-											<Button
-												size='md'
-												onPress={addMission}
-												style={{
-													backgroundColor: "#3b82f6",
-												}}>
-												<ButtonIcon
-													as={Plus}
-													style={{ color: "#ffffff" }}
-												/>
-											</Button>
-										</HStack>
-										{/* Liste des missions */}
-										{missionsList.length > 0 && (
-											<VStack
-												space='xs'
-												style={{ marginTop: 8 }}>
-												{missionsList.map(
-													(mission, index) => (
-														<HStack
-															key={index}
-															space='sm'
-															style={{
-																alignItems:
-																	"center",
-																padding: 8,
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#f3f4f6",
-																borderRadius: 8,
-															}}>
-															<Box
-																style={{
-																	width: 6,
-																	height: 6,
-																	borderRadius: 3,
-																	backgroundColor:
-																		"#3b82f6",
-																}}
-															/>
-															<Text
-																size='sm'
-																style={{
-																	flex: 1,
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}>
-																{mission}
-															</Text>
-															<Button
-																size='xs'
-																variant='link'
-																onPress={() =>
-																	removeMission(
-																		index,
-																	)
-																}>
-																<ButtonIcon
-																	as={Trash2}
-																	size='sm'
-																	style={{
-																		color: "#ef4444",
-																	}}
-																/>
-															</Button>
-														</HStack>
-													),
-												)}
-											</VStack>
-										)}
-									</VStack>
-								</Card>
-
-								{/* Profil recherché */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={Users}
-												size='lg'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}
-											/>
-											<Heading
-												size='md'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Profil recherché
-											</Heading>
-										</HStack>
-
-										<Divider
-											style={{
-												backgroundColor: isDark
-													? "#4b5563"
-													: "#e5e7eb",
-											}}
-										/>
-
-										<HStack space='sm'>
-											<Input
-												variant='outline'
-												size='md'
-												style={{
-													flex: 1,
-													backgroundColor: isDark
-														? "#1f2937"
-														: "#ffffff",
-													borderColor: isDark
-														? "#4b5563"
-														: "#e5e7eb",
-												}}>
-												<InputField
-													placeholder='Ajouter une compétence...'
-													value={currentProfile}
-													onChangeText={
-														setCurrentProfile
-													}
-													onSubmitEditing={addProfile}
-													returnKeyType='done'
-													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}
-												/>
-											</Input>
-											<Button
-												size='md'
-												onPress={addProfile}
-												style={{
-													backgroundColor: "#3b82f6",
-												}}>
-												<ButtonIcon
-													as={Plus}
-													style={{ color: "#ffffff" }}
-												/>
-											</Button>
-										</HStack>
-										{/* Liste des compétences */}
-										{profileList.length > 0 && (
-											<VStack
-												space='xs'
-												style={{ marginTop: 8 }}>
-												{profileList.map(
-													(profile, index) => (
-														<HStack
-															key={index}
-															space='sm'
-															style={{
-																alignItems:
-																	"center",
-																padding: 8,
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#f3f4f6",
-																borderRadius: 8,
-															}}>
-															<Box
-																style={{
-																	width: 6,
-																	height: 6,
-																	borderRadius: 3,
-																	backgroundColor:
-																		"#10b981",
-																}}
-															/>
-															<Text
-																size='sm'
-																style={{
-																	flex: 1,
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}>
-																{profile}
-															</Text>
-															<Button
-																size='xs'
-																variant='link'
-																onPress={() =>
-																	removeProfile(
-																		index,
-																	)
-																}>
-																<ButtonIcon
-																	as={Trash2}
-																	size='sm'
-																	style={{
-																		color: "#ef4444",
-																	}}
-																/>
-															</Button>
-														</HStack>
-													),
-												)}
-											</VStack>
-										)}
-									</VStack>
-								</Card>
-
 								{/* Permis de conduire */}
 								<Card
 									style={{
@@ -2419,7 +2709,7 @@ const PostJob = () => {
 														onFocus={() =>
 															scrollToInput(
 																drivingLicenseInputRef,
-																3,
+																2,
 															)
 														}
 														style={{
@@ -2566,7 +2856,7 @@ const PostJob = () => {
 														onFocus={() =>
 															scrollToInput(
 																languageInputRef,
-																3,
+																2,
 															)
 														}
 														style={{
@@ -2715,7 +3005,7 @@ const PostJob = () => {
 														onFocus={() =>
 															scrollToInput(
 																reimbursementInputRef,
-																3,
+																2,
 															)
 														}
 														style={{
