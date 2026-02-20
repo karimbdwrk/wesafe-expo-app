@@ -825,7 +825,6 @@ const PostJob = () => {
 				salary_annual_max: cleanNumericField(
 					formData.salary_annual_max,
 				),
-				salary: salaryString || null,
 				weekly_hours: cleanNumericField(formData.weekly_hours),
 				daily_hours: cleanNumericField(formData.daily_hours),
 				work_hours_type: mapWorkHoursType(formData.work_hours_type),
