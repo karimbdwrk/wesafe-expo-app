@@ -68,6 +68,55 @@ import { position } from "dom-helpers";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
+// Fonctions helper pour parser et mapper les données
+const parseJsonField = (field) => {
+	if (!field) return [];
+	try {
+		return JSON.parse(field);
+	} catch (e) {
+		return [];
+	}
+};
+
+const mapWorkTime = (value) => {
+	if (value === "fulltime") return "Temps plein";
+	if (value === "parttime") return "Temps partiel";
+	return value;
+};
+
+const mapWorkSchedule = (value) => {
+	if (value === "daily") return "Jour";
+	if (value === "nightly") return "Nuit";
+	if (value === "variable") return "Variable";
+	return value;
+};
+
+const mapWorkHoursType = (value) => {
+	if (value === "weekly") return "semaine";
+	if (value === "daily") return "jour";
+	return value;
+};
+
+const formatSalary = (job) => {
+	if (!job?.salary_hourly) return "Non spécifié";
+	const hoursType = mapWorkHoursType(job.work_hours_type);
+	if (hoursType === "jour" && job.daily_hours) {
+		const monthlySalary = (
+			job.salary_hourly *
+			job.daily_hours *
+			22
+		).toFixed(2);
+		return `${job.salary_hourly}€/h - ${job.daily_hours}h/jour (~${monthlySalary}€/mois)`;
+	} else if (hoursType === "semaine" && job.weekly_hours) {
+		const monthlySalary = (
+			(job.salary_hourly * job.weekly_hours * 52) /
+			12
+		).toFixed(2);
+		return `${job.salary_hourly}€/h - ${job.weekly_hours}h/semaine (~${monthlySalary}€/mois)`;
+	}
+	return `${job.salary_hourly}€/h`;
+};
+
 const JobScreen = () => {
 	const { id, title, company_id, category } = useLocalSearchParams();
 	const { user, role, userProfile, accessToken } = useAuth();
@@ -85,6 +134,55 @@ const JobScreen = () => {
 		createNotification,
 	} = useDataContext();
 
+	// Fonctions helper pour parser et mapper les données
+	const parseJsonField = (field) => {
+		if (!field) return [];
+		try {
+			return JSON.parse(field);
+		} catch (e) {
+			return [];
+		}
+	};
+
+	const mapWorkTime = (value) => {
+		if (value === "fulltime") return "Temps plein";
+		if (value === "parttime") return "Temps partiel";
+		return value;
+	};
+
+	const mapWorkSchedule = (value) => {
+		if (value === "daily") return "Jour";
+		if (value === "nightly") return "Nuit";
+		if (value === "variable") return "Variable";
+		return value;
+	};
+
+	const mapWorkHoursType = (value) => {
+		if (value === "weekly") return "semaine";
+		if (value === "daily") return "jour";
+		return value;
+	};
+
+	const formatSalary = (job) => {
+		if (!job?.salary_hourly) return "Non spécifié";
+		const hoursType = mapWorkHoursType(job.work_hours_type);
+		if (hoursType === "jour" && job.daily_hours) {
+			const monthlySalary = (
+				job.salary_hourly *
+				job.daily_hours *
+				22
+			).toFixed(2);
+			return `${job.salary_hourly}€/h - ${job.daily_hours}h/jour (~${monthlySalary}€/mois)`;
+		} else if (hoursType === "semaine" && job.weekly_hours) {
+			const monthlySalary = (
+				(job.salary_hourly * job.weekly_hours * 52) /
+				12
+			).toFixed(2);
+			return `${job.salary_hourly}€/h - ${job.weekly_hours}h/semaine (~${monthlySalary}€/mois)`;
+		}
+		return `${job.salary_hourly}€/h`;
+	};
+
 	const router = useRouter();
 	const scrollViewRef = React.useRef(null);
 
@@ -100,6 +198,7 @@ const JobScreen = () => {
 			id,
 			`*, companies(name, email, logo_url), applications(id, candidate_id, current_status, profiles(firstname, lastname))`,
 		);
+		console.log("Fetched job data:", data);
 		setJob(data);
 	};
 
@@ -408,11 +507,16 @@ const JobScreen = () => {
 									variant='solid'
 									action='success'>
 									<BadgeIcon as={FileText} className='mr-2' />
-									<BadgeText>CDD</BadgeText>
+									<BadgeText>
+										{job?.contract_type || "Non spécifié"}
+									</BadgeText>
 								</Badge>
 								<Badge size='sm' variant='solid' action='muted'>
 									<BadgeIcon as={Clock} className='mr-2' />
-									<BadgeText>Plein temps</BadgeText>
+									<BadgeText>
+										{mapWorkTime(job?.work_time) ||
+											"Non spécifié"}
+									</BadgeText>
 								</Badge>
 								<Badge
 									size='sm'
@@ -422,7 +526,7 @@ const JobScreen = () => {
 										as={BadgeEuro}
 										className='mr-2'
 									/>
-									<BadgeText>Non spécifié</BadgeText>
+									<BadgeText>{formatSalary(job)}</BadgeText>
 								</Badge>
 								{job?.isLastMinute && (
 									<Badge
@@ -494,116 +598,58 @@ const JobScreen = () => {
 									color: isDark ? "#d1d5db" : "#374151",
 									lineHeight: 22,
 								}}>
-								Nous recherchons un professionnel qualifié pour
-								rejoindre notre équipe. Le candidat idéal aura
-								une solide expérience dans le domaine et sera
-								capable de travailler de manière autonome tout
-								en collaborant efficacement avec l'équipe.
+								{job?.description ||
+									"Aucune description disponible"}
 							</Text>
 
-							<VStack space='sm'>
-								<Text
-									size='sm'
-									style={{
-										fontWeight: "600",
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}>
-									Missions principales :
-								</Text>
-								<VStack space='xs' style={{ paddingLeft: 8 }}>
-									<HStack
-										space='sm'
-										style={{ alignItems: "flex-start" }}>
-										<Text
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											•
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												flex: 1,
-												color: isDark
-													? "#d1d5db"
-													: "#374151",
-											}}>
-											Assurer la sécurité des locaux et
-											des personnes
-										</Text>
-									</HStack>
-									<HStack
-										space='sm'
-										style={{ alignItems: "flex-start" }}>
-										<Text
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											•
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												flex: 1,
-												color: isDark
-													? "#d1d5db"
-													: "#374151",
-											}}>
-											Effectuer des rondes de surveillance
-											régulières
-										</Text>
-									</HStack>
-									<HStack
-										space='sm'
-										style={{ alignItems: "flex-start" }}>
-										<Text
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											•
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												flex: 1,
-												color: isDark
-													? "#d1d5db"
-													: "#374151",
-											}}>
-											Gérer les accès et contrôler les
-											entrées/sorties
-										</Text>
-									</HStack>
-									<HStack
-										space='sm'
-										style={{ alignItems: "flex-start" }}>
-										<Text
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											•
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												flex: 1,
-												color: isDark
-													? "#d1d5db"
-													: "#374151",
-											}}>
-											Rédiger des rapports d'intervention
-										</Text>
-									</HStack>
+							{parseJsonField(job?.missions).length > 0 && (
+								<VStack space='sm'>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "600",
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										Missions principales :
+									</Text>
+									<VStack
+										space='xs'
+										style={{ paddingLeft: 8 }}>
+										{parseJsonField(job?.missions).map(
+											(mission, index) => (
+												<HStack
+													key={index}
+													space='sm'
+													style={{
+														alignItems:
+															"flex-start",
+													}}>
+													<Text
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}>
+														•
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															flex: 1,
+															color: isDark
+																? "#d1d5db"
+																: "#374151",
+														}}>
+														{mission}
+													</Text>
+												</HStack>
+											),
+										)}
+									</VStack>
 								</VStack>
-							</VStack>
+							)}
 						</VStack>
 					</Card>
 
@@ -651,130 +697,201 @@ const JobScreen = () => {
 							/>
 
 							<VStack space='sm'>
-								<Text
-									size='sm'
-									style={{
-										fontWeight: "600",
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}>
-									Compétences requises :
-								</Text>
-								<VStack space='xs' style={{ paddingLeft: 8 }}>
-									<HStack
-										space='sm'
-										style={{ alignItems: "flex-start" }}>
-										<Text
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											✓
-										</Text>
+								{parseJsonField(job?.searched_profile).length >
+									0 && (
+									<VStack space='sm'>
 										<Text
 											size='sm'
 											style={{
-												flex: 1,
+												fontWeight: "600",
 												color: isDark
-													? "#d1d5db"
-													: "#374151",
+													? "#f3f4f6"
+													: "#111827",
 											}}>
-											Carte professionnelle en cours de
-											validité
+											Profil recherché :
 										</Text>
-									</HStack>
-									<HStack
-										space='sm'
-										style={{ alignItems: "flex-start" }}>
-										<Text
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											✓
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												flex: 1,
-												color: isDark
-													? "#d1d5db"
-													: "#374151",
-											}}>
-											Diplôme SSIAP requis selon le poste
-										</Text>
-									</HStack>
-									<HStack
-										space='sm'
-										style={{ alignItems: "flex-start" }}>
-										<Text
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											✓
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												flex: 1,
-												color: isDark
-													? "#d1d5db"
-													: "#374151",
-											}}>
-											Expérience minimum de 2 ans dans le
-											domaine
-										</Text>
-									</HStack>
-									<HStack
-										space='sm'
-										style={{ alignItems: "flex-start" }}>
-										<Text
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											✓
-										</Text>
+										<VStack
+											space='xs'
+											style={{ paddingLeft: 8 }}>
+											{parseJsonField(
+												job?.searched_profile,
+											).map((profile, index) => (
+												<HStack
+													key={index}
+													space='sm'
+													style={{
+														alignItems:
+															"flex-start",
+													}}>
+													<Text
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}>
+														✓
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															flex: 1,
+															color: isDark
+																? "#d1d5db"
+																: "#374151",
+														}}>
+														{profile}
+													</Text>
+												</HStack>
+											))}
+										</VStack>
+									</VStack>
+								)}
+								{parseJsonField(job?.diplomas_required).length >
+									0 && (
+									<VStack space='sm'>
 										<Text
 											size='sm'
 											style={{
-												flex: 1,
+												fontWeight: "600",
 												color: isDark
-													? "#d1d5db"
-													: "#374151",
+													? "#f3f4f6"
+													: "#111827",
 											}}>
-											Excellentes capacités de
-											communication
+											Diplômes requis :
 										</Text>
-									</HStack>
-									<HStack
-										space='sm'
-										style={{ alignItems: "flex-start" }}>
-										<Text
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											✓
-										</Text>
+										<VStack
+											space='xs'
+											style={{ paddingLeft: 8 }}>
+											{parseJsonField(
+												job?.diplomas_required,
+											).map((diploma, index) => (
+												<HStack
+													key={index}
+													space='sm'
+													style={{
+														alignItems:
+															"flex-start",
+													}}>
+													<Text
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}>
+														✓
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															flex: 1,
+															color: isDark
+																? "#d1d5db"
+																: "#374151",
+														}}>
+														{diploma}
+													</Text>
+												</HStack>
+											))}
+										</VStack>
+									</VStack>
+								)}
+								{parseJsonField(job?.driving_licenses).length >
+									0 && (
+									<VStack space='sm'>
 										<Text
 											size='sm'
 											style={{
-												flex: 1,
+												fontWeight: "600",
 												color: isDark
-													? "#d1d5db"
-													: "#374151",
+													? "#f3f4f6"
+													: "#111827",
 											}}>
-											Sens du service et des
-											responsabilités
+											Permis requis :
 										</Text>
-									</HStack>
-								</VStack>
+										<VStack
+											space='xs'
+											style={{ paddingLeft: 8 }}>
+											{parseJsonField(
+												job?.driving_licenses,
+											).map((license, index) => (
+												<HStack
+													key={index}
+													space='sm'
+													style={{
+														alignItems:
+															"flex-start",
+													}}>
+													<Text
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}>
+														✓
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															flex: 1,
+															color: isDark
+																? "#d1d5db"
+																: "#374151",
+														}}>
+														{license}
+													</Text>
+												</HStack>
+											))}
+										</VStack>
+									</VStack>
+								)}
+								{parseJsonField(job?.languages).length > 0 && (
+									<VStack space='sm'>
+										<Text
+											size='sm'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											Langues requises :
+										</Text>
+										<VStack
+											space='xs'
+											style={{ paddingLeft: 8 }}>
+											{parseJsonField(job?.languages).map(
+												(language, index) => (
+													<HStack
+														key={index}
+														space='sm'
+														style={{
+															alignItems:
+																"flex-start",
+														}}>
+														<Text
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+															}}>
+															✓
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																flex: 1,
+																color: isDark
+																	? "#d1d5db"
+																	: "#374151",
+															}}>
+															{language}
+														</Text>
+													</HStack>
+												),
+											)}
+										</VStack>
+									</VStack>
+								)}
 							</VStack>
 						</VStack>
 					</Card>
@@ -845,7 +962,7 @@ const JobScreen = () => {
 												? "#f3f4f6"
 												: "#111827",
 										}}>
-										CDI / CDD
+										{job?.contract_type || "Non spécifié"}
 									</Text>
 								</HStack>
 								<Divider
@@ -877,7 +994,8 @@ const JobScreen = () => {
 												? "#f3f4f6"
 												: "#111827",
 										}}>
-										Temps plein
+										{mapWorkTime(job?.work_time) ||
+											"Non spécifié"}
 									</Text>
 								</HStack>
 								<Divider
@@ -909,7 +1027,7 @@ const JobScreen = () => {
 												? "#f3f4f6"
 												: "#111827",
 										}}>
-										Selon profil
+										{formatSalary(job)}
 									</Text>
 								</HStack>
 								<Divider
@@ -941,9 +1059,180 @@ const JobScreen = () => {
 												? "#f3f4f6"
 												: "#111827",
 										}}>
-										Jour / Nuit / Variable
+										{mapWorkSchedule(job?.work_schedule) ||
+											"Non spécifié"}
 									</Text>
 								</HStack>
+								{(job?.start_date || job?.end_date) && (
+									<>
+										<Divider
+											style={{
+												backgroundColor: isDark
+													? "#374151"
+													: "#f3f4f6",
+											}}
+										/>
+										<HStack
+											style={{
+												justifyContent: "space-between",
+												paddingVertical: 8,
+											}}>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Dates
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												{job?.start_date &&
+													new Date(
+														job.start_date,
+													).toLocaleDateString(
+														"fr-FR",
+													)}
+												{job?.start_date &&
+													job?.end_date &&
+													" - "}
+												{job?.end_date &&
+													new Date(
+														job.end_date,
+													).toLocaleDateString(
+														"fr-FR",
+													)}
+											</Text>
+										</HStack>
+									</>
+								)}
+								{(job?.start_time || job?.end_time) && (
+									<>
+										<Divider
+											style={{
+												backgroundColor: isDark
+													? "#374151"
+													: "#f3f4f6",
+											}}
+										/>
+										<HStack
+											style={{
+												justifyContent: "space-between",
+												paddingVertical: 8,
+											}}>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Heures
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												{job?.start_time &&
+													job.start_time.slice(0, 5)}
+												{job?.start_time &&
+													job?.end_time &&
+													" - "}
+												{job?.end_time &&
+													job.end_time.slice(0, 5)}
+											</Text>
+										</HStack>
+									</>
+								)}
+								{(job?.packed_lunch ||
+									job?.accommodations ||
+									parseJsonField(job?.reimbursements).length >
+										0) && (
+									<>
+										<Divider
+											style={{
+												backgroundColor: isDark
+													? "#374151"
+													: "#f3f4f6",
+											}}
+										/>
+										<HStack
+											style={{
+												justifyContent: "space-between",
+												paddingVertical: 8,
+												alignItems: "flex-start",
+											}}>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Avantages
+											</Text>
+											<VStack
+												space='xs'
+												style={{
+													alignItems: "flex-end",
+												}}>
+												{job?.packed_lunch && (
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														Panier repas
+													</Text>
+												)}
+												{job?.accommodations && (
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														Hébergement
+													</Text>
+												)}
+												{parseJsonField(
+													job?.reimbursements,
+												).map(
+													(reimbursement, index) => (
+														<Text
+															key={index}
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															{reimbursement}
+														</Text>
+													),
+												)}
+											</VStack>
+										</HStack>
+									</>
+								)}
 							</VStack>
 						</VStack>
 					</Card>
