@@ -4,6 +4,8 @@ import {
 	RefreshControl,
 	TouchableOpacity,
 	Dimensions,
+	KeyboardAvoidingView,
+	Platform,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { LineChart, BarChart, PieChart } from "react-native-gifted-charts";
@@ -768,163 +770,200 @@ export default function Tab1() {
 
 	// Version CANDIDAT
 	return (
-		<ScrollView
-			style={{
-				flex: 1,
-				backgroundColor: isDark ? "#111827" : "#f9fafb",
-			}}
-			refreshControl={
-				<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-			}>
-			<VStack
-				space='xl'
+		<KeyboardAvoidingView
+			behavior={Platform.OS === "ios" ? "padding" : "height"}
+			style={{ flex: 1 }}
+			keyboardVerticalOffset={100}>
+			<ScrollView
 				style={{
-					padding: 16,
-					paddingBottom: 40,
-				}}>
-				{/* Header with Search */}
-				<VStack space='md'>
-					<Heading
-						size='2xl'
-						style={{
-							color: isDark ? "#f3f4f6" : "#111827",
-						}}>
-						Trouvez votre emploi
-					</Heading>
-					<Text
-						size='md'
-						style={{
-							color: isDark ? "#9ca3af" : "#6b7280",
-						}}>
-						Les meilleures offres dans la sécurité
-					</Text>
-
-					{/* Search Bar */}
-					<VStack>
-						<Input
-							variant='outline'
+					flex: 1,
+					backgroundColor: isDark ? "#111827" : "#f9fafb",
+				}}
+				refreshControl={
+					<RefreshControl
+						refreshing={refreshing}
+						onRefresh={onRefresh}
+					/>
+				}>
+				<VStack
+					space='xl'
+					style={{
+						padding: 16,
+						paddingBottom: 40,
+					}}>
+					{/* Header with Search */}
+					<VStack space='md'>
+						<Heading
+							size='2xl'
 							style={{
-								backgroundColor: isDark ? "#374151" : "#ffffff",
-								borderColor: isDark ? "#4b5563" : "#d1d5db",
+								color: isDark ? "#f3f4f6" : "#111827",
 							}}>
-							<InputField
-								placeholder='Rechercher un poste, une ville...'
-								value={searchQuery}
-								onChangeText={setSearchQuery}
-							/>
-							<InputSlot className='mr-4'>
-								<InputIcon as={Search} />
-							</InputSlot>
-						</Input>
+							Trouvez votre emploi
+						</Heading>
+						<Text
+							size='md'
+							style={{
+								color: isDark ? "#9ca3af" : "#6b7280",
+							}}>
+							Les meilleures offres dans la sécurité
+						</Text>
 
-						{/* Resultat de la recherche filtrée */}
-						{searchQuery.length >= 2 && (
-							<VStack
+						{/* Search Bar */}
+						<VStack>
+							<Input
+								variant='outline'
 								style={{
-									marginTop: 15,
 									backgroundColor: isDark
-										? "#1f2937"
+										? "#374151"
 										: "#ffffff",
-									borderRadius: 12,
-									padding: 12,
-									borderWidth: 1,
-									borderColor: isDark ? "#374151" : "#e5e7eb",
+									borderColor: isDark ? "#4b5563" : "#d1d5db",
 								}}>
-								{filteredJobs.length > 0 ? (
-									<>
-										{filteredJobs.map((job) => (
-											<Pressable
-												key={job.id}
-												onPress={() =>
-													router.push(
-														`/job?id=${job.id}`,
-													)
-												}
-												style={{
-													paddingVertical: 8,
-													borderBottomWidth: 1,
-													borderBottomColor: isDark
-														? "#374151"
-														: "#f3f4f6",
-												}}>
-												<HStack
-													space='sm'
+								<InputField
+									placeholder='Rechercher un poste, une ville...'
+									value={searchQuery}
+									onChangeText={setSearchQuery}
+								/>
+								<InputSlot className='mr-4'>
+									<InputIcon as={Search} />
+								</InputSlot>
+							</Input>
+
+							{/* Resultat de la recherche filtrée */}
+							{searchQuery.length >= 2 && (
+								<VStack
+									style={{
+										marginTop: 15,
+										backgroundColor: isDark
+											? "#1f2937"
+											: "#ffffff",
+										borderRadius: 12,
+										padding: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#374151"
+											: "#e5e7eb",
+									}}>
+									{filteredJobs.length > 0 ? (
+										<>
+											{filteredJobs.map((job) => (
+												<Pressable
+													key={job.id}
+													onPress={() =>
+														router.push(
+															`/job?id=${job.id}`,
+														)
+													}
 													style={{
-														alignItems: "center",
+														paddingVertical: 8,
+														borderBottomWidth: 1,
+														borderBottomColor:
+															isDark
+																? "#374151"
+																: "#f3f4f6",
 													}}>
-													<VStack
+													<HStack
+														space='sm'
 														style={{
-															justifyContent:
-																"flex-start",
 															alignItems:
 																"center",
-															width: 30,
-															height: "100%",
-															paddingTop: 2,
 														}}>
-														<Avatar size='xs'>
-															<AvatarFallbackText>
-																{job.companies
-																	?.name ||
-																	"?"}
-															</AvatarFallbackText>
-															{job.companies
-																?.logo_url && (
-																<AvatarImage
-																	source={{
-																		uri: job
-																			.companies
-																			.logo_url,
-																	}}
-																/>
-															)}
-														</Avatar>
-													</VStack>
-													<VStack style={{ flex: 1 }}>
-														<Text
+														<VStack
 															style={{
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-																fontWeight:
-																	"600",
-																fontSize: 14,
-															}}>
-															{job.title}
-														</Text>
-														<HStack
-															space='xs'
-															style={{
+																justifyContent:
+																	"flex-start",
 																alignItems:
 																	"center",
+																width: 30,
+																height: "100%",
+																paddingTop: 2,
 															}}>
-															<MapPin
-																size={12}
-																color={
-																	isDark
-																		? "#9ca3af"
-																		: "#6b7280"
-																}
-															/>
+															<Avatar size='xs'>
+																<AvatarFallbackText>
+																	{job
+																		.companies
+																		?.name ||
+																		"?"}
+																</AvatarFallbackText>
+																{job.companies
+																	?.logo_url && (
+																	<AvatarImage
+																		source={{
+																			uri: job
+																				.companies
+																				.logo_url,
+																		}}
+																	/>
+																)}
+															</Avatar>
+														</VStack>
+														<VStack
+															style={{ flex: 1 }}>
 															<Text
 																style={{
 																	color: isDark
-																		? "#9ca3af"
-																		: "#6b7280",
-																	fontSize: 12,
+																		? "#f3f4f6"
+																		: "#111827",
+																	fontWeight:
+																		"600",
+																	fontSize: 14,
 																}}>
-																{job.city}
-																{job.department
-																	? ` (${job.department})`
-																	: ""}
+																{job.title}
 															</Text>
-														</HStack>
-														<HStack space='sm'>
-															{job.category && (
+															<HStack
+																space='xs'
+																style={{
+																	alignItems:
+																		"center",
+																}}>
+																<MapPin
+																	size={12}
+																	color={
+																		isDark
+																			? "#9ca3af"
+																			: "#6b7280"
+																	}
+																/>
+																<Text
+																	style={{
+																		color: isDark
+																			? "#9ca3af"
+																			: "#6b7280",
+																		fontSize: 12,
+																	}}>
+																	{job.city}
+																	{job.department
+																		? ` (${job.department})`
+																		: ""}
+																</Text>
+															</HStack>
+															<HStack space='sm'>
+																{job.category && (
+																	<Badge
+																		size='sm'
+																		variant='solid'
+																		action='info'
+																		style={{
+																			marginVertical: 4,
+																			alignSelf:
+																				"flex-start",
+																		}}>
+																		<BadgeIcon
+																			as={
+																				IdCard
+																			}
+																			className='mr-2'
+																		/>
+																		<BadgeText>
+																			{
+																				job.category
+																			}
+																		</BadgeText>
+																	</Badge>
+																)}
 																<Badge
 																	size='sm'
 																	variant='solid'
-																	action='info'
+																	action='muted'
 																	style={{
 																		marginVertical: 4,
 																		alignSelf:
@@ -932,141 +971,121 @@ export default function Tab1() {
 																	}}>
 																	<BadgeIcon
 																		as={
-																			IdCard
+																			FileText
 																		}
 																		className='mr-2'
 																	/>
 																	<BadgeText>
-																		{
-																			job.category
-																		}
+																		{job.contract_type ||
+																			"CDI"}
 																	</BadgeText>
 																</Badge>
-															)}
-															<Badge
-																size='sm'
-																variant='solid'
-																action='muted'
-																style={{
-																	marginVertical: 4,
-																	alignSelf:
-																		"flex-start",
-																}}>
-																<BadgeIcon
-																	as={
-																		FileText
-																	}
-																	className='mr-2'
-																/>
-																<BadgeText>
-																	{job.contract_type ||
-																		"CDI"}
-																</BadgeText>
-															</Badge>
-														</HStack>
-													</VStack>
-													<Icon
-														as={ChevronRight}
-														size='sm'
-														color={
-															isDark
-																? "#9ca3af"
-																: "#6b7280"
-														}
-													/>
-												</HStack>
-											</Pressable>
-										))}
-										<Button
-											onPress={() => (
-												setSearchQuery(""),
-												// router.push(
-												// 	`/(tabs)/tab2?search=${encodeURIComponent(searchQuery)}`,
-												// )
-												router.push({
-													pathname:
-														"/tabs/(tabs)/tab2",
-													params: {
-														search: searchQuery,
-													},
-												})
-											)}
-											variant='link'
-											style={{ marginTop: 8 }}>
-											<ButtonText
-												style={{
-													color: "#3b82f6",
-													fontSize: 13,
-												}}>
-												Voir tous les résultats
-											</ButtonText>
-											<ButtonIcon as={ChevronRight} />
-										</Button>
-									</>
-								) : (
-									<VStack
-										style={{
-											alignItems: "center",
-											paddingVertical: 20,
-										}}>
-										<Icon
-											as={AlertCircle}
-											size='xl'
-											color={
-												isDark ? "#6b7280" : "#9ca3af"
-											}
-										/>
-										<Text
+															</HStack>
+														</VStack>
+														<Icon
+															as={ChevronRight}
+															size='sm'
+															color={
+																isDark
+																	? "#9ca3af"
+																	: "#6b7280"
+															}
+														/>
+													</HStack>
+												</Pressable>
+											))}
+											<Button
+												onPress={() => (
+													setSearchQuery(""),
+													// router.push(
+													// 	`/(tabs)/tab2?search=${encodeURIComponent(searchQuery)}`,
+													// )
+													router.push({
+														pathname:
+															"/tabs/(tabs)/tab2",
+														params: {
+															search: searchQuery,
+														},
+													})
+												)}
+												variant='link'
+												style={{ marginTop: 8 }}>
+												<ButtonText
+													style={{
+														color: "#3b82f6",
+														fontSize: 13,
+													}}>
+													Voir tous les résultats
+												</ButtonText>
+												<ButtonIcon as={ChevronRight} />
+											</Button>
+										</>
+									) : (
+										<VStack
 											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												marginTop: 8,
-												fontSize: 14,
-												textAlign: "center",
+												alignItems: "center",
+												paddingVertical: 20,
 											}}>
-											Aucun résultat trouvé pour "
-											{searchQuery}"
-										</Text>
-									</VStack>
-								)}
-							</VStack>
-						)}
+											<Icon
+												as={AlertCircle}
+												size='xl'
+												color={
+													isDark
+														? "#6b7280"
+														: "#9ca3af"
+												}
+											/>
+											<Text
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+													marginTop: 8,
+													fontSize: 14,
+													textAlign: "center",
+												}}>
+												Aucun résultat trouvé pour "
+												{searchQuery}"
+											</Text>
+										</VStack>
+									)}
+								</VStack>
+							)}
+						</VStack>
 					</VStack>
-				</VStack>
 
-				{/* Stats */}
-				<HStack space='md' style={{ width: "100%" }}>
-					<Pressable
-						onPress={() => router.push("/applications")}
-						style={{ flex: 1 }}>
-						{({ pressed }) => (
-							<StatCard
-								icon={FileText}
-								value={stats.applications || 0}
-								label='Candidatures'
-								color='#3b82f6'
-								pressed={pressed}
-							/>
-						)}
-					</Pressable>
-					<Pressable
-						onPress={() => router.push("/wishlist")}
-						style={{ flex: 1 }}>
-						{({ pressed }) => (
-							<StatCard
-								icon={BookmarkCheck}
-								value={stats.wishlist || 0}
-								label='Favoris'
-								color='#f59e0b'
-								pressed={pressed}
-							/>
-						)}
-					</Pressable>
-				</HStack>
+					{/* Stats */}
+					<HStack space='md' style={{ width: "100%" }}>
+						<Pressable
+							onPress={() => router.push("/applications")}
+							style={{ flex: 1 }}>
+							{({ pressed }) => (
+								<StatCard
+									icon={FileText}
+									value={stats.applications || 0}
+									label='Candidatures'
+									color='#3b82f6'
+									pressed={pressed}
+								/>
+							)}
+						</Pressable>
+						<Pressable
+							onPress={() => router.push("/wishlist")}
+							style={{ flex: 1 }}>
+							{({ pressed }) => (
+								<StatCard
+									icon={BookmarkCheck}
+									value={stats.wishlist || 0}
+									label='Favoris'
+									color='#f59e0b'
+									pressed={pressed}
+								/>
+							)}
+						</Pressable>
+					</HStack>
 
-				{/* Quick Categories */}
-				{/* <VStack space='md'>
+					{/* Quick Categories */}
+					{/* <VStack space='md'>
 					<Text
 						size='lg'
 						style={{
@@ -1109,57 +1128,60 @@ export default function Tab1() {
 					</HStack>
 				</VStack> */}
 
-				{/* Recent Jobs */}
-				{recentJobs.length > 0 && (
-					<VStack space='md'>
-						<HStack
-							style={{
-								justifyContent: "space-between",
-								alignItems: "center",
-							}}>
-							<Text
-								size='lg'
+					{/* Recent Jobs */}
+					{recentJobs.length > 0 && (
+						<VStack space='md'>
+							<HStack
 								style={{
-									fontWeight: "600",
-									color: isDark ? "#f3f4f6" : "#111827",
+									justifyContent: "space-between",
+									alignItems: "center",
 								}}>
-								Offres récentes
-							</Text>
-							<TouchableOpacity
-								onPress={() =>
-									router.push("/tabs/(tabs)/tab2")
-								}>
 								<Text
-									size='sm'
+									size='lg'
 									style={{
-										color: isDark ? "#60a5fa" : "#2563eb",
-										fontWeight: "500",
+										fontWeight: "600",
+										color: isDark ? "#f3f4f6" : "#111827",
 									}}>
-									Voir tout
+									Offres récentes
 								</Text>
-							</TouchableOpacity>
-						</HStack>
-						{recentJobs.map((job) => (
-							<JobCard
-								key={job.id}
-								id={job.id}
-								title={job.title}
-								category={job.category}
-								company_id={job.company_id}
-								company_name={job.companies?.name}
-								city={job.city}
-								postcode={job.postcode}
-								logo={job.companies?.logo_url}
-								contract_type={job.contract_type}
-								working_time={job.working_time}
-								salary={job.salary}
-								isArchived={job.isArchived}
-								isLastMinute={job.isLastMinute}
-							/>
-						))}
-					</VStack>
-				)}
-			</VStack>
-		</ScrollView>
+								<TouchableOpacity
+									onPress={() =>
+										router.push("/tabs/(tabs)/tab2")
+									}>
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#60a5fa"
+												: "#2563eb",
+											fontWeight: "500",
+										}}>
+										Voir tout
+									</Text>
+								</TouchableOpacity>
+							</HStack>
+							{recentJobs.map((job) => (
+								<JobCard
+									key={job.id}
+									id={job.id}
+									title={job.title}
+									category={job.category}
+									company_id={job.company_id}
+									company_name={job.companies?.name}
+									city={job.city}
+									postcode={job.postcode}
+									logo={job.companies?.logo_url}
+									contract_type={job.contract_type}
+									working_time={job.working_time}
+									salary={job.salary}
+									isArchived={job.isArchived}
+									isLastMinute={job.isLastMinute}
+								/>
+							))}
+						</VStack>
+					)}
+				</VStack>
+			</ScrollView>
+		</KeyboardAvoidingView>
 	);
 }
