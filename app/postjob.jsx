@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
-import { toast } from "sonner-native";
 import axios from "axios";
 
 import { VStack } from "@/components/ui/vstack";
@@ -25,6 +24,7 @@ import { Icon } from "@/components/ui/icon";
 import { Divider } from "@/components/ui/divider";
 import { Input, InputField } from "@/components/ui/input";
 import { Textarea, TextareaInput } from "@/components/ui/textarea";
+import { useToast, Toast, ToastTitle } from "@/components/ui/toast";
 import {
 	Select,
 	SelectTrigger,
@@ -146,12 +146,51 @@ const result2 = {
 };
 
 const CATEGORIES = [
-	"Agent de sécurité",
-	"Chef d'équipe",
-	"Agent cynophile",
-	"Agent SSIAP",
-	"Agent de surveillance",
-	"Autres",
+	{
+		id: "aps",
+		acronym: "APS",
+		name: "Agent de Prévention et de Sécurité",
+		category: "surveillance_humaine",
+	},
+	{
+		id: "ads",
+		acronym: "ADS",
+		name: "Agent De Sécurité",
+		category: "surveillance_humaine",
+	},
+	{
+		id: "ssiap_1",
+		acronym: "SSIAP 1",
+		name: "Agent de Sécurité Incendie",
+		category: "securite_incendie",
+		level: 1,
+	},
+	{
+		id: "ssiap_2",
+		acronym: "SSIAP 2",
+		name: "Chef d'Équipe de Sécurité Incendie",
+		category: "securite_incendie",
+		level: 2,
+	},
+	{
+		id: "ssiap_3",
+		acronym: "SSIAP 3",
+		name: "Chef de Service de Sécurité Incendie",
+		category: "securite_incendie",
+		level: 3,
+	},
+	{
+		id: "asc",
+		acronym: "ASC",
+		name: "Agent de Sécurité Cynophile",
+		category: "cynophile",
+	},
+	{
+		id: "apr",
+		acronym: "APR",
+		name: "Agent de Protection Rapprochée",
+		category: "protection_rapprochee",
+	},
 ];
 
 const CONTRACT_TYPES = ["CDI", "CDD"];
@@ -171,6 +210,7 @@ const PostJob = () => {
 	const { isDark } = useTheme();
 	const { create } = useDataContext();
 	const router = useRouter();
+	const toast = useToast();
 
 	const [loading, setLoading] = useState(false);
 	const [currentStep, setCurrentStep] = useState(1);
@@ -543,6 +583,19 @@ const PostJob = () => {
 		}
 	};
 
+	const showError = (title, message) => {
+		toast.show({
+			placement: "top",
+			render: ({ id }) => (
+				<Toast
+					nativeID={"toast-" + id}
+					className='px-5 py-3 gap-4 bg-error-500'>
+					<ToastTitle className='text-white'>{message}</ToastTitle>
+				</Toast>
+			),
+		});
+	};
+
 	const validateStep = () => {
 		switch (currentStep) {
 			case 1:
@@ -551,82 +604,86 @@ const PostJob = () => {
 					!formData.category ||
 					!formData.description
 				) {
-					toast.error("Erreur", {
-						description:
-							"Veuillez remplir tous les champs obligatoires",
-					});
+					showError(
+						"Erreur",
+						"Veuillez remplir tous les champs obligatoires",
+					);
 					return false;
 				}
 				break;
 			case 2:
 				if (!formData.city || !formData.start_date) {
-					toast.error("Erreur", {
-						description:
-							"Veuillez remplir tous les champs obligatoires (localisation et dates)",
-					});
+					showError(
+						"Erreur",
+						"Veuillez remplir tous les champs obligatoires (localisation et dates)",
+					);
 					return false;
 				}
 				if (formData.contract_type !== "CDI" && !formData.end_date) {
-					toast.error("Erreur", {
-						description:
-							"La date de fin est obligatoire pour ce type de contrat",
-					});
+					showError(
+						"Erreur",
+						"La date de fin est obligatoire pour ce type de contrat",
+					);
 					return false;
 				}
 				if (!formData.contract_type) {
-					toast.error("Erreur", {
-						description: "Veuillez sélectionner un type de contrat",
-					});
+					showError(
+						"Erreur",
+						"Veuillez sélectionner un type de contrat",
+					);
 					return false;
 				}
 				if (!formData.work_time) {
-					toast.error("Erreur", {
-						description:
-							"Veuillez sélectionner un temps de travail",
-					});
+					showError(
+						"Erreur",
+						"Veuillez sélectionner un temps de travail",
+					);
 					return false;
 				}
 
 				// Validation selon le type de salaire
 				if (formData.salary_type === "hourly") {
 					if (!formData.salary_hourly) {
-						toast.error("Erreur", {
-							description: "Veuillez indiquer le salaire horaire",
-						});
+						showError(
+							"Erreur",
+							"Veuillez indiquer le salaire horaire",
+						);
 						return false;
 					}
 					if (
 						formData.work_hours_type === "jour" &&
 						!formData.daily_hours
 					) {
-						toast.error("Erreur", {
-							description:
-								"Veuillez indiquer le nombre d'heures par jour",
-						});
+						showError(
+							"Erreur",
+							"Veuillez indiquer le nombre d'heures par jour",
+						);
 						return false;
 					}
 					if (
 						formData.work_hours_type === "semaine" &&
 						!formData.weekly_hours
 					) {
-						toast.error("Erreur", {
-							description:
-								"Veuillez indiquer le nombre d'heures par semaine",
-						});
+						showError(
+							"Erreur",
+							"Veuillez indiquer le nombre d'heures par semaine",
+						);
 						return false;
 					}
 				} else if (formData.salary_type === "monthly_fixed") {
 					if (!formData.salary_monthly_fixed) {
-						toast.error("Erreur", {
-							description: "Veuillez indiquer le salaire mensuel",
-						});
+						showError(
+							"Erreur",
+							"Veuillez indiquer le salaire mensuel",
+						);
 						return false;
 					}
 				} else if (formData.salary_type === "annual_fixed") {
 					if (!formData.salary_annual_fixed) {
-						toast.error("Erreur", {
-							description: "Veuillez indiquer le salaire annuel",
-						});
+						showError(
+							"Erreur",
+							"Veuillez indiquer le salaire annuel",
+						);
 						return false;
 					}
 				} else if (formData.salary_type === "monthly_range") {
@@ -634,10 +691,10 @@ const PostJob = () => {
 						!formData.salary_monthly_min ||
 						!formData.salary_monthly_max
 					) {
-						toast.error("Erreur", {
-							description:
-								"Veuillez indiquer la fourchette de salaire mensuel (min et max)",
-						});
+						showError(
+							"Erreur",
+							"Veuillez indiquer la fourchette de salaire mensuel (min et max)",
+						);
 						return false;
 					}
 				} else if (formData.salary_type === "annual_range") {
@@ -645,10 +702,10 @@ const PostJob = () => {
 						!formData.salary_annual_min ||
 						!formData.salary_annual_max
 					) {
-						toast.error("Erreur", {
-							description:
-								"Veuillez indiquer la fourchette de salaire annuel (min et max)",
-						});
+						showError(
+							"Erreur",
+							"Veuillez indiquer la fourchette de salaire annuel (min et max)",
+						);
 						return false;
 					}
 				}
@@ -903,10 +960,10 @@ const PostJob = () => {
 			// router.push("/");
 		} catch (error) {
 			console.error("Erreur lors de la publication:", error);
-			toast.error("Erreur", {
-				description:
-					"Une erreur est survenue lors de la publication de l'offre",
-			});
+			showError(
+				"Erreur",
+				"Une erreur est survenue lors de la publication de l'offre",
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -972,766 +1029,38 @@ const PostJob = () => {
 				</VStack>
 			</Box>
 
-			{/* Carousel Container */}
-			<Animated.View
-				style={{
-					flexDirection: "row",
-					transform: [{ translateX: scrollX }],
-					flex: 1,
-					paddingBottom: 30,
-				}}>
+			{/* Steps Container - Conditional Rendering pour fix scroll Android */}
+			<Box style={{ flex: 1 }}>
 				{/* Étape 1: Informations principales */}
-				<Box style={{ width: SCREEN_WIDTH }}>
-					<KeyboardAvoidingView
-						behavior={Platform.OS === "ios" ? "padding" : "height"}
-						style={{ flex: 1 }}
-						keyboardVerticalOffset={100}>
-						<ScrollView
-							ref={(ref) => (scrollViewRefs.current[0] = ref)}
-							keyboardShouldPersistTaps='handled'>
-							<VStack
-								space='lg'
-								style={{ padding: 20, paddingBottom: 100 }}>
-								<Card
-									style={{
-										padding: 20,
-										paddingBottom: 40,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										{/* Titre */}
-										<VStack space='xs'>
-											<Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Titre du poste *
-											</Text>
-											<Input
-												variant='outline'
-												size='md'
-												style={{
-													backgroundColor: isDark
-														? "#1f2937"
-														: "#ffffff",
-													borderColor: isDark
-														? "#4b5563"
-														: "#e5e7eb",
-												}}>
-												<InputField
-													placeholder='Ex: Agent de sécurité H/F'
-													value={formData.title}
-													onChangeText={(value) =>
-														updateField(
-															"title",
-															value,
-														)
-													}
-													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}
-												/>
-											</Input>
-										</VStack>
-
-										{/* Catégorie */}
-										<VStack space='xs'>
-											<Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Catégorie *
-											</Text>
-											<Select
-												selectedValue={
-													formData.category
-												}
-												onValueChange={(value) =>
-													updateField(
-														"category",
-														value,
-													)
-												}>
-												<SelectTrigger
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<SelectInput
-														placeholder='Sélectionnez une catégorie'
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-													<SelectIcon
-														as={ChevronDown}
-														style={{
-															color: isDark
-																? "#9ca3af"
-																: "#6b7280",
-														}}
-													/>
-												</SelectTrigger>
-												<SelectPortal>
-													<SelectBackdrop />
-													<SelectContent>
-														<SelectDragIndicatorWrapper>
-															<SelectDragIndicator />
-														</SelectDragIndicatorWrapper>
-														{CATEGORIES.map(
-															(cat) => (
-																<SelectItem
-																	key={cat}
-																	label={cat}
-																	value={cat}
-																/>
-															),
-														)}
-													</SelectContent>
-												</SelectPortal>
-											</Select>
-										</VStack>
-
-										{/* Description */}
-										<VStack space='xs'>
-											<Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Description du poste *
-											</Text>
-											<Textarea
-												size='md'
-												style={{
-													backgroundColor: isDark
-														? "#1f2937"
-														: "#ffffff",
-													borderColor: isDark
-														? "#4b5563"
-														: "#e5e7eb",
-													minHeight: 120,
-												}}>
-												<TextareaInput
-													placeholder='Décrivez le poste et les responsabilités...'
-													value={formData.description}
-													onChangeText={(value) =>
-														updateField(
-															"description",
-															value,
-														)
-													}
-													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}
-												/>
-											</Textarea>
-										</VStack>
-									</VStack>
-								</Card>
-
-								{/* Missions principales */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={FileText}
-												size='lg'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}
-											/>
-											<Heading
-												size='md'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Missions principales
-											</Heading>
-										</HStack>
-
-										<Divider
-											style={{
-												backgroundColor: isDark
-													? "#4b5563"
-													: "#e5e7eb",
-											}}
-										/>
-
-										<HStack space='sm'>
-											<VStack
-												ref={missionInputRef}
-												style={{ flex: 1 }}>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ajouter une mission...'
-														value={currentMission}
-														onChangeText={
-															setCurrentMission
-														}
-														onFocus={() =>
-															scrollToInput(
-																missionInputRef,
-																0,
-															)
-														}
-														onSubmitEditing={
-															addMission
-														}
-														returnKeyType='done'
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Input>
-											</VStack>
-											<Button
-												size='md'
-												onPress={addMission}
-												style={{
-													backgroundColor: "#3b82f6",
-												}}>
-												<ButtonIcon
-													as={Plus}
-													style={{ color: "#ffffff" }}
-												/>
-											</Button>
-										</HStack>
-										{formData.missions.length > 0 && (
-											<VStack
-												space='xs'
-												style={{ marginTop: 8 }}>
-												{formData.missions.map(
-													(mission, index) => (
-														<HStack
-															key={index}
-															space='sm'
-															style={{
-																alignItems:
-																	"center",
-																padding: 8,
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#f3f4f6",
-																borderRadius: 8,
-															}}>
-															<Box
-																style={{
-																	width: 6,
-																	height: 6,
-																	borderRadius: 3,
-																	backgroundColor:
-																		"#3b82f6",
-																}}
-															/>
-															<Text
-																size='sm'
-																style={{
-																	flex: 1,
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}>
-																{mission}
-															</Text>
-															<Button
-																size='xs'
-																variant='link'
-																onPress={() =>
-																	removeMission(
-																		index,
-																	)
-																}>
-																<ButtonIcon
-																	as={Trash2}
-																	size='sm'
-																	style={{
-																		color: "#ef4444",
-																	}}
-																/>
-															</Button>
-														</HStack>
-													),
-												)}
-											</VStack>
-										)}
-									</VStack>
-								</Card>
-
-								{/* Profil recherché */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={Users}
-												size='lg'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}
-											/>
-											<Heading
-												size='md'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Profil recherché
-											</Heading>
-										</HStack>
-
-										<Divider
-											style={{
-												backgroundColor: isDark
-													? "#4b5563"
-													: "#e5e7eb",
-											}}
-										/>
-
-										<HStack space='sm'>
-											<VStack
-												ref={profileInputRef}
-												style={{ flex: 1 }}>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ajouter une compétence...'
-														value={currentProfile}
-														onChangeText={
-															setCurrentProfile
-														}
-														onFocus={() =>
-															scrollToInput(
-																profileInputRef,
-																0,
-															)
-														}
-														onSubmitEditing={
-															addProfile
-														}
-														returnKeyType='done'
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Input>
-											</VStack>
-											<Button
-												size='md'
-												onPress={addProfile}
-												style={{
-													backgroundColor: "#3b82f6",
-												}}>
-												<ButtonIcon
-													as={Plus}
-													style={{ color: "#ffffff" }}
-												/>
-											</Button>
-										</HStack>
-										{formData.searched_profile.length >
-											0 && (
-											<VStack
-												space='xs'
-												style={{ marginTop: 8 }}>
-												{formData.searched_profile.map(
-													(profile, index) => (
-														<HStack
-															key={index}
-															space='sm'
-															style={{
-																alignItems:
-																	"center",
-																padding: 8,
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#f3f4f6",
-																borderRadius: 8,
-															}}>
-															<Box
-																style={{
-																	width: 6,
-																	height: 6,
-																	borderRadius: 3,
-																	backgroundColor:
-																		"#10b981",
-																}}
-															/>
-															<Text
-																size='sm'
-																style={{
-																	flex: 1,
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}>
-																{profile}
-															</Text>
-															<Button
-																size='xs'
-																variant='link'
-																onPress={() =>
-																	removeProfile(
-																		index,
-																	)
-																}>
-																<ButtonIcon
-																	as={Trash2}
-																	size='sm'
-																	style={{
-																		color: "#ef4444",
-																	}}
-																/>
-															</Button>
-														</HStack>
-													),
-												)}
-											</VStack>
-										)}
-									</VStack>
-								</Card>
-
-								{/* Diplômes requis */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={GraduationCap}
-												size='lg'
-												style={{
-													color: isDark
-														? "#60a5fa"
-														: "#3b82f6",
-												}}
-											/>
-											<Text
-												size='md'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Diplômes requis
-											</Text>
-										</HStack>
-										<HStack space='sm'>
-											<VStack
-												ref={diplomaInputRef}
-												style={{ flex: 1 }}>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ex: SSIAP 1'
-														value={currentDiploma}
-														onChangeText={
-															setCurrentDiploma
-														}
-														onFocus={() =>
-															scrollToInput(
-																diplomaInputRef,
-																0,
-															)
-														}
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Input>
-											</VStack>
-											<Button
-												size='md'
-												onPress={addDiploma}
-												style={{
-													backgroundColor: "#3b82f6",
-												}}>
-												<ButtonIcon
-													as={Plus}
-													style={{ color: "#ffffff" }}
-												/>
-											</Button>
-										</HStack>
-										{/* Liste des diplômes */}
-										{formData.diplomas_required.length >
-											0 && (
-											<VStack
-												space='xs'
-												style={{ marginTop: 8 }}>
-												{formData.diplomas_required.map(
-													(diploma, index) => (
-														<HStack
-															key={index}
-															space='sm'
-															style={{
-																alignItems:
-																	"center",
-																padding: 8,
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#f3f4f6",
-																borderRadius: 8,
-															}}>
-															<Box
-																style={{
-																	width: 6,
-																	height: 6,
-																	borderRadius: 3,
-																	backgroundColor:
-																		"#3b82f6",
-																}}
-															/>
-															<Text
-																size='sm'
-																style={{
-																	flex: 1,
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}>
-																{diploma}
-															</Text>
-															<Button
-																size='xs'
-																variant='link'
-																onPress={() =>
-																	removeDiploma(
-																		index,
-																	)
-																}>
-																<ButtonIcon
-																	as={Trash2}
-																	size='sm'
-																	style={{
-																		color: "#ef4444",
-																	}}
-																/>
-															</Button>
-														</HStack>
-													),
-												)}
-											</VStack>
-										)}
-									</VStack>
-								</Card>
-							</VStack>
-						</ScrollView>
-					</KeyboardAvoidingView>
-				</Box>
-
-				{/* Étape 2: Localisation et contrat */}
-				<Box style={{ width: SCREEN_WIDTH }}>
-					<KeyboardAvoidingView
-						behavior={Platform.OS === "ios" ? "padding" : "height"}
-						style={{ flex: 1 }}
-						keyboardVerticalOffset={100}>
-						<ScrollView
-							ref={(ref) => (scrollViewRefs.current[1] = ref)}
-							keyboardShouldPersistTaps='handled'>
-							<VStack
-								space='lg'
-								style={{ padding: 20, paddingBottom: 100 }}>
-								{/* Localisation */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={MapPin}
-												size='lg'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}
-											/>
-											<Heading
-												size='md'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Localisation
-											</Heading>
-										</HStack>
-
-										<Divider
-											style={{
-												backgroundColor: isDark
-													? "#4b5563"
-													: "#e5e7eb",
-											}}
-										/>
-
-										{/* Code postal */}
-										<VStack space='xs'>
-											<Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Code postal *
-											</Text>
-											<Input
-												variant='outline'
-												size='md'
-												style={{
-													backgroundColor: isDark
-														? "#1f2937"
-														: "#ffffff",
-													borderColor: isDark
-														? "#4b5563"
-														: "#e5e7eb",
-												}}>
-												<InputField
-													placeholder='Entrez le code postal'
-													value={formData.postcode}
-													onChangeText={(text) => {
-														updateField(
-															"postcode",
-															text,
-														);
-														searchCities(text);
-													}}
-													keyboardType='numeric'
-													maxLength={5}
-													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}
-												/>
-											</Input>
-										</VStack>
-
-										{/* Liste des villes */}
-										{cities.length > 0 && (
+				{currentStep === 1 && (
+					<Box style={{ width: SCREEN_WIDTH, flex: 1 }}>
+						<KeyboardAvoidingView
+							behavior={
+								Platform.OS === "ios" ? "padding" : "height"
+							}
+							style={{ flex: 1 }}
+							keyboardVerticalOffset={100}>
+							<ScrollView
+								ref={(ref) => (scrollViewRefs.current[0] = ref)}
+								keyboardShouldPersistTaps='handled'>
+								<VStack
+									space='lg'
+									style={{ padding: 20, paddingBottom: 100 }}>
+									<Card
+										style={{
+											padding: 20,
+											paddingBottom: 40,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											{/* Titre */}
 											<VStack space='xs'>
 												<Text
 													size='sm'
@@ -1741,72 +1070,769 @@ const PostJob = () => {
 															? "#f3f4f6"
 															: "#111827",
 													}}>
-													Sélectionnez la ville
+													Titre du poste *
 												</Text>
-												<VStack space='xs'>
-													{cities.map((cityData) => (
-														<TouchableOpacity
-															key={cityData.code}
-															onPress={() =>
-																selectCity(
-																	cityData,
+												<Input
+													variant='outline'
+													size='md'
+													style={{
+														backgroundColor: isDark
+															? "#1f2937"
+															: "#ffffff",
+														borderColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}>
+													<InputField
+														placeholder='Ex: Agent de sécurité H/F'
+														value={formData.title}
+														onChangeText={(value) =>
+															updateField(
+																"title",
+																value,
+															)
+														}
+														style={{
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}
+													/>
+												</Input>
+											</VStack>
+
+											{/* Catégorie */}
+											<VStack space='xs'>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Catégorie *
+												</Text>
+												<Select
+													selectedValue={
+														formData.category
+													}
+													onValueChange={(value) =>
+														updateField(
+															"category",
+															value,
+														)
+													}>
+													<SelectTrigger
+														variant='outline'
+														size='md'
+														style={{
+															backgroundColor:
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#e5e7eb",
+														}}>
+														<SelectInput
+															placeholder='Sélectionnez une catégorie'
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}
+														/>
+														<SelectIcon
+															as={ChevronDown}
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+															}}
+														/>
+													</SelectTrigger>
+													<SelectPortal>
+														<SelectBackdrop />
+														<SelectContent>
+															<SelectDragIndicatorWrapper>
+																<SelectDragIndicator />
+															</SelectDragIndicatorWrapper>
+															{CATEGORIES.map(
+																(cat) => (
+																	<SelectItem
+																		key={
+																			cat.id
+																		}
+																		label={`${cat.acronym} - ${cat.name}`}
+																		value={
+																			cat.id
+																		}
+																	/>
+																),
+															)}
+														</SelectContent>
+													</SelectPortal>
+												</Select>
+											</VStack>
+
+											{/* Description */}
+											<VStack space='xs'>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Description du poste *
+												</Text>
+												<Textarea
+													size='md'
+													style={{
+														backgroundColor: isDark
+															? "#1f2937"
+															: "#ffffff",
+														borderColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+														minHeight: 120,
+													}}>
+													<TextareaInput
+														placeholder='Décrivez le poste et les responsabilités...'
+														value={
+															formData.description
+														}
+														onChangeText={(value) =>
+															updateField(
+																"description",
+																value,
+															)
+														}
+														style={{
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}
+													/>
+												</Textarea>
+											</VStack>
+										</VStack>
+									</Card>
+
+									{/* Missions principales */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={FileText}
+													size='lg'
+													style={{
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}
+												/>
+												<Heading
+													size='md'
+													style={{
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Missions principales
+												</Heading>
+											</HStack>
+
+											<Divider
+												style={{
+													backgroundColor: isDark
+														? "#4b5563"
+														: "#e5e7eb",
+												}}
+											/>
+
+											<HStack space='sm'>
+												<VStack
+													ref={missionInputRef}
+													style={{ flex: 1 }}>
+													<Input
+														variant='outline'
+														size='md'
+														style={{
+															backgroundColor:
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#e5e7eb",
+														}}>
+														<InputField
+															placeholder='Ajouter une mission...'
+															value={
+																currentMission
+															}
+															onChangeText={
+																setCurrentMission
+															}
+															onFocus={() =>
+																scrollToInput(
+																	missionInputRef,
+																	0,
 																)
-															}>
-															<Box
+															}
+															onSubmitEditing={
+																addMission
+															}
+															returnKeyType='done'
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}
+														/>
+													</Input>
+												</VStack>
+												<Button
+													size='md'
+													onPress={addMission}
+													style={{
+														backgroundColor:
+															"#3b82f6",
+													}}>
+													<ButtonIcon
+														as={Plus}
+														style={{
+															color: "#ffffff",
+														}}
+													/>
+												</Button>
+											</HStack>
+											{formData.missions.length > 0 && (
+												<VStack
+													space='xs'
+													style={{ marginTop: 8 }}>
+													{formData.missions.map(
+														(mission, index) => (
+															<HStack
+																key={index}
+																space='sm'
 																style={{
-																	padding: 12,
+																	alignItems:
+																		"center",
+																	padding: 8,
 																	backgroundColor:
-																		formData.city ===
-																		cityData.nom
-																			? isDark
-																				? "#1f2937"
-																				: "#dbeafe"
-																			: isDark
-																				? "#1f2937"
-																				: "#f9fafb",
+																		isDark
+																			? "#1f2937"
+																			: "#f3f4f6",
 																	borderRadius: 8,
-																	borderWidth: 1,
-																	borderColor:
-																		formData.city ===
-																		cityData.nom
-																			? "#3b82f6"
-																			: isDark
-																				? "#4b5563"
-																				: "#e5e7eb",
 																}}>
-																<Text
+																<Box
 																	style={{
+																		width: 6,
+																		height: 6,
+																		borderRadius: 3,
+																		backgroundColor:
+																			"#3b82f6",
+																	}}
+																/>
+																<Text
+																	size='sm'
+																	style={{
+																		flex: 1,
 																		color: isDark
 																			? "#f3f4f6"
 																			: "#111827",
 																	}}>
-																	{
-																		cityData.nom
-																	}{" "}
-																	(
-																	{
-																		cityData.codeDepartement
-																	}
-																	)
+																	{mission}
 																</Text>
-															</Box>
-														</TouchableOpacity>
-													))}
+																<Button
+																	size='xs'
+																	variant='link'
+																	onPress={() =>
+																		removeMission(
+																			index,
+																		)
+																	}>
+																	<ButtonIcon
+																		as={
+																			Trash2
+																		}
+																		size='sm'
+																		style={{
+																			color: "#ef4444",
+																		}}
+																	/>
+																</Button>
+															</HStack>
+														),
+													)}
 												</VStack>
-											</VStack>
-										)}
+											)}
+										</VStack>
+									</Card>
 
-										{/* Affichage de la ville sélectionnée */}
-										{formData.city && (
-											<>
-												<Divider
+									{/* Profil recherché */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={Users}
+													size='lg'
 													style={{
-														backgroundColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
 													}}
 												/>
+												<Heading
+													size='md'
+													style={{
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Profil recherché
+												</Heading>
+											</HStack>
 
+											<Divider
+												style={{
+													backgroundColor: isDark
+														? "#4b5563"
+														: "#e5e7eb",
+												}}
+											/>
+
+											<HStack space='sm'>
+												<VStack
+													ref={profileInputRef}
+													style={{ flex: 1 }}>
+													<Input
+														variant='outline'
+														size='md'
+														style={{
+															backgroundColor:
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#e5e7eb",
+														}}>
+														<InputField
+															placeholder='Ajouter une compétence...'
+															value={
+																currentProfile
+															}
+															onChangeText={
+																setCurrentProfile
+															}
+															onFocus={() =>
+																scrollToInput(
+																	profileInputRef,
+																	0,
+																)
+															}
+															onSubmitEditing={
+																addProfile
+															}
+															returnKeyType='done'
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}
+														/>
+													</Input>
+												</VStack>
+												<Button
+													size='md'
+													onPress={addProfile}
+													style={{
+														backgroundColor:
+															"#3b82f6",
+													}}>
+													<ButtonIcon
+														as={Plus}
+														style={{
+															color: "#ffffff",
+														}}
+													/>
+												</Button>
+											</HStack>
+											{formData.searched_profile.length >
+												0 && (
+												<VStack
+													space='xs'
+													style={{ marginTop: 8 }}>
+													{formData.searched_profile.map(
+														(profile, index) => (
+															<HStack
+																key={index}
+																space='sm'
+																style={{
+																	alignItems:
+																		"center",
+																	padding: 8,
+																	backgroundColor:
+																		isDark
+																			? "#1f2937"
+																			: "#f3f4f6",
+																	borderRadius: 8,
+																}}>
+																<Box
+																	style={{
+																		width: 6,
+																		height: 6,
+																		borderRadius: 3,
+																		backgroundColor:
+																			"#10b981",
+																	}}
+																/>
+																<Text
+																	size='sm'
+																	style={{
+																		flex: 1,
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}>
+																	{profile}
+																</Text>
+																<Button
+																	size='xs'
+																	variant='link'
+																	onPress={() =>
+																		removeProfile(
+																			index,
+																		)
+																	}>
+																	<ButtonIcon
+																		as={
+																			Trash2
+																		}
+																		size='sm'
+																		style={{
+																			color: "#ef4444",
+																		}}
+																	/>
+																</Button>
+															</HStack>
+														),
+													)}
+												</VStack>
+											)}
+										</VStack>
+									</Card>
+
+									{/* Diplômes requis */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={GraduationCap}
+													size='lg'
+													style={{
+														color: isDark
+															? "#60a5fa"
+															: "#3b82f6",
+													}}
+												/>
+												<Text
+													size='md'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Diplômes requis
+												</Text>
+											</HStack>
+											<HStack space='sm'>
+												<VStack
+													ref={diplomaInputRef}
+													style={{ flex: 1 }}>
+													<Input
+														variant='outline'
+														size='md'
+														style={{
+															backgroundColor:
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#e5e7eb",
+														}}>
+														<InputField
+															placeholder='Ex: SSIAP 1'
+															value={
+																currentDiploma
+															}
+															onChangeText={
+																setCurrentDiploma
+															}
+															onFocus={() =>
+																scrollToInput(
+																	diplomaInputRef,
+																	0,
+																)
+															}
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}
+														/>
+													</Input>
+												</VStack>
+												<Button
+													size='md'
+													onPress={addDiploma}
+													style={{
+														backgroundColor:
+															"#3b82f6",
+													}}>
+													<ButtonIcon
+														as={Plus}
+														style={{
+															color: "#ffffff",
+														}}
+													/>
+												</Button>
+											</HStack>
+											{/* Liste des diplômes */}
+											{formData.diplomas_required.length >
+												0 && (
+												<VStack
+													space='xs'
+													style={{ marginTop: 8 }}>
+													{formData.diplomas_required.map(
+														(diploma, index) => (
+															<HStack
+																key={index}
+																space='sm'
+																style={{
+																	alignItems:
+																		"center",
+																	padding: 8,
+																	backgroundColor:
+																		isDark
+																			? "#1f2937"
+																			: "#f3f4f6",
+																	borderRadius: 8,
+																}}>
+																<Box
+																	style={{
+																		width: 6,
+																		height: 6,
+																		borderRadius: 3,
+																		backgroundColor:
+																			"#3b82f6",
+																	}}
+																/>
+																<Text
+																	size='sm'
+																	style={{
+																		flex: 1,
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}>
+																	{diploma}
+																</Text>
+																<Button
+																	size='xs'
+																	variant='link'
+																	onPress={() =>
+																		removeDiploma(
+																			index,
+																		)
+																	}>
+																	<ButtonIcon
+																		as={
+																			Trash2
+																		}
+																		size='sm'
+																		style={{
+																			color: "#ef4444",
+																		}}
+																	/>
+																</Button>
+															</HStack>
+														),
+													)}
+												</VStack>
+											)}
+										</VStack>
+									</Card>
+								</VStack>
+							</ScrollView>
+						</KeyboardAvoidingView>
+					</Box>
+				)}
+
+				{/* Étape 2: Localisation et contrat */}
+				{currentStep === 2 && (
+					<Box style={{ width: SCREEN_WIDTH, flex: 1 }}>
+						<KeyboardAvoidingView
+							behavior={
+								Platform.OS === "ios" ? "padding" : "height"
+							}
+							style={{ flex: 1 }}
+							keyboardVerticalOffset={100}>
+							<ScrollView
+								ref={(ref) => (scrollViewRefs.current[1] = ref)}
+								keyboardShouldPersistTaps='handled'>
+								<VStack
+									space='lg'
+									style={{ padding: 20, paddingBottom: 100 }}>
+									{/* Localisation */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={MapPin}
+													size='lg'
+													style={{
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}
+												/>
+												<Heading
+													size='md'
+													style={{
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Localisation
+												</Heading>
+											</HStack>
+
+											<Divider
+												style={{
+													backgroundColor: isDark
+														? "#4b5563"
+														: "#e5e7eb",
+												}}
+											/>
+
+											{/* Code postal */}
+											<VStack space='xs'>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Code postal *
+												</Text>
+												<Input
+													variant='outline'
+													size='md'
+													style={{
+														backgroundColor: isDark
+															? "#1f2937"
+															: "#ffffff",
+														borderColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}>
+													<InputField
+														placeholder='Entrez le code postal'
+														value={
+															formData.postcode
+														}
+														onChangeText={(
+															text,
+														) => {
+															updateField(
+																"postcode",
+																text,
+															);
+															searchCities(text);
+														}}
+														keyboardType='numeric'
+														maxLength={5}
+														style={{
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}
+													/>
+												</Input>
+											</VStack>
+
+											{/* Liste des villes */}
+											{cities.length > 0 && (
 												<VStack space='xs'>
 													<Text
 														size='sm'
@@ -1816,31 +1842,112 @@ const PostJob = () => {
 																? "#f3f4f6"
 																: "#111827",
 														}}>
-														Ville sélectionnée
+														Sélectionnez la ville
 													</Text>
-													<Box
+													<VStack space='xs'>
+														{cities.map(
+															(cityData) => (
+																<TouchableOpacity
+																	key={
+																		cityData.code
+																	}
+																	onPress={() =>
+																		selectCity(
+																			cityData,
+																		)
+																	}>
+																	<Box
+																		style={{
+																			padding: 12,
+																			backgroundColor:
+																				formData.city ===
+																				cityData.nom
+																					? isDark
+																						? "#1f2937"
+																						: "#dbeafe"
+																					: isDark
+																						? "#1f2937"
+																						: "#f9fafb",
+																			borderRadius: 8,
+																			borderWidth: 1,
+																			borderColor:
+																				formData.city ===
+																				cityData.nom
+																					? "#3b82f6"
+																					: isDark
+																						? "#4b5563"
+																						: "#e5e7eb",
+																		}}>
+																		<Text
+																			style={{
+																				color: isDark
+																					? "#f3f4f6"
+																					: "#111827",
+																			}}>
+																			{
+																				cityData.nom
+																			}{" "}
+																			(
+																			{
+																				cityData.codeDepartement
+																			}
+																			)
+																		</Text>
+																	</Box>
+																</TouchableOpacity>
+															),
+														)}
+													</VStack>
+												</VStack>
+											)}
+
+											{/* Affichage de la ville sélectionnée */}
+											{formData.city && (
+												<>
+													<Divider
 														style={{
-															padding: 12,
 															backgroundColor:
 																isDark
-																	? "#1f2937"
-																	: "#dbeafe",
-															borderRadius: 8,
-															borderWidth: 1,
-															borderColor:
-																"#3b82f6",
-														}}>
+																	? "#4b5563"
+																	: "#e5e7eb",
+														}}
+													/>
+
+													<VStack space='xs'>
 														<Text
+															size='sm'
 															style={{
+																fontWeight:
+																	"600",
 																color: isDark
 																	? "#f3f4f6"
 																	: "#111827",
-																fontWeight:
-																	"600",
 															}}>
-															{formData.city}
+															Ville sélectionnée
 														</Text>
-														{/* <Text
+														<Box
+															style={{
+																padding: 12,
+																backgroundColor:
+																	isDark
+																		? "#1f2937"
+																		: "#dbeafe",
+																borderRadius: 8,
+																borderWidth: 1,
+																borderColor:
+																	"#3b82f6",
+															}}>
+															<Text
+																style={{
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																	fontWeight:
+																		"600",
+																}}>
+																{formData.city}
+															</Text>
+															{/* <Text
 														size='sm'
 														style={{
 															color: isDark
@@ -1853,142 +1960,54 @@ const PostJob = () => {
 														}
 														)
 													</Text> */}
-														<Text
-															size='sm'
-															style={{
-																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
-															}}>
-															{
-																formData.department
-															}{" "}
-															({formData.postcode}
-															)
-														</Text>
-														<Text
-															size='sm'
-															style={{
-																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
-															}}>
-															{formData.region}
-														</Text>
-													</Box>
-												</VStack>
-											</>
-										)}
-									</VStack>
-								</Card>
+															<Text
+																size='sm'
+																style={{
+																	color: isDark
+																		? "#9ca3af"
+																		: "#6b7280",
+																}}>
+																{
+																	formData.department
+																}{" "}
+																(
+																{
+																	formData.postcode
+																}
+																)
+															</Text>
+															<Text
+																size='sm'
+																style={{
+																	color: isDark
+																		? "#9ca3af"
+																		: "#6b7280",
+																}}>
+																{
+																	formData.region
+																}
+															</Text>
+														</Box>
+													</VStack>
+												</>
+											)}
+										</VStack>
+									</Card>
 
-								{/* Type de contrat */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Type de contrat *
-										</Text>
-										<HStack
-											space='sm'
-											style={{ flexWrap: "wrap" }}>
-											{CONTRACT_TYPES.map((type) => (
-												<Pressable
-													key={type}
-													onPress={() =>
-														updateField(
-															"contract_type",
-															type,
-														)
-													}
-													style={{
-														flex: 1,
-														minWidth: "45%",
-														marginBottom: 8,
-													}}>
-													<Box
-														style={{
-															padding: 16,
-															borderRadius: 10,
-															borderWidth: 2,
-															borderColor:
-																formData.contract_type ===
-																type
-																	? "#3b82f6"
-																	: isDark
-																		? "#4b5563"
-																		: "#e5e7eb",
-															backgroundColor:
-																formData.contract_type ===
-																type
-																	? isDark
-																		? "#1e3a8a"
-																		: "#dbeafe"
-																	: isDark
-																		? "#1f2937"
-																		: "#f9fafb",
-															alignItems:
-																"center",
-															justifyContent:
-																"center",
-														}}>
-														<Text
-															style={{
-																fontWeight:
-																	"600",
-																fontSize: 15,
-																color:
-																	formData.contract_type ===
-																	type
-																		? "#3b82f6"
-																		: isDark
-																			? "#f3f4f6"
-																			: "#111827",
-															}}>
-															{type}
-														</Text>
-													</Box>
-												</Pressable>
-											))}
-										</HStack>
-									</VStack>
-								</Card>
-
-								{/* Dates */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										{/* Date de début */}
-										<VStack
-											space='xs'
-											ref={startDateInputRef}>
+									{/* Type de contrat */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
 											<Text
 												size='sm'
 												style={{
@@ -1997,127 +2016,91 @@ const PostJob = () => {
 														? "#f3f4f6"
 														: "#111827",
 												}}>
-												Date de début *
+												Type de contrat *
 											</Text>
-											<TouchableOpacity
-												onPress={() => {
-													Keyboard.dismiss();
-													setShowStartDatePicker(
-														true,
-													);
-													if (
-														startDateInputRef.current &&
-														scrollViewRefs
-															.current[1]
-													) {
-														setTimeout(() => {
-															startDateInputRef.current.measureLayout(
-																scrollViewRefs
-																	.current[1],
-																(x, y) => {
-																	const screenHeight =
-																		Dimensions.get(
-																			"window",
-																		).height;
-																	const keyboardHeight = 300;
-																	// Ne scroller que si le datepicker serait en dessous du clavier
-																	if (
-																		y +
-																			400 >
-																		screenHeight -
-																			keyboardHeight
-																	) {
-																		const centerOffset =
-																			screenHeight /
-																				2 -
-																			150;
-																		scrollViewRefs.current[1].scrollTo(
-																			{
-																				y:
-																					y -
-																					centerOffset,
-																				animated: true,
-																			},
-																		);
-																	}
-																},
-																() => {},
-															);
-														}, 150);
-													}
-												}}>
-												<Input
-													variant='outline'
-													size='md'
-													isDisabled
-													style={{
-														pointerEvents: "none",
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														value={formatDate(
-															formData.start_date,
-														)}
-														editable={false}
-														style={{
-															color: formData.start_date
-																? isDark
-																	? "#f3f4f6"
-																	: "#111827"
-																: "#9ca3af",
-														}}
-													/>
-												</Input>
-											</TouchableOpacity>
-											{showStartDatePicker && (
-												<DateTimePicker
-													value={
-														formData.start_date ||
-														new Date()
-													}
-													mode='date'
-													display={
-														Platform.OS === "ios"
-															? "spinner"
-															: "default"
-													}
-													onChange={
-														handleStartDateChange
-													}
-													minimumDate={new Date()}
-												/>
-											)}
-											{Platform.OS === "ios" &&
-												showStartDatePicker && (
-													<Button
-														size='sm'
+											<HStack
+												space='sm'
+												style={{ flexWrap: "wrap" }}>
+												{CONTRACT_TYPES.map((type) => (
+													<Pressable
+														key={type}
 														onPress={() =>
-															setShowStartDatePicker(
-																false,
+															updateField(
+																"contract_type",
+																type,
 															)
 														}
 														style={{
-															marginTop: 8,
-															backgroundColor:
-																"#3b82f6",
+															flex: 1,
+															minWidth: "45%",
+															marginBottom: 8,
 														}}>
-														<ButtonText>
-															Confirmer
-														</ButtonText>
-													</Button>
-												)}
+														<Box
+															style={{
+																padding: 16,
+																borderRadius: 10,
+																borderWidth: 2,
+																borderColor:
+																	formData.contract_type ===
+																	type
+																		? "#3b82f6"
+																		: isDark
+																			? "#4b5563"
+																			: "#e5e7eb",
+																backgroundColor:
+																	formData.contract_type ===
+																	type
+																		? isDark
+																			? "#1e3a8a"
+																			: "#dbeafe"
+																		: isDark
+																			? "#1f2937"
+																			: "#f9fafb",
+																alignItems:
+																	"center",
+																justifyContent:
+																	"center",
+															}}>
+															<Text
+																style={{
+																	fontWeight:
+																		"600",
+																	fontSize: 15,
+																	color:
+																		formData.contract_type ===
+																		type
+																			? "#3b82f6"
+																			: isDark
+																				? "#f3f4f6"
+																				: "#111827",
+																}}>
+																{type}
+															</Text>
+														</Box>
+													</Pressable>
+												))}
+											</HStack>
 										</VStack>
+									</Card>
 
-										{/* Date de fin (conditionnelle pour non-CDI) */}
-										{formData.contract_type !== "CDI" && (
+									{/* Dates */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											{/* Date de début */}
 											<VStack
 												space='xs'
-												ref={endDateInputRef}>
+												ref={startDateInputRef}>
 												<Text
 													size='sm'
 													style={{
@@ -2126,21 +2109,21 @@ const PostJob = () => {
 															? "#f3f4f6"
 															: "#111827",
 													}}>
-													Date de fin *
+													Date de début *
 												</Text>
 												<TouchableOpacity
 													onPress={() => {
 														Keyboard.dismiss();
-														setShowEndDatePicker(
+														setShowStartDatePicker(
 															true,
 														);
 														if (
-															endDateInputRef.current &&
+															startDateInputRef.current &&
 															scrollViewRefs
 																.current[1]
 														) {
 															setTimeout(() => {
-																endDateInputRef.current.measureLayout(
+																startDateInputRef.current.measureLayout(
 																	scrollViewRefs
 																		.current[1],
 																	(x, y) => {
@@ -2192,11 +2175,11 @@ const PostJob = () => {
 														}}>
 														<InputField
 															value={formatDate(
-																formData.end_date,
+																formData.start_date,
 															)}
 															editable={false}
 															style={{
-																color: formData.end_date
+																color: formData.start_date
 																	? isDark
 																		? "#f3f4f6"
 																		: "#111827"
@@ -2205,10 +2188,9 @@ const PostJob = () => {
 														/>
 													</Input>
 												</TouchableOpacity>
-												{showEndDatePicker && (
+												{showStartDatePicker && (
 													<DateTimePicker
 														value={
-															formData.end_date ||
 															formData.start_date ||
 															new Date()
 														}
@@ -2220,20 +2202,17 @@ const PostJob = () => {
 																: "default"
 														}
 														onChange={
-															handleEndDateChange
+															handleStartDateChange
 														}
-														minimumDate={
-															formData.start_date ||
-															new Date()
-														}
+														minimumDate={new Date()}
 													/>
 												)}
 												{Platform.OS === "ios" &&
-													showEndDatePicker && (
+													showStartDatePicker && (
 														<Button
 															size='sm'
 															onPress={() =>
-																setShowEndDatePicker(
+																setShowStartDatePicker(
 																	false,
 																)
 															}
@@ -2248,468 +2227,83 @@ const PostJob = () => {
 														</Button>
 													)}
 											</VStack>
-										)}
-									</VStack>
-								</Card>
 
-								{/* Temps de travail */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Temps de travail *
-										</Text>
-										<HStack
-											space='sm'
-											style={{ flexWrap: "wrap" }}>
-											{WORK_TIME.map((time) => (
-												<Pressable
-													key={time}
-													onPress={() =>
-														updateField(
-															"work_time",
-															time,
-														)
-													}
-													style={{
-														flex: 1,
-														minWidth: "45%",
-														marginBottom: 8,
-													}}>
-													<Box
+											{/* Date de fin (conditionnelle pour non-CDI) */}
+											{formData.contract_type !==
+												"CDI" && (
+												<VStack
+													space='xs'
+													ref={endDateInputRef}>
+													<Text
+														size='sm'
 														style={{
-															padding: 16,
-															borderRadius: 10,
-															borderWidth: 2,
-															borderColor:
-																formData.work_time ===
-																time
-																	? "#3b82f6"
-																	: isDark
-																		? "#4b5563"
-																		: "#e5e7eb",
-															backgroundColor:
-																formData.work_time ===
-																time
-																	? isDark
-																		? "#1e3a8a"
-																		: "#dbeafe"
-																	: isDark
-																		? "#1f2937"
-																		: "#f9fafb",
-															alignItems:
-																"center",
-															justifyContent:
-																"center",
-														}}>
-														<Text
-															style={{
-																fontWeight:
-																	"600",
-																fontSize: 15,
-																color:
-																	formData.work_time ===
-																	time
-																		? "#3b82f6"
-																		: isDark
-																			? "#f3f4f6"
-																			: "#111827",
-															}}>
-															{time}
-														</Text>
-													</Box>
-												</Pressable>
-											))}
-										</HStack>
-									</VStack>
-								</Card>
-
-								{/* Horaires de travail */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Horaires de travail
-										</Text>
-										<HStack
-											space='sm'
-											style={{ flexWrap: "wrap" }}>
-											{WORK_SCHEDULE.map((schedule) => (
-												<Pressable
-													key={schedule}
-													onPress={() =>
-														updateField(
-															"work_schedule",
-															schedule,
-														)
-													}
-													style={{
-														flex: 1,
-														minWidth: "30%",
-														marginBottom: 8,
-													}}>
-													<Box
-														style={{
-															padding: 16,
-															borderRadius: 10,
-															borderWidth: 2,
-															borderColor:
-																formData.work_schedule ===
-																schedule
-																	? "#3b82f6"
-																	: isDark
-																		? "#4b5563"
-																		: "#e5e7eb",
-															backgroundColor:
-																formData.work_schedule ===
-																schedule
-																	? isDark
-																		? "#1e3a8a"
-																		: "#dbeafe"
-																	: isDark
-																		? "#1f2937"
-																		: "#f9fafb",
-															alignItems:
-																"center",
-															justifyContent:
-																"center",
-														}}>
-														<Text
-															style={{
-																fontWeight:
-																	"600",
-																fontSize: 15,
-																color:
-																	formData.work_schedule ===
-																	schedule
-																		? "#3b82f6"
-																		: isDark
-																			? "#f3f4f6"
-																			: "#111827",
-															}}>
-															{schedule}
-														</Text>
-													</Box>
-												</Pressable>
-											))}
-										</HStack>
-
-										{/* Horaires */}
-										<HStack space='md'>
-											{/* Heure de début */}
-											<VStack
-												ref={startTimeInputRef}
-												space='xs'
-												style={{ flex: 1 }}>
-												<Text
-													size='sm'
-													style={{
-														fontWeight: "600",
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}>
-													Heure de début
-												</Text>
-												<Input
-													variant='outline'
-													size='md'
-													isDisabled={false}
-													isInvalid={false}
-													isReadOnly={false}>
-													<InputField
-														placeholder='HH:MM'
-														value={
-															formData.start_time
-														}
-														onChangeText={(value) =>
-															formatTimeInput(
-																value,
-																"start_time",
-															)
-														}
-														onFocus={() =>
-															scrollToInput(
-																startTimeInputRef,
-															)
-														}
-														keyboardType='numeric'
-														maxLength={5}
-													/>
-												</Input>
-											</VStack>
-
-											{/* Heure de fin */}
-											<VStack
-												ref={endTimeInputRef}
-												space='xs'
-												style={{ flex: 1 }}>
-												<Text
-													size='sm'
-													style={{
-														fontWeight: "600",
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}>
-													Heure de fin
-												</Text>
-												<Input
-													variant='outline'
-													size='md'
-													isDisabled={false}
-													isInvalid={false}
-													isReadOnly={false}>
-													<InputField
-														placeholder='HH:MM'
-														value={
-															formData.end_time
-														}
-														onChangeText={(value) =>
-															formatTimeInput(
-																value,
-																"end_time",
-															)
-														}
-														onFocus={() =>
-															scrollToInput(
-																endTimeInputRef,
-															)
-														}
-														keyboardType='numeric'
-														maxLength={5}
-													/>
-												</Input>
-											</VStack>
-										</HStack>
-									</VStack>
-								</Card>
-
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={BadgeEuro}
-												size='lg'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}
-											/>
-											<Heading
-												size='md'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Rémunération
-											</Heading>
-										</HStack>
-
-										<Divider
-											style={{
-												backgroundColor: isDark
-													? "#4b5563"
-													: "#e5e7eb",
-											}}
-										/>
-
-										{/* Sélection du type de salaire */}
-										<VStack space='xs'>
-											<Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Type de rémunération *
-											</Text>
-											<Select
-												selectedValue={
-													formData.salary_type
-												}
-												onValueChange={(value) => {
-													updateField(
-														"salary_type",
-														value,
-													);
-													// Réinitialiser les champs de salaire
-													setFormData((prev) => ({
-														...prev,
-														salary_type: value,
-														salary_hourly: "",
-														salary_amount: "",
-														salary_min: "",
-														salary_max: "",
-														weekly_hours: "",
-														daily_hours: "",
-													}));
-												}}>
-												<SelectTrigger
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<SelectInput
-														placeholder='Sélectionner'
-														value={
-															formData.salary_type ===
-															"selon_profil"
-																? "Selon profil"
-																: formData.salary_type ===
-																	  "hourly"
-																	? "Taux horaire"
-																	: formData.salary_type ===
-																		  "monthly_fixed"
-																		? "Salaire mensuel fixe"
-																		: formData.salary_type ===
-																			  "annual_fixed"
-																			? "Salaire annuel fixe"
-																			: formData.salary_type ===
-																				  "monthly_range"
-																				? "Fourchette mensuelle"
-																				: formData.salary_type ===
-																					  "annual_range"
-																					? "Fourchette annuelle"
-																					: ""
-														}
-														style={{
+															fontWeight: "600",
 															color: isDark
 																? "#f3f4f6"
 																: "#111827",
-														}}
-													/>
-													<SelectIcon className='mr-3'>
-														<Icon
-															as={ChevronDownIcon}
-															style={{
-																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
-															}}
-														/>
-													</SelectIcon>
-												</SelectTrigger>
-												<SelectPortal>
-													<SelectBackdrop />
-													<SelectContent
-														style={{
-															backgroundColor:
-																isDark
-																	? "#1f2937"
-																	: "#ffffff",
 														}}>
-														<SelectDragIndicatorWrapper>
-															<SelectDragIndicator />
-														</SelectDragIndicatorWrapper>
-														<SelectItem
-															label='Selon profil'
-															value='selon_profil'
-														/>
-														<SelectItem
-															label='Taux horaire'
-															value='hourly'
-														/>
-														<SelectItem
-															label='Salaire mensuel fixe'
-															value='monthly_fixed'
-														/>
-														<SelectItem
-															label='Salaire annuel fixe'
-															value='annual_fixed'
-														/>
-														<SelectItem
-															label='Fourchette mensuelle'
-															value='monthly_range'
-														/>
-														<SelectItem
-															label='Fourchette annuelle'
-															value='annual_range'
-														/>
-													</SelectContent>
-												</SelectPortal>
-											</Select>
-										</VStack>
-
-										{/* Taux horaire */}
-										{formData.salary_type === "hourly" && (
-											<>
-												<HStack space='md'>
-													<VStack
-														space='xs'
-														style={{ flex: 1 }}>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															Taux horaire (€) *
-														</Text>
+														Date de fin *
+													</Text>
+													<TouchableOpacity
+														onPress={() => {
+															Keyboard.dismiss();
+															setShowEndDatePicker(
+																true,
+															);
+															if (
+																endDateInputRef.current &&
+																scrollViewRefs
+																	.current[1]
+															) {
+																setTimeout(
+																	() => {
+																		endDateInputRef.current.measureLayout(
+																			scrollViewRefs
+																				.current[1],
+																			(
+																				x,
+																				y,
+																			) => {
+																				const screenHeight =
+																					Dimensions.get(
+																						"window",
+																					).height;
+																				const keyboardHeight = 300;
+																				// Ne scroller que si le datepicker serait en dessous du clavier
+																				if (
+																					y +
+																						400 >
+																					screenHeight -
+																						keyboardHeight
+																				) {
+																					const centerOffset =
+																						screenHeight /
+																							2 -
+																						150;
+																					scrollViewRefs.current[1].scrollTo(
+																						{
+																							y:
+																								y -
+																								centerOffset,
+																							animated: true,
+																						},
+																					);
+																				}
+																			},
+																			() => {},
+																		);
+																	},
+																	150,
+																);
+															}
+														}}>
 														<Input
 															variant='outline'
 															size='md'
+															isDisabled
 															style={{
+																pointerEvents:
+																	"none",
 																backgroundColor:
 																	isDark
 																		? "#1f2937"
@@ -2720,16 +2314,952 @@ const PostJob = () => {
 																		: "#e5e7eb",
 															}}>
 															<InputField
-																placeholder='Ex: 15.50'
+																value={formatDate(
+																	formData.end_date,
+																)}
+																editable={false}
+																style={{
+																	color: formData.end_date
+																		? isDark
+																			? "#f3f4f6"
+																			: "#111827"
+																		: "#9ca3af",
+																}}
+															/>
+														</Input>
+													</TouchableOpacity>
+													{showEndDatePicker && (
+														<DateTimePicker
+															value={
+																formData.end_date ||
+																formData.start_date ||
+																new Date()
+															}
+															mode='date'
+															display={
+																Platform.OS ===
+																"ios"
+																	? "spinner"
+																	: "default"
+															}
+															onChange={
+																handleEndDateChange
+															}
+															minimumDate={
+																formData.start_date ||
+																new Date()
+															}
+														/>
+													)}
+													{Platform.OS === "ios" &&
+														showEndDatePicker && (
+															<Button
+																size='sm'
+																onPress={() =>
+																	setShowEndDatePicker(
+																		false,
+																	)
+																}
+																style={{
+																	marginTop: 8,
+																	backgroundColor:
+																		"#3b82f6",
+																}}>
+																<ButtonText>
+																	Confirmer
+																</ButtonText>
+															</Button>
+														)}
+												</VStack>
+											)}
+										</VStack>
+									</Card>
+
+									{/* Temps de travail */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Temps de travail *
+											</Text>
+											<HStack
+												space='sm'
+												style={{ flexWrap: "wrap" }}>
+												{WORK_TIME.map((time) => (
+													<Pressable
+														key={time}
+														onPress={() =>
+															updateField(
+																"work_time",
+																time,
+															)
+														}
+														style={{
+															flex: 1,
+															minWidth: "45%",
+															marginBottom: 8,
+														}}>
+														<Box
+															style={{
+																padding: 16,
+																borderRadius: 10,
+																borderWidth: 2,
+																borderColor:
+																	formData.work_time ===
+																	time
+																		? "#3b82f6"
+																		: isDark
+																			? "#4b5563"
+																			: "#e5e7eb",
+																backgroundColor:
+																	formData.work_time ===
+																	time
+																		? isDark
+																			? "#1e3a8a"
+																			: "#dbeafe"
+																		: isDark
+																			? "#1f2937"
+																			: "#f9fafb",
+																alignItems:
+																	"center",
+																justifyContent:
+																	"center",
+															}}>
+															<Text
+																style={{
+																	fontWeight:
+																		"600",
+																	fontSize: 15,
+																	color:
+																		formData.work_time ===
+																		time
+																			? "#3b82f6"
+																			: isDark
+																				? "#f3f4f6"
+																				: "#111827",
+																}}>
+																{time}
+															</Text>
+														</Box>
+													</Pressable>
+												))}
+											</HStack>
+										</VStack>
+									</Card>
+
+									{/* Horaires de travail */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Horaires de travail
+											</Text>
+											<HStack
+												space='sm'
+												style={{ flexWrap: "wrap" }}>
+												{WORK_SCHEDULE.map(
+													(schedule) => (
+														<Pressable
+															key={schedule}
+															onPress={() =>
+																updateField(
+																	"work_schedule",
+																	schedule,
+																)
+															}
+															style={{
+																flex: 1,
+																minWidth: "30%",
+																marginBottom: 8,
+															}}>
+															<Box
+																style={{
+																	padding: 16,
+																	borderRadius: 10,
+																	borderWidth: 2,
+																	borderColor:
+																		formData.work_schedule ===
+																		schedule
+																			? "#3b82f6"
+																			: isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
+																	backgroundColor:
+																		formData.work_schedule ===
+																		schedule
+																			? isDark
+																				? "#1e3a8a"
+																				: "#dbeafe"
+																			: isDark
+																				? "#1f2937"
+																				: "#f9fafb",
+																	alignItems:
+																		"center",
+																	justifyContent:
+																		"center",
+																}}>
+																<Text
+																	style={{
+																		fontWeight:
+																			"600",
+																		fontSize: 15,
+																		color:
+																			formData.work_schedule ===
+																			schedule
+																				? "#3b82f6"
+																				: isDark
+																					? "#f3f4f6"
+																					: "#111827",
+																	}}>
+																	{schedule}
+																</Text>
+															</Box>
+														</Pressable>
+													),
+												)}
+											</HStack>
+
+											{/* Horaires */}
+											<HStack space='md'>
+												{/* Heure de début */}
+												<VStack
+													ref={startTimeInputRef}
+													space='xs'
+													style={{ flex: 1 }}>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														Heure de début
+													</Text>
+													<Input
+														variant='outline'
+														size='md'
+														isDisabled={false}
+														isInvalid={false}
+														isReadOnly={false}>
+														<InputField
+															placeholder='HH:MM'
+															value={
+																formData.start_time
+															}
+															onChangeText={(
+																value,
+															) =>
+																formatTimeInput(
+																	value,
+																	"start_time",
+																)
+															}
+															onFocus={() =>
+																scrollToInput(
+																	startTimeInputRef,
+																)
+															}
+															keyboardType='numeric'
+															maxLength={5}
+														/>
+													</Input>
+												</VStack>
+
+												{/* Heure de fin */}
+												<VStack
+													ref={endTimeInputRef}
+													space='xs'
+													style={{ flex: 1 }}>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														Heure de fin
+													</Text>
+													<Input
+														variant='outline'
+														size='md'
+														isDisabled={false}
+														isInvalid={false}
+														isReadOnly={false}>
+														<InputField
+															placeholder='HH:MM'
+															value={
+																formData.end_time
+															}
+															onChangeText={(
+																value,
+															) =>
+																formatTimeInput(
+																	value,
+																	"end_time",
+																)
+															}
+															onFocus={() =>
+																scrollToInput(
+																	endTimeInputRef,
+																)
+															}
+															keyboardType='numeric'
+															maxLength={5}
+														/>
+													</Input>
+												</VStack>
+											</HStack>
+										</VStack>
+									</Card>
+
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={BadgeEuro}
+													size='lg'
+													style={{
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}
+												/>
+												<Heading
+													size='md'
+													style={{
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Rémunération
+												</Heading>
+											</HStack>
+
+											<Divider
+												style={{
+													backgroundColor: isDark
+														? "#4b5563"
+														: "#e5e7eb",
+												}}
+											/>
+
+											{/* Sélection du type de salaire */}
+											<VStack space='xs'>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Type de rémunération *
+												</Text>
+												<Select
+													selectedValue={
+														formData.salary_type
+													}
+													onValueChange={(value) => {
+														updateField(
+															"salary_type",
+															value,
+														);
+														// Réinitialiser les champs de salaire
+														setFormData((prev) => ({
+															...prev,
+															salary_type: value,
+															salary_hourly: "",
+															salary_amount: "",
+															salary_min: "",
+															salary_max: "",
+															weekly_hours: "",
+															daily_hours: "",
+														}));
+													}}>
+													<SelectTrigger
+														variant='outline'
+														size='md'
+														style={{
+															backgroundColor:
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#e5e7eb",
+														}}>
+														<SelectInput
+															placeholder='Sélectionner'
+															value={
+																formData.salary_type ===
+																"selon_profil"
+																	? "Selon profil"
+																	: formData.salary_type ===
+																		  "hourly"
+																		? "Taux horaire"
+																		: formData.salary_type ===
+																			  "monthly_fixed"
+																			? "Salaire mensuel fixe"
+																			: formData.salary_type ===
+																				  "annual_fixed"
+																				? "Salaire annuel fixe"
+																				: formData.salary_type ===
+																					  "monthly_range"
+																					? "Fourchette mensuelle"
+																					: formData.salary_type ===
+																						  "annual_range"
+																						? "Fourchette annuelle"
+																						: ""
+															}
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}
+														/>
+														<SelectIcon className='mr-3'>
+															<Icon
+																as={
+																	ChevronDownIcon
+																}
+																style={{
+																	color: isDark
+																		? "#9ca3af"
+																		: "#6b7280",
+																}}
+															/>
+														</SelectIcon>
+													</SelectTrigger>
+													<SelectPortal>
+														<SelectBackdrop />
+														<SelectContent
+															style={{
+																backgroundColor:
+																	isDark
+																		? "#1f2937"
+																		: "#ffffff",
+															}}>
+															<SelectDragIndicatorWrapper>
+																<SelectDragIndicator />
+															</SelectDragIndicatorWrapper>
+															<SelectItem
+																label='Selon profil'
+																value='selon_profil'
+															/>
+															<SelectItem
+																label='Taux horaire'
+																value='hourly'
+															/>
+															<SelectItem
+																label='Salaire mensuel fixe'
+																value='monthly_fixed'
+															/>
+															<SelectItem
+																label='Salaire annuel fixe'
+																value='annual_fixed'
+															/>
+															<SelectItem
+																label='Fourchette mensuelle'
+																value='monthly_range'
+															/>
+															<SelectItem
+																label='Fourchette annuelle'
+																value='annual_range'
+															/>
+														</SelectContent>
+													</SelectPortal>
+												</Select>
+											</VStack>
+
+											{/* Taux horaire */}
+											{formData.salary_type ===
+												"hourly" && (
+												<>
+													<HStack space='md'>
+														<VStack
+															space='xs'
+															style={{ flex: 1 }}>
+															<Text
+																size='sm'
+																style={{
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																Taux horaire (€)
+																*
+															</Text>
+															<Input
+																variant='outline'
+																size='md'
+																style={{
+																	backgroundColor:
+																		isDark
+																			? "#1f2937"
+																			: "#ffffff",
+																	borderColor:
+																		isDark
+																			? "#4b5563"
+																			: "#e5e7eb",
+																}}>
+																<InputField
+																	placeholder='Ex: 15.50'
+																	value={
+																		formData.salary_hourly
+																	}
+																	onChangeText={(
+																		value,
+																	) =>
+																		updateField(
+																			"salary_hourly",
+																			value,
+																		)
+																	}
+																	onFocus={() =>
+																		scrollToInput(
+																			salaryInputRef,
+																			1,
+																			1500,
+																		)
+																	}
+																	keyboardType='decimal-pad'
+																	style={{
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}
+																/>
+															</Input>
+														</VStack>
+													</HStack>
+
+													{/* Sélecteur semaine/jour */}
+													<VStack space='xs'>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Période de travail *
+														</Text>
+														<HStack space='sm'>
+															<Pressable
+																onPress={() =>
+																	updateField(
+																		"work_hours_type",
+																		"semaine",
+																	)
+																}
+																style={{
+																	flex: 1,
+																}}>
+																<Box
+																	style={{
+																		padding: 12,
+																		borderRadius: 10,
+																		borderWidth: 2,
+																		borderColor:
+																			formData.work_hours_type ===
+																			"semaine"
+																				? "#3b82f6"
+																				: isDark
+																					? "#4b5563"
+																					: "#e5e7eb",
+																		backgroundColor:
+																			formData.work_hours_type ===
+																			"semaine"
+																				? isDark
+																					? "#1e3a8a"
+																					: "#dbeafe"
+																				: isDark
+																					? "#1f2937"
+																					: "#f9fafb",
+																		alignItems:
+																			"center",
+																	}}>
+																	<Text
+																		style={{
+																			fontWeight:
+																				"600",
+																			color:
+																				formData.work_hours_type ===
+																				"semaine"
+																					? "#3b82f6"
+																					: isDark
+																						? "#f3f4f6"
+																						: "#111827",
+																		}}>
+																		Par
+																		semaine
+																	</Text>
+																</Box>
+															</Pressable>
+															<Pressable
+																onPress={() =>
+																	updateField(
+																		"work_hours_type",
+																		"jour",
+																	)
+																}
+																style={{
+																	flex: 1,
+																}}>
+																<Box
+																	style={{
+																		padding: 12,
+																		borderRadius: 10,
+																		borderWidth: 2,
+																		borderColor:
+																			formData.work_hours_type ===
+																			"jour"
+																				? "#3b82f6"
+																				: isDark
+																					? "#4b5563"
+																					: "#e5e7eb",
+																		backgroundColor:
+																			formData.work_hours_type ===
+																			"jour"
+																				? isDark
+																					? "#1e3a8a"
+																					: "#dbeafe"
+																				: isDark
+																					? "#1f2937"
+																					: "#f9fafb",
+																		alignItems:
+																			"center",
+																	}}>
+																	<Text
+																		style={{
+																			fontWeight:
+																				"600",
+																			color:
+																				formData.work_hours_type ===
+																				"jour"
+																					? "#3b82f6"
+																					: isDark
+																						? "#f3f4f6"
+																						: "#111827",
+																		}}>
+																		Par jour
+																	</Text>
+																</Box>
+															</Pressable>
+														</HStack>
+													</VStack>
+
+													{/* Input heures par semaine */}
+													{formData.work_hours_type ===
+														"semaine" && (
+														<VStack
+															space='xs'
+															ref={hoursInputRef}>
+															<Text
+																size='sm'
+																style={{
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																Heures/semaine *
+															</Text>
+															<Input
+																variant='outline'
+																size='md'
+																style={{
+																	backgroundColor:
+																		isDark
+																			? "#1f2937"
+																			: "#ffffff",
+																	borderColor:
+																		isDark
+																			? "#4b5563"
+																			: "#e5e7eb",
+																}}>
+																<InputField
+																	placeholder='Ex: 35'
+																	value={
+																		formData.weekly_hours
+																	}
+																	onChangeText={(
+																		value,
+																	) =>
+																		updateField(
+																			"weekly_hours",
+																			value,
+																		)
+																	}
+																	onFocus={() =>
+																		scrollToInput(
+																			hoursInputRef,
+																			1,
+																			200,
+																		)
+																	}
+																	keyboardType='decimal-pad'
+																	style={{
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}
+																/>
+															</Input>
+														</VStack>
+													)}
+
+													{/* Input heures par jour */}
+													{formData.work_hours_type ===
+														"jour" && (
+														<VStack
+															space='xs'
+															ref={hoursInputRef}>
+															<Text
+																size='sm'
+																style={{
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																Heures/jour *
+															</Text>
+															<Input
+																variant='outline'
+																size='md'
+																style={{
+																	backgroundColor:
+																		isDark
+																			? "#1f2937"
+																			: "#ffffff",
+																	borderColor:
+																		isDark
+																			? "#4b5563"
+																			: "#e5e7eb",
+																}}>
+																<InputField
+																	placeholder='Ex: 7'
+																	value={
+																		formData.daily_hours
+																	}
+																	onChangeText={(
+																		value,
+																	) =>
+																		updateField(
+																			"daily_hours",
+																			value,
+																		)
+																	}
+																	onFocus={() =>
+																		scrollToInput(
+																			hoursInputRef,
+																			200,
+																			1,
+																		)
+																	}
+																	keyboardType='decimal-pad'
+																	style={{
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}
+																/>
+															</Input>
+														</VStack>
+													)}
+													{/* Calcul du salaire mensuel */}
+													{formData.salary_hourly &&
+														((formData.work_hours_type ===
+															"jour" &&
+															formData.daily_hours) ||
+															(formData.work_hours_type ===
+																"semaine" &&
+																formData.weekly_hours)) && (
+															<Box
+																style={{
+																	padding: 16,
+																	backgroundColor:
+																		isDark
+																			? "#1e3a8a"
+																			: "#dbeafe",
+																	borderRadius: 10,
+																	borderWidth: 1,
+																	borderColor:
+																		"#3b82f6",
+																}}>
+																<VStack space='xs'>
+																	<Text
+																		size='sm'
+																		style={{
+																			color: isDark
+																				? "#93c5fd"
+																				: "#1e40af",
+																			fontWeight:
+																				"500",
+																		}}>
+																		Salaire
+																		mensuel
+																		estimé
+																	</Text>
+																	<Text
+																		style={{
+																			fontSize: 24,
+																			fontWeight:
+																				"700",
+																			color: "#3b82f6",
+																		}}>
+																		{formData.work_hours_type ===
+																		"jour"
+																			? (
+																					(parseFloat(
+																						formData.salary_hourly,
+																					) *
+																						parseFloat(
+																							formData.daily_hours,
+																						) *
+																						22) /
+																					1
+																				).toFixed(
+																					2,
+																				)
+																			: (
+																					(parseFloat(
+																						formData.salary_hourly,
+																					) *
+																						parseFloat(
+																							formData.weekly_hours,
+																						) *
+																						52) /
+																					12
+																				).toFixed(
+																					2,
+																				)}{" "}
+																		€
+																	</Text>
+																	<Text
+																		size='xs'
+																		style={{
+																			color: isDark
+																				? "#93c5fd"
+																				: "#1e40af",
+																		}}>
+																		{formData.work_hours_type ===
+																		"jour"
+																			? `Calcul : ${formData.salary_hourly}€/h × ${formData.daily_hours}h/jour × 22 jours`
+																			: `Calcul : ${formData.salary_hourly}€/h × ${formData.weekly_hours}h/sem × 52 sem ÷ 12 mois`}
+																	</Text>
+																</VStack>
+															</Box>
+														)}
+												</>
+											)}
+
+											{/* Salaire mensuel fixe */}
+											{formData.salary_type ===
+												"monthly_fixed" && (
+												<>
+													<VStack space='xs'>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Salaire mensuel brut
+															(€) *
+														</Text>
+														<Input
+															variant='outline'
+															size='md'
+															style={{
+																backgroundColor:
+																	isDark
+																		? "#374151"
+																		: "#ffffff",
+																borderColor:
+																	isDark
+																		? "#4b5563"
+																		: "#d1d5db",
+																color: isDark
+																	? "#f9fafb"
+																	: "#111827",
+															}}>
+															<InputField
+																placeholder='Ex: 2500'
 																value={
-																	formData.salary_hourly
+																	formData.salary_monthly_fixed ||
+																	""
 																}
 																onChangeText={(
-																	value,
+																	text,
 																) =>
-																	updateField(
-																		"salary_hourly",
-																		value,
+																	setFormData(
+																		{
+																			...formData,
+																			salary_monthly_fixed:
+																				text,
+																		},
 																	)
 																}
 																onFocus={() =>
@@ -2739,1444 +3269,1119 @@ const PostJob = () => {
 																		1500,
 																	)
 																}
-																keyboardType='decimal-pad'
+																keyboardType='numeric'
 																style={{
 																	color: isDark
-																		? "#f3f4f6"
+																		? "#f9fafb"
 																		: "#111827",
 																}}
 															/>
 														</Input>
 													</VStack>
-												</HStack>
+												</>
+											)}
 
-												{/* Sélecteur semaine/jour */}
-												<VStack space='xs'>
-													<Text
-														size='sm'
-														style={{
-															fontWeight: "600",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														Période de travail *
-													</Text>
-													<HStack space='sm'>
-														<Pressable
-															onPress={() =>
-																updateField(
-																	"work_hours_type",
-																	"semaine",
-																)
-															}
-															style={{ flex: 1 }}>
-															<Box
+											{/* Salaire annuel fixe */}
+											{formData.salary_type ===
+												"annual_fixed" && (
+												<>
+													<VStack space='xs'>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Salaire annuel brut
+															(€) *
+														</Text>
+														<Input
+															variant='outline'
+															size='md'
+															style={{
+																backgroundColor:
+																	isDark
+																		? "#374151"
+																		: "#ffffff",
+																borderColor:
+																	isDark
+																		? "#4b5563"
+																		: "#d1d5db",
+																color: isDark
+																	? "#f9fafb"
+																	: "#111827",
+															}}>
+															<InputField
+																placeholder='Ex: 35000'
+																value={
+																	formData.salary_annual_fixed ||
+																	""
+																}
+																onChangeText={(
+																	text,
+																) =>
+																	setFormData(
+																		{
+																			...formData,
+																			salary_annual_fixed:
+																				text,
+																		},
+																	)
+																}
+																onFocus={() =>
+																	scrollToInput(
+																		salaryInputRef,
+																		1,
+																		1500,
+																	)
+																}
+																keyboardType='numeric'
 																style={{
-																	padding: 12,
-																	borderRadius: 10,
-																	borderWidth: 2,
-																	borderColor:
-																		formData.work_hours_type ===
-																		"semaine"
-																			? "#3b82f6"
-																			: isDark
-																				? "#4b5563"
-																				: "#e5e7eb",
-																	backgroundColor:
-																		formData.work_hours_type ===
-																		"semaine"
-																			? isDark
-																				? "#1e3a8a"
-																				: "#dbeafe"
-																			: isDark
-																				? "#1f2937"
-																				: "#f9fafb",
-																	alignItems:
-																		"center",
-																}}>
-																<Text
-																	style={{
-																		fontWeight:
-																			"600",
-																		color:
-																			formData.work_hours_type ===
-																			"semaine"
-																				? "#3b82f6"
-																				: isDark
-																					? "#f3f4f6"
-																					: "#111827",
-																	}}>
-																	Par semaine
-																</Text>
-															</Box>
-														</Pressable>
-														<Pressable
-															onPress={() =>
-																updateField(
-																	"work_hours_type",
-																	"jour",
-																)
-															}
+																	color: isDark
+																		? "#f9fafb"
+																		: "#111827",
+																}}
+															/>
+														</Input>
+													</VStack>
+												</>
+											)}
+
+											{/* Fourchette mensuelle */}
+											{formData.salary_type ===
+												"monthly_range" && (
+												<>
+													<HStack space='md'>
+														<VStack
+															space='xs'
 															style={{ flex: 1 }}>
-															<Box
+															<Text
+																size='sm'
 																style={{
-																	padding: 12,
-																	borderRadius: 10,
-																	borderWidth: 2,
-																	borderColor:
-																		formData.work_hours_type ===
-																		"jour"
-																			? "#3b82f6"
-																			: isDark
-																				? "#4b5563"
-																				: "#e5e7eb",
-																	backgroundColor:
-																		formData.work_hours_type ===
-																		"jour"
-																			? isDark
-																				? "#1e3a8a"
-																				: "#dbeafe"
-																			: isDark
-																				? "#1f2937"
-																				: "#f9fafb",
-																	alignItems:
-																		"center",
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
 																}}>
-																<Text
+																Salaire min. (€)
+																*
+															</Text>
+															<Input
+																variant='outline'
+																size='md'
+																style={{
+																	backgroundColor:
+																		isDark
+																			? "#374151"
+																			: "#ffffff",
+																	borderColor:
+																		isDark
+																			? "#4b5563"
+																			: "#d1d5db",
+																	color: isDark
+																		? "#f9fafb"
+																		: "#111827",
+																}}>
+																<InputField
+																	placeholder='Ex: 2000'
+																	value={
+																		formData.salary_monthly_min ||
+																		""
+																	}
+																	onChangeText={(
+																		text,
+																	) =>
+																		setFormData(
+																			{
+																				...formData,
+																				salary_monthly_min:
+																					text,
+																			},
+																		)
+																	}
+																	onFocus={() =>
+																		scrollToInput(
+																			salaryInputRef,
+																			1,
+																			350,
+																		)
+																	}
+																	keyboardType='numeric'
 																	style={{
-																		fontWeight:
-																			"600",
-																		color:
-																			formData.work_hours_type ===
-																			"jour"
-																				? "#3b82f6"
-																				: isDark
-																					? "#f3f4f6"
-																					: "#111827",
-																	}}>
-																	Par jour
-																</Text>
-															</Box>
-														</Pressable>
+																		color: isDark
+																			? "#f9fafb"
+																			: "#111827",
+																	}}
+																/>
+															</Input>
+														</VStack>
+
+														<VStack
+															space='xs'
+															style={{ flex: 1 }}>
+															<Text
+																size='sm'
+																style={{
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																Salaire max. (€)
+																*
+															</Text>
+															<Input
+																variant='outline'
+																size='md'
+																style={{
+																	backgroundColor:
+																		isDark
+																			? "#374151"
+																			: "#ffffff",
+																	borderColor:
+																		isDark
+																			? "#4b5563"
+																			: "#d1d5db",
+																	color: isDark
+																		? "#f9fafb"
+																		: "#111827",
+																}}>
+																<InputField
+																	placeholder='Ex: 2800'
+																	value={
+																		formData.salary_monthly_max ||
+																		""
+																	}
+																	onChangeText={(
+																		text,
+																	) =>
+																		setFormData(
+																			{
+																				...formData,
+																				salary_monthly_max:
+																					text,
+																			},
+																		)
+																	}
+																	onFocus={() =>
+																		scrollToInput(
+																			salaryInputRef,
+																			1,
+																			350,
+																		)
+																	}
+																	keyboardType='numeric'
+																	style={{
+																		color: isDark
+																			? "#f9fafb"
+																			: "#111827",
+																	}}
+																/>
+															</Input>
+														</VStack>
 													</HStack>
-												</VStack>
+												</>
+											)}
 
-												{/* Input heures par semaine */}
-												{formData.work_hours_type ===
-													"semaine" && (
-													<VStack
-														space='xs'
-														ref={hoursInputRef}>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															Heures/semaine *
-														</Text>
-														<Input
-															variant='outline'
-															size='md'
-															style={{
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#ffffff",
-																borderColor:
-																	isDark
-																		? "#4b5563"
-																		: "#e5e7eb",
-															}}>
-															<InputField
-																placeholder='Ex: 35'
-																value={
-																	formData.weekly_hours
-																}
-																onChangeText={(
-																	value,
-																) =>
-																	updateField(
-																		"weekly_hours",
-																		value,
-																	)
-																}
-																onFocus={() =>
-																	scrollToInput(
-																		hoursInputRef,
-																		1,
-																		200,
-																	)
-																}
-																keyboardType='decimal-pad'
+											{/* Fourchette annuelle */}
+											{formData.salary_type ===
+												"annual_range" && (
+												<>
+													<HStack space='md'>
+														<VStack
+															space='xs'
+															style={{ flex: 1 }}>
+															<Text
+																size='sm'
 																style={{
+																	fontWeight:
+																		"600",
 																	color: isDark
 																		? "#f3f4f6"
 																		: "#111827",
-																}}
-															/>
-														</Input>
-													</VStack>
-												)}
-
-												{/* Input heures par jour */}
-												{formData.work_hours_type ===
-													"jour" && (
-													<VStack
-														space='xs'
-														ref={hoursInputRef}>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															Heures/jour *
-														</Text>
-														<Input
-															variant='outline'
-															size='md'
-															style={{
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#ffffff",
-																borderColor:
-																	isDark
-																		? "#4b5563"
-																		: "#e5e7eb",
-															}}>
-															<InputField
-																placeholder='Ex: 7'
-																value={
-																	formData.daily_hours
-																}
-																onChangeText={(
-																	value,
-																) =>
-																	updateField(
-																		"daily_hours",
-																		value,
-																	)
-																}
-																onFocus={() =>
-																	scrollToInput(
-																		hoursInputRef,
-																		200,
-																		1,
-																	)
-																}
-																keyboardType='decimal-pad'
+																}}>
+																Salaire min. (€)
+																*
+															</Text>
+															<Input
+																variant='outline'
+																size='md'
 																style={{
+																	backgroundColor:
+																		isDark
+																			? "#374151"
+																			: "#ffffff",
+																	borderColor:
+																		isDark
+																			? "#4b5563"
+																			: "#d1d5db",
+																	color: isDark
+																		? "#f9fafb"
+																		: "#111827",
+																}}>
+																<InputField
+																	placeholder='Ex: 30000'
+																	value={
+																		formData.salary_annual_min ||
+																		""
+																	}
+																	onChangeText={(
+																		text,
+																	) =>
+																		setFormData(
+																			{
+																				...formData,
+																				salary_annual_min:
+																					text,
+																			},
+																		)
+																	}
+																	onFocus={() =>
+																		scrollToInput(
+																			salaryInputRef,
+																			1,
+																			350,
+																		)
+																	}
+																	keyboardType='numeric'
+																	style={{
+																		color: isDark
+																			? "#f9fafb"
+																			: "#111827",
+																	}}
+																/>
+															</Input>
+														</VStack>
+
+														<VStack
+															space='xs'
+															style={{ flex: 1 }}>
+															<Text
+																size='sm'
+																style={{
+																	fontWeight:
+																		"600",
 																	color: isDark
 																		? "#f3f4f6"
 																		: "#111827",
-																}}
-															/>
-														</Input>
-													</VStack>
-												)}
-												{/* Calcul du salaire mensuel */}
-												{formData.salary_hourly &&
-													((formData.work_hours_type ===
-														"jour" &&
-														formData.daily_hours) ||
-														(formData.work_hours_type ===
-															"semaine" &&
-															formData.weekly_hours)) && (
-														<Box
-															style={{
-																padding: 16,
-																backgroundColor:
-																	isDark
-																		? "#1e3a8a"
-																		: "#dbeafe",
-																borderRadius: 10,
-																borderWidth: 1,
-																borderColor:
-																	"#3b82f6",
-															}}>
-															<VStack space='xs'>
-																<Text
-																	size='sm'
+																}}>
+																Salaire max. (€)
+																*
+															</Text>
+															<Input
+																variant='outline'
+																size='md'
+																style={{
+																	backgroundColor:
+																		isDark
+																			? "#374151"
+																			: "#ffffff",
+																	borderColor:
+																		isDark
+																			? "#4b5563"
+																			: "#d1d5db",
+																	color: isDark
+																		? "#f9fafb"
+																		: "#111827",
+																}}>
+																<InputField
+																	placeholder='Ex: 40000'
+																	value={
+																		formData.salary_annual_max ||
+																		""
+																	}
+																	onChangeText={(
+																		text,
+																	) =>
+																		setFormData(
+																			{
+																				...formData,
+																				salary_annual_max:
+																					text,
+																			},
+																		)
+																	}
+																	onFocus={() =>
+																		scrollToInput(
+																			salaryInputRef,
+																			1,
+																			350,
+																		)
+																	}
+																	keyboardType='numeric'
 																	style={{
 																		color: isDark
-																			? "#93c5fd"
-																			: "#1e40af",
-																		fontWeight:
-																			"500",
-																	}}>
-																	Salaire
-																	mensuel
-																	estimé
-																</Text>
-																<Text
-																	style={{
-																		fontSize: 24,
-																		fontWeight:
-																			"700",
-																		color: "#3b82f6",
-																	}}>
-																	{formData.work_hours_type ===
-																	"jour"
-																		? (
-																				(parseFloat(
-																					formData.salary_hourly,
-																				) *
-																					parseFloat(
-																						formData.daily_hours,
-																					) *
-																					22) /
-																				1
-																			).toFixed(
-																				2,
-																			)
-																		: (
-																				(parseFloat(
-																					formData.salary_hourly,
-																				) *
-																					parseFloat(
-																						formData.weekly_hours,
-																					) *
-																					52) /
-																				12
-																			).toFixed(
-																				2,
-																			)}{" "}
-																	€
-																</Text>
-																<Text
-																	size='xs'
-																	style={{
-																		color: isDark
-																			? "#93c5fd"
-																			: "#1e40af",
-																	}}>
-																	{formData.work_hours_type ===
-																	"jour"
-																		? `Calcul : ${formData.salary_hourly}€/h × ${formData.daily_hours}h/jour × 22 jours`
-																		: `Calcul : ${formData.salary_hourly}€/h × ${formData.weekly_hours}h/sem × 52 sem ÷ 12 mois`}
-																</Text>
-															</VStack>
-														</Box>
-													)}
-											</>
-										)}
+																			? "#f9fafb"
+																			: "#111827",
+																	}}
+																/>
+															</Input>
+														</VStack>
+													</HStack>
+												</>
+											)}
 
-										{/* Salaire mensuel fixe */}
-										{formData.salary_type ===
-											"monthly_fixed" && (
-											<>
-												<VStack space='xs'>
-													<Text
-														size='sm'
+											{/* Selon profil / À négocier */}
+											{formData.salary_type ===
+												"selon_profil" && (
+												<>
+													<Box
 														style={{
-															fontWeight: "600",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														Salaire mensuel brut (€)
-														*
-													</Text>
-													<Input
-														variant='outline'
-														size='md'
-														style={{
+															padding: 16,
 															backgroundColor:
 																isDark
-																	? "#374151"
-																	: "#ffffff",
-															borderColor: isDark
-																? "#4b5563"
-																: "#d1d5db",
-															color: isDark
-																? "#f9fafb"
-																: "#111827",
+																	? "#1e3a8a"
+																	: "#dbeafe",
+															borderRadius: 10,
+															borderWidth: 1,
+															borderColor:
+																"#3b82f6",
 														}}>
-														<InputField
-															placeholder='Ex: 2500'
-															value={
-																formData.salary_monthly_fixed ||
-																""
-															}
-															onChangeText={(
-																text,
-															) =>
-																setFormData({
-																	...formData,
-																	salary_monthly_fixed:
-																		text,
-																})
-															}
-															onFocus={() =>
-																scrollToInput(
-																	salaryInputRef,
-																	1,
-																	1500,
-																)
-															}
-															keyboardType='numeric'
+														<VStack
+															space='xs'
 															style={{
-																color: isDark
-																	? "#f9fafb"
-																	: "#111827",
-															}}
-														/>
-													</Input>
-												</VStack>
-											</>
-										)}
-
-										{/* Salaire annuel fixe */}
-										{formData.salary_type ===
-											"annual_fixed" && (
-											<>
-												<VStack space='xs'>
-													<Text
-														size='sm'
-														style={{
-															fontWeight: "600",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														Salaire annuel brut (€)
-														*
-													</Text>
-													<Input
-														variant='outline'
-														size='md'
-														style={{
-															backgroundColor:
-																isDark
-																	? "#374151"
-																	: "#ffffff",
-															borderColor: isDark
-																? "#4b5563"
-																: "#d1d5db",
-															color: isDark
-																? "#f9fafb"
-																: "#111827",
-														}}>
-														<InputField
-															placeholder='Ex: 35000'
-															value={
-																formData.salary_annual_fixed ||
-																""
-															}
-															onChangeText={(
-																text,
-															) =>
-																setFormData({
-																	...formData,
-																	salary_annual_fixed:
-																		text,
-																})
-															}
-															onFocus={() =>
-																scrollToInput(
-																	salaryInputRef,
-																	1,
-																	1500,
-																)
-															}
-															keyboardType='numeric'
-															style={{
-																color: isDark
-																	? "#f9fafb"
-																	: "#111827",
-															}}
-														/>
-													</Input>
-												</VStack>
-											</>
-										)}
-
-										{/* Fourchette mensuelle */}
-										{formData.salary_type ===
-											"monthly_range" && (
-											<>
-												<HStack space='md'>
-													<VStack
-														space='xs'
-														style={{ flex: 1 }}>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															Salaire min. (€) *
-														</Text>
-														<Input
-															variant='outline'
-															size='md'
-															style={{
-																backgroundColor:
-																	isDark
-																		? "#374151"
-																		: "#ffffff",
-																borderColor:
-																	isDark
-																		? "#4b5563"
-																		: "#d1d5db",
-																color: isDark
-																	? "#f9fafb"
-																	: "#111827",
-															}}>
-															<InputField
-																placeholder='Ex: 2000'
-																value={
-																	formData.salary_monthly_min ||
-																	""
-																}
-																onChangeText={(
-																	text,
-																) =>
-																	setFormData(
-																		{
-																			...formData,
-																			salary_monthly_min:
-																				text,
-																		},
-																	)
-																}
-																onFocus={() =>
-																	scrollToInput(
-																		salaryInputRef,
-																		1,
-																		350,
-																	)
-																}
-																keyboardType='numeric'
-																style={{
-																	color: isDark
-																		? "#f9fafb"
-																		: "#111827",
-																}}
-															/>
-														</Input>
-													</VStack>
-
-													<VStack
-														space='xs'
-														style={{ flex: 1 }}>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															Salaire max. (€) *
-														</Text>
-														<Input
-															variant='outline'
-															size='md'
-															style={{
-																backgroundColor:
-																	isDark
-																		? "#374151"
-																		: "#ffffff",
-																borderColor:
-																	isDark
-																		? "#4b5563"
-																		: "#d1d5db",
-																color: isDark
-																	? "#f9fafb"
-																	: "#111827",
-															}}>
-															<InputField
-																placeholder='Ex: 2800'
-																value={
-																	formData.salary_monthly_max ||
-																	""
-																}
-																onChangeText={(
-																	text,
-																) =>
-																	setFormData(
-																		{
-																			...formData,
-																			salary_monthly_max:
-																				text,
-																		},
-																	)
-																}
-																onFocus={() =>
-																	scrollToInput(
-																		salaryInputRef,
-																		1,
-																		350,
-																	)
-																}
-																keyboardType='numeric'
-																style={{
-																	color: isDark
-																		? "#f9fafb"
-																		: "#111827",
-																}}
-															/>
-														</Input>
-													</VStack>
-												</HStack>
-											</>
-										)}
-
-										{/* Fourchette annuelle */}
-										{formData.salary_type ===
-											"annual_range" && (
-											<>
-												<HStack space='md'>
-													<VStack
-														space='xs'
-														style={{ flex: 1 }}>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															Salaire min. (€) *
-														</Text>
-														<Input
-															variant='outline'
-															size='md'
-															style={{
-																backgroundColor:
-																	isDark
-																		? "#374151"
-																		: "#ffffff",
-																borderColor:
-																	isDark
-																		? "#4b5563"
-																		: "#d1d5db",
-																color: isDark
-																	? "#f9fafb"
-																	: "#111827",
-															}}>
-															<InputField
-																placeholder='Ex: 30000'
-																value={
-																	formData.salary_annual_min ||
-																	""
-																}
-																onChangeText={(
-																	text,
-																) =>
-																	setFormData(
-																		{
-																			...formData,
-																			salary_annual_min:
-																				text,
-																		},
-																	)
-																}
-																onFocus={() =>
-																	scrollToInput(
-																		salaryInputRef,
-																		1,
-																		350,
-																	)
-																}
-																keyboardType='numeric'
-																style={{
-																	color: isDark
-																		? "#f9fafb"
-																		: "#111827",
-																}}
-															/>
-														</Input>
-													</VStack>
-
-													<VStack
-														space='xs'
-														style={{ flex: 1 }}>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															Salaire max. (€) *
-														</Text>
-														<Input
-															variant='outline'
-															size='md'
-															style={{
-																backgroundColor:
-																	isDark
-																		? "#374151"
-																		: "#ffffff",
-																borderColor:
-																	isDark
-																		? "#4b5563"
-																		: "#d1d5db",
-																color: isDark
-																	? "#f9fafb"
-																	: "#111827",
-															}}>
-															<InputField
-																placeholder='Ex: 40000'
-																value={
-																	formData.salary_annual_max ||
-																	""
-																}
-																onChangeText={(
-																	text,
-																) =>
-																	setFormData(
-																		{
-																			...formData,
-																			salary_annual_max:
-																				text,
-																		},
-																	)
-																}
-																onFocus={() =>
-																	scrollToInput(
-																		salaryInputRef,
-																		1,
-																		350,
-																	)
-																}
-																keyboardType='numeric'
-																style={{
-																	color: isDark
-																		? "#f9fafb"
-																		: "#111827",
-																}}
-															/>
-														</Input>
-													</VStack>
-												</HStack>
-											</>
-										)}
-
-										{/* Selon profil / À négocier */}
-										{formData.salary_type ===
-											"selon_profil" && (
-											<>
-												<Box
-													style={{
-														padding: 16,
-														backgroundColor: isDark
-															? "#1e3a8a"
-															: "#dbeafe",
-														borderRadius: 10,
-														borderWidth: 1,
-														borderColor: "#3b82f6",
-													}}>
-													<VStack
-														space='xs'
-														style={{
-															alignItems:
-																"center",
-														}}>
-														<Text
-															size='sm'
-															style={{
-																color: isDark
-																	? "#93c5fd"
-																	: "#1e40af",
-																fontWeight:
-																	"500",
-																textAlign:
+																alignItems:
 																	"center",
 															}}>
-															💡 Le salaire sera
-															déterminé selon le
-															profil du candidat
-														</Text>
-														<Text
-															size='xs'
-															style={{
-																color: isDark
-																	? "#93c5fd"
-																	: "#1e40af",
-																textAlign:
-																	"center",
-															}}>
-															Cette option permet
-															plus de flexibilité
-															dans les
-															négociations
-														</Text>
-													</VStack>
-												</Box>
-											</>
-										)}
-									</VStack>
-								</Card>
-							</VStack>
-						</ScrollView>
-					</KeyboardAvoidingView>
-				</Box>
+															<Text
+																size='sm'
+																style={{
+																	color: isDark
+																		? "#93c5fd"
+																		: "#1e40af",
+																	fontWeight:
+																		"500",
+																	textAlign:
+																		"center",
+																}}>
+																💡 Le salaire
+																sera déterminé
+																selon le profil
+																du candidat
+															</Text>
+															<Text
+																size='xs'
+																style={{
+																	color: isDark
+																		? "#93c5fd"
+																		: "#1e40af",
+																	textAlign:
+																		"center",
+																}}>
+																Cette option
+																permet plus de
+																flexibilité dans
+																les négociations
+															</Text>
+														</VStack>
+													</Box>
+												</>
+											)}
+										</VStack>
+									</Card>
+								</VStack>
+							</ScrollView>
+						</KeyboardAvoidingView>
+					</Box>
+				)}
 
 				{/* Étape 3: Détails */}
-				<Box style={{ width: SCREEN_WIDTH }}>
-					<KeyboardAvoidingView
-						behavior={Platform.OS === "ios" ? "padding" : "height"}
-						style={{ flex: 1 }}
-						keyboardVerticalOffset={100}>
-						<ScrollView
-							ref={(ref) => (scrollViewRefs.current[2] = ref)}
-							keyboardShouldPersistTaps='handled'>
-							<VStack
-								space='lg'
-								style={{ padding: 20, paddingBottom: 100 }}>
-								{/* Permis de conduire */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={FileText}
-												size='lg'
+				{currentStep === 3 && (
+					<Box style={{ width: SCREEN_WIDTH, flex: 1 }}>
+						<KeyboardAvoidingView
+							behavior={
+								Platform.OS === "ios" ? "padding" : "height"
+							}
+							style={{ flex: 1 }}
+							keyboardVerticalOffset={100}>
+							<ScrollView
+								ref={(ref) => (scrollViewRefs.current[2] = ref)}
+								keyboardShouldPersistTaps='handled'>
+								<VStack
+									space='lg'
+									style={{ padding: 20, paddingBottom: 100 }}>
+									{/* Permis de conduire */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<HStack
+												space='sm'
 												style={{
-													color: isDark
-														? "#60a5fa"
-														: "#3b82f6",
-												}}
-											/>
-											<Text
-												size='md'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+													alignItems: "center",
 												}}>
-												Permis de conduire
-											</Text>
-										</HStack>
-										<HStack space='sm'>
-											<VStack
-												ref={drivingLicenseInputRef}
-												style={{ flex: 1 }}>
-												<Input
-													variant='outline'
-													size='md'
+												<Icon
+													as={FileText}
+													size='lg'
 													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ex: Permis B'
-														value={
-															currentDrivingLicense
-														}
-														onChangeText={
-															setCurrentDrivingLicense
-														}
-														onFocus={() =>
-															scrollToInput(
-																drivingLicenseInputRef,
-																2,
-															)
-														}
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Input>
-											</VStack>
-											<Button
-												size='md'
-												onPress={addDrivingLicense}
-												style={{
-													backgroundColor: "#3b82f6",
-												}}>
-												<ButtonIcon
-													as={Plus}
-													style={{ color: "#ffffff" }}
+														color: isDark
+															? "#60a5fa"
+															: "#3b82f6",
+													}}
 												/>
-											</Button>
-										</HStack>
-										{/* Liste des permis */}
-										{formData.driving_licenses.length >
-											0 && (
-											<VStack
-												space='xs'
-												style={{ marginTop: 8 }}>
-												{formData.driving_licenses.map(
-													(license, index) => (
-														<HStack
-															key={index}
-															space='sm'
-															style={{
-																alignItems:
-																	"center",
-																padding: 8,
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#f3f4f6",
-																borderRadius: 8,
-															}}>
-															<Box
-																style={{
-																	width: 6,
-																	height: 6,
-																	borderRadius: 3,
-																	backgroundColor:
-																		"#3b82f6",
-																}}
-															/>
-															<Text
-																size='sm'
-																style={{
-																	flex: 1,
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}>
-																{license}
-															</Text>
-															<Button
-																size='xs'
-																variant='link'
-																onPress={() =>
-																	removeDrivingLicense(
-																		index,
-																	)
-																}>
-																<ButtonIcon
-																	as={Trash2}
-																	size='sm'
-																	style={{
-																		color: "#ef4444",
-																	}}
-																/>
-															</Button>
-														</HStack>
-													),
-												)}
-											</VStack>
-										)}
-									</VStack>
-								</Card>
-
-								{/* Langues demandées */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={Users}
-												size='lg'
-												style={{
-													color: isDark
-														? "#60a5fa"
-														: "#3b82f6",
-												}}
-											/>
-											<Text
-												size='md'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Langues demandées
-											</Text>
-										</HStack>
-										<HStack space='sm'>
-											<VStack
-												ref={languageInputRef}
-												style={{ flex: 1 }}>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ex: Anglais, Espagnol'
-														value={currentLanguage}
-														onChangeText={
-															setCurrentLanguage
-														}
-														onFocus={() =>
-															scrollToInput(
-																languageInputRef,
-																2,
-															)
-														}
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Input>
-											</VStack>
-											<Button
-												size='md'
-												onPress={addLanguage}
-												style={{
-													backgroundColor: "#3b82f6",
-												}}>
-												<ButtonIcon
-													as={Plus}
-													style={{ color: "#ffffff" }}
-												/>
-											</Button>
-										</HStack>
-										{/* Liste des langues */}
-										{formData.languages.length > 0 && (
-											<VStack
-												space='xs'
-												style={{ marginTop: 8 }}>
-												{formData.languages.map(
-													(language, index) => (
-														<HStack
-															key={index}
-															space='sm'
-															style={{
-																alignItems:
-																	"center",
-																padding: 8,
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#f3f4f6",
-																borderRadius: 8,
-															}}>
-															<Box
-																style={{
-																	width: 6,
-																	height: 6,
-																	borderRadius: 3,
-																	backgroundColor:
-																		"#3b82f6",
-																}}
-															/>
-															<Text
-																size='sm'
-																style={{
-																	flex: 1,
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}>
-																{language}
-															</Text>
-															<Button
-																size='xs'
-																variant='link'
-																onPress={() =>
-																	removeLanguage(
-																		index,
-																	)
-																}>
-																<ButtonIcon
-																	as={Trash2}
-																	size='sm'
-																	style={{
-																		color: "#ef4444",
-																	}}
-																/>
-															</Button>
-														</HStack>
-													),
-												)}
-											</VStack>
-										)}
-									</VStack>
-								</Card>
-
-								{/* Remboursements */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={BadgeEuro}
-												size='lg'
-												style={{
-													color: isDark
-														? "#60a5fa"
-														: "#3b82f6",
-												}}
-											/>
-											<Text
-												size='md'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Remboursements
-											</Text>
-										</HStack>
-										<HStack space='sm'>
-											<VStack
-												ref={reimbursementInputRef}
-												style={{ flex: 1 }}>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ex: Frais de transport'
-														value={
-															currentReimbursement
-														}
-														onChangeText={
-															setCurrentReimbursement
-														}
-														onFocus={() =>
-															scrollToInput(
-																reimbursementInputRef,
-																2,
-															)
-														}
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Input>
-											</VStack>
-											<Button
-												size='md'
-												onPress={addReimbursement}
-												style={{
-													backgroundColor: "#3b82f6",
-												}}>
-												<ButtonIcon
-													as={Plus}
-													style={{ color: "#ffffff" }}
-												/>
-											</Button>
-										</HStack>
-										{/* Liste des remboursements */}
-										{formData.reimbursements.length > 0 && (
-											<VStack
-												space='xs'
-												style={{ marginTop: 8 }}>
-												{formData.reimbursements.map(
-													(reimbursement, index) => (
-														<HStack
-															key={index}
-															space='sm'
-															style={{
-																alignItems:
-																	"center",
-																padding: 8,
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#f3f4f6",
-																borderRadius: 8,
-															}}>
-															<Box
-																style={{
-																	width: 6,
-																	height: 6,
-																	borderRadius: 3,
-																	backgroundColor:
-																		"#3b82f6",
-																}}
-															/>
-															<Text
-																size='sm'
-																style={{
-																	flex: 1,
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}>
-																{reimbursement}
-															</Text>
-															<Button
-																size='xs'
-																variant='link'
-																onPress={() =>
-																	removeReimbursement(
-																		index,
-																	)
-																}>
-																<ButtonIcon
-																	as={Trash2}
-																	size='sm'
-																	style={{
-																		color: "#ef4444",
-																	}}
-																/>
-															</Button>
-														</HStack>
-													),
-												)}
-											</VStack>
-										)}
-									</VStack>
-								</Card>
-
-								{/* Options */}
-								<Card
-									style={{
-										padding: 20,
-										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<VStack space='md'>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={Timer}
-												size='lg'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}
-											/>
-											<Heading
-												size='md'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Options
-											</Heading>
-										</HStack>
-
-										<Divider
-											style={{
-												backgroundColor: isDark
-													? "#4b5563"
-													: "#e5e7eb",
-											}}
-										/>
-
-										{/* Dernière minute */}
-										<HStack
-											space='md'
-											style={{
-												justifyContent: "space-between",
-												alignItems: "center",
-											}}>
-											<VStack style={{ flex: 1 }}>
 												<Text
-													size='sm'
+													size='md'
 													style={{
 														fontWeight: "600",
 														color: isDark
 															? "#f3f4f6"
 															: "#111827",
 													}}>
-													Offre dernière minute
+													Permis de conduire
 												</Text>
-												<Text
-													size='xs'
+											</HStack>
+											<HStack space='sm'>
+												<VStack
+													ref={drivingLicenseInputRef}
+													style={{ flex: 1 }}>
+													<Input
+														variant='outline'
+														size='md'
+														style={{
+															backgroundColor:
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#e5e7eb",
+														}}>
+														<InputField
+															placeholder='Ex: Permis B'
+															value={
+																currentDrivingLicense
+															}
+															onChangeText={
+																setCurrentDrivingLicense
+															}
+															onFocus={() =>
+																scrollToInput(
+																	drivingLicenseInputRef,
+																	2,
+																)
+															}
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}
+														/>
+													</Input>
+												</VStack>
+												<Button
+													size='md'
+													onPress={addDrivingLicense}
+													style={{
+														backgroundColor:
+															"#3b82f6",
+													}}>
+													<ButtonIcon
+														as={Plus}
+														style={{
+															color: "#ffffff",
+														}}
+													/>
+												</Button>
+											</HStack>
+											{/* Liste des permis */}
+											{formData.driving_licenses.length >
+												0 && (
+												<VStack
+													space='xs'
+													style={{ marginTop: 8 }}>
+													{formData.driving_licenses.map(
+														(license, index) => (
+															<HStack
+																key={index}
+																space='sm'
+																style={{
+																	alignItems:
+																		"center",
+																	padding: 8,
+																	backgroundColor:
+																		isDark
+																			? "#1f2937"
+																			: "#f3f4f6",
+																	borderRadius: 8,
+																}}>
+																<Box
+																	style={{
+																		width: 6,
+																		height: 6,
+																		borderRadius: 3,
+																		backgroundColor:
+																			"#3b82f6",
+																	}}
+																/>
+																<Text
+																	size='sm'
+																	style={{
+																		flex: 1,
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}>
+																	{license}
+																</Text>
+																<Button
+																	size='xs'
+																	variant='link'
+																	onPress={() =>
+																		removeDrivingLicense(
+																			index,
+																		)
+																	}>
+																	<ButtonIcon
+																		as={
+																			Trash2
+																		}
+																		size='sm'
+																		style={{
+																			color: "#ef4444",
+																		}}
+																	/>
+																</Button>
+															</HStack>
+														),
+													)}
+												</VStack>
+											)}
+										</VStack>
+									</Card>
+
+									{/* Langues demandées */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={Users}
+													size='lg'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
-													}}>
-													Visible avec un badge
-													urgence
-												</Text>
-											</VStack>
-											<Switch
-												value={formData.isLastMinute}
-												onValueChange={(value) =>
-													updateField(
-														"isLastMinute",
-														value,
-													)
-												}
-												trackColor={{
-													false: isDark
-														? "#4b5563"
-														: "#d1d5db",
-													true: "#3b82f6",
-												}}
-											/>
-										</HStack>
-
-										{/* Panier repas */}
-										<HStack
-											space='md'
-											style={{
-												justifyContent: "space-between",
-												alignItems: "center",
-											}}>
-											<VStack style={{ flex: 1 }}>
+															? "#60a5fa"
+															: "#3b82f6",
+													}}
+												/>
 												<Text
-													size='sm'
+													size='md'
 													style={{
 														fontWeight: "600",
 														color: isDark
 															? "#f3f4f6"
 															: "#111827",
 													}}>
-													Panier repas
+													Langues demandées
 												</Text>
-												<Text
-													size='xs'
+											</HStack>
+											<HStack space='sm'>
+												<VStack
+													ref={languageInputRef}
+													style={{ flex: 1 }}>
+													<Input
+														variant='outline'
+														size='md'
+														style={{
+															backgroundColor:
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#e5e7eb",
+														}}>
+														<InputField
+															placeholder='Ex: Anglais, Espagnol'
+															value={
+																currentLanguage
+															}
+															onChangeText={
+																setCurrentLanguage
+															}
+															onFocus={() =>
+																scrollToInput(
+																	languageInputRef,
+																	2,
+																)
+															}
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}
+														/>
+													</Input>
+												</VStack>
+												<Button
+													size='md'
+													onPress={addLanguage}
+													style={{
+														backgroundColor:
+															"#3b82f6",
+													}}>
+													<ButtonIcon
+														as={Plus}
+														style={{
+															color: "#ffffff",
+														}}
+													/>
+												</Button>
+											</HStack>
+											{/* Liste des langues */}
+											{formData.languages.length > 0 && (
+												<VStack
+													space='xs'
+													style={{ marginTop: 8 }}>
+													{formData.languages.map(
+														(language, index) => (
+															<HStack
+																key={index}
+																space='sm'
+																style={{
+																	alignItems:
+																		"center",
+																	padding: 8,
+																	backgroundColor:
+																		isDark
+																			? "#1f2937"
+																			: "#f3f4f6",
+																	borderRadius: 8,
+																}}>
+																<Box
+																	style={{
+																		width: 6,
+																		height: 6,
+																		borderRadius: 3,
+																		backgroundColor:
+																			"#3b82f6",
+																	}}
+																/>
+																<Text
+																	size='sm'
+																	style={{
+																		flex: 1,
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}>
+																	{language}
+																</Text>
+																<Button
+																	size='xs'
+																	variant='link'
+																	onPress={() =>
+																		removeLanguage(
+																			index,
+																		)
+																	}>
+																	<ButtonIcon
+																		as={
+																			Trash2
+																		}
+																		size='sm'
+																		style={{
+																			color: "#ef4444",
+																		}}
+																	/>
+																</Button>
+															</HStack>
+														),
+													)}
+												</VStack>
+											)}
+										</VStack>
+									</Card>
+
+									{/* Remboursements */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={BadgeEuro}
+													size='lg'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
-													}}>
-													Panier repas fourni
-												</Text>
-											</VStack>
-											<Switch
-												value={formData.packed_lunch}
-												onValueChange={(value) =>
-													updateField(
-														"packed_lunch",
-														value,
-													)
-												}
-												trackColor={{
-													false: isDark
-														? "#4b5563"
-														: "#d1d5db",
-													true: "#3b82f6",
-												}}
-											/>
-										</HStack>
-
-										{/* Hébergement */}
-										<HStack
-											space='md'
-											style={{
-												justifyContent: "space-between",
-												alignItems: "center",
-											}}>
-											<VStack style={{ flex: 1 }}>
+															? "#60a5fa"
+															: "#3b82f6",
+													}}
+												/>
 												<Text
-													size='sm'
+													size='md'
 													style={{
 														fontWeight: "600",
 														color: isDark
 															? "#f3f4f6"
 															: "#111827",
 													}}>
-													Hébergement
+													Remboursements
 												</Text>
-												<Text
-													size='xs'
+											</HStack>
+											<HStack space='sm'>
+												<VStack
+													ref={reimbursementInputRef}
+													style={{ flex: 1 }}>
+													<Input
+														variant='outline'
+														size='md'
+														style={{
+															backgroundColor:
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#e5e7eb",
+														}}>
+														<InputField
+															placeholder='Ex: Frais de transport'
+															value={
+																currentReimbursement
+															}
+															onChangeText={
+																setCurrentReimbursement
+															}
+															onFocus={() =>
+																scrollToInput(
+																	reimbursementInputRef,
+																	2,
+																)
+															}
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}
+														/>
+													</Input>
+												</VStack>
+												<Button
+													size='md'
+													onPress={addReimbursement}
+													style={{
+														backgroundColor:
+															"#3b82f6",
+													}}>
+													<ButtonIcon
+														as={Plus}
+														style={{
+															color: "#ffffff",
+														}}
+													/>
+												</Button>
+											</HStack>
+											{/* Liste des remboursements */}
+											{formData.reimbursements.length >
+												0 && (
+												<VStack
+													space='xs'
+													style={{ marginTop: 8 }}>
+													{formData.reimbursements.map(
+														(
+															reimbursement,
+															index,
+														) => (
+															<HStack
+																key={index}
+																space='sm'
+																style={{
+																	alignItems:
+																		"center",
+																	padding: 8,
+																	backgroundColor:
+																		isDark
+																			? "#1f2937"
+																			: "#f3f4f6",
+																	borderRadius: 8,
+																}}>
+																<Box
+																	style={{
+																		width: 6,
+																		height: 6,
+																		borderRadius: 3,
+																		backgroundColor:
+																			"#3b82f6",
+																	}}
+																/>
+																<Text
+																	size='sm'
+																	style={{
+																		flex: 1,
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}>
+																	{
+																		reimbursement
+																	}
+																</Text>
+																<Button
+																	size='xs'
+																	variant='link'
+																	onPress={() =>
+																		removeReimbursement(
+																			index,
+																		)
+																	}>
+																	<ButtonIcon
+																		as={
+																			Trash2
+																		}
+																		size='sm'
+																		style={{
+																			color: "#ef4444",
+																		}}
+																	/>
+																</Button>
+															</HStack>
+														),
+													)}
+												</VStack>
+											)}
+										</VStack>
+									</Card>
+
+									{/* Options */}
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={Timer}
+													size='lg'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? "#f3f4f6"
+															: "#111827",
+													}}
+												/>
+												<Heading
+													size='md'
+													style={{
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
 													}}>
-													Hébergement fourni
-												</Text>
-											</VStack>
-											<Switch
-												value={formData.accommodations}
-												onValueChange={(value) =>
-													updateField(
-														"accommodations",
-														value,
-													)
-												}
-												trackColor={{
-													false: isDark
+													Options
+												</Heading>
+											</HStack>
+
+											<Divider
+												style={{
+													backgroundColor: isDark
 														? "#4b5563"
-														: "#d1d5db",
-													true: "#3b82f6",
+														: "#e5e7eb",
 												}}
 											/>
-										</HStack>
-									</VStack>
-								</Card>
-							</VStack>
-						</ScrollView>
-					</KeyboardAvoidingView>
-				</Box>
-			</Animated.View>
+
+											{/* Dernière minute */}
+											<HStack
+												space='md'
+												style={{
+													justifyContent:
+														"space-between",
+													alignItems: "center",
+												}}>
+												<VStack style={{ flex: 1 }}>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														Offre dernière minute
+													</Text>
+													<Text
+														size='xs'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}>
+														Visible avec un badge
+														urgence
+													</Text>
+												</VStack>
+												<Switch
+													value={
+														formData.isLastMinute
+													}
+													onValueChange={(value) =>
+														updateField(
+															"isLastMinute",
+															value,
+														)
+													}
+													trackColor={{
+														false: isDark
+															? "#4b5563"
+															: "#d1d5db",
+														true: "#3b82f6",
+													}}
+												/>
+											</HStack>
+
+											{/* Panier repas */}
+											<HStack
+												space='md'
+												style={{
+													justifyContent:
+														"space-between",
+													alignItems: "center",
+												}}>
+												<VStack style={{ flex: 1 }}>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														Panier repas
+													</Text>
+													<Text
+														size='xs'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}>
+														Panier repas fourni
+													</Text>
+												</VStack>
+												<Switch
+													value={
+														formData.packed_lunch
+													}
+													onValueChange={(value) =>
+														updateField(
+															"packed_lunch",
+															value,
+														)
+													}
+													trackColor={{
+														false: isDark
+															? "#4b5563"
+															: "#d1d5db",
+														true: "#3b82f6",
+													}}
+												/>
+											</HStack>
+
+											{/* Hébergement */}
+											<HStack
+												space='md'
+												style={{
+													justifyContent:
+														"space-between",
+													alignItems: "center",
+												}}>
+												<VStack style={{ flex: 1 }}>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														Hébergement
+													</Text>
+													<Text
+														size='xs'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}>
+														Hébergement fourni
+													</Text>
+												</VStack>
+												<Switch
+													value={
+														formData.accommodations
+													}
+													onValueChange={(value) =>
+														updateField(
+															"accommodations",
+															value,
+														)
+													}
+													trackColor={{
+														false: isDark
+															? "#4b5563"
+															: "#d1d5db",
+														true: "#3b82f6",
+													}}
+												/>
+											</HStack>
+										</VStack>
+									</Card>
+								</VStack>
+							</ScrollView>
+						</KeyboardAvoidingView>
+					</Box>
+				)}
+			</Box>
 
 			{/* Boutons de navigation fixés en bas */}
 			<Box
