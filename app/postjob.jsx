@@ -61,6 +61,7 @@ import {
 	Trash2,
 	ChevronLeft,
 	ChevronRight,
+	ChevronDownIcon,
 	GraduationCap,
 } from "lucide-react-native";
 
@@ -186,6 +187,7 @@ const PostJob = () => {
 	const missionInputRef = useRef(null);
 	const profileInputRef = useRef(null);
 	const hoursInputRef = useRef(null);
+	const salaryInputRef = useRef(null);
 	const [currentMission, setCurrentMission] = useState("");
 	const [currentProfile, setCurrentProfile] = useState("");
 	const [currentDiploma, setCurrentDiploma] = useState("");
@@ -216,7 +218,11 @@ const PostJob = () => {
 		end_date: null,
 		start_time: "",
 		end_time: "",
+		salary_type: "selon_profil",
 		salary_hourly: "",
+		salary_amount: "",
+		salary_min: "",
+		salary_max: "",
 		weekly_hours: "",
 		daily_hours: "",
 		work_hours_type: "semaine",
@@ -424,14 +430,29 @@ const PostJob = () => {
 		return `${day}/${month}/${year}`;
 	};
 
-	const scrollToInput = (inputRef, stepIndex = 1) => {
+	const scrollToInput = (
+		inputRef,
+		stepIndex = 1,
+		offset = 100,
+		skipIfVisible = false,
+	) => {
 		if (inputRef.current && scrollViewRefs.current[stepIndex]) {
 			setTimeout(() => {
 				inputRef.current.measureLayout(
 					scrollViewRefs.current[stepIndex],
 					(x, y) => {
+						if (skipIfVisible) {
+							// Vérifier si l'élément est déjà visible (pas en dessous du clavier)
+							// Hauteur du clavier approximative: 300px
+							const keyboardHeight = 300;
+							const screenHeight =
+								Dimensions.get("window").height;
+							if (y + 200 < screenHeight - keyboardHeight) {
+								return; // Ne pas scroller si déjà visible
+							}
+						}
 						scrollViewRefs.current[stepIndex].scrollTo({
-							y: y - 100,
+							y: y - offset,
 							animated: true,
 						});
 					},
@@ -613,9 +634,15 @@ const PostJob = () => {
 		console.log("form data to submit:", formData);
 		setLoading(true);
 		try {
-			// Construire le string de salaire
+			// Construire le string de salaire selon le type
 			let salaryString = "";
-			if (formData.salary_hourly) {
+
+			if (formData.salary_type === "selon_profil") {
+				salaryString = "Selon profil";
+			} else if (
+				formData.salary_type === "hourly" &&
+				formData.salary_hourly
+			) {
 				if (
 					formData.work_hours_type === "jour" &&
 					formData.daily_hours
@@ -637,7 +664,40 @@ const PostJob = () => {
 						12
 					).toFixed(2);
 					salaryString = `${formData.salary_hourly}€/h - ${formData.weekly_hours}h/semaine (~${monthlySalary}€/mois)`;
+				} else {
+					salaryString = `${formData.salary_hourly}€/h`;
 				}
+			} else if (
+				formData.salary_type === "monthly_fixed" &&
+				formData.salary_monthly_fixed
+			) {
+				salaryString = `${formData.salary_monthly_fixed}€/mois`;
+			} else if (
+				formData.salary_type === "annual_fixed" &&
+				formData.salary_annual_fixed
+			) {
+				const monthlySalary = (
+					parseFloat(formData.salary_annual_fixed) / 12
+				).toFixed(2);
+				salaryString = `${formData.salary_annual_fixed}€/an (~${monthlySalary}€/mois)`;
+			} else if (
+				formData.salary_type === "monthly_range" &&
+				formData.salary_monthly_min &&
+				formData.salary_monthly_max
+			) {
+				salaryString = `${formData.salary_monthly_min}€ - ${formData.salary_monthly_max}€/mois`;
+			} else if (
+				formData.salary_type === "annual_range" &&
+				formData.salary_annual_min &&
+				formData.salary_annual_max
+			) {
+				const monthlyMin = (
+					parseFloat(formData.salary_annual_min) / 12
+				).toFixed(2);
+				const monthlyMax = (
+					parseFloat(formData.salary_annual_max) / 12
+				).toFixed(2);
+				salaryString = `${formData.salary_annual_min}€ - ${formData.salary_annual_max}€/an (~${monthlyMin}€ - ${monthlyMax}€/mois)`;
 			}
 
 			// Formater les dates au format ISO pour la base de données
@@ -704,7 +764,27 @@ const PostJob = () => {
 				end_date: endDateISO,
 				start_time: formData.start_time || null,
 				end_time: formData.end_time || null,
+				salary_type: formData.salary_type || null,
 				salary_hourly: cleanNumericField(formData.salary_hourly),
+				salary_monthly_fixed: cleanNumericField(
+					formData.salary_monthly_fixed,
+				),
+				salary_annual_fixed: cleanNumericField(
+					formData.salary_annual_fixed,
+				),
+				salary_monthly_min: cleanNumericField(
+					formData.salary_monthly_min,
+				),
+				salary_monthly_max: cleanNumericField(
+					formData.salary_monthly_max,
+				),
+				salary_annual_min: cleanNumericField(
+					formData.salary_annual_min,
+				),
+				salary_annual_max: cleanNumericField(
+					formData.salary_annual_max,
+				),
+				salary: salaryString || null,
 				weekly_hours: cleanNumericField(formData.weekly_hours),
 				daily_hours: cleanNumericField(formData.daily_hours),
 				work_hours_type: mapWorkHoursType(formData.work_hours_type),
@@ -745,7 +825,14 @@ const PostJob = () => {
 				end_date: null,
 				start_time: "",
 				end_time: "",
+				salary_type: "selon_profil",
 				salary_hourly: "",
+				salary_monthly_fixed: "",
+				salary_annual_fixed: "",
+				salary_monthly_min: "",
+				salary_monthly_max: "",
+				salary_annual_min: "",
+				salary_annual_max: "",
 				weekly_hours: "",
 				daily_hours: "",
 				work_hours_type: "semaine",
@@ -1892,18 +1979,27 @@ const PostJob = () => {
 																		Dimensions.get(
 																			"window",
 																		).height;
-																	const centerOffset =
-																		screenHeight /
-																			2 -
-																		150;
-																	scrollViewRefs.current[1].scrollTo(
-																		{
-																			y:
-																				y -
-																				centerOffset,
-																			animated: true,
-																		},
-																	);
+																	const keyboardHeight = 300;
+																	// Ne scroller que si le datepicker serait en dessous du clavier
+																	if (
+																		y +
+																			400 >
+																		screenHeight -
+																			keyboardHeight
+																	) {
+																		const centerOffset =
+																			screenHeight /
+																				2 -
+																			150;
+																		scrollViewRefs.current[1].scrollTo(
+																			{
+																				y:
+																					y -
+																					centerOffset,
+																				animated: true,
+																			},
+																		);
+																	}
 																},
 																() => {},
 															);
@@ -2012,18 +2108,27 @@ const PostJob = () => {
 																			Dimensions.get(
 																				"window",
 																			).height;
-																		const centerOffset =
-																			screenHeight /
-																				2 -
-																			150;
-																		scrollViewRefs.current[1].scrollTo(
-																			{
-																				y:
-																					y -
-																					centerOffset,
-																				animated: true,
-																			},
-																		);
+																		const keyboardHeight = 300;
+																		// Ne scroller que si le datepicker serait en dessous du clavier
+																		if (
+																			y +
+																				400 >
+																			screenHeight -
+																				keyboardHeight
+																		) {
+																			const centerOffset =
+																				screenHeight /
+																					2 -
+																				150;
+																			scrollViewRefs.current[1].scrollTo(
+																				{
+																					y:
+																						y -
+																						centerOffset,
+																					animated: true,
+																				},
+																			);
+																		}
 																	},
 																	() => {},
 																);
@@ -2418,55 +2523,7 @@ const PostJob = () => {
 											}}
 										/>
 
-										<HStack space='md'>
-											{/* Salaire horaire */}
-											<VStack
-												space='xs'
-												style={{ flex: 1 }}>
-												<Text
-													size='sm'
-													style={{
-														fontWeight: "600",
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}>
-													Salaire horaire (€) *
-												</Text>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ex: 15.50'
-														value={
-															formData.salary_hourly
-														}
-														onChangeText={(value) =>
-															updateField(
-																"salary_hourly",
-																value,
-															)
-														}
-														keyboardType='decimal-pad'
-														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Input>
-											</VStack>
-										</HStack>
-
-										{/* Sélecteur semaine/jour */}
+										{/* Sélection du type de salaire */}
 										<VStack space='xs'>
 											<Text
 												size='sm'
@@ -2476,225 +2533,900 @@ const PostJob = () => {
 														? "#f3f4f6"
 														: "#111827",
 												}}>
-												Période de travail *
+												Type de rémunération *
 											</Text>
-											<HStack space='sm'>
-												<Pressable
-													onPress={() =>
-														updateField(
-															"work_hours_type",
-															"semaine",
-														)
-													}
-													style={{ flex: 1 }}>
-													<Box
+											<Select
+												selectedValue={
+													formData.salary_type
+												}
+												onValueChange={(value) => {
+													updateField(
+														"salary_type",
+														value,
+													);
+													// Réinitialiser les champs de salaire
+													setFormData((prev) => ({
+														...prev,
+														salary_type: value,
+														salary_hourly: "",
+														salary_amount: "",
+														salary_min: "",
+														salary_max: "",
+														weekly_hours: "",
+														daily_hours: "",
+													}));
+												}}>
+												<SelectTrigger
+													variant='outline'
+													size='md'
+													style={{
+														backgroundColor: isDark
+															? "#1f2937"
+															: "#ffffff",
+														borderColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}>
+													<SelectInput
+														placeholder='Sélectionner'
+														value={
+															formData.salary_type ===
+															"selon_profil"
+																? "Selon profil"
+																: formData.salary_type ===
+																	  "hourly"
+																	? "Taux horaire"
+																	: formData.salary_type ===
+																		  "monthly_fixed"
+																		? "Salaire mensuel fixe"
+																		: formData.salary_type ===
+																			  "annual_fixed"
+																			? "Salaire annuel fixe"
+																			: formData.salary_type ===
+																				  "monthly_range"
+																				? "Fourchette mensuelle"
+																				: formData.salary_type ===
+																					  "annual_range"
+																					? "Fourchette annuelle"
+																					: ""
+														}
 														style={{
-															padding: 12,
-															borderRadius: 10,
-															borderWidth: 2,
-															borderColor:
-																formData.work_hours_type ===
-																"semaine"
-																	? "#3b82f6"
-																	: isDark
-																		? "#4b5563"
-																		: "#e5e7eb",
-															backgroundColor:
-																formData.work_hours_type ===
-																"semaine"
-																	? isDark
-																		? "#1e3a8a"
-																		: "#dbeafe"
-																	: isDark
-																		? "#1f2937"
-																		: "#f9fafb",
-															alignItems:
-																"center",
-														}}>
-														<Text
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}
+													/>
+													<SelectIcon className='mr-3'>
+														<Icon
+															as={ChevronDownIcon}
 															style={{
-																fontWeight:
-																	"600",
-																color:
-																	formData.work_hours_type ===
-																	"semaine"
-																		? "#3b82f6"
-																		: isDark
-																			? "#f3f4f6"
-																			: "#111827",
-															}}>
-															Par semaine
-														</Text>
-													</Box>
-												</Pressable>
-												<Pressable
-													onPress={() =>
-														updateField(
-															"work_hours_type",
-															"jour",
-														)
-													}
-													style={{ flex: 1 }}>
-													<Box
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+															}}
+														/>
+													</SelectIcon>
+												</SelectTrigger>
+												<SelectPortal>
+													<SelectBackdrop />
+													<SelectContent
 														style={{
-															padding: 12,
-															borderRadius: 10,
-															borderWidth: 2,
-															borderColor:
-																formData.work_hours_type ===
-																"jour"
-																	? "#3b82f6"
-																	: isDark
-																		? "#4b5563"
-																		: "#e5e7eb",
 															backgroundColor:
-																formData.work_hours_type ===
-																"jour"
-																	? isDark
-																		? "#1e3a8a"
-																		: "#dbeafe"
-																	: isDark
-																		? "#1f2937"
-																		: "#f9fafb",
-															alignItems:
-																"center",
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
 														}}>
-														<Text
-															style={{
-																fontWeight:
-																	"600",
-																color:
-																	formData.work_hours_type ===
-																	"jour"
-																		? "#3b82f6"
-																		: isDark
-																			? "#f3f4f6"
-																			: "#111827",
-															}}>
-															Par jour
-														</Text>
-													</Box>
-												</Pressable>
-											</HStack>
+														<SelectDragIndicatorWrapper>
+															<SelectDragIndicator />
+														</SelectDragIndicatorWrapper>
+														<SelectItem
+															label='Selon profil'
+															value='selon_profil'
+														/>
+														<SelectItem
+															label='Taux horaire'
+															value='hourly'
+														/>
+														<SelectItem
+															label='Salaire mensuel fixe'
+															value='monthly_fixed'
+														/>
+														<SelectItem
+															label='Salaire annuel fixe'
+															value='annual_fixed'
+														/>
+														<SelectItem
+															label='Fourchette mensuelle'
+															value='monthly_range'
+														/>
+														<SelectItem
+															label='Fourchette annuelle'
+															value='annual_range'
+														/>
+													</SelectContent>
+												</SelectPortal>
+											</Select>
 										</VStack>
 
-										{/* Input heures par semaine */}
-										{formData.work_hours_type ===
-											"semaine" && (
-											<VStack
-												space='xs'
-												ref={hoursInputRef}>
-												<Text
-													size='sm'
-													style={{
-														fontWeight: "600",
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}>
-													Heures/semaine *
-												</Text>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ex: 35'
-														value={
-															formData.weekly_hours
-														}
-														onChangeText={(value) =>
-															updateField(
-																"weekly_hours",
-																value,
-															)
-														}
-														onFocus={() =>
-															scrollToInput(
-																hoursInputRef,
-																1,
-															)
-														}
-														keyboardType='decimal-pad'
+										{/* Taux horaire */}
+										{formData.salary_type === "hourly" && (
+											<>
+												<HStack space='md'>
+													<VStack
+														space='xs'
+														style={{ flex: 1 }}>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Taux horaire (€) *
+														</Text>
+														<Input
+															variant='outline'
+															size='md'
+															style={{
+																backgroundColor:
+																	isDark
+																		? "#1f2937"
+																		: "#ffffff",
+																borderColor:
+																	isDark
+																		? "#4b5563"
+																		: "#e5e7eb",
+															}}>
+															<InputField
+																placeholder='Ex: 15.50'
+																value={
+																	formData.salary_hourly
+																}
+																onChangeText={(
+																	value,
+																) =>
+																	updateField(
+																		"salary_hourly",
+																		value,
+																	)
+																}
+																keyboardType='decimal-pad'
+																style={{
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}
+															/>
+														</Input>
+													</VStack>
+												</HStack>
+
+												{/* Sélecteur semaine/jour */}
+												<VStack space='xs'>
+													<Text
+														size='sm'
 														style={{
+															fontWeight: "600",
 															color: isDark
 																? "#f3f4f6"
 																: "#111827",
-														}}
-													/>
-												</Input>
-											</VStack>
+														}}>
+														Période de travail *
+													</Text>
+													<HStack space='sm'>
+														<Pressable
+															onPress={() =>
+																updateField(
+																	"work_hours_type",
+																	"semaine",
+																)
+															}
+															style={{ flex: 1 }}>
+															<Box
+																style={{
+																	padding: 12,
+																	borderRadius: 10,
+																	borderWidth: 2,
+																	borderColor:
+																		formData.work_hours_type ===
+																		"semaine"
+																			? "#3b82f6"
+																			: isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
+																	backgroundColor:
+																		formData.work_hours_type ===
+																		"semaine"
+																			? isDark
+																				? "#1e3a8a"
+																				: "#dbeafe"
+																			: isDark
+																				? "#1f2937"
+																				: "#f9fafb",
+																	alignItems:
+																		"center",
+																}}>
+																<Text
+																	style={{
+																		fontWeight:
+																			"600",
+																		color:
+																			formData.work_hours_type ===
+																			"semaine"
+																				? "#3b82f6"
+																				: isDark
+																					? "#f3f4f6"
+																					: "#111827",
+																	}}>
+																	Par semaine
+																</Text>
+															</Box>
+														</Pressable>
+														<Pressable
+															onPress={() =>
+																updateField(
+																	"work_hours_type",
+																	"jour",
+																)
+															}
+															style={{ flex: 1 }}>
+															<Box
+																style={{
+																	padding: 12,
+																	borderRadius: 10,
+																	borderWidth: 2,
+																	borderColor:
+																		formData.work_hours_type ===
+																		"jour"
+																			? "#3b82f6"
+																			: isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
+																	backgroundColor:
+																		formData.work_hours_type ===
+																		"jour"
+																			? isDark
+																				? "#1e3a8a"
+																				: "#dbeafe"
+																			: isDark
+																				? "#1f2937"
+																				: "#f9fafb",
+																	alignItems:
+																		"center",
+																}}>
+																<Text
+																	style={{
+																		fontWeight:
+																			"600",
+																		color:
+																			formData.work_hours_type ===
+																			"jour"
+																				? "#3b82f6"
+																				: isDark
+																					? "#f3f4f6"
+																					: "#111827",
+																	}}>
+																	Par jour
+																</Text>
+															</Box>
+														</Pressable>
+													</HStack>
+												</VStack>
+
+												{/* Input heures par semaine */}
+												{formData.work_hours_type ===
+													"semaine" && (
+													<VStack
+														space='xs'
+														ref={hoursInputRef}>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Heures/semaine *
+														</Text>
+														<Input
+															variant='outline'
+															size='md'
+															style={{
+																backgroundColor:
+																	isDark
+																		? "#1f2937"
+																		: "#ffffff",
+																borderColor:
+																	isDark
+																		? "#4b5563"
+																		: "#e5e7eb",
+															}}>
+															<InputField
+																placeholder='Ex: 35'
+																value={
+																	formData.weekly_hours
+																}
+																onChangeText={(
+																	value,
+																) =>
+																	updateField(
+																		"weekly_hours",
+																		value,
+																	)
+																}
+																onFocus={() =>
+																	scrollToInput(
+																		hoursInputRef,
+																		1,
+																	)
+																}
+																keyboardType='decimal-pad'
+																style={{
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}
+															/>
+														</Input>
+													</VStack>
+												)}
+
+												{/* Input heures par jour */}
+												{formData.work_hours_type ===
+													"jour" && (
+													<VStack
+														space='xs'
+														ref={hoursInputRef}>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Heures/jour *
+														</Text>
+														<Input
+															variant='outline'
+															size='md'
+															style={{
+																backgroundColor:
+																	isDark
+																		? "#1f2937"
+																		: "#ffffff",
+																borderColor:
+																	isDark
+																		? "#4b5563"
+																		: "#e5e7eb",
+															}}>
+															<InputField
+																placeholder='Ex: 7'
+																value={
+																	formData.daily_hours
+																}
+																onChangeText={(
+																	value,
+																) =>
+																	updateField(
+																		"daily_hours",
+																		value,
+																	)
+																}
+																onFocus={() =>
+																	scrollToInput(
+																		hoursInputRef,
+																		1,
+																	)
+																}
+																keyboardType='decimal-pad'
+																style={{
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}
+															/>
+														</Input>
+													</VStack>
+												)}
+												{/* Calcul du salaire mensuel */}
+												{formData.salary_hourly &&
+													((formData.work_hours_type ===
+														"jour" &&
+														formData.daily_hours) ||
+														(formData.work_hours_type ===
+															"semaine" &&
+															formData.weekly_hours)) && (
+														<Box
+															style={{
+																padding: 16,
+																backgroundColor:
+																	isDark
+																		? "#1e3a8a"
+																		: "#dbeafe",
+																borderRadius: 10,
+																borderWidth: 1,
+																borderColor:
+																	"#3b82f6",
+															}}>
+															<VStack space='xs'>
+																<Text
+																	size='sm'
+																	style={{
+																		color: isDark
+																			? "#93c5fd"
+																			: "#1e40af",
+																		fontWeight:
+																			"500",
+																	}}>
+																	Salaire
+																	mensuel
+																	estimé
+																</Text>
+																<Text
+																	style={{
+																		fontSize: 24,
+																		fontWeight:
+																			"700",
+																		color: "#3b82f6",
+																	}}>
+																	{formData.work_hours_type ===
+																	"jour"
+																		? (
+																				(parseFloat(
+																					formData.salary_hourly,
+																				) *
+																					parseFloat(
+																						formData.daily_hours,
+																					) *
+																					22) /
+																				1
+																			).toFixed(
+																				2,
+																			)
+																		: (
+																				(parseFloat(
+																					formData.salary_hourly,
+																				) *
+																					parseFloat(
+																						formData.weekly_hours,
+																					) *
+																					52) /
+																				12
+																			).toFixed(
+																				2,
+																			)}{" "}
+																	€
+																</Text>
+																<Text
+																	size='xs'
+																	style={{
+																		color: isDark
+																			? "#93c5fd"
+																			: "#1e40af",
+																	}}>
+																	{formData.work_hours_type ===
+																	"jour"
+																		? `Calcul : ${formData.salary_hourly}€/h × ${formData.daily_hours}h/jour × 22 jours`
+																		: `Calcul : ${formData.salary_hourly}€/h × ${formData.weekly_hours}h/sem × 52 sem ÷ 12 mois`}
+																</Text>
+															</VStack>
+														</Box>
+													)}
+											</>
 										)}
 
-										{/* Input heures par jour */}
-										{formData.work_hours_type ===
-											"jour" && (
-											<VStack
-												space='xs'
-												ref={hoursInputRef}>
-												<Text
-													size='sm'
-													style={{
-														fontWeight: "600",
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}>
-													Heures/jour *
-												</Text>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ex: 7'
-														value={
-															formData.daily_hours
-														}
-														onChangeText={(value) =>
-															updateField(
-																"daily_hours",
-																value,
-															)
-														}
-														onFocus={() =>
-															scrollToInput(
-																hoursInputRef,
-																1,
-															)
-														}
-														keyboardType='decimal-pad'
+										{/* Salaire mensuel fixe */}
+										{formData.salary_type ===
+											"monthly_fixed" && (
+											<>
+												<VStack space='xs'>
+													<Text
+														size='sm'
 														style={{
+															fontWeight: "600",
 															color: isDark
 																? "#f3f4f6"
 																: "#111827",
-														}}
-													/>
-												</Input>
-											</VStack>
+														}}>
+														Salaire mensuel brut (€)
+														*
+													</Text>
+													<Input
+														variant='outline'
+														size='md'
+														style={{
+															backgroundColor:
+																isDark
+																	? "#374151"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#d1d5db",
+															color: isDark
+																? "#f9fafb"
+																: "#111827",
+														}}>
+														<InputField
+															placeholder='Ex: 2500'
+															value={
+																formData.salary_monthly_fixed ||
+																""
+															}
+															onChangeText={(
+																text,
+															) =>
+																setFormData({
+																	...formData,
+																	salary_monthly_fixed:
+																		text,
+																})
+															}
+															onFocus={() =>
+																scrollToInput(
+																	salaryInputRef,
+																	1,
+																	200,
+																)
+															}
+															keyboardType='numeric'
+															style={{
+																color: isDark
+																	? "#f9fafb"
+																	: "#111827",
+															}}
+														/>
+													</Input>
+												</VStack>
+											</>
 										)}
-										{/* Calcul du salaire mensuel */}
-										{formData.salary_hourly &&
-											((formData.work_hours_type ===
-												"jour" &&
-												formData.daily_hours) ||
-												(formData.work_hours_type ===
-													"semaine" &&
-													formData.weekly_hours)) && (
+
+										{/* Salaire annuel fixe */}
+										{formData.salary_type ===
+											"annual_fixed" && (
+											<>
+												<VStack space='xs'>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														Salaire annuel brut (€)
+														*
+													</Text>
+													<Input
+														variant='outline'
+														size='md'
+														style={{
+															backgroundColor:
+																isDark
+																	? "#374151"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#d1d5db",
+															color: isDark
+																? "#f9fafb"
+																: "#111827",
+														}}>
+														<InputField
+															placeholder='Ex: 35000'
+															value={
+																formData.salary_annual_fixed ||
+																""
+															}
+															onChangeText={(
+																text,
+															) =>
+																setFormData({
+																	...formData,
+																	salary_annual_fixed:
+																		text,
+																})
+															}
+															onFocus={() =>
+																scrollToInput(
+																	salaryInputRef,
+																	1,
+																	200,
+																)
+															}
+															keyboardType='numeric'
+															style={{
+																color: isDark
+																	? "#f9fafb"
+																	: "#111827",
+															}}
+														/>
+													</Input>
+												</VStack>
+											</>
+										)}
+
+										{/* Fourchette mensuelle */}
+										{formData.salary_type ===
+											"monthly_range" && (
+											<>
+												<HStack space='md'>
+													<VStack
+														space='xs'
+														style={{ flex: 1 }}>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Salaire min. (€) *
+														</Text>
+														<Input
+															variant='outline'
+															size='md'
+															style={{
+																backgroundColor:
+																	isDark
+																		? "#374151"
+																		: "#ffffff",
+																borderColor:
+																	isDark
+																		? "#4b5563"
+																		: "#d1d5db",
+																color: isDark
+																	? "#f9fafb"
+																	: "#111827",
+															}}>
+															<InputField
+																placeholder='Ex: 2000'
+																value={
+																	formData.salary_monthly_min ||
+																	""
+																}
+																onChangeText={(
+																	text,
+																) =>
+																	setFormData(
+																		{
+																			...formData,
+																			salary_monthly_min:
+																				text,
+																		},
+																	)
+																}
+																onFocus={() =>
+																	scrollToInput(
+																		salaryInputRef,
+																		1,
+																		200,
+																	)
+																}
+																keyboardType='numeric'
+																style={{
+																	color: isDark
+																		? "#f9fafb"
+																		: "#111827",
+																}}
+															/>
+														</Input>
+													</VStack>
+
+													<VStack
+														space='xs'
+														style={{ flex: 1 }}>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Salaire max. (€) *
+														</Text>
+														<Input
+															variant='outline'
+															size='md'
+															style={{
+																backgroundColor:
+																	isDark
+																		? "#374151"
+																		: "#ffffff",
+																borderColor:
+																	isDark
+																		? "#4b5563"
+																		: "#d1d5db",
+																color: isDark
+																	? "#f9fafb"
+																	: "#111827",
+															}}>
+															<InputField
+																placeholder='Ex: 2800'
+																value={
+																	formData.salary_monthly_max ||
+																	""
+																}
+																onChangeText={(
+																	text,
+																) =>
+																	setFormData(
+																		{
+																			...formData,
+																			salary_monthly_max:
+																				text,
+																		},
+																	)
+																}
+																onFocus={() =>
+																	scrollToInput(
+																		salaryInputRef,
+																		1,
+																		200,
+																	)
+																}
+																keyboardType='numeric'
+																style={{
+																	color: isDark
+																		? "#f9fafb"
+																		: "#111827",
+																}}
+															/>
+														</Input>
+													</VStack>
+												</HStack>
+											</>
+										)}
+
+										{/* Fourchette annuelle */}
+										{formData.salary_type ===
+											"annual_range" && (
+											<>
+												<HStack space='md'>
+													<VStack
+														space='xs'
+														style={{ flex: 1 }}>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Salaire min. (€) *
+														</Text>
+														<Input
+															variant='outline'
+															size='md'
+															style={{
+																backgroundColor:
+																	isDark
+																		? "#374151"
+																		: "#ffffff",
+																borderColor:
+																	isDark
+																		? "#4b5563"
+																		: "#d1d5db",
+																color: isDark
+																	? "#f9fafb"
+																	: "#111827",
+															}}>
+															<InputField
+																placeholder='Ex: 30000'
+																value={
+																	formData.salary_annual_min ||
+																	""
+																}
+																onChangeText={(
+																	text,
+																) =>
+																	setFormData(
+																		{
+																			...formData,
+																			salary_annual_min:
+																				text,
+																		},
+																	)
+																}
+																onFocus={() =>
+																	scrollToInput(
+																		salaryInputRef,
+																		1,
+																		200,
+																	)
+																}
+																keyboardType='numeric'
+																style={{
+																	color: isDark
+																		? "#f9fafb"
+																		: "#111827",
+																}}
+															/>
+														</Input>
+													</VStack>
+
+													<VStack
+														space='xs'
+														style={{ flex: 1 }}>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Salaire max. (€) *
+														</Text>
+														<Input
+															variant='outline'
+															size='md'
+															style={{
+																backgroundColor:
+																	isDark
+																		? "#374151"
+																		: "#ffffff",
+																borderColor:
+																	isDark
+																		? "#4b5563"
+																		: "#d1d5db",
+																color: isDark
+																	? "#f9fafb"
+																	: "#111827",
+															}}>
+															<InputField
+																placeholder='Ex: 40000'
+																value={
+																	formData.salary_annual_max ||
+																	""
+																}
+																onChangeText={(
+																	text,
+																) =>
+																	setFormData(
+																		{
+																			...formData,
+																			salary_annual_max:
+																				text,
+																		},
+																	)
+																}
+																onFocus={() =>
+																	scrollToInput(
+																		salaryInputRef,
+																		1,
+																		200,
+																	)
+																}
+																keyboardType='numeric'
+																style={{
+																	color: isDark
+																		? "#f9fafb"
+																		: "#111827",
+																}}
+															/>
+														</Input>
+													</VStack>
+												</HStack>
+											</>
+										)}
+
+										{/* Selon profil / À négocier */}
+										{formData.salary_type ===
+											"selon_profil" && (
+											<>
 												<Box
 													style={{
 														padding: 16,
@@ -2705,7 +3437,12 @@ const PostJob = () => {
 														borderWidth: 1,
 														borderColor: "#3b82f6",
 													}}>
-													<VStack space='xs'>
+													<VStack
+														space='xs'
+														style={{
+															alignItems:
+																"center",
+														}}>
 														<Text
 															size='sm'
 															style={{
@@ -2714,42 +3451,12 @@ const PostJob = () => {
 																	: "#1e40af",
 																fontWeight:
 																	"500",
+																textAlign:
+																	"center",
 															}}>
-															Salaire mensuel
-															estimé
-														</Text>
-														<Text
-															style={{
-																fontSize: 24,
-																fontWeight:
-																	"700",
-																color: "#3b82f6",
-															}}>
-															{formData.work_hours_type ===
-															"jour"
-																? (
-																		(parseFloat(
-																			formData.salary_hourly,
-																		) *
-																			parseFloat(
-																				formData.daily_hours,
-																			) *
-																			22) /
-																		1
-																	).toFixed(2)
-																: (
-																		(parseFloat(
-																			formData.salary_hourly,
-																		) *
-																			parseFloat(
-																				formData.weekly_hours,
-																			) *
-																			52) /
-																		12
-																	).toFixed(
-																		2,
-																	)}{" "}
-															€
+															💡 Le salaire sera
+															déterminé selon le
+															profil du candidat
 														</Text>
 														<Text
 															size='xs'
@@ -2757,15 +3464,18 @@ const PostJob = () => {
 																color: isDark
 																	? "#93c5fd"
 																	: "#1e40af",
+																textAlign:
+																	"center",
 															}}>
-															{formData.work_hours_type ===
-															"jour"
-																? `Calcul : ${formData.salary_hourly}€/h × ${formData.daily_hours}h/jour × 22 jours`
-																: `Calcul : ${formData.salary_hourly}€/h × ${formData.weekly_hours}h/sem × 52 sem ÷ 12 mois`}
+															Cette option permet
+															plus de flexibilité
+															dans les
+															négociations
 														</Text>
 													</VStack>
 												</Box>
-											)}
+											</>
+										)}
 									</VStack>
 								</Card>
 							</VStack>
