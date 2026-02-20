@@ -898,8 +898,17 @@ const PostJob = () => {
 				isArchived: false,
 			});
 
-			toast.success("Offre publiée", {
-				description: "Votre offre d'emploi a été publiée avec succès",
+			toast.show({
+				placement: "top",
+				render: ({ id }) => (
+					<Toast
+						nativeID={"toast-" + id}
+						className='px-5 py-3 gap-4 bg-success-500'>
+						<ToastTitle className='text-white'>
+							Annonce publiée avec succés
+						</ToastTitle>
+					</Toast>
+				),
 			});
 
 			// Réinitialiser le formulaire
