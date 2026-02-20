@@ -98,23 +98,34 @@ const mapWorkHoursType = (value) => {
 };
 
 const formatSalary = (job) => {
-	if (!job?.salary_hourly) return "Non spécifié";
-	const hoursType = mapWorkHoursType(job.work_hours_type);
-	if (hoursType === "jour" && job.daily_hours) {
-		const monthlySalary = (
-			job.salary_hourly *
-			job.daily_hours *
-			22
-		).toFixed(2);
-		return `${job.salary_hourly}€/h - ${job.daily_hours}h/jour (~${monthlySalary}€/mois)`;
-	} else if (hoursType === "semaine" && job.weekly_hours) {
-		const monthlySalary = (
-			(job.salary_hourly * job.weekly_hours * 52) /
-			12
-		).toFixed(2);
-		return `${job.salary_hourly}€/h - ${job.weekly_hours}h/semaine (~${monthlySalary}€/mois)`;
+	if (!job?.salary_type) return "Non spécifié";
+
+	switch (job.salary_type) {
+		case "selon_profil":
+			return "Selon profil";
+		case "hourly":
+			return job.salary_hourly
+				? `${job.salary_hourly}€/h`
+				: "Non spécifié";
+		case "monthly_fixed":
+			return job.salary_monthly_fixed
+				? `${job.salary_monthly_fixed}€/mois`
+				: "Non spécifié";
+		case "annual_fixed":
+			return job.salary_annual_fixed
+				? `${job.salary_annual_fixed}€/an`
+				: "Non spécifié";
+		case "monthly_range":
+			return job.salary_monthly_min && job.salary_monthly_max
+				? `${job.salary_monthly_min}€ - ${job.salary_monthly_max}€/mois`
+				: "Non spécifié";
+		case "annual_range":
+			return job.salary_annual_min && job.salary_annual_max
+				? `${job.salary_annual_min}€ - ${job.salary_annual_max}€/an`
+				: "Non spécifié";
+		default:
+			return "Non spécifié";
 	}
-	return `${job.salary_hourly}€/h`;
 };
 
 const JobScreen = () => {
@@ -164,23 +175,34 @@ const JobScreen = () => {
 	};
 
 	const formatSalary = (job) => {
-		if (!job?.salary_hourly) return "Non spécifié";
-		const hoursType = mapWorkHoursType(job.work_hours_type);
-		if (hoursType === "jour" && job.daily_hours) {
-			const monthlySalary = (
-				job.salary_hourly *
-				job.daily_hours *
-				22
-			).toFixed(2);
-			return `${job.salary_hourly}€/h - ${job.daily_hours}h/jour (~${monthlySalary}€/mois)`;
-		} else if (hoursType === "semaine" && job.weekly_hours) {
-			const monthlySalary = (
-				(job.salary_hourly * job.weekly_hours * 52) /
-				12
-			).toFixed(2);
-			return `${job.salary_hourly}€/h - ${job.weekly_hours}h/semaine (~${monthlySalary}€/mois)`;
+		if (!job?.salary_type) return "Non spécifié";
+
+		switch (job.salary_type) {
+			case "selon_profil":
+				return "Selon profil";
+			case "hourly":
+				return job.salary_hourly
+					? `${job.salary_hourly}€/h`
+					: "Non spécifié";
+			case "monthly_fixed":
+				return job.salary_monthly_fixed
+					? `${job.salary_monthly_fixed}€/mois`
+					: "Non spécifié";
+			case "annual_fixed":
+				return job.salary_annual_fixed
+					? `${job.salary_annual_fixed}€/an`
+					: "Non spécifié";
+			case "monthly_range":
+				return job.salary_monthly_min && job.salary_monthly_max
+					? `${job.salary_monthly_min}€ - ${job.salary_monthly_max}€/mois`
+					: "Non spécifié";
+			case "annual_range":
+				return job.salary_annual_min && job.salary_annual_max
+					? `${job.salary_annual_min}€ - ${job.salary_annual_max}€/an`
+					: "Non spécifié";
+			default:
+				return "Non spécifié";
 		}
-		return `${job.salary_hourly}€/h`;
 	};
 
 	const router = useRouter();
