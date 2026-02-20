@@ -586,32 +586,73 @@ const PostJob = () => {
 					});
 					return false;
 				}
-				if (!formData.salary_hourly) {
-					toast.error("Erreur", {
-						description: "Veuillez indiquer le salaire horaire",
-					});
-					return false;
+
+				// Validation selon le type de salaire
+				if (formData.salary_type === "hourly") {
+					if (!formData.salary_hourly) {
+						toast.error("Erreur", {
+							description: "Veuillez indiquer le salaire horaire",
+						});
+						return false;
+					}
+					if (
+						formData.work_hours_type === "jour" &&
+						!formData.daily_hours
+					) {
+						toast.error("Erreur", {
+							description:
+								"Veuillez indiquer le nombre d'heures par jour",
+						});
+						return false;
+					}
+					if (
+						formData.work_hours_type === "semaine" &&
+						!formData.weekly_hours
+					) {
+						toast.error("Erreur", {
+							description:
+								"Veuillez indiquer le nombre d'heures par semaine",
+						});
+						return false;
+					}
+				} else if (formData.salary_type === "monthly_fixed") {
+					if (!formData.salary_monthly_fixed) {
+						toast.error("Erreur", {
+							description: "Veuillez indiquer le salaire mensuel",
+						});
+						return false;
+					}
+				} else if (formData.salary_type === "annual_fixed") {
+					if (!formData.salary_annual_fixed) {
+						toast.error("Erreur", {
+							description: "Veuillez indiquer le salaire annuel",
+						});
+						return false;
+					}
+				} else if (formData.salary_type === "monthly_range") {
+					if (
+						!formData.salary_monthly_min ||
+						!formData.salary_monthly_max
+					) {
+						toast.error("Erreur", {
+							description:
+								"Veuillez indiquer la fourchette de salaire mensuel (min et max)",
+						});
+						return false;
+					}
+				} else if (formData.salary_type === "annual_range") {
+					if (
+						!formData.salary_annual_min ||
+						!formData.salary_annual_max
+					) {
+						toast.error("Erreur", {
+							description:
+								"Veuillez indiquer la fourchette de salaire annuel (min et max)",
+						});
+						return false;
+					}
 				}
-				if (
-					formData.work_hours_type === "jour" &&
-					!formData.daily_hours
-				) {
-					toast.error("Erreur", {
-						description:
-							"Veuillez indiquer le nombre d'heures par jour",
-					});
-					return false;
-				}
-				if (
-					formData.work_hours_type === "semaine" &&
-					!formData.weekly_hours
-				) {
-					toast.error("Erreur", {
-						description:
-							"Veuillez indiquer le nombre d'heures par semaine",
-					});
-					return false;
-				}
+
 				break;
 			case 3:
 				// Pas de validation obligatoire pour l'étape 3 (Détails)
@@ -2692,6 +2733,13 @@ const PostJob = () => {
 																		value,
 																	)
 																}
+																onFocus={() =>
+																	scrollToInput(
+																		salaryInputRef,
+																		1,
+																		1500,
+																	)
+																}
 																keyboardType='decimal-pad'
 																style={{
 																	color: isDark
@@ -2862,6 +2910,7 @@ const PostJob = () => {
 																	scrollToInput(
 																		hoursInputRef,
 																		1,
+																		200,
 																	)
 																}
 																keyboardType='decimal-pad'
@@ -2921,6 +2970,7 @@ const PostJob = () => {
 																onFocus={() =>
 																	scrollToInput(
 																		hoursInputRef,
+																		200,
 																		1,
 																	)
 																}
@@ -3071,7 +3121,7 @@ const PostJob = () => {
 																scrollToInput(
 																	salaryInputRef,
 																	1,
-																	200,
+																	1500,
 																)
 															}
 															keyboardType='numeric'
@@ -3136,7 +3186,7 @@ const PostJob = () => {
 																scrollToInput(
 																	salaryInputRef,
 																	1,
-																	200,
+																	1500,
 																)
 															}
 															keyboardType='numeric'
@@ -3207,7 +3257,7 @@ const PostJob = () => {
 																	scrollToInput(
 																		salaryInputRef,
 																		1,
-																		200,
+																		350,
 																	)
 																}
 																keyboardType='numeric'
@@ -3271,7 +3321,7 @@ const PostJob = () => {
 																	scrollToInput(
 																		salaryInputRef,
 																		1,
-																		200,
+																		350,
 																	)
 																}
 																keyboardType='numeric'
@@ -3343,7 +3393,7 @@ const PostJob = () => {
 																	scrollToInput(
 																		salaryInputRef,
 																		1,
-																		200,
+																		350,
 																	)
 																}
 																keyboardType='numeric'
@@ -3407,7 +3457,7 @@ const PostJob = () => {
 																	scrollToInput(
 																		salaryInputRef,
 																		1,
-																		200,
+																		350,
 																	)
 																}
 																keyboardType='numeric'
