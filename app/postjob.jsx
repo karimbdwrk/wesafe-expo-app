@@ -186,17 +186,11 @@ const PostJob = () => {
 	const missionInputRef = useRef(null);
 	const profileInputRef = useRef(null);
 	const hoursInputRef = useRef(null);
-	const [missionsList, setMissionsList] = useState([]);
 	const [currentMission, setCurrentMission] = useState("");
-	const [profileList, setProfileList] = useState([]);
 	const [currentProfile, setCurrentProfile] = useState("");
-	const [diplomasList, setDiplomasList] = useState([]);
 	const [currentDiploma, setCurrentDiploma] = useState("");
-	const [drivingLicensesList, setDrivingLicensesList] = useState([]);
 	const [currentDrivingLicense, setCurrentDrivingLicense] = useState("");
-	const [languagesList, setLanguagesList] = useState([]);
 	const [currentLanguage, setCurrentLanguage] = useState("");
-	const [reimbursementsList, setReimbursementsList] = useState([]);
 	const [currentReimbursement, setCurrentReimbursement] = useState("");
 	const [showStartDatePicker, setShowStartDatePicker] = useState(false);
 	const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -227,10 +221,12 @@ const PostJob = () => {
 		daily_hours: "",
 		work_hours_type: "semaine",
 		// experience_required: "",
-		diplomas_required: "",
-		driving_licenses: "",
-		languages: "",
-		reimbursements: "",
+		missions: [],
+		searched_profile: [],
+		diplomas_required: [],
+		driving_licenses: [],
+		languages: [],
+		reimbursements: [],
 		packed_lunch: false,
 		accommodations: false,
 		isLastMinute: false,
@@ -283,74 +279,122 @@ const PostJob = () => {
 
 	const addMission = () => {
 		if (currentMission.trim()) {
-			setMissionsList((prev) => [...prev, currentMission.trim()]);
+			setFormData((prev) => ({
+				...prev,
+				missions: [...prev.missions, currentMission.trim()],
+			}));
 			setCurrentMission("");
 		}
 	};
 
 	const removeMission = (index) => {
-		setMissionsList((prev) => prev.filter((_, i) => i !== index));
+		setFormData((prev) => ({
+			...prev,
+			missions: prev.missions.filter((_, i) => i !== index),
+		}));
 	};
 
 	const addProfile = () => {
 		if (currentProfile.trim()) {
-			setProfileList((prev) => [...prev, currentProfile.trim()]);
+			setFormData((prev) => ({
+				...prev,
+				searched_profile: [
+					...prev.searched_profile,
+					currentProfile.trim(),
+				],
+			}));
 			setCurrentProfile("");
 		}
 	};
 
+	const removeProfile = (index) => {
+		setFormData((prev) => ({
+			...prev,
+			searched_profile: prev.searched_profile.filter(
+				(_, i) => i !== index,
+			),
+		}));
+	};
+
 	const addDiploma = () => {
 		if (currentDiploma.trim()) {
-			setDiplomasList((prev) => [...prev, currentDiploma.trim()]);
+			setFormData((prev) => ({
+				...prev,
+				diplomas_required: [
+					...prev.diplomas_required,
+					currentDiploma.trim(),
+				],
+			}));
 			setCurrentDiploma("");
 		}
 	};
 
 	const removeDiploma = (index) => {
-		setDiplomasList((prev) => prev.filter((_, i) => i !== index));
+		setFormData((prev) => ({
+			...prev,
+			diplomas_required: prev.diplomas_required.filter(
+				(_, i) => i !== index,
+			),
+		}));
 	};
 
 	const addDrivingLicense = () => {
 		if (currentDrivingLicense.trim()) {
-			setDrivingLicensesList((prev) => [
+			setFormData((prev) => ({
 				...prev,
-				currentDrivingLicense.trim(),
-			]);
+				driving_licenses: [
+					...prev.driving_licenses,
+					currentDrivingLicense.trim(),
+				],
+			}));
 			setCurrentDrivingLicense("");
 		}
 	};
 
 	const removeDrivingLicense = (index) => {
-		setDrivingLicensesList((prev) => prev.filter((_, i) => i !== index));
+		setFormData((prev) => ({
+			...prev,
+			driving_licenses: prev.driving_licenses.filter(
+				(_, i) => i !== index,
+			),
+		}));
 	};
 
 	const addLanguage = () => {
 		if (currentLanguage.trim()) {
-			setLanguagesList((prev) => [...prev, currentLanguage.trim()]);
+			setFormData((prev) => ({
+				...prev,
+				languages: [...prev.languages, currentLanguage.trim()],
+			}));
 			setCurrentLanguage("");
 		}
 	};
 
 	const removeLanguage = (index) => {
-		setLanguagesList((prev) => prev.filter((_, i) => i !== index));
+		setFormData((prev) => ({
+			...prev,
+			languages: prev.languages.filter((_, i) => i !== index),
+		}));
 	};
 
 	const addReimbursement = () => {
 		if (currentReimbursement.trim()) {
-			setReimbursementsList((prev) => [
+			setFormData((prev) => ({
 				...prev,
-				currentReimbursement.trim(),
-			]);
+				reimbursements: [
+					...prev.reimbursements,
+					currentReimbursement.trim(),
+				],
+			}));
 			setCurrentReimbursement("");
 		}
 	};
 
 	const removeReimbursement = (index) => {
-		setReimbursementsList((prev) => prev.filter((_, i) => i !== index));
-	};
-
-	const removeProfile = (index) => {
-		setProfileList((prev) => prev.filter((_, i) => i !== index));
+		setFormData((prev) => ({
+			...prev,
+			reimbursements: prev.reimbursements.filter((_, i) => i !== index),
+		}));
 	};
 
 	const handleStartDateChange = (event, selectedDate) => {
@@ -566,88 +610,179 @@ const PostJob = () => {
 	};
 
 	const handleSubmit = async () => {
-		// Construire l'objet complet avec toutes les données
-		const dataToSubmit = {
-			...formData,
-			missions: missionsList,
-			searched_profile: profileList,
-			diplomas_required: diplomasList,
-			driving_licenses: drivingLicensesList,
-			languages: languagesList,
-			reimbursements: reimbursementsList,
-		};
+		console.log("form data to submit:", formData);
+		setLoading(true);
+		try {
+			// Construire le string de salaire
+			let salaryString = "";
+			if (formData.salary_hourly) {
+				if (
+					formData.work_hours_type === "jour" &&
+					formData.daily_hours
+				) {
+					const monthlySalary = (
+						parseFloat(formData.salary_hourly) *
+						parseFloat(formData.daily_hours) *
+						22
+					).toFixed(2);
+					salaryString = `${formData.salary_hourly}€/h - ${formData.daily_hours}h/jour (~${monthlySalary}€/mois)`;
+				} else if (
+					formData.work_hours_type === "semaine" &&
+					formData.weekly_hours
+				) {
+					const monthlySalary = (
+						(parseFloat(formData.salary_hourly) *
+							parseFloat(formData.weekly_hours) *
+							52) /
+						12
+					).toFixed(2);
+					salaryString = `${formData.salary_hourly}€/h - ${formData.weekly_hours}h/semaine (~${monthlySalary}€/mois)`;
+				}
+			}
 
-		console.log("form data to submit:", dataToSubmit);
-		// setLoading(true);
-		// try {
-		// 	// Convertir les listes en strings (une par ligne)
-		// 	const missionsString = missionsList.join("\n");
-		// 	const profileString = profileList.join("\n");
-		// 	const diplomasString = diplomasList.join("\n");
-		// 	const drivingLicensesString = drivingLicensesList.join("\n");
-		// 	const languagesString = languagesList.join("\n");
-		// 	const reimbursementsString = reimbursementsList.join("\n");
+			// Formater les dates au format ISO pour la base de données
+			const startDateISO = formData.start_date
+				? formData.start_date.toISOString().split("T")[0]
+				: null;
+			const endDateISO = formData.end_date
+				? formData.end_date.toISOString().split("T")[0]
+				: null;
 
-		// 	// Construire le string de salaire
-		// 	let salaryString = "";
-		// 	if (formData.salary_hourly && formData.weekly_hours) {
-		// 		const monthlySalary = (
-		// 			(parseFloat(formData.salary_hourly) *
-		// 				parseFloat(formData.weekly_hours) *
-		// 				52) /
-		// 			12
-		// 		).toFixed(2);
-		// 		salaryString = `${formData.salary_hourly}€/h - ${formData.weekly_hours}h/semaine (~${monthlySalary}€/mois)`;
-		// 	}
+			// Convertir les chaînes vides en null pour les champs numériques
+			const cleanNumericField = (value) => {
+				if (value === "" || value === null || value === undefined) {
+					return null;
+				}
+				const parsed = parseFloat(value);
+				return isNaN(parsed) ? null : parsed;
+			};
 
-		// 	// Formater les dates au format ISO pour la base de données
-		// 	const startDateISO = formData.start_date
-		// 		? formData.start_date.toISOString().split("T")[0]
-		// 		: null;
-		// 	const endDateISO = formData.end_date
-		// 		? formData.end_date.toISOString().split("T")[0]
-		// 		: null;
+			// Convertir les arrays vides en null, sinon en JSON
+			const cleanArrayField = (array) => {
+				if (!array || array.length === 0) {
+					return null;
+				}
+				return JSON.stringify(array);
+			};
 
-		// 	await create("jobs", {
-		// 		...formData,
-		// 		start_date: startDateISO,
-		// 		end_date: endDateISO,
-		// 		missions: missionsString,
-		// 		profile_sought: profileString,
-		// 		diplomas_required: diplomasString,
-		// 		driving_licenses: drivingLicensesString,
-		// 		languages: languagesString,
-		// 		reimbursements: reimbursementsString,
-		// 		salary: salaryString,
-		// 		company_id: user.id,
-		// 		isArchived: false,
-		// 	});
+			// Mapper les valeurs françaises vers l'anglais pour la base de données
+			const mapWorkTime = (value) => {
+				if (value === "Temps plein") return "fulltime";
+				if (value === "Temps partiel") return "parttime";
+				return value;
+			};
 
-		// 	toast.success("Offre publiée", {
-		// 		description: "Votre offre d'emploi a été publiée avec succès",
-		// 	});
+			const mapWorkSchedule = (value) => {
+				if (value === "Jour") return "daily";
+				if (value === "Nuit") return "nightly";
+				if (value === "Variable") return "variable";
+				return value;
+			};
 
-		// 	// Rediriger vers la liste des offres
-		// 	router.push("/offers");
-		// } catch (error) {
-		// 	console.error("Erreur lors de la publication:", error);
-		// 	toast.error("Erreur", {
-		// 		description:
-		// 			"Une erreur est survenue lors de la publication de l'offre",
-		// 	});
-		// } finally {
-		// 	setLoading(false);
-		// }
+			const mapWorkHoursType = (value) => {
+				if (value === "semaine") return "weekly";
+				if (value === "jour") return "daily";
+				return value;
+			};
 
-		// 	router.back();
-		// } catch (error) {
-		// 	console.error("Erreur création offre:", error);
-		// 	toast.error("Erreur", {
-		// 		description: "Impossible de publier l'offre",
-		// 	});
-		// } finally {
-		// 	setLoading(false);
-		// }
+			await create("jobs", {
+				title: formData.title,
+				category: formData.category,
+				description: formData.description,
+				city: formData.city,
+				postcode: formData.postcode,
+				department: formData.department,
+				department_code: formData.department_code,
+				region: formData.region,
+				region_code: formData.region_code,
+				latitude: cleanNumericField(formData.latitude),
+				longitude: cleanNumericField(formData.longitude),
+				contract_type: formData.contract_type,
+				work_time: mapWorkTime(formData.work_time),
+				work_schedule: mapWorkSchedule(formData.work_schedule),
+				start_date: startDateISO,
+				end_date: endDateISO,
+				start_time: formData.start_time || null,
+				end_time: formData.end_time || null,
+				salary_hourly: cleanNumericField(formData.salary_hourly),
+				weekly_hours: cleanNumericField(formData.weekly_hours),
+				daily_hours: cleanNumericField(formData.daily_hours),
+				work_hours_type: mapWorkHoursType(formData.work_hours_type),
+				missions: cleanArrayField(formData.missions),
+				searched_profile: cleanArrayField(formData.searched_profile),
+				diplomas_required: cleanArrayField(formData.diplomas_required),
+				driving_licenses: cleanArrayField(formData.driving_licenses),
+				languages: cleanArrayField(formData.languages),
+				reimbursements: cleanArrayField(formData.reimbursements),
+				packed_lunch: formData.packed_lunch,
+				accommodations: formData.accommodations,
+				isLastMinute: formData.isLastMinute,
+				company_id: user.id,
+				isArchived: false,
+			});
+
+			toast.success("Offre publiée", {
+				description: "Votre offre d'emploi a été publiée avec succès",
+			});
+
+			// Réinitialiser le formulaire
+			setFormData({
+				title: "",
+				category: "",
+				description: "",
+				city: "",
+				postcode: "",
+				department: "",
+				department_code: "",
+				region: "",
+				region_code: "",
+				latitude: null,
+				longitude: null,
+				contract_type: "CDI",
+				work_time: "Temps plein",
+				work_schedule: "Jour",
+				start_date: null,
+				end_date: null,
+				start_time: "",
+				end_time: "",
+				salary_hourly: "",
+				weekly_hours: "",
+				daily_hours: "",
+				work_hours_type: "semaine",
+				missions: [],
+				searched_profile: [],
+				diplomas_required: [],
+				driving_licenses: [],
+				languages: [],
+				reimbursements: [],
+				packed_lunch: false,
+				accommodations: false,
+				isLastMinute: false,
+			});
+
+			// Réinitialiser les inputs temporaires
+			setCurrentMission("");
+			setCurrentProfile("");
+			setCurrentDiploma("");
+			setCurrentDrivingLicense("");
+			setCurrentLanguage("");
+			setCurrentReimbursement("");
+
+			// Retourner au step 1
+			setCurrentStep(1);
+			scrollX.setValue(0);
+
+			// Rediriger vers la liste des offres
+			// router.push("/");
+		} catch (error) {
+			console.error("Erreur lors de la publication:", error);
+			toast.error("Erreur", {
+				description:
+					"Une erreur est survenue lors de la publication de l'offre",
+			});
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	return (
@@ -725,7 +860,8 @@ const PostJob = () => {
 						style={{ flex: 1 }}
 						keyboardVerticalOffset={100}>
 						<ScrollView
-							ref={(ref) => (scrollViewRefs.current[0] = ref)}>
+							ref={(ref) => (scrollViewRefs.current[0] = ref)}
+							keyboardShouldPersistTaps='handled'>
 							<VStack
 								space='lg'
 								style={{ padding: 20, paddingBottom: 100 }}>
@@ -993,11 +1129,11 @@ const PostJob = () => {
 												/>
 											</Button>
 										</HStack>
-										{missionsList.length > 0 && (
+										{formData.missions.length > 0 && (
 											<VStack
 												space='xs'
 												style={{ marginTop: 8 }}>
-												{missionsList.map(
+												{formData.missions.map(
 													(mission, index) => (
 														<HStack
 															key={index}
@@ -1151,11 +1287,12 @@ const PostJob = () => {
 												/>
 											</Button>
 										</HStack>
-										{profileList.length > 0 && (
+										{formData.searched_profile.length >
+											0 && (
 											<VStack
 												space='xs'
 												style={{ marginTop: 8 }}>
-												{profileList.map(
+												{formData.searched_profile.map(
 													(profile, index) => (
 														<HStack
 															key={index}
@@ -1298,11 +1435,12 @@ const PostJob = () => {
 											</Button>
 										</HStack>
 										{/* Liste des diplômes */}
-										{diplomasList.length > 0 && (
+										{formData.diplomas_required.length >
+											0 && (
 											<VStack
 												space='xs'
 												style={{ marginTop: 8 }}>
-												{diplomasList.map(
+												{formData.diplomas_required.map(
 													(diploma, index) => (
 														<HStack
 															key={index}
@@ -2642,7 +2780,8 @@ const PostJob = () => {
 						style={{ flex: 1 }}
 						keyboardVerticalOffset={100}>
 						<ScrollView
-							ref={(ref) => (scrollViewRefs.current[2] = ref)}>
+							ref={(ref) => (scrollViewRefs.current[2] = ref)}
+							keyboardShouldPersistTaps='handled'>
 							<VStack
 								space='lg'
 								style={{ padding: 20, paddingBottom: 100 }}>
@@ -2733,11 +2872,12 @@ const PostJob = () => {
 											</Button>
 										</HStack>
 										{/* Liste des permis */}
-										{drivingLicensesList.length > 0 && (
+										{formData.driving_licenses.length >
+											0 && (
 											<VStack
 												space='xs'
 												style={{ marginTop: 8 }}>
-												{drivingLicensesList.map(
+												{formData.driving_licenses.map(
 													(license, index) => (
 														<HStack
 															key={index}
@@ -2880,11 +3020,11 @@ const PostJob = () => {
 											</Button>
 										</HStack>
 										{/* Liste des langues */}
-										{languagesList.length > 0 && (
+										{formData.languages.length > 0 && (
 											<VStack
 												space='xs'
 												style={{ marginTop: 8 }}>
-												{languagesList.map(
+												{formData.languages.map(
 													(language, index) => (
 														<HStack
 															key={index}
@@ -3029,11 +3169,11 @@ const PostJob = () => {
 											</Button>
 										</HStack>
 										{/* Liste des remboursements */}
-										{reimbursementsList.length > 0 && (
+										{formData.reimbursements.length > 0 && (
 											<VStack
 												space='xs'
 												style={{ marginTop: 8 }}>
-												{reimbursementsList.map(
+												{formData.reimbursements.map(
 													(reimbursement, index) => (
 														<HStack
 															key={index}
