@@ -180,6 +180,15 @@ export default function JobsList({
 	const [totalCount, setTotalCount] = useState(0);
 	const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
 
+	useEffect(() => {
+		console.log(
+			"🔄 JobsList useEffect - filters:",
+			filters,
+			"keywords:",
+			keywords,
+		);
+	}, [filters]);
+
 	// open/close helpers
 	const handleOpenBottomSheet = (type) => {
 		scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -187,6 +196,7 @@ export default function JobsList({
 		if (type === "values") {
 			setPage(1);
 			setKeywords("");
+			setFilters("");
 		} else if (type === "keywords") {
 			setPage(1);
 			setValues([]);
@@ -268,6 +278,7 @@ export default function JobsList({
 				itemsPerPage,
 				"date.desc",
 			);
+			console.log("data jobs :", data);
 			setJobs(data || []);
 			setTotalCount(totalCount || 0);
 		} catch (err) {
@@ -302,12 +313,12 @@ export default function JobsList({
 
 	useEffect(() => {
 		// keywords filter
-		if (keywords.trim() !== "") {
-			const encodedKeyword = encodeURIComponent(`%${keywords}%`);
-			setFilters(
-				`&or=(title.ilike.${encodedKeyword},category.ilike.${encodedKeyword})`,
-			);
-		} else {
+		   if (keywords.trim() !== "") {
+			   const encodedKeyword = encodeURIComponent(keywords);
+			   setFilters(
+				   `&or=(title.ilike.*${encodedKeyword}*,category.ilike.*${encodedKeyword}*)`,
+			   );
+		   } else {
 			// when keywords cleared, recompute from values/distance — handled by previous effect
 			// trigger reload by clearing filters state handled above
 		}
@@ -320,7 +331,15 @@ export default function JobsList({
 		setRefreshing(false);
 	}, [loadDataJobs]);
 
-	const handleResetKeywords = () => setKeywords("");
+	const handleResetKeywords = () => {
+		setKeywords("");
+		setValues([]);
+		setDistanceKm(0);
+		setUserCity("");
+		setUserCitySelected(false);
+		setFilters("");
+		setPage(1);
+	};
 	const handleRemoveValue = (value) =>
 		setValues((prev) => prev.filter((v) => v !== value));
 
@@ -636,6 +655,31 @@ export default function JobsList({
 										department={job?.department_code}
 										logo={job?.companies?.logo_url}
 										company_name={job?.companies?.name}
+										contract_type={job?.contract_type}
+										working_time={job?.work_time}
+										salary_hourly={job?.salary_hourly}
+										salary_amount={job?.salary_amount}
+										salary_min={job?.salary_min}
+										salary_max={job?.salary_max}
+										salary_type={job?.salary_type}
+										salary_monthly_fixed={
+											job?.salary_monthly_fixed
+										}
+										salary_monthly_min={
+											job?.salary_monthly_min
+										}
+										salary_monthly_max={
+											job?.salary_monthly_max
+										}
+										salary_annual_fixed={
+											job?.salary_annual_fixed
+										}
+										salary_annual_min={
+											job?.salary_annual_min
+										}
+										salary_annual_max={
+											job?.salary_annual_max
+										}
 									/>
 								))
 							)}
