@@ -55,7 +55,7 @@ const DOCUMENTS_BUCKET = "kbis";
 export default function KBISDocumentVerification() {
 	const router = useRouter();
 	const { user, userCompany, accessToken, loadUserData } = useAuth();
-	const { update } = useDataContext();
+	const { update, getById } = useDataContext();
 	const { isDark } = useTheme();
 	const toast = useToast();
 
@@ -75,20 +75,37 @@ export default function KBISDocumentVerification() {
 	);
 
 	const loadCompanyData = async () => {
-		if (userCompany) {
-			setKbisUploadedStatus(userCompany?.kbis_verification_status);
-			setKbisUploadedUrl(userCompany?.kbis_url);
-		}
+		try {
+			if (user?.id) {
+				const companyData = await getById(
+					"companies",
+					user.id,
+					"kbis_verification_status,kbis_url",
+				);
 
-		console.log("Loaded company data:", {
-			kbis_verification_status: userCompany?.kbis_verification_status,
-			kbis_url: userCompany?.kbis_url,
-		});
+				if (companyData) {
+					setKbisUploadedStatus(companyData.kbis_verification_status);
+					setKbisUploadedUrl(companyData.kbis_url);
+
+					console.log("Loaded company data:", {
+						kbis_verification_status:
+							companyData.kbis_verification_status,
+						kbis_url: companyData.kbis_url,
+					});
+				}
+			}
+		} catch (error) {
+			console.error("Error loading company data:", error);
+		}
 	};
 
 	useEffect(() => {
 		loadCompanyData();
 	}, [userCompany]);
+
+	useEffect(() => {
+		console.log("KBIS Uploaded Status:", kbisUploadedStatus);
+	}, [kbisUploadedStatus]);
 
 	/* ------------------ */
 	/* Image picker       */
@@ -488,104 +505,106 @@ export default function KBISDocumentVerification() {
 								</Text>
 							</VStack>
 
-						{/* Document sélectionné */}
-						{kbisImage && (
-							<HStack
-								style={{
-									alignItems: "center",
-									justifyContent: "space-between",
-									backgroundColor: isDark
-										? "#1f2937"
-										: "#f3f4f6",
-									borderRadius: 8,
-									padding: 16,
-									borderWidth: 1,
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
-								}}>
+							{/* Document sélectionné */}
+							{kbisImage && (
 								<HStack
-									space='sm'
 									style={{
 										alignItems: "center",
-										flex: 1,
+										justifyContent: "space-between",
+										backgroundColor: isDark
+											? "#1f2937"
+											: "#f3f4f6",
+										borderRadius: 8,
+										padding: 16,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
 									}}>
-									<Icon
-										as={FileText}
-										size='lg'
+									<HStack
+										space='sm'
 										style={{
-											color: isDark
-												? "#60a5fa"
-												: "#2563eb",
-										}}
-									/>
-									<Text
-										size='sm'
-										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-											fontWeight: "500",
+											alignItems: "center",
 											flex: 1,
-										}}
-										numberOfLines={1}
-										ellipsizeMode='middle'>
-										{kbisImage.fileName ||
-											kbisImage.name ||
-											"Document sélectionné"}
-									</Text>
+										}}>
+										<Icon
+											as={FileText}
+											size='lg'
+											style={{
+												color: isDark
+													? "#60a5fa"
+													: "#2563eb",
+											}}
+										/>
+										<Text
+											size='sm'
+											style={{
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+												fontWeight: "500",
+												flex: 1,
+											}}
+											numberOfLines={1}
+											ellipsizeMode='middle'>
+											{kbisImage.fileName ||
+												kbisImage.name ||
+												"Document sélectionné"}
+										</Text>
+									</HStack>
+									<TouchableOpacity
+										onPress={() => setKbisImage(null)}>
+										<Icon
+											as={X}
+											size='lg'
+											style={{
+												color: isDark
+													? "#ef4444"
+													: "#dc2626",
+											}}
+										/>
+									</TouchableOpacity>
 								</HStack>
-								<TouchableOpacity
-									onPress={() => setKbisImage(null)}>
-									<Icon
-										as={X}
-										size='lg'
-										style={{
-											color: isDark
-												? "#ef4444"
-												: "#dc2626",
-										}}
-									/>
-								</TouchableOpacity>
-							</HStack>
-						)}
+							)}
 
-						{/* Upload Button */}
-						{!kbisImage && (
-							<Button
-								size='lg'
-								action='primary'
-								onPress={() => setShowActionsheet(true)}
-								style={{
-									backgroundColor: "#3b82f6",
-									borderRadius: 8,
-								}}>
-								<ButtonIcon as={Upload} />
-								<ButtonText>
-									Sélectionner un document
-								</ButtonText>
-							</Button>
-						)}
+							{/* Upload Button */}
+							{!kbisImage && (
+								<Button
+									size='lg'
+									action='primary'
+									onPress={() => setShowActionsheet(true)}
+									style={{
+										backgroundColor: "#3b82f6",
+										borderRadius: 8,
+									}}>
+									<ButtonIcon as={Upload} />
+									<ButtonText>
+										Sélectionner un document
+									</ButtonText>
+								</Button>
+							)}
 
-						{/* Submit Button */}
-						{kbisImage && (
-							<Button
-								size='lg'
-								action='positive'
-								onPress={handleSubmitKBIS}
-								isDisabled={isSubmitting}
-								style={{
-									backgroundColor: "#10b981",
-									borderRadius: 8,
-								}}>
-								<ButtonIcon as={CheckCircle} />
-								<ButtonText>
-									{isSubmitting
-										? "Envoi en cours..."
-										: "Soumettre le KBIS"}
-								</ButtonText>
-							</Button>
-						)}
-					</VStack>
-				</Card>
+							{/* Submit Button */}
+							{kbisImage && (
+								<Button
+									size='lg'
+									action='positive'
+									onPress={handleSubmitKBIS}
+									isDisabled={isSubmitting}
+									style={{
+										backgroundColor: "#10b981",
+										borderRadius: 8,
+									}}>
+									<ButtonIcon as={CheckCircle} />
+									<ButtonText>
+										{isSubmitting
+											? "Envoi en cours..."
+											: "Soumettre le KBIS"}
+									</ButtonText>
+								</Button>
+							)}
+						</VStack>
+					</Card>
 				)}
 
 				{/* Info Card */}
