@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
 	ScrollView,
 	Platform,
@@ -7,6 +7,7 @@ import {
 	Dimensions,
 	KeyboardAvoidingView,
 	Keyboard,
+	Easing,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
@@ -981,6 +982,20 @@ const PostJob = () => {
 		}
 	};
 
+	// Animation de la barre de progression
+	const progressAnim = useRef(
+		new Animated.Value((currentStep / STEPS.length) * 100),
+	).current;
+
+	useEffect(() => {
+		Animated.timing(progressAnim, {
+			toValue: (currentStep / STEPS.length) * 100,
+			duration: 500,
+			easing: Easing.inOut(Easing.ease),
+			useNativeDriver: false,
+		}).start();
+	}, [currentStep, STEPS.length]);
+
 	return (
 		<Box
 			style={{
@@ -1020,7 +1035,7 @@ const PostJob = () => {
 							Étape {currentStep}/{STEPS.length}
 						</Text>
 					</HStack>
-					{/* Barre de progression */}
+					{/* Barre de progression animée */}
 					<Box
 						style={{
 							width: "100%",
@@ -1029,9 +1044,12 @@ const PostJob = () => {
 							borderRadius: 4,
 							overflow: "hidden",
 						}}>
-						<Box
+						<Animated.View
 							style={{
-								width: `${(currentStep / STEPS.length) * 100}%`,
+								width: progressAnim.interpolate({
+									inputRange: [0, 100],
+									outputRange: ["0%", "100%"],
+								}),
 								height: "100%",
 								backgroundColor: "#3b82f6",
 								borderRadius: 4,
