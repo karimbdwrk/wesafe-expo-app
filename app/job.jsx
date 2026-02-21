@@ -68,14 +68,60 @@ import { position } from "dom-helpers";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
-// Fonctions helper pour parser et mapper les données
-const parseJsonField = (field) => {
-	if (!field) return [];
-	try {
-		return JSON.parse(field);
-	} catch (e) {
-		return [];
-	}
+// Tableau des catégories métiers
+export const CATEGORY = [
+	{
+		id: "aps",
+		acronym: "APS",
+		name: "Agent de Prévention et de Sécurité",
+		category: "surveillance_humaine",
+	},
+	{
+		id: "ads",
+		acronym: "ADS",
+		name: "Agent De Sécurité",
+		category: "surveillance_humaine",
+	},
+	{
+		id: "ssiap_1",
+		acronym: "SSIAP 1",
+		name: "Agent de Sécurité Incendie",
+		category: "securite_incendie",
+		level: 1,
+	},
+	{
+		id: "ssiap_2",
+		acronym: "SSIAP 2",
+		name: "Chef d'Équipe de Sécurité Incendie",
+		category: "securite_incendie",
+		level: 2,
+	},
+	{
+		id: "ssiap_3",
+		acronym: "SSIAP 3",
+		name: "Chef de Service de Sécurité Incendie",
+		category: "securite_incendie",
+		level: 3,
+	},
+	{
+		id: "asc",
+		acronym: "ASC",
+		name: "Agent de Sécurité Cynophile",
+		category: "cynophile",
+	},
+	{
+		id: "apr",
+		acronym: "APR",
+		name: "Agent de Protection Rapprochée",
+		category: "protection_rapprochee",
+	},
+];
+
+const getCategoryLabel = (catId) => {
+	const cat = CATEGORY.find(
+		(c) => c.id === catId || c.acronym === catId || c.name === catId,
+	);
+	return cat ? `${cat.acronym} - ${cat.name}` : catId || "Non spécifié";
 };
 
 const mapWorkTime = (value) => {
@@ -213,6 +259,11 @@ const JobScreen = () => {
 	const [isApplied, setIsApplied] = useState(false);
 	const [isArchived, setIsArchived] = useState(false);
 	const [showApplyModal, setShowApplyModal] = useState(false);
+
+	// useEffect(() => {
+	// 	console.warn("user data :", user);
+	// 	console.warn("job is applied ?", isApplied);
+	// }, [isApplied, user]);
 
 	const loadJob = async () => {
 		const data = await getById(
@@ -522,7 +573,9 @@ const JobScreen = () => {
 								style={{ flexWrap: "wrap", marginTop: 10 }}>
 								<Badge size='md' variant='solid' action='info'>
 									<BadgeIcon as={IdCard} className='mr-2' />
-									<BadgeText>{job?.category}</BadgeText>
+									<BadgeText>
+										{getCategoryLabel(job?.category)}
+									</BadgeText>
 								</Badge>
 								<Badge
 									size='sm'
