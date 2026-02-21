@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ScrollView, Platform } from "react-native";
+import { ScrollView, Platform, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
@@ -28,9 +28,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
 const Settings = () => {
-	const router = useRouter();
 	const { user, logout } = useAuth();
 	const { colorMode, setTheme, isDark } = useTheme();
+
+	const router = useRouter();
+
 	const [notifications, setNotifications] = useState(true);
 	const [emailNotifications, setEmailNotifications] = useState(true);
 	const [twoFactor, setTwoFactor] = useState(false);
@@ -52,16 +54,18 @@ const Settings = () => {
 		showChevron = true,
 	}) => (
 		<>
-			<Button
-				variant='link'
-				onPress={onPress}
-				style={{
-					justifyContent: "flex-start",
-					paddingVertical: 16,
-					paddingHorizontal: 0,
-				}}>
-				<HStack space='md' style={{ alignItems: "center", flex: 1 }}>
-					<Icon as={icon} size='lg' style={{ color: "#2563eb" }} />
+			<TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+				<HStack
+					space='md'
+					style={{
+						alignItems: "center",
+						paddingVertical: 16,
+					}}>
+					<Icon
+						as={icon}
+						size='lg'
+						style={{ color: isDark ? "#60a5fa" : "#2563eb" }}
+					/>
 					<VStack style={{ flex: 1 }}>
 						<Text
 							style={{
@@ -86,11 +90,11 @@ const Settings = () => {
 						<Icon
 							as={ChevronRight}
 							size='lg'
-							style={{ color: "#9ca3af" }}
+							style={{ color: isDark ? "#6b7280" : "#9ca3af" }}
 						/>
 					)}
 				</HStack>
-			</Button>
+			</TouchableOpacity>
 			<Divider />
 		</>
 	);
@@ -303,7 +307,9 @@ const Settings = () => {
 							icon={HelpCircle}
 							title="Centre d'aide"
 							subtitle='FAQ et documentation'
-							onPress={() => {}}
+							onPress={() => {
+								router.push("/faq");
+							}}
 						/>
 						<SettingItem
 							icon={Globe}
@@ -317,9 +323,7 @@ const Settings = () => {
 				<Button
 					action='negative'
 					variant='link'
-					// onPress={handleLogout}
 					style={{ marginTop: 8 }}>
-					{/* <ButtonIcon as={LogOut} /> */}
 					<ButtonText>Supprimer mon compte</ButtonText>
 				</Button>
 				<Text
@@ -329,7 +333,7 @@ const Settings = () => {
 						fontSize: 12,
 						marginTop: 16,
 					}}>
-					Version 1.0.0
+					Version 2.0.0
 				</Text>
 			</VStack>
 		</ScrollView>
