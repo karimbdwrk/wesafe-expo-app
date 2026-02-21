@@ -48,6 +48,19 @@ import SubscriptionPaymentSheet from "../components/SubscriptionPaymentSheet";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
+// Formater le SIRET avec des espaces : 123 456 789 00013
+const formatSiret = (value) => {
+	if (!value) return value;
+	const cleaned = value.toString().replace(/\s/g, "");
+	const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,5})$/);
+	if (match) {
+		return [match[1], match[2], match[3], match[4]]
+			.filter(Boolean)
+			.join(" ");
+	}
+	return value;
+};
+
 const DashboardScreen = () => {
 	const { signOut, user, hasSubscription } = useAuth();
 	const { getById } = useDataContext();
@@ -239,7 +252,7 @@ const DashboardScreen = () => {
 													? "#9ca3af"
 													: "#6b7280",
 											}}>
-											SIRET: {company.siret}
+											SIRET: {formatSiret(company.siret)}
 										</Text>
 									)}
 								</VStack>
@@ -358,6 +371,12 @@ const DashboardScreen = () => {
 									},
 								});
 							}}
+							badgeText={
+								!company?.stamp_url ? "manquant" : undefined
+							}
+							badgeColor={
+								!company?.stamp_url ? "error" : undefined
+							}
 						/>
 
 						<ActionCard
@@ -373,7 +392,55 @@ const DashboardScreen = () => {
 									},
 								});
 							}}
+							badgeText={
+								!company?.signature_url
+									? "manquante"
+									: undefined
+							}
+							badgeColor={
+								!company?.signature_url ? "error" : undefined
+							}
 						/>
+						<ActionCard
+							icon={FileText}
+							title='Vérification KBIS'
+							subtitle='Télécharger votre extrait KBIS'
+							onPress={() => {
+								router.push({
+									pathname: "/kbisdocumentverification",
+								});
+							}}
+							badgeText={
+								!company?.kbis_url
+									? "manquant"
+									: company?.kbis_verification_status ===
+										  "pending"
+										? "En attente"
+										: company?.kbis_verification_status ===
+											  "verified"
+											? "Vérifié"
+											: company?.kbis_verification_status ===
+												  "rejected"
+												? "Rejeté"
+												: null
+							}
+							badgeColor={
+								!company?.kbis_url
+									? "error"
+									: company?.kbis_verification_status ===
+										  "pending"
+										? "warning"
+										: company?.kbis_verification_status ===
+											  "verified"
+											? "success"
+											: company?.kbis_verification_status ===
+												  "rejected"
+												? "error"
+												: null
+							}
+						/>
+
+						<Divider style={{ marginVertical: 16 }} />
 
 						<ActionCard
 							icon={QrCode}
@@ -387,39 +454,6 @@ const DashboardScreen = () => {
 						/>
 
 						<ActionCard
-							icon={FileText}
-							title='Vérification KBIS'
-							subtitle='Télécharger votre extrait KBIS'
-							onPress={() => {
-								router.push({
-									pathname: "/kbisdocumentverification",
-								});
-							}}
-							badgeText={
-								company?.kbis_verification_status === "pending"
-									? "En attente"
-									: company?.kbis_verification_status ===
-										  "verified"
-										? "Vérifié"
-										: company?.kbis_verification_status ===
-											  "rejected"
-											? "Rejeté"
-											: null
-							}
-							badgeColor={
-								company?.kbis_verification_status === "pending"
-									? "warning"
-									: company?.kbis_verification_status ===
-										  "verified"
-										? "success"
-										: company?.kbis_verification_status ===
-											  "rejected"
-											? "error"
-											: null
-							}
-						/>
-
-						<ActionCard
 							icon={CreditCard}
 							title='Acheter des crédits'
 							subtitle='Recharger votre compte'
@@ -428,7 +462,19 @@ const DashboardScreen = () => {
 									pathname: "/buycredits",
 								});
 							}}
+							badgeText={
+								company?.last_minute_credits > 0
+									? `${company.last_minute_credits} crédit${company.last_minute_credits > 1 ? "s" : ""}`
+									: undefined
+							}
+							badgeColor={
+								company?.last_minute_credits > 0
+									? "info"
+									: undefined
+							}
 						/>
+
+						<Divider style={{ marginVertical: 16 }} />
 
 						<ActionCard
 							icon={Settings}
