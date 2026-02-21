@@ -13,6 +13,14 @@ import { Heading } from "@/components/ui/heading";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import { Divider } from "@/components/ui/divider";
+import {
+	AlertDialog,
+	AlertDialogBackdrop,
+	AlertDialogContent,
+	AlertDialogHeader,
+	AlertDialogBody,
+	AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
 import AvatarUploader from "@/components/AvatarUploader";
 import {
 	IdCard,
@@ -55,6 +63,7 @@ const AccountScreen = () => {
 	const [profile, setProfile] = useState(null);
 	const [procards, setProcards] = useState([]);
 	const [showQRModal, setShowQRModal] = useState(false);
+	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
 	const loadData = async () => {
 		const data = await getById("profiles", user.id, `*`);
@@ -763,10 +772,9 @@ const AccountScreen = () => {
 								onPress={() => router.push("/settings")}
 							/>
 							<Divider />
-							{/* Déconnexion */}
 							<Button
 								action='negative'
-								onPress={signOut}
+								onPress={() => setShowLogoutDialog(true)}
 								style={{ marginTop: 8 }}>
 								<ButtonIcon as={LogOut} />
 								<ButtonText>Déconnexion</ButtonText>
@@ -774,6 +782,58 @@ const AccountScreen = () => {
 						</VStack>
 					</VStack>
 				</ScrollView>
+
+				{/* Modal de confirmation de déconnexion */}
+				<AlertDialog
+					isOpen={showLogoutDialog}
+					onClose={() => setShowLogoutDialog(false)}>
+					<AlertDialogBackdrop />
+					<AlertDialogContent
+						style={{
+							backgroundColor: isDark ? "#374151" : "#ffffff",
+							borderRadius: 12,
+							padding: 24,
+						}}>
+						<AlertDialogHeader>
+							<Heading
+								size='lg'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								Déconnexion
+							</Heading>
+						</AlertDialogHeader>
+						<AlertDialogBody>
+							<Text
+								style={{
+									color: isDark ? "#d1d5db" : "#4b5563",
+									marginTop: 8,
+								}}>
+								Êtes-vous sûr de vouloir vous déconnecter ?
+							</Text>
+						</AlertDialogBody>
+						<AlertDialogFooter style={{ marginTop: 24 }}>
+							<HStack space='md' style={{ width: "100%" }}>
+								<Button
+									variant='outline'
+									action='secondary'
+									onPress={() => setShowLogoutDialog(false)}
+									style={{ flex: 1 }}>
+									<ButtonText>Annuler</ButtonText>
+								</Button>
+								<Button
+									action='negative'
+									onPress={() => {
+										setShowLogoutDialog(false);
+										signOut();
+									}}
+									style={{ flex: 1 }}>
+									<ButtonText>Déconnexion</ButtonText>
+								</Button>
+							</HStack>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
 			</Box>
 		</>
 	);
