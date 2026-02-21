@@ -35,6 +35,19 @@ import { sendRecruitmentStatusEmail } from "@/utils/sendRecruitmentStatusEmail";
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const SUPABASE_STORAGE_BUCKET = "contracts";
 
+// Formater le SIRET avec des espaces : 123 456 789 00013
+const formatSiret = (value) => {
+	if (!value) return value;
+	const cleaned = value.toString().replace(/\s/g, "");
+	const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,5})$/);
+	if (match) {
+		return [match[1], match[2], match[3], match[4]]
+			.filter(Boolean)
+			.join(" ");
+	}
+	return value;
+};
+
 const ContractScreen = () => {
 	const { apply_id } = useLocalSearchParams();
 	const router = useRouter();
@@ -539,7 +552,7 @@ const ContractScreen = () => {
           <body style="font-family: Arial, sans-serif; padding: 20px;">
             <h1 style="text-align: center;">Contrat de travail</h1>
             <h3>Entreprise :</h3>
-            <p><strong>${company.name}</strong><br>SIRET : ${company.siret}<br>Adresse : 12 rue de la Sécurité, Paris</p>
+            <p><strong>${company.name}</strong><br>SIRET : ${formatSiret(company.siret)}<br>Adresse : 12 rue de la Sécurité, Paris</p>
       
             <h3>Candidat :</h3>
             <p>${candidate.firstname} ${candidate.lastname}</p>
@@ -667,7 +680,7 @@ const ContractScreen = () => {
 				<View style={styles.section}>
 					<Text style={styles.subtitle}>Entreprise :</Text>
 					<Text>{company?.name}</Text>
-					<Text>SIRET : {company?.siret}</Text>
+					<Text>SIRET : {formatSiret(company?.siret)}</Text>
 					<Text>Adresse : 12 rue de la Sécurité, Paris</Text>
 				</View>
 
