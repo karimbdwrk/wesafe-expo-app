@@ -1459,7 +1459,7 @@ const JobScreen = () => {
 												</VStack>
 
 												{/* Localisation */}
-												{job.city && (
+												{/* {job.city && (
 													<HStack
 														space='sm'
 														style={{
@@ -1513,10 +1513,10 @@ const JobScreen = () => {
 															</Text>
 														</VStack>
 													</HStack>
-												)}
+												)} */}
 
 												{/* Email */}
-												{job.companies.email && (
+												{/* {job.companies.email && (
 													<HStack
 														space='sm'
 														style={{
@@ -1570,10 +1570,10 @@ const JobScreen = () => {
 															</Text>
 														</VStack>
 													</HStack>
-												)}
+												)} */}
 
 												{/* Téléphone (exemple fictif) */}
-												<HStack
+												{/* <HStack
 													space='sm'
 													style={{
 														alignItems: "center",
@@ -1622,7 +1622,7 @@ const JobScreen = () => {
 																"01 23 45 67 89"}
 														</Text>
 													</VStack>
-												</HStack>
+												</HStack> */}
 											</VStack>
 										</AccordionContent>
 									</AccordionItem>
