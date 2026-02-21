@@ -827,6 +827,7 @@ export default function Tab1() {
 										? "#374151"
 										: "#ffffff",
 									borderColor: isDark ? "#4b5563" : "#d1d5db",
+									borderRadius: 12,
 								}}>
 								<InputField
 									placeholder='Rechercher un poste, une ville...'
