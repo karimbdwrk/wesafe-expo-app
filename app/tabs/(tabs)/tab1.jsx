@@ -55,6 +55,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import { width } from "dom-helpers";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function Tab1() {
 	const router = useRouter();
@@ -65,6 +66,7 @@ export default function Tab1() {
 	const [refreshing, setRefreshing] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [filteredJobs, setFilteredJobs] = useState([]);
+	const [searchLoading, setSearchLoading] = useState(false);
 	const [recentJobs, setRecentJobs] = useState([]);
 	const [timePeriod, setTimePeriod] = useState("7d"); // 7d, 1m, 6m, 1y, all
 	const [chartData, setChartData] = useState([]);
@@ -79,9 +81,10 @@ export default function Tab1() {
 	const searchJobs = async (query) => {
 		if (!query || query.trim().length < 2) {
 			setFilteredJobs([]);
+			setSearchLoading(false);
 			return;
 		}
-
+		setSearchLoading(true);
 		try {
 			// Recherche dans title, description, city, department, region
 			const searchTerm = query.toLowerCase();
@@ -97,6 +100,8 @@ export default function Tab1() {
 		} catch (error) {
 			console.error("Erreur recherche jobs:", error);
 			setFilteredJobs([]);
+		} finally {
+			setSearchLoading(false);
 		}
 	};
 
