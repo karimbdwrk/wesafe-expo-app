@@ -15,6 +15,14 @@ import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Divider } from "@/components/ui/divider";
 import { Icon } from "@/components/ui/icon";
+import {
+	AlertDialog,
+	AlertDialogBackdrop,
+	AlertDialogContent,
+	AlertDialogHeader,
+	AlertDialogBody,
+	AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
 
 import {
 	BadgeCheck,
@@ -49,9 +57,11 @@ const DashboardScreen = () => {
 	const router = useRouter();
 
 	const [company, setCompany] = useState(null);
+	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
 	const loadData = async () => {
 		const data = await getById("companies", user.id, `*`);
+		console.log("Company data:", data);
 		setCompany(data);
 		// setTotalCount(totalCount);
 	};
@@ -62,7 +72,14 @@ const DashboardScreen = () => {
 		}, []),
 	);
 
-	const ActionCard = ({ icon, title, subtitle, onPress, badgeText }) => (
+	const ActionCard = ({
+		icon,
+		title,
+		subtitle,
+		onPress,
+		badgeText,
+		badgeColor,
+	}) => (
 		<TouchableOpacity onPress={onPress} activeOpacity={0.7}>
 			<Card
 				style={{
@@ -119,7 +136,10 @@ const DashboardScreen = () => {
 					</HStack>
 					<HStack space='sm' style={{ alignItems: "center" }}>
 						{badgeText && (
-							<Badge size='sm' variant='solid' action='success'>
+							<Badge
+								size='sm'
+								variant='solid'
+								action={badgeColor || "success"}>
 								<BadgeText>{badgeText}</BadgeText>
 							</Badge>
 						)}
@@ -184,7 +204,10 @@ const DashboardScreen = () => {
 								<VStack style={{ flex: 1 }} space='xs'>
 									<HStack
 										space='sm'
-										style={{ alignItems: "center" }}>
+										style={{
+											alignItems: "center",
+											justifyContent: "space-between",
+										}}>
 										<Text
 											size='lg'
 											style={{
@@ -253,6 +276,8 @@ const DashboardScreen = () => {
 										style={{
 											alignItems: "center",
 											flex: 1,
+											justifyContent: "space-between",
+											paddingRight: 10,
 										}}>
 										<Text
 											size='sm'
@@ -270,12 +295,12 @@ const DashboardScreen = () => {
 											action={
 												hasSubscription
 													? "success"
-													: "warning"
+													: "muted"
 											}>
 											<BadgeText>
 												{hasSubscription
-													? "Abonné"
-													: "Non abonné"}
+													? "Premium"
+													: "Standard"}
 											</BadgeText>
 										</Badge>
 									</HStack>
@@ -370,6 +395,28 @@ const DashboardScreen = () => {
 									pathname: "/kbisdocumentverification",
 								});
 							}}
+							badgeText={
+								company?.kbis_verification_status === "pending"
+									? "En attente"
+									: company?.kbis_verification_status ===
+										  "verified"
+										? "Vérifié"
+										: company?.kbis_verification_status ===
+											  "rejected"
+											? "Rejeté"
+											: null
+							}
+							badgeColor={
+								company?.kbis_verification_status === "pending"
+									? "warning"
+									: company?.kbis_verification_status ===
+										  "verified"
+										? "success"
+										: company?.kbis_verification_status ===
+											  "rejected"
+											? "error"
+											: null
+							}
 						/>
 
 						<ActionCard
@@ -394,12 +441,64 @@ const DashboardScreen = () => {
 					{/* Déconnexion */}
 					<Button
 						action='negative'
-						onPress={signOut}
+						onPress={() => setShowLogoutDialog(true)}
 						style={{ marginTop: 8 }}>
 						<ButtonIcon as={LogOut} />
 						<ButtonText>Déconnexion</ButtonText>
 					</Button>
 				</VStack>
+
+				{/* Modal de confirmation de déconnexion */}
+				<AlertDialog
+					isOpen={showLogoutDialog}
+					onClose={() => setShowLogoutDialog(false)}>
+					<AlertDialogBackdrop />
+					<AlertDialogContent
+						style={{
+							backgroundColor: isDark ? "#374151" : "#ffffff",
+							borderRadius: 12,
+							padding: 24,
+						}}>
+						<AlertDialogHeader>
+							<Heading
+								size='lg'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								Déconnexion
+							</Heading>
+						</AlertDialogHeader>
+						<AlertDialogBody>
+							<Text
+								style={{
+									color: isDark ? "#d1d5db" : "#4b5563",
+									marginTop: 8,
+								}}>
+								Êtes-vous sûr de vouloir vous déconnecter ?
+							</Text>
+						</AlertDialogBody>
+						<AlertDialogFooter style={{ marginTop: 24 }}>
+							<HStack space='md' style={{ width: "100%" }}>
+								<Button
+									variant='outline'
+									action='secondary'
+									onPress={() => setShowLogoutDialog(false)}
+									style={{ flex: 1 }}>
+									<ButtonText>Annuler</ButtonText>
+								</Button>
+								<Button
+									action='negative'
+									onPress={() => {
+										setShowLogoutDialog(false);
+										signOut();
+									}}
+									style={{ flex: 1 }}>
+									<ButtonText>Déconnexion</ButtonText>
+								</Button>
+							</HStack>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
 			</Box>
 		</ScrollView>
 	);
