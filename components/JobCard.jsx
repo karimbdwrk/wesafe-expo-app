@@ -104,9 +104,19 @@ const JobCard = ({
 	isArchived,
 	isLastMinute,
 	logo,
-	contract_type = "CDI",
-	working_time = "Temps plein",
-	salary = "Non spécifié",
+	contract_type,
+	working_time,
+	salary_hourly,
+	salary_amount,
+	salary_min,
+	salary_max,
+	salary_type,
+	salary_monthly_fixed,
+	salary_monthly_min,
+	salary_monthly_max,
+	salary_annual_fixed,
+	salary_annual_min,
+	salary_annual_max,
 }) => {
 	const router = useRouter();
 	const { isDark } = useTheme();
@@ -143,6 +153,35 @@ const JobCard = ({
 				icon: <Check />,
 			},
 		);
+	};
+
+	const formatSalary = (salary_type) => {
+		if (!salary_type) return "Non spécifié";
+
+		switch (salary_type) {
+			case "selon_profil":
+				return "Selon profil";
+			case "hourly":
+				return salary_hourly ? `${salary_hourly}€/h` : "Non spécifié";
+			case "monthly_fixed":
+				return salary_monthly_fixed
+					? `${salary_monthly_fixed}€/mois`
+					: "Non spécifié";
+			case "annual_fixed":
+				return salary_annual_fixed
+					? `${salary_annual_fixed}€/an`
+					: "Non spécifié";
+			case "monthly_range":
+				return salary_monthly_min && salary_monthly_max
+					? `${salary_monthly_min}€ - ${salary_monthly_max}€/mois`
+					: "Non spécifié";
+			case "annual_range":
+				return salary_annual_min && salary_annual_max
+					? `${salary_annual_min}€ - ${salary_annual_max}€/an`
+					: "Non spécifié";
+			default:
+				return "Non spécifié";
+		}
 	};
 
 	return (
@@ -277,13 +316,19 @@ const JobCard = ({
 						{working_time && (
 							<Badge size='sm' variant='solid' action='muted'>
 								<BadgeIcon as={Clock} className='mr-2' />
-								<BadgeText>{working_time}</BadgeText>
+								<BadgeText>
+									{working_time.toLowerCase().includes("part")
+										? "Temps partiel"
+										: "Temps plein"}
+								</BadgeText>
 							</Badge>
 						)}
-						{salary && (
+						{salary_type && (
 							<Badge size='sm' variant='solid' action='warning'>
 								<BadgeIcon as={BadgeEuro} className='mr-2' />
-								<BadgeText>{salary}</BadgeText>
+								<BadgeText>
+									{formatSalary(salary_type)}
+								</BadgeText>
 							</Badge>
 						)}
 						{isArchived && (
