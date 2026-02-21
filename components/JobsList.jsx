@@ -313,12 +313,12 @@ export default function JobsList({
 
 	useEffect(() => {
 		// keywords filter
-		   if (keywords.trim() !== "") {
-			   const encodedKeyword = encodeURIComponent(keywords);
-			   setFilters(
-				   `&or=(title.ilike.*${encodedKeyword}*,category.ilike.*${encodedKeyword}*)`,
-			   );
-		   } else {
+		if (keywords.trim() !== "") {
+			const encodedKeyword = encodeURIComponent(keywords);
+			setFilters(
+				`&or=(title.ilike.*${encodedKeyword}*,category.ilike.*${encodedKeyword}*)`,
+			);
+		} else {
 			// when keywords cleared, recompute from values/distance — handled by previous effect
 			// trigger reload by clearing filters state handled above
 		}
@@ -507,13 +507,10 @@ export default function JobsList({
 						<ActionsheetScrollView style={{ paddingBottom: 20 }}>
 							<VStack
 								style={{
-									paddingHorizontal: 15,
+									paddingHorizontal: 5,
 									paddingTop: 10,
 								}}>
-								<Input>
-									<InputSlot className='pl-3'>
-										<InputIcon as={Search} />
-									</InputSlot>
+								<Input style={{ borderRadius: 12 }}>
 									<InputField
 										placeholder='Search...'
 										value={keywords}
@@ -521,6 +518,9 @@ export default function JobsList({
 											setKeywords(text)
 										}
 									/>
+									<InputSlot className='pr-3'>
+										<InputIcon as={Search} />
+									</InputSlot>
 								</Input>
 							</VStack>
 						</ActionsheetScrollView>
