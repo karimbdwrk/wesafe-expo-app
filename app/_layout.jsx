@@ -315,10 +315,13 @@ function RootLayoutNav() {
 								name='job'
 								options={{ headerShown: true }}
 							/>
-							{/* <Stack.Screen
-								name='addjob'
-								options={{ headerShown: true }}
-							/> */}
+							<Stack.Screen
+								name='faq'
+								options={{
+									headerShown: true,
+									headerTitle: "Centre d'aide",
+								}}
+							/>
 							<Stack.Screen
 								name='lastminute'
 								options={{ headerShown: true }}
