@@ -199,6 +199,11 @@ export default function Tab1() {
 				);
 			} else {
 				// Offres récentes pour les candidats
+				if (!user || !user.id) {
+					setRecentJobs([]);
+					setStats({ wishlist: 0, applications: 0 });
+					return;
+				}
 				const { data: jobs } = await getAll(
 					"jobs",
 					"*, companies(name, logo_url)",
