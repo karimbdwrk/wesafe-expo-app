@@ -216,6 +216,9 @@ const PostJob = () => {
 	const [currentStep, setCurrentStep] = useState(1);
 	const scrollX = useRef(new Animated.Value(0)).current;
 	const scrollViewRefs = useRef([null, null, null]);
+	const titleInputRef = useRef(null);
+	const descriptionInputRef = useRef(null);
+	const postcodeInputRef = useRef(null);
 	const startTimeInputRef = useRef(null);
 	const endTimeInputRef = useRef(null);
 	const diplomaInputRef = useRef(null);
@@ -1081,33 +1084,46 @@ const PostJob = () => {
 													}}>
 													Titre du poste *
 												</Text>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Ex: Agent de sécurité H/F'
-														value={formData.title}
-														onChangeText={(value) =>
-															updateField(
-																"title",
-																value,
-															)
-														}
+												<VStack ref={titleInputRef}>
+													<Input
+														variant='outline'
+														size='md'
 														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Input>
+															backgroundColor:
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#e5e7eb",
+														}}>
+														<InputField
+															placeholder='Ex: Agent de sécurité H/F'
+															value={
+																formData.title
+															}
+															onChangeText={(
+																value,
+															) =>
+																updateField(
+																	"title",
+																	value,
+																)
+															}
+															onFocus={() =>
+																scrollToInput(
+																	titleInputRef,
+																	0,
+																)
+															}
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}
+														/>
+													</Input>
+												</VStack>
 											</VStack>
 
 											{/* Catégorie */}
@@ -1197,35 +1213,47 @@ const PostJob = () => {
 													}}>
 													Description du poste *
 												</Text>
-												<Textarea
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-														minHeight: 120,
-													}}>
-													<TextareaInput
-														placeholder='Décrivez le poste et les responsabilités...'
-														value={
-															formData.description
-														}
-														onChangeText={(value) =>
-															updateField(
-																"description",
-																value,
-															)
-														}
+												<VStack
+													ref={descriptionInputRef}>
+													<Textarea
+														size='md'
 														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Textarea>
+															backgroundColor:
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#e5e7eb",
+															minHeight: 120,
+														}}>
+														<TextareaInput
+															placeholder='Décrivez le poste et les responsabilités...'
+															value={
+																formData.description
+															}
+															onChangeText={(
+																value,
+															) =>
+																updateField(
+																	"description",
+																	value,
+																)
+															}
+															onFocus={() =>
+																scrollToInput(
+																	descriptionInputRef,
+																	0,
+																)
+															}
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}
+														/>
+													</Textarea>
+												</VStack>
 											</VStack>
 										</VStack>
 									</Card>
@@ -1804,40 +1832,51 @@ const PostJob = () => {
 													}}>
 													Code postal *
 												</Text>
-												<Input
-													variant='outline'
-													size='md'
-													style={{
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}>
-													<InputField
-														placeholder='Entrez le code postal'
-														value={
-															formData.postcode
-														}
-														onChangeText={(
-															text,
-														) => {
-															updateField(
-																"postcode",
-																text,
-															);
-															searchCities(text);
-														}}
-														keyboardType='numeric'
-														maxLength={5}
+												<VStack ref={postcodeInputRef}>
+													<Input
+														variant='outline'
+														size='md'
 														style={{
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}
-													/>
-												</Input>
+															backgroundColor:
+																isDark
+																	? "#1f2937"
+																	: "#ffffff",
+															borderColor: isDark
+																? "#4b5563"
+																: "#e5e7eb",
+														}}>
+														<InputField
+															placeholder='Entrez le code postal'
+															value={
+																formData.postcode
+															}
+															onChangeText={(
+																text,
+															) => {
+																updateField(
+																	"postcode",
+																	text,
+																);
+																searchCities(
+																	text,
+																);
+															}}
+															onFocus={() =>
+																scrollToInput(
+																	postcodeInputRef,
+																	1,
+																)
+															}
+															keyboardType='numeric'
+															maxLength={5}
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}
+														/>
+													</Input>
+												</VStack>
 											</VStack>
 
 											{/* Liste des villes */}
