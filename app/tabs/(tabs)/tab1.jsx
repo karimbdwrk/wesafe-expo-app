@@ -251,6 +251,7 @@ export default function Tab1() {
 
 	useFocusEffect(
 		useCallback(() => {
+			setSearchQuery("");
 			loadData();
 		}, [role, timePeriod]),
 	);
