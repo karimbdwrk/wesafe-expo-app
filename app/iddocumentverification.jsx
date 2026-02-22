@@ -203,6 +203,28 @@ export default function IDDocumentVerification({ navigation }) {
 				});
 			}
 
+			if (documentType === "residence_permit") {
+				const frontUrl = await uploadDocument({
+					image: frontImage,
+					side: "front",
+					documentType: "residence_permit",
+				});
+
+				const backUrl = await uploadDocument({
+					image: backImage,
+					side: "back",
+					documentType: "residence_permit",
+				});
+
+				await update("profiles", user.id, {
+					id_type: documentType,
+					id_validity_date: date,
+					residence_permit_front_url: frontUrl,
+					residence_permit_back_url: backUrl,
+					id_verification_status: "pending",
+				});
+			}
+
 			console.log("Documents submitted successfully");
 
 			// Recharger les données utilisateur
@@ -540,6 +562,66 @@ export default function IDDocumentVerification({ navigation }) {
 									</HStack>
 								</Card>
 							</TouchableOpacity>
+
+							<TouchableOpacity
+								onPress={() =>
+									setDocumentType("residence_permit")
+								}
+								activeOpacity={0.7}>
+								<Card
+									style={{
+										padding: 20,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 2,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
+									<HStack
+										space='md'
+										style={{ alignItems: "center" }}>
+										<Box
+											style={{
+												width: 48,
+												height: 48,
+												borderRadius: 24,
+												backgroundColor: "#fef3c7",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={IdCard}
+												size='xl'
+												style={{ color: "#d97706" }}
+											/>
+										</Box>
+										<VStack style={{ flex: 1 }} space='xs'>
+											<Text
+												size='lg'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Titre de séjour
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Recto et verso requis
+											</Text>
+										</VStack>
+									</HStack>
+								</Card>
+							</TouchableOpacity>
 						</VStack>
 					)}
 
@@ -585,7 +667,10 @@ export default function IDDocumentVerification({ navigation }) {
 											}}>
 											{documentType === "passport"
 												? "Passeport"
-												: "Carte d'identité"}
+												: documentType ===
+													  "residence_permit"
+													? "Titre de séjour"
+													: "Carte d'identité"}
 										</Text>
 									</HStack>
 									<Button
@@ -617,8 +702,8 @@ export default function IDDocumentVerification({ navigation }) {
 									onRemove={() => setFrontImage(null)}
 									isDark={isDark}
 								/>
-
-								{documentType === "national_id" && (
+								{(documentType === "national_id" ||
+									documentType === "residence_permit") && (
 									<UploadBlock
 										label='Verso de la carte'
 										image={backImage}
@@ -660,12 +745,9 @@ export default function IDDocumentVerification({ navigation }) {
 									</Text>
 									<TouchableOpacity
 										activeOpacity={0.7}
-										onPress={() => {
-											console.log(
-												"Date picker opening...",
-											);
-											setDatePickerVisibility(true);
-										}}>
+										onPress={() =>
+											setDatePickerVisibility(true)
+										}>
 										<Box
 											style={{
 												borderWidth: 1,
