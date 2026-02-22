@@ -79,6 +79,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 import { sendApplicationSelectedEmail } from "@/utils/sendApplicationSelectedEmail";
 import { sendRecruitmentStatusEmail } from "@/utils/sendRecruitmentStatusEmail";
+import { getCategoryLabel } from "@/constants/categories";
 
 import JobCard from "@/components/JobCard";
 import { width } from "dom-helpers";
@@ -910,38 +911,44 @@ const ApplicationScreen = () => {
 										}}>
 										{application?.jobs?.title}
 									</Heading>
-									<HStack space='md' style={{ marginTop: 5 }}>
-										<Badge
-											size='sm'
-											// variant='outline'
-											action='info'>
-											<BadgeIcon
-												as={IdCard}
-												className='mr-2'
-											/>
-											<BadgeText>
-												{application?.jobs?.category}
-											</BadgeText>
-										</Badge>
+									<VStack space='md' style={{ marginTop: 5 }}>
 										{application?.jobs?.city && (
-											<Badge
-												size='sm'
-												// variant='outline'
-												action='success'>
-												<BadgeIcon
-													as={MapPin}
-													className='mr-2'
+											<HStack
+												space='xs'
+												className='items-center'>
+												<MapPin
+													size={12}
+													color='gray'
 												/>
-												<BadgeText>
+												<Text
+													size='sm'
+													style={{ color: "gray" }}>
 													{application?.jobs?.city +
 														" (" +
 														application?.jobs
 															?.department_code +
 														")"}
+												</Text>
+											</HStack>
+										)}
+										<HStack>
+											<Badge
+												size='sm'
+												// variant='outline'
+												action='info'>
+												<BadgeIcon
+													as={IdCard}
+													className='mr-2'
+												/>
+												<BadgeText>
+													{getCategoryLabel(
+														application?.jobs
+															?.category,
+													)}
 												</BadgeText>
 											</Badge>
-										)}
-									</HStack>
+										</HStack>
+									</VStack>
 									{role === "candidat" && (
 										<HStack
 											space='md'
