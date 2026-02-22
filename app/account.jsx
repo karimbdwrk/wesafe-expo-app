@@ -711,38 +711,11 @@ const AccountScreen = () => {
 							</Text>
 
 							<ActionCard
-								icon={IdCard}
-								title='Documents professionnelles'
-								subtitle='Cartes professionnels, diplômes, attestations...'
-								onPress={() => router.push("/procards")}
-							/>
-
-							<ActionCard
-								icon={BookmarkIcon}
-								title='Liste de souhaits'
-								subtitle='Vos missions favorites'
-								onPress={() => router.push("/wishlist")}
-							/>
-
-							<ActionCard
-								icon={Briefcase}
-								title='Candidatures'
-								subtitle='Suivez vos candidatures'
-								onPress={() => router.push("/applications")}
-								badgeText={
-									unreadCount > 0
-										? unreadCount.toString()
-										: null
-								}
-							/>
-
-							<ActionCard
 								icon={User}
 								title='Informations personnelles'
 								subtitle='Modifiez votre profil'
 								onPress={() => router.push("/updateprofile")}
 							/>
-
 							<ActionCard
 								icon={FileText}
 								title='CV'
@@ -766,12 +739,40 @@ const AccountScreen = () => {
 							/>
 
 							<ActionCard
+								icon={IdCard}
+								title='Documents professionnelles'
+								subtitle='Cartes professionnels, diplômes, attestations...'
+								onPress={() => router.push("/procards")}
+							/>
+							<Divider style={{ marginVertical: 16 }} />
+
+							<ActionCard
+								icon={BookmarkIcon}
+								title='Liste de souhaits'
+								subtitle='Vos missions favorites'
+								onPress={() => router.push("/wishlist")}
+							/>
+
+							<ActionCard
+								icon={Briefcase}
+								title='Candidatures'
+								subtitle='Suivez vos candidatures'
+								onPress={() => router.push("/applications")}
+								badgeText={
+									unreadCount > 0
+										? unreadCount.toString()
+										: null
+								}
+							/>
+							<Divider style={{ marginVertical: 16 }} />
+
+							<ActionCard
 								icon={Settings}
 								title='Paramètres'
 								subtitle="Paramètres de l'application"
 								onPress={() => router.push("/settings")}
 							/>
-							<Divider />
+							<Divider style={{ marginVertical: 16 }} />
 							<Button
 								action='negative'
 								onPress={() => setShowLogoutDialog(true)}
