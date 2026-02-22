@@ -78,6 +78,10 @@ export default function Tab1() {
 		rejected: 0,
 	});
 
+	useEffect(() => {
+		console.log("recentJobs dans Tab1:", recentJobs);
+	}, [recentJobs]);
+
 	const searchJobs = async (query) => {
 		if (!query || query.trim().length < 2) {
 			setFilteredJobs([]);
@@ -765,9 +769,23 @@ export default function Tab1() {
 									city={job.city}
 									postcode={job.postcode}
 									logo={userCompany?.logo_url}
-									contract_type={job.contract_type}
-									working_time={job.working_time}
-									salary={job.salary}
+									contract_type={job?.contract_type}
+									working_time={job?.work_time}
+									salary_hourly={job?.salary_hourly}
+									salary_amount={job?.salary_amount}
+									salary_min={job?.salary_min}
+									salary_max={job?.salary_max}
+									salary_type={job?.salary_type}
+									salary_monthly_fixed={
+										job?.salary_monthly_fixed
+									}
+									salary_monthly_min={job?.salary_monthly_min}
+									salary_monthly_max={job?.salary_monthly_max}
+									salary_annual_fixed={
+										job?.salary_annual_fixed
+									}
+									salary_annual_min={job?.salary_annual_min}
+									salary_annual_max={job?.salary_annual_max}
 									isArchived={job.isArchived}
 									isLastMinute={job.isLastMinute}
 								/>
@@ -1183,9 +1201,23 @@ export default function Tab1() {
 									city={job.city}
 									postcode={job.postcode}
 									logo={job.companies?.logo_url}
-									contract_type={job.contract_type}
-									working_time={job.working_time}
-									salary={job.salary}
+									contract_type={job?.contract_type}
+									working_time={job?.work_time}
+									salary_hourly={job?.salary_hourly}
+									salary_amount={job?.salary_amount}
+									salary_min={job?.salary_min}
+									salary_max={job?.salary_max}
+									salary_type={job?.salary_type}
+									salary_monthly_fixed={
+										job?.salary_monthly_fixed
+									}
+									salary_monthly_min={job?.salary_monthly_min}
+									salary_monthly_max={job?.salary_monthly_max}
+									salary_annual_fixed={
+										job?.salary_annual_fixed
+									}
+									salary_annual_min={job?.salary_annual_min}
+									salary_annual_max={job?.salary_annual_max}
 									isArchived={job.isArchived}
 									isLastMinute={job.isLastMinute}
 								/>
