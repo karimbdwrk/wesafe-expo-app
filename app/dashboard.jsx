@@ -359,6 +359,61 @@ const DashboardScreen = () => {
 										/>
 									</HStack>
 								</TouchableOpacity>
+
+								<Divider />
+								{/* Subscription Status */}
+								<TouchableOpacity
+									onPress={() => router.push("/buycredits")}
+									activeOpacity={0.7}>
+									<HStack
+										style={{
+											alignItems: "center",
+											justifyContent: "space-between",
+										}}>
+										<HStack
+											space='sm'
+											style={{
+												alignItems: "center",
+												flex: 1,
+												justifyContent: "space-between",
+												paddingRight: 10,
+											}}>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Crédits LastMinute
+											</Text>
+											<Badge
+												size='md'
+												variant='solid'
+												action={
+													company?.last_minute_credits
+														? "info"
+														: "error"
+												}>
+												<BadgeText>
+													{
+														company?.last_minute_credits
+													}
+												</BadgeText>
+											</Badge>
+										</HStack>
+										<Icon
+											as={ChevronRight}
+											size='sm'
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}
+										/>
+									</HStack>
+								</TouchableOpacity>
 							</VStack>
 						</Card>
 
@@ -388,52 +443,6 @@ const DashboardScreen = () => {
 										},
 									});
 								}}
-							/>
-
-							<ActionCard
-								icon={Stamp}
-								title='Tampon'
-								subtitle="Gérer le tampon de l'entreprise"
-								onPress={() => {
-									router.push({
-										pathname: "/stamp",
-										params: {
-											companyName: company?.name,
-										},
-									});
-								}}
-								badgeText={
-									!company?.stamp_url ? "manquant" : undefined
-								}
-								badgeColor={
-									!company?.stamp_url ? "error" : undefined
-								}
-							/>
-
-							<ActionCard
-								icon={Signature}
-								title='Signature'
-								subtitle='Gérer votre signature'
-								onPress={() => {
-									router.push({
-										pathname: "/signature",
-										params: {
-											signatureUrl:
-												company?.signature_url,
-											type: "companies",
-										},
-									});
-								}}
-								badgeText={
-									!company?.signature_url
-										? "manquante"
-										: undefined
-								}
-								badgeColor={
-									!company?.signature_url
-										? "error"
-										: undefined
-								}
 							/>
 							<ActionCard
 								icon={FileText}
@@ -474,9 +483,55 @@ const DashboardScreen = () => {
 								}
 							/>
 
-							<Divider style={{ marginVertical: 16 }} />
+							<ActionCard
+								icon={Signature}
+								title='Signature'
+								subtitle='Gérer votre signature'
+								onPress={() => {
+									router.push({
+										pathname: "/signature",
+										params: {
+											signatureUrl:
+												company?.signature_url,
+											type: "companies",
+										},
+									});
+								}}
+								badgeText={
+									!company?.signature_url
+										? "manquante"
+										: undefined
+								}
+								badgeColor={
+									!company?.signature_url
+										? "error"
+										: undefined
+								}
+							/>
 
 							<ActionCard
+								icon={Stamp}
+								title='Tampon'
+								subtitle="Gérer le tampon de l'entreprise"
+								onPress={() => {
+									router.push({
+										pathname: "/stamp",
+										params: {
+											companyName: company?.name,
+										},
+									});
+								}}
+								badgeText={
+									!company?.stamp_url ? "manquant" : undefined
+								}
+								badgeColor={
+									!company?.stamp_url ? "error" : undefined
+								}
+							/>
+
+							<Divider style={{ marginVertical: 16 }} />
+
+							{/* <ActionCard
 								icon={QrCode}
 								title='Scanner un profil'
 								subtitle='Scanner un QR code WeSafe'
@@ -485,9 +540,9 @@ const DashboardScreen = () => {
 										pathname: "/scanner",
 									});
 								}}
-							/>
+							/> */}
 
-							<ActionCard
+							{/* <ActionCard
 								icon={CreditCard}
 								title='Acheter des crédits'
 								subtitle='Recharger votre compte'
@@ -508,7 +563,7 @@ const DashboardScreen = () => {
 								}
 							/>
 
-							<Divider style={{ marginVertical: 16 }} />
+							<Divider style={{ marginVertical: 16 }} /> */}
 
 							<ActionCard
 								icon={Settings}
