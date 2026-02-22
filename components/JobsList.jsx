@@ -165,10 +165,9 @@ export default function JobsList({
 	// geo / city autocomplete
 	const [userLat, setUserLat] = useState(userProfile?.latitude || null);
 	const [userLon, setUserLon] = useState(userProfile?.longitude || null);
-	const [userCity, setUserCity] = useState(userProfile?.city || "");
-	const [userCitySelected, setUserCitySelected] = useState(
-		Boolean(userProfile?.city),
-	);
+	const [userCity, setUserCity] = useState("");
+	const [userCitySelected, setUserCitySelected] = useState(false);
+	const [selectedCityName, setSelectedCityName] = useState("");
 	const [results, setResults] = useState([]);
 	const [distanceKm, setDistanceKm] = useState(0);
 
@@ -192,37 +191,34 @@ export default function JobsList({
 	// open/close helpers
 	const handleOpenBottomSheet = (type) => {
 		scrollRef.current?.scrollTo({ y: 0, animated: true });
+		const previousSheet = activeSheet;
 		setActiveSheet(type);
 		if (type === "values") {
+			// toujours reset le keyword en ouvrant values
+			// le useEffect filter se chargera de recalculer filters="" automatiquement
 			setPage(1);
 			setKeywords("");
-			setFilters("");
 		} else if (type === "keywords") {
-			setPage(1);
-			setValues([]);
-			setDistanceKm(0);
+			// reset et reload uniquement si on venait de values
+			if (previousSheet === "values") {
+				setPage(1);
+				setValues([]);
+				setDistanceKm(0);
+			}
 		}
 	};
 	const handleCloseSheet = () => setActiveSheet(null);
 
-	// debounce fetch cities
+	// Recherche par code postal (5 chiffres comme dans postjob.jsx)
 	useEffect(() => {
-		if (!userCity || userCity.length < 2) {
+		if (!userCity || userCity.length !== 5) {
 			setResults([]);
 			return;
 		}
 		const id = setTimeout(async () => {
 			try {
 				const res = await axios.get(
-					`https://geo.api.gouv.fr/communes`,
-					{
-						params: {
-							nom: userCity,
-							fields: "nom,codesPostaux,codeDepartement,centre",
-							limit: 5,
-							boost: "population",
-						},
-					},
+					`https://geo.api.gouv.fr/communes?codePostal=${userCity}&fields=nom,code,codesPostaux,codeDepartement,codeRegion,departement,region,centre&format=json`,
 				);
 				setResults(res.data || []);
 			} catch (err) {
@@ -255,7 +251,8 @@ export default function JobsList({
 			if (userProfile && !userCity) {
 				setUserLat(userProfile.latitude);
 				setUserLon(userProfile.longitude);
-				setUserCity(userProfile.city || "");
+				setUserCity(userProfile.postcode || "");
+				setSelectedCityName(userProfile.city || "");
 				setUserCitySelected(Boolean(userProfile?.city));
 				setDistanceKm(0);
 			}
@@ -292,38 +289,30 @@ export default function JobsList({
 		loadDataJobs();
 	}, [loadDataJobs]);
 
-	// filter builders
+	// filter builder unique — keywords OU values/distance, jamais les deux ensemble
 	useEffect(() => {
-		// values + distance => filters
-		let filterString = "";
-		if (values.length > 0) {
-			const formatted = values.map((c) => `"${c}"`).join(",");
-			filterString += `&category=in.(${formatted})`;
-		}
-		if (userLat != null && userLon != null && distanceKm > 0) {
-			const bbox = getBoundingBox(userLat, userLon, distanceKm);
-			if (bbox.minLat !== undefined) {
-				filterString += `&latitude=gte.${bbox.minLat}&latitude=lte.${bbox.maxLat}`;
-				filterString += `&longitude=gte.${bbox.minLon}&longitude=lte.${bbox.maxLon}`;
-			}
-		}
-		setFilters(filterString);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [values, distanceKm, userLat, userLon, userCity]);
-
-	useEffect(() => {
-		// keywords filter
 		if (keywords.trim() !== "") {
 			const encodedKeyword = encodeURIComponent(keywords);
 			setFilters(
 				`&or=(title.ilike.*${encodedKeyword}*,category.ilike.*${encodedKeyword}*)`,
 			);
 		} else {
-			// when keywords cleared, recompute from values/distance — handled by previous effect
-			// trigger reload by clearing filters state handled above
+			let filterString = "";
+			if (values.length > 0) {
+				const formatted = values.map((c) => `"${c}"`).join(",");
+				filterString += `&category=in.(${formatted})`;
+			}
+			if (userLat != null && userLon != null && distanceKm > 0) {
+				const bbox = getBoundingBox(userLat, userLon, distanceKm);
+				if (bbox.minLat !== undefined) {
+					filterString += `&latitude=gte.${bbox.minLat}&latitude=lte.${bbox.maxLat}`;
+					filterString += `&longitude=gte.${bbox.minLon}&longitude=lte.${bbox.maxLon}`;
+				}
+			}
+			setFilters(filterString);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [keywords]);
+	}, [keywords, values, distanceKm, userLat, userLon, userCity]);
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
@@ -352,14 +341,13 @@ export default function JobsList({
 		scrollRef.current?.scrollTo({ y: 0, animated: true });
 	};
 
-	// helper: pick a city from suggestions
+	// helper: pick a city from suggestions (comme dans postjob.jsx)
 	const pickCity = (item) => {
-		setUserCity(item.nom);
+		setSelectedCityName(item.nom);
 		setUserLat(item.centre.coordinates[1]);
 		setUserLon(item.centre.coordinates[0]);
-		setResults([]);
 		setUserCitySelected(true);
-		setDistanceKm(20);
+		if (distanceKm === 0) setDistanceKm(20);
 	};
 
 	return (
@@ -388,36 +376,77 @@ export default function JobsList({
 										<InputIcon as={MapPin} />
 									</InputSlot>
 									<InputField
-										placeholder='Ville...'
+										placeholder='Code postal...'
+										keyboardType='numeric'
+										maxLength={5}
 										value={userCity}
 										onChangeText={(text) => {
 											setUserCity(text);
 											setUserCitySelected(false);
+											setSelectedCityName("");
 										}}
 									/>
 								</Input>
 
-								{!userCitySelected && results.length > 0 && (
+								{results.length > 0 && (
 									<VStack
-										style={{
-											maxHeight: 220,
-											marginTop: 10,
-										}}>
-										{results.map((item) => (
-											<TouchableOpacity
-												key={
-													item.nom +
-													(item.codesPostaux?.[0] ??
-														"")
-												}
-												onPress={() => pickCity(item)}
-												style={{ paddingVertical: 10 }}>
-												<Text>
-													{item.nom} (
-													{item.codeDepartement})
-												</Text>
-											</TouchableOpacity>
-										))}
+										space='xs'
+										style={{ marginTop: 10 }}>
+										<Text
+											size='sm'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											Sélectionnez la ville
+										</Text>
+										<VStack space='xs'>
+											{results.map((item) => (
+												<TouchableOpacity
+													key={item.code}
+													onPress={() =>
+														pickCity(item)
+													}>
+													<Box
+														style={{
+															padding: 12,
+															backgroundColor:
+																selectedCityName ===
+																item.nom
+																	? isDark
+																		? "#1f2937"
+																		: "#dbeafe"
+																	: isDark
+																		? "#1f2937"
+																		: "#f9fafb",
+															borderRadius: 8,
+															borderWidth: 1,
+															borderColor:
+																selectedCityName ===
+																item.nom
+																	? "#3b82f6"
+																	: isDark
+																		? "#4b5563"
+																		: "#e5e7eb",
+														}}>
+														<Text
+															style={{
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															{item.nom} (
+															{
+																item.codeDepartement
+															}
+															)
+														</Text>
+													</Box>
+												</TouchableOpacity>
+											))}
+										</VStack>
 									</VStack>
 								)}
 
@@ -430,7 +459,6 @@ export default function JobsList({
 										<Heading>Distance</Heading>
 										<Text>{distanceKm} km</Text>
 									</HStack>
-
 									<Center
 										style={{
 											paddingHorizontal: 15,
@@ -454,7 +482,6 @@ export default function JobsList({
 										</Slider>
 									</Center>
 								</VStack>
-
 								<VStack style={{ marginTop: 10 }}>
 									<CheckboxGroup
 										value={values}
@@ -514,9 +541,18 @@ export default function JobsList({
 									<InputField
 										placeholder='Search...'
 										value={keywords}
-										onChangeText={(text) =>
-											setKeywords(text)
-										}
+										onChangeText={(text) => {
+											setKeywords(text);
+											setValues([]);
+											setDistanceKm(0);
+											setUserCity(
+												userProfile?.postcode || "",
+											);
+											setSelectedCityName(
+												userProfile?.city || "",
+											);
+											setUserCitySelected(false);
+										}}
 									/>
 									<InputSlot className='pr-3'>
 										<InputIcon as={Search} />
@@ -556,7 +592,7 @@ export default function JobsList({
 				</HStack>
 				{(values.length > 0 ||
 					keywords ||
-					(userCity && distanceKm > 0)) && (
+					(selectedCityName && distanceKm > 0)) && (
 					<VStack style={styles.filtersRow}>
 						<HStack style={styles.filterWrap}>
 							{values.map((value) => (
