@@ -178,8 +178,14 @@ const AccountScreen = () => {
 		<>
 			<Stack.Screen
 				options={{
+					headerStyle: {
+						backgroundColor: "white",
+					},
 					headerRight: () => (
 						<TouchableOpacity
+							style={{
+								backgroundColor: "transparent",
+							}}
 							onPress={() => setShowQRModal(true)}
 							activeOpacity={0.7}>
 							<Icon
