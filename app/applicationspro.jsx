@@ -28,6 +28,7 @@ const ApplicationsProScreen = () => {
 
 	const [page, setPage] = useState(1);
 	const [applications, setApplications] = useState([]);
+	const applicationsRef = useRef([]);
 
 	const [totalCount, setTotalCount] = useState(0);
 	const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
@@ -45,9 +46,10 @@ const ApplicationsProScreen = () => {
 			`&jobs.isArchived=eq.FALSE&jobs=not.is.null&company_id=eq.${user.id}`,
 			page,
 			ITEMS_PER_PAGE,
-			"created_at.desc",
+			"updated_at.desc.nullslast,created_at.desc",
 		);
 		setApplications(data);
+		applicationsRef.current = data;
 		setTotalCount(totalCount);
 	};
 
@@ -63,7 +65,7 @@ const ApplicationsProScreen = () => {
 			if (!user?.id || !accessToken) return;
 
 			// Recharger uniquement les applications qui ont company_notification=true
-			const appsWithNotification = applications.filter(
+			const appsWithNotification = applicationsRef.current.filter(
 				(app) => app.company_notification,
 			);
 
@@ -92,8 +94,8 @@ const ApplicationsProScreen = () => {
 							"company_notification:",
 							data.company_notification,
 						);
-						setApplications((prevApps) =>
-							prevApps.map((app) =>
+						setApplications((prevApps) => {
+							const updated = prevApps.map((app) =>
 								app.id === data.id
 									? {
 											...app,
@@ -105,12 +107,14 @@ const ApplicationsProScreen = () => {
 											updated_at: data.updated_at,
 										}
 									: app,
-							),
-						);
+							);
+							applicationsRef.current = updated;
+							return updated;
+						});
 					}
 				});
 			});
-		}, [user?.id, accessToken, applications]),
+		}, [user?.id, accessToken]),
 	);
 
 	// Mettre à jour une application quand une notification arrive
@@ -251,6 +255,21 @@ const ApplicationsProScreen = () => {
 							apply_id={app.id}
 							status={app.current_status}
 							application={app}
+							contract_type={app?.jobs?.contract_type}
+							working_time={app?.jobs?.work_time}
+							salary_hourly={app?.jobs?.salary_hourly}
+							salary_amount={app?.jobs?.salary_amount}
+							salary_min={app?.jobs?.salary_min}
+							salary_max={app?.jobs?.salary_max}
+							salary_type={app?.jobs?.salary_type}
+							salary_monthly_fixed={
+								app?.jobs?.salary_monthly_fixed
+							}
+							salary_monthly_min={app?.jobs?.salary_monthly_min}
+							salary_monthly_max={app?.jobs?.salary_monthly_max}
+							salary_annual_fixed={app?.jobs?.salary_annual_fixed}
+							salary_annual_min={app?.jobs?.salary_annual_min}
+							salary_annual_max={app?.jobs?.salary_annual_max}
 						/>
 					))}
 				</View>
