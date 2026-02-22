@@ -69,60 +69,7 @@ import { position } from "dom-helpers";
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
 // Tableau des catégories métiers
-export const CATEGORY = [
-	{
-		id: "aps",
-		acronym: "APS",
-		name: "Agent de Prévention et de Sécurité",
-		category: "surveillance_humaine",
-	},
-	{
-		id: "ads",
-		acronym: "ADS",
-		name: "Agent De Sécurité",
-		category: "surveillance_humaine",
-	},
-	{
-		id: "ssiap_1",
-		acronym: "SSIAP 1",
-		name: "Agent de Sécurité Incendie",
-		category: "securite_incendie",
-		level: 1,
-	},
-	{
-		id: "ssiap_2",
-		acronym: "SSIAP 2",
-		name: "Chef d'Équipe de Sécurité Incendie",
-		category: "securite_incendie",
-		level: 2,
-	},
-	{
-		id: "ssiap_3",
-		acronym: "SSIAP 3",
-		name: "Chef de Service de Sécurité Incendie",
-		category: "securite_incendie",
-		level: 3,
-	},
-	{
-		id: "asc",
-		acronym: "ASC",
-		name: "Agent de Sécurité Cynophile",
-		category: "cynophile",
-	},
-	{
-		id: "apr",
-		acronym: "APR",
-		name: "Agent de Protection Rapprochée",
-		category: "protection_rapprochee",
-	},
-];
-
-const getCategoryLabel = (catId) => {
-	const cat = CATEGORY.find(
-		(c) => c.id === catId || c.acronym === catId || c.name === catId,
-	);
-	return cat ? `${cat.acronym} - ${cat.name}` : catId || "Non spécifié";
-};
+import { CATEGORY, getCategoryLabel } from "@/constants/categories";
 
 const mapWorkTime = (value) => {
 	if (value === "fulltime") return "Temps plein";
