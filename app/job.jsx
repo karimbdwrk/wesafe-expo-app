@@ -467,6 +467,8 @@ const JobScreen = () => {
 										{getCategoryLabel(job?.category)}
 									</BadgeText>
 								</Badge>
+							</HStack>
+							<HStack space='sm' style={{ flexWrap: "wrap" }}>
 								<Badge
 									size='sm'
 									variant='solid'
