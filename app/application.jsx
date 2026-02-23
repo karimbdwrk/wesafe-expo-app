@@ -72,6 +72,7 @@ import {
 	IdCard,
 	Building2,
 	BadgeEuro,
+	Clock,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -211,6 +212,10 @@ const ApplicationScreen = () => {
 			setIsLoading(false);
 		}
 	};
+
+	useEffect(() => {
+		console.log("application data:", application);
+	}, [application]);
 
 	const loadApplicationStatus = async () => {
 		const data = await getAll(
@@ -969,8 +974,7 @@ const ApplicationScreen = () => {
 													</BadgeText>
 												</Badge>
 											)}
-											{application?.jobs
-												?.working_time && (
+											{application?.jobs?.work_time && (
 												<Badge
 													size='sm'
 													variant='solid'
@@ -980,7 +984,7 @@ const ApplicationScreen = () => {
 														className='mr-2'
 													/>
 													<BadgeText>
-														{application?.jobsworking_time
+														{application?.jobs?.work_time
 															.toLowerCase()
 															.includes("part")
 															? "Temps partiel"
