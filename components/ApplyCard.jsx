@@ -351,7 +351,7 @@ const ApplyCard = ({
 						<VStack>
 							{/* Category */}
 							<HStack>
-								<Badge size='sm' variant='solid' action='muted'>
+								<Badge size='sm' variant='solid' action='info'>
 									<BadgeIcon as={IdCard} className='mr-2' />
 									<BadgeText>
 										{getCategoryLabel(category)}
@@ -376,6 +376,24 @@ const ApplyCard = ({
 											className='mr-2'
 										/>
 										<BadgeText>{contract_type}</BadgeText>
+									</Badge>
+								)}
+								{working_time && (
+									<Badge
+										size='sm'
+										variant='solid'
+										action='muted'>
+										<BadgeIcon
+											as={Clock}
+											className='mr-2'
+										/>
+										<BadgeText>
+											{working_time
+												.toLowerCase()
+												.includes("part")
+												? "Temps partiel"
+												: "Temps plein"}
+										</BadgeText>
 									</Badge>
 								)}
 								{salary_type && (
