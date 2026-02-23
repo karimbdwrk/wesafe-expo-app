@@ -50,10 +50,11 @@ import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useNotifications } from "@/context/NotificationsContext";
 import { useImage } from "@/context/ImageContext";
+import { createSupabaseClient } from "@/lib/supabase";
 import { width } from "dom-helpers";
 
 const AccountScreen = () => {
-	const { user, signOut } = useAuth();
+	const { user, signOut, accessToken } = useAuth();
 	const { getById, getAll } = useDataContext();
 	const { isDark } = useTheme();
 	const { unreadCount } = useNotifications();
@@ -64,6 +65,22 @@ const AccountScreen = () => {
 	const [procards, setProcards] = useState([]);
 	const [showQRModal, setShowQRModal] = useState(false);
 	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+	const [notifCount, setNotifCount] = useState(0);
+
+	const fetchNotifCount = useCallback(async () => {
+		if (!user?.id || !accessToken) return;
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			const { count, error } = await supabase
+				.from("applications")
+				.select("id", { count: "exact", head: true })
+				.eq("candidate_id", user.id)
+				.eq("candidate_notification", true);
+			setNotifCount(error ? 0 : (count ?? 0));
+		} catch (e) {
+			setNotifCount(0);
+		}
+	}, [user?.id, accessToken]);
 
 	const loadData = async () => {
 		const data = await getById("profiles", user.id, `*`);
@@ -91,14 +108,41 @@ const AccountScreen = () => {
 		useCallback(() => {
 			loadData();
 			loadProcards();
-		}, []),
+			fetchNotifCount();
+
+			const supabase = createSupabaseClient(accessToken);
+			const channel = supabase
+				.channel(`account-notif-${user?.id}`)
+				.on(
+					"postgres_changes",
+					{
+						event: "INSERT",
+						schema: "public",
+						table: "notifications",
+						filter: `recipient_id=eq.${user?.id}`,
+					},
+					() => fetchNotifCount(),
+				)
+				.subscribe();
+
+			return () => {
+				supabase.removeChannel(channel);
+			};
+		}, [user?.id, accessToken]),
 	);
 
 	useLayoutEffect(() => {
 		// Ne rien faire ici, le header est défini dans _layout.jsx
 	}, []);
 
-	const ActionCard = ({ icon, title, subtitle, onPress, badgeText }) => (
+	const ActionCard = ({
+		icon,
+		title,
+		subtitle,
+		onPress,
+		badgeText,
+		badgeColor,
+	}) => (
 		<TouchableOpacity onPress={onPress} activeOpacity={0.7}>
 			<Card
 				style={{
@@ -155,7 +199,10 @@ const AccountScreen = () => {
 					</HStack>
 					<HStack space='sm' style={{ alignItems: "center" }}>
 						{badgeText && (
-							<Badge size='sm' variant='solid' action='success'>
+							<Badge
+								size='sm'
+								variant='solid'
+								action={badgeColor || "success"}>
 								<BadgeText>{badgeText}</BadgeText>
 							</Badge>
 						)}
@@ -765,9 +812,12 @@ const AccountScreen = () => {
 								subtitle='Suivez vos candidatures'
 								onPress={() => router.push("/applications")}
 								badgeText={
-									unreadCount > 0
-										? unreadCount.toString()
+									notifCount > 0
+										? notifCount.toString()
 										: null
+								}
+								badgeColor={
+									notifCount > 0 ? "error" : undefined
 								}
 							/>
 							<Divider style={{ marginVertical: 16 }} />
