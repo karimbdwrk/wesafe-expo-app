@@ -129,6 +129,21 @@ const OffersScreen = () => {
 								logo={offer?.companies?.logo_url}
 								company_name={offer?.companies?.name}
 								isArchived={!offer.isArchived ? false : true}
+								contract_type={offer?.contract_type}
+								working_time={offer?.work_time}
+								salary_hourly={offer?.salary_hourly}
+								salary_amount={offer?.salary_amount}
+								salary_min={offer?.salary_min}
+								salary_max={offer?.salary_max}
+								salary_type={offer?.salary_type}
+								salary_monthly_fixed={
+									offer?.salary_monthly_fixed
+								}
+								salary_monthly_min={offer?.salary_monthly_min}
+								salary_monthly_max={offer?.salary_monthly_max}
+								salary_annual_fixed={offer?.salary_annual_fixed}
+								salary_annual_min={offer?.salary_annual_min}
+								salary_annual_max={offer?.salary_annual_max}
 							/>
 						))}
 					</VStack>
