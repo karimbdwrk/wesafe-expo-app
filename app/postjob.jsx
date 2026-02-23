@@ -40,6 +40,14 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
+	AlertDialog,
+	AlertDialogContent,
+	AlertDialogHeader,
+	AlertDialogFooter,
+	AlertDialogBody,
+	AlertDialogBackdrop,
+} from "@/components/ui/alert-dialog";
+import {
 	Checkbox,
 	CheckboxGroup,
 	CheckboxIcon,
@@ -69,6 +77,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import { formatSalary } from "@/constants/salary";
 
 const result = {
 	accommodations: true,
@@ -203,6 +212,7 @@ const STEPS = [
 	{ id: 1, title: "Informations principales" },
 	{ id: 2, title: "Localisation et contrat" },
 	{ id: 3, title: "Rémunération" },
+	{ id: 4, title: "Récapitulatif" },
 	// { id: 4, title: "Détails" },
 ];
 
@@ -214,9 +224,10 @@ const PostJob = () => {
 	const toast = useToast();
 
 	const [loading, setLoading] = useState(false);
+	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [currentStep, setCurrentStep] = useState(1);
 	const scrollX = useRef(new Animated.Value(0)).current;
-	const scrollViewRefs = useRef([null, null, null]);
+	const scrollViewRefs = useRef([null, null, null, null]);
 	const titleInputRef = useRef(null);
 	const descriptionInputRef = useRef(null);
 	const postcodeInputRef = useRef(null);
@@ -725,7 +736,7 @@ const PostJob = () => {
 	const handleNextStep = () => {
 		if (validateStep()) {
 			if (currentStep === STEPS.length) {
-				handleSubmit();
+				setShowConfirmModal(true);
 			} else {
 				goToNextStep();
 			}
@@ -984,12 +995,12 @@ const PostJob = () => {
 
 	// Animation de la barre de progression
 	const progressAnim = useRef(
-		new Animated.Value((currentStep / STEPS.length) * 100),
+		new Animated.Value(((currentStep - 1) / (STEPS.length - 1)) * 100),
 	).current;
 
 	useEffect(() => {
 		Animated.timing(progressAnim, {
-			toValue: (currentStep / STEPS.length) * 100,
+			toValue: ((currentStep - 1) / (STEPS.length - 1)) * 100,
 			duration: 500,
 			easing: Easing.inOut(Easing.ease),
 			useNativeDriver: false,
@@ -4447,9 +4458,982 @@ const PostJob = () => {
 						</KeyboardAvoidingView>
 					</Box>
 				)}
+
+				{/* Étape 4: Récapitulatif */}
+				{currentStep === 4 && (
+					<Box style={{ width: SCREEN_WIDTH, flex: 1 }}>
+						<ScrollView
+							ref={(ref) => (scrollViewRefs.current[3] = ref)}
+							showsVerticalScrollIndicator={false}>
+							<VStack
+								space='lg'
+								style={{ padding: 20, paddingBottom: 120 }}>
+								{/* Bannière récap */}
+								<Card
+									style={{
+										padding: 16,
+										backgroundColor: isDark
+											? "#1e3a5f"
+											: "#eff6ff",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#2563eb"
+											: "#bfdbfe",
+									}}>
+									<HStack
+										space='sm'
+										style={{ alignItems: "center" }}>
+										<Icon
+											as={FileText}
+											size='lg'
+											style={{ color: "#3b82f6" }}
+										/>
+										<VStack style={{ flex: 1 }}>
+											<Text
+												size='md'
+												style={{
+													fontWeight: "700",
+													color: isDark
+														? "#93c5fd"
+														: "#1d4ed8",
+												}}>
+												Vérifiez votre annonce
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#60a5fa"
+														: "#3b82f6",
+												}}>
+												Relisez les informations avant
+												de publier
+											</Text>
+										</VStack>
+									</HStack>
+								</Card>
+
+								{/* Infos principales */}
+								<Card
+									style={{
+										padding: 20,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
+									<VStack space='md'>
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={Briefcase}
+												size='md'
+												style={{ color: "#3b82f6" }}
+											/>
+											<Text
+												size='md'
+												style={{
+													fontWeight: "700",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Informations principales
+											</Text>
+										</HStack>
+										<Divider
+											style={{
+												backgroundColor: isDark
+													? "#4b5563"
+													: "#e5e7eb",
+											}}
+										/>
+										<VStack space='sm'>
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+												}}>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														flex: 1,
+													}}>
+													Titre
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+														flex: 2,
+														textAlign: "right",
+													}}>
+													{formData.title || "—"}
+												</Text>
+											</HStack>
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+												}}>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														flex: 1,
+													}}>
+													Catégorie
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+														flex: 2,
+														textAlign: "right",
+													}}>
+													{CATEGORIES.find(
+														(c) =>
+															c.id ===
+															formData.category,
+													)
+														? `${CATEGORIES.find((c) => c.id === formData.category).acronym} - ${CATEGORIES.find((c) => c.id === formData.category).name}`
+														: "—"}
+												</Text>
+											</HStack>
+											{formData.isLastMinute && (
+												<HStack
+													style={{
+														justifyContent:
+															"space-between",
+													}}>
+													<Text
+														size='sm'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+															flex: 1,
+														}}>
+														Type
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: "#f59e0b",
+															flex: 2,
+															textAlign: "right",
+														}}>
+														⚡ Last Minute
+													</Text>
+												</HStack>
+											)}
+										</VStack>
+										{formData.description ? (
+											<>
+												<Divider
+													style={{
+														backgroundColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}
+												/>
+												<Text
+													size='xs'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													Description
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#d1d5db"
+															: "#374151",
+													}}>
+													{formData.description}
+												</Text>
+											</>
+										) : null}
+										{formData.missions.length > 0 && (
+											<>
+												<Divider
+													style={{
+														backgroundColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}
+												/>
+												<Text
+													size='xs'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													Missions
+												</Text>
+												<VStack space='xs'>
+													{formData.missions.map(
+														(m, i) => (
+															<HStack
+																key={i}
+																space='xs'
+																style={{
+																	alignItems:
+																		"flex-start",
+																}}>
+																<Box
+																	style={{
+																		width: 6,
+																		height: 6,
+																		borderRadius: 3,
+																		backgroundColor:
+																			"#3b82f6",
+																		marginTop: 6,
+																	}}
+																/>
+																<Text
+																	size='sm'
+																	style={{
+																		flex: 1,
+																		color: isDark
+																			? "#d1d5db"
+																			: "#374151",
+																	}}>
+																	{m}
+																</Text>
+															</HStack>
+														),
+													)}
+												</VStack>
+											</>
+										)}
+										{formData.searched_profile.length >
+											0 && (
+											<>
+												<Divider
+													style={{
+														backgroundColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}
+												/>
+												<Text
+													size='xs'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													Profil recherché
+												</Text>
+												<VStack space='xs'>
+													{formData.searched_profile.map(
+														(p, i) => (
+															<HStack
+																key={i}
+																space='xs'
+																style={{
+																	alignItems:
+																		"flex-start",
+																}}>
+																<Box
+																	style={{
+																		width: 6,
+																		height: 6,
+																		borderRadius: 3,
+																		backgroundColor:
+																			"#10b981",
+																		marginTop: 6,
+																	}}
+																/>
+																<Text
+																	size='sm'
+																	style={{
+																		flex: 1,
+																		color: isDark
+																			? "#d1d5db"
+																			: "#374151",
+																	}}>
+																	{p}
+																</Text>
+															</HStack>
+														),
+													)}
+												</VStack>
+											</>
+										)}
+									</VStack>
+								</Card>
+
+								{/* Localisation et contrat */}
+								<Card
+									style={{
+										padding: 20,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
+									<VStack space='md'>
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={MapPin}
+												size='md'
+												style={{ color: "#3b82f6" }}
+											/>
+											<Text
+												size='md'
+												style={{
+													fontWeight: "700",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Localisation & Contrat
+											</Text>
+										</HStack>
+										<Divider
+											style={{
+												backgroundColor: isDark
+													? "#4b5563"
+													: "#e5e7eb",
+											}}
+										/>
+										<VStack space='sm'>
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+												}}>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														flex: 1,
+													}}>
+													Ville
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+														flex: 2,
+														textAlign: "right",
+													}}>
+													{formData.city
+														? `${formData.postcode} ${formData.city}`
+														: "—"}
+												</Text>
+											</HStack>
+											{formData.department && (
+												<HStack
+													style={{
+														justifyContent:
+															"space-between",
+													}}>
+													<Text
+														size='sm'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+															flex: 1,
+														}}>
+														Département
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+															flex: 2,
+															textAlign: "right",
+														}}>
+														{formData.department}
+													</Text>
+												</HStack>
+											)}
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+												}}>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														flex: 1,
+													}}>
+													Contrat
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+														flex: 2,
+														textAlign: "right",
+													}}>
+													{formData.contract_type ||
+														"—"}
+												</Text>
+											</HStack>
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+												}}>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														flex: 1,
+													}}>
+													Temps de travail
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+														flex: 2,
+														textAlign: "right",
+													}}>
+													{formData.work_time || "—"}
+												</Text>
+											</HStack>
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+												}}>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														flex: 1,
+													}}>
+													Horaires
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+														flex: 2,
+														textAlign: "right",
+													}}>
+													{formData.work_schedule ||
+														"—"}
+												</Text>
+											</HStack>
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+												}}>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														flex: 1,
+													}}>
+													Date de début
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+														flex: 2,
+														textAlign: "right",
+													}}>
+													{formatDate(
+														formData.start_date,
+													)}
+												</Text>
+											</HStack>
+											{formData.end_date && (
+												<HStack
+													style={{
+														justifyContent:
+															"space-between",
+													}}>
+													<Text
+														size='sm'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+															flex: 1,
+														}}>
+														Date de fin
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+															flex: 2,
+															textAlign: "right",
+														}}>
+														{formatDate(
+															formData.end_date,
+														)}
+													</Text>
+												</HStack>
+											)}
+											{(formData.start_time ||
+												formData.end_time) && (
+												<HStack
+													style={{
+														justifyContent:
+															"space-between",
+													}}>
+													<Text
+														size='sm'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+															flex: 1,
+														}}>
+														Horaire
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+															flex: 2,
+															textAlign: "right",
+														}}>
+														{[
+															formData.start_time
+																? `Début : ${formData.start_time}`
+																: null,
+															formData.end_time
+																? `Fin : ${formData.end_time}`
+																: null,
+														]
+															.filter(Boolean)
+															.join("  •  ")}
+													</Text>
+												</HStack>
+											)}
+										</VStack>
+									</VStack>
+								</Card>
+
+								{/* Rémunération */}
+								<Card
+									style={{
+										padding: 20,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
+									<VStack space='md'>
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={BadgeEuro}
+												size='md'
+												style={{ color: "#3b82f6" }}
+											/>
+											<Text
+												size='md'
+												style={{
+													fontWeight: "700",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Rémunération
+											</Text>
+										</HStack>
+										<Divider
+											style={{
+												backgroundColor: isDark
+													? "#4b5563"
+													: "#e5e7eb",
+											}}
+										/>
+										<VStack space='sm'>
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+												}}>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														flex: 1,
+													}}>
+													Salaire
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+														flex: 2,
+														textAlign: "right",
+													}}>
+													{formatSalary(formData)}
+												</Text>
+											</HStack>
+											{(formData.weekly_hours ||
+												formData.daily_hours) && (
+												<HStack
+													style={{
+														justifyContent:
+															"space-between",
+													}}>
+													<Text
+														size='sm'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+															flex: 1,
+														}}>
+														Heures
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+															flex: 2,
+															textAlign: "right",
+														}}>
+														{formData.work_hours_type ===
+														"jour"
+															? `${formData.daily_hours}h/jour`
+															: `${formData.weekly_hours}h/semaine`}
+													</Text>
+												</HStack>
+											)}
+										</VStack>
+									</VStack>
+								</Card>
+
+								{/* Compétences & Avantages */}
+								{(formData.diplomas_required.length > 0 ||
+									formData.driving_licenses.length > 0 ||
+									formData.languages.length > 0 ||
+									formData.reimbursements.length > 0 ||
+									formData.packed_lunch ||
+									formData.accommodations) && (
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<VStack space='md'>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={GraduationCap}
+													size='md'
+													style={{ color: "#3b82f6" }}
+												/>
+												<Text
+													size='md'
+													style={{
+														fontWeight: "700",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Compétences & Avantages
+												</Text>
+											</HStack>
+											<Divider
+												style={{
+													backgroundColor: isDark
+														? "#4b5563"
+														: "#e5e7eb",
+												}}
+											/>
+											<VStack space='sm'>
+												{formData.diplomas_required
+													.length > 0 && (
+													<HStack
+														style={{
+															justifyContent:
+																"space-between",
+															alignItems:
+																"flex-start",
+														}}>
+														<Text
+															size='sm'
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+																flex: 1,
+															}}>
+															Diplômes requis
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+																flex: 2,
+																textAlign:
+																	"right",
+															}}>
+															{formData.diplomas_required.join(
+																", ",
+															)}
+														</Text>
+													</HStack>
+												)}
+												{formData.driving_licenses
+													.length > 0 && (
+													<HStack
+														style={{
+															justifyContent:
+																"space-between",
+															alignItems:
+																"flex-start",
+														}}>
+														<Text
+															size='sm'
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+																flex: 1,
+															}}>
+															Permis
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+																flex: 2,
+																textAlign:
+																	"right",
+															}}>
+															{formData.driving_licenses.join(
+																", ",
+															)}
+														</Text>
+													</HStack>
+												)}
+												{formData.languages.length >
+													0 && (
+													<HStack
+														style={{
+															justifyContent:
+																"space-between",
+															alignItems:
+																"flex-start",
+														}}>
+														<Text
+															size='sm'
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+																flex: 1,
+															}}>
+															Langues
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+																flex: 2,
+																textAlign:
+																	"right",
+															}}>
+															{formData.languages.join(
+																", ",
+															)}
+														</Text>
+													</HStack>
+												)}
+												{formData.reimbursements
+													.length > 0 && (
+													<HStack
+														style={{
+															justifyContent:
+																"space-between",
+															alignItems:
+																"flex-start",
+														}}>
+														<Text
+															size='sm'
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+																flex: 1,
+															}}>
+															Remboursements
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+																flex: 2,
+																textAlign:
+																	"right",
+															}}>
+															{formData.reimbursements.join(
+																", ",
+															)}
+														</Text>
+													</HStack>
+												)}
+												{(formData.packed_lunch ||
+													formData.accommodations) && (
+													<HStack
+														style={{
+															justifyContent:
+																"space-between",
+														}}>
+														<Text
+															size='sm'
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+																flex: 1,
+															}}>
+															Avantages
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+																flex: 2,
+																textAlign:
+																	"right",
+															}}>
+															{[
+																formData.packed_lunch &&
+																	"Panier repas",
+																formData.accommodations &&
+																	"Hébergement",
+															]
+																.filter(Boolean)
+																.join(", ")}
+														</Text>
+													</HStack>
+												)}
+											</VStack>
+										</VStack>
+									</Card>
+								)}
+							</VStack>
+						</ScrollView>
+					</Box>
+				)}
 			</Box>
 
-			{/* Boutons de navigation fixés en bas */}
 			<Box
 				style={{
 					position: "absolute",
@@ -4522,6 +5506,104 @@ const PostJob = () => {
 					</Button>
 				</HStack>
 			</Box>
+
+			{/* Modal de confirmation publication */}
+			<AlertDialog
+				isOpen={showConfirmModal}
+				onClose={() => setShowConfirmModal(false)}>
+				<AlertDialogBackdrop />
+				<AlertDialogContent
+					style={{
+						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+						borderRadius: 16,
+						margin: 20,
+					}}>
+					<AlertDialogHeader style={{ paddingBottom: 8 }}>
+						<VStack
+							space='xs'
+							style={{ alignItems: "center", width: "100%" }}>
+							<Box
+								style={{
+									width: 56,
+									height: 56,
+									borderRadius: 28,
+									backgroundColor: isDark
+										? "#064e3b"
+										: "#d1fae5",
+									alignItems: "center",
+									justifyContent: "center",
+									marginBottom: 8,
+								}}>
+								<Icon
+									as={FileText}
+									size='xl'
+									style={{ color: "#10b981" }}
+								/>
+							</Box>
+							<Heading
+								size='md'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+									textAlign: "center",
+								}}>
+								Publier l'annonce ?
+							</Heading>
+						</VStack>
+					</AlertDialogHeader>
+					<AlertDialogBody style={{ paddingVertical: 12 }}>
+						<Text
+							size='sm'
+							style={{
+								color: isDark ? "#9ca3af" : "#6b7280",
+								textAlign: "center",
+								lineHeight: 20,
+							}}>
+							Votre annonce
+							{formData.title ? ` "${formData.title}"` : ""} sera
+							visible par tous les candidats. Confirmez-vous la
+							publication ?
+						</Text>
+					</AlertDialogBody>
+					<AlertDialogFooter style={{ paddingTop: 8 }}>
+						<HStack space='md' style={{ width: "100%" }}>
+							<Button
+								variant='outline'
+								size='lg'
+								style={{
+									flex: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								}}
+								onPress={() => setShowConfirmModal(false)}>
+								<ButtonText
+									style={{
+										color: isDark ? "#f3f4f6" : "#374151",
+									}}>
+									Annuler
+								</ButtonText>
+							</Button>
+							<Button
+								size='lg'
+								style={{
+									flex: 1,
+									backgroundColor: "#10b981",
+								}}
+								isDisabled={loading}
+								onPress={() => {
+									setShowConfirmModal(false);
+									handleSubmit();
+								}}>
+								<ButtonIcon
+									as={Save}
+									style={{ color: "#ffffff" }}
+								/>
+								<ButtonText style={{ color: "#ffffff" }}>
+									{loading ? "Publication..." : "Publier"}
+								</ButtonText>
+							</Button>
+						</HStack>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Box>
 	);
 };
