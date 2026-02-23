@@ -211,18 +211,18 @@ const JobCard = ({
 							)}
 						</VStack>
 					</HStack>
-
+					<HStack>
+						<Badge size='sm' variant='solid' action='info'>
+							<BadgeIcon as={IdCard} className='mr-2' />
+							<BadgeText>{getCategoryLabel(category)}</BadgeText>
+						</Badge>
+					</HStack>
 					<HStack
 						space='sm'
 						style={{
 							alignItems: "center",
 							flexWrap: "wrap",
-							marginTop: 5,
 						}}>
-						<Badge size='sm' variant='solid' action='info'>
-							<BadgeIcon as={IdCard} className='mr-2' />
-							<BadgeText>{getCategoryLabel(category)}</BadgeText>
-						</Badge>
 						{contract_type && (
 							<Badge size='sm' variant='solid' action='success'>
 								<BadgeIcon as={FileText} className='mr-2' />
