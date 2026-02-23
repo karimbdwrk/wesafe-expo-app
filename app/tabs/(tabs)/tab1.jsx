@@ -78,10 +78,6 @@ export default function Tab1() {
 		rejected: 0,
 	});
 
-	useEffect(() => {
-		console.log("recentJobs dans Tab1:", recentJobs);
-	}, [recentJobs]);
-
 	const searchJobs = async (query) => {
 		if (!query || query.trim().length < 2) {
 			setFilteredJobs([]);
