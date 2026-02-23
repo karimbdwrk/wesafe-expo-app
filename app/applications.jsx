@@ -312,6 +312,21 @@ const ApplicationsScreen = () => {
 							apply_id={app.id}
 							status={app.current_status}
 							application={app}
+							contract_type={app?.jobs?.contract_type}
+							working_time={app?.jobs?.work_time}
+							salary_hourly={app?.jobs?.salary_hourly}
+							salary_amount={app?.jobs?.salary_amount}
+							salary_min={app?.jobs?.salary_min}
+							salary_max={app?.jobs?.salary_max}
+							salary_type={app?.jobs?.salary_type}
+							salary_monthly_fixed={
+								app?.jobs?.salary_monthly_fixed
+							}
+							salary_monthly_min={app?.jobs?.salary_monthly_min}
+							salary_monthly_max={app?.jobs?.salary_monthly_max}
+							salary_annual_fixed={app?.jobs?.salary_annual_fixed}
+							salary_annual_min={app?.jobs?.salary_annual_min}
+							salary_annual_max={app?.jobs?.salary_annual_max}
 						/>
 					))}
 				</VStack>
