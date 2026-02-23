@@ -71,10 +71,6 @@ const JobCard = ({
 	const [isInWishlist, setIsInWishlist] = useState(false);
 
 	useEffect(() => {
-		console.log("company_name dans JobCard:", company_name);
-	}, [company_name]);
-
-	useEffect(() => {
 		const checkWishlist = async () => {
 			if (user?.id && id) {
 				const inWishlist = await isJobInWishlist(id, user.id);
