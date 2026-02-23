@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ScrollView, Platform, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { VStack } from "@/components/ui/vstack";
@@ -10,6 +10,7 @@ import { Divider } from "@/components/ui/divider";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Switch } from "@/components/ui/switch";
+import { useToast, Toast, ToastTitle } from "@/components/ui/toast";
 import {
 	Bell,
 	Moon,
@@ -26,16 +27,84 @@ import {
 } from "lucide-react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useDataContext } from "@/context/DataContext";
 
 const Settings = () => {
-	const { user, logout } = useAuth();
+	const { user, role, accessToken, logout } = useAuth();
 	const { colorMode, setTheme, isDark } = useTheme();
+	const { update } = useDataContext();
+	const toast = useToast();
+
+	const showToast = (message) => {
+		toast.show({
+			placement: "top",
+			render: ({ id }) => (
+				<Toast nativeID={id} action='success' variant='solid'>
+					<ToastTitle>{message}</ToastTitle>
+				</Toast>
+			),
+		});
+	};
 
 	const router = useRouter();
 
 	const [notifications, setNotifications] = useState(true);
 	const [emailNotifications, setEmailNotifications] = useState(true);
 	const [twoFactor, setTwoFactor] = useState(false);
+
+	// Charger les préférences depuis Supabase
+	const loadNotifPrefs = useCallback(async () => {
+		if (!user?.id || !accessToken) return;
+		try {
+			const { createSupabaseClient } = await import("@/lib/supabase");
+			const supabase = createSupabaseClient(accessToken);
+			const table = role === "pro" ? "companies" : "profiles";
+			const { data, error } = await supabase
+				.from(table)
+				.select("push_notifications, email_notifications")
+				.eq("id", user.id)
+				.single();
+			if (error || !data) return;
+			setNotifications(data.push_notifications ?? true);
+			setEmailNotifications(data.email_notifications ?? true);
+		} catch (e) {
+			console.error("loadNotifPrefs error:", e);
+		}
+	}, [user?.id, role, accessToken]);
+
+	useEffect(() => {
+		loadNotifPrefs();
+	}, [loadNotifPrefs]);
+
+	// Sauvegarder via le DataContext
+	const saveNotifPref = useCallback(
+		(field, value) => {
+			if (!user?.id) return;
+			const table = role === "pro" ? "companies" : "profiles";
+			update(table, user.id, { [field]: value });
+		},
+		[user?.id, role, update],
+	);
+
+	const handlePushToggle = (value) => {
+		setNotifications(value);
+		saveNotifPref("push_notifications", value);
+		showToast(
+			value
+				? "Notifications push activées"
+				: "Notifications push désactivées",
+		);
+	};
+
+	const handleEmailToggle = (value) => {
+		setEmailNotifications(value);
+		saveNotifPref("email_notifications", value);
+		showToast(
+			value
+				? "Notifications email activées"
+				: "Notifications email désactivées",
+		);
+	};
 
 	const handleThemeToggle = (value) => {
 		setTheme(value ? "dark" : "light");
@@ -239,14 +308,14 @@ const Settings = () => {
 							title='Notifications push'
 							subtitle='Recevoir des notifications sur votre appareil'
 							value={notifications}
-							onValueChange={setNotifications}
+							onValueChange={handlePushToggle}
 						/>
 						<SettingToggle
 							icon={Mail}
 							title='Notifications email'
 							subtitle='Recevoir des emails de notification'
 							value={emailNotifications}
-							onValueChange={setEmailNotifications}
+							onValueChange={handleEmailToggle}
 						/>
 					</VStack>
 				</Card>
