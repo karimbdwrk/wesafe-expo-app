@@ -27,6 +27,8 @@ import {
 import {
 	BadgeCheck,
 	Building2,
+	Briefcase,
+	Users2,
 	Pencil,
 	Stamp,
 	Signature,
@@ -37,12 +39,14 @@ import {
 	Settings,
 	LogOut,
 	ScanLine,
+	Users,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useImage } from "@/context/ImageContext";
 import { useTheme } from "@/context/ThemeContext";
+import { createSupabaseClient } from "@/lib/supabase";
 
 import LogoUploader from "@/components/LogoUploader";
 import SubscriptionPaymentSheet from "../components/SubscriptionPaymentSheet";
@@ -63,7 +67,7 @@ const formatSiret = (value) => {
 };
 
 const DashboardScreen = () => {
-	const { signOut, user, hasSubscription } = useAuth();
+	const { signOut, user, hasSubscription, accessToken } = useAuth();
 	const { getById } = useDataContext();
 	const { image } = useImage();
 	const { isDark } = useTheme();
@@ -72,18 +76,54 @@ const DashboardScreen = () => {
 
 	const [company, setCompany] = useState(null);
 	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+	const [notifCount, setNotifCount] = useState(0);
+
+	const fetchNotifCount = useCallback(async () => {
+		if (!user?.id || !accessToken) return;
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			const { count, error } = await supabase
+				.from("applications")
+				.select("id", { count: "exact", head: true })
+				.eq("company_id", user.id)
+				.eq("company_notification", true);
+			setNotifCount(error ? 0 : (count ?? 0));
+		} catch (e) {
+			setNotifCount(0);
+		}
+	}, [user?.id, accessToken]);
 
 	const loadData = async () => {
 		const data = await getById("companies", user.id, `*`);
 		console.log("Company data:", data);
 		setCompany(data);
-		// setTotalCount(totalCount);
+		await fetchNotifCount();
 	};
 
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
-		}, []),
+
+			// Souscription Realtime : écoute la table notifications (même pattern que applicationspro)
+			const supabase = createSupabaseClient(accessToken);
+			const channel = supabase
+				.channel(`dashboard-notif-${user?.id}`)
+				.on(
+					"postgres_changes",
+					{
+						event: "INSERT",
+						schema: "public",
+						table: "notifications",
+						filter: `recipient_id=eq.${user?.id}`,
+					},
+					() => fetchNotifCount(),
+				)
+				.subscribe();
+
+			return () => {
+				supabase.removeChannel(channel);
+			};
+		}, [user?.id, accessToken]),
 	);
 
 	const ActionCard = ({
@@ -531,39 +571,35 @@ const DashboardScreen = () => {
 
 							<Divider style={{ marginVertical: 16 }} />
 
-							{/* <ActionCard
-								icon={QrCode}
-								title='Scanner un profil'
-								subtitle='Scanner un QR code WeSafe'
+							<ActionCard
+								icon={Briefcase}
+								title='Mes offres'
+								subtitle="Gérer vos offres d'emploi"
 								onPress={() => {
 									router.push({
-										pathname: "/scanner",
+										pathname: "/offers",
 									});
 								}}
-							/> */}
+							/>
 
-							{/* <ActionCard
-								icon={CreditCard}
-								title='Acheter des crédits'
-								subtitle='Recharger votre compte'
+							<ActionCard
+								icon={Users}
+								title='Mes candidatures'
+								subtitle='Gérer vos candidatures'
 								onPress={() => {
 									router.push({
-										pathname: "/buycredits",
+										pathname: "/applicationspro",
 									});
 								}}
 								badgeText={
-									company?.last_minute_credits > 0
-										? `${company.last_minute_credits} crédit${company.last_minute_credits > 1 ? "s" : ""}`
-										: undefined
+									notifCount > 0 ? `${notifCount}` : undefined
 								}
 								badgeColor={
-									company?.last_minute_credits > 0
-										? "info"
-										: undefined
+									notifCount > 0 ? "error" : undefined
 								}
 							/>
 
-							<Divider style={{ marginVertical: 16 }} /> */}
+							<Divider style={{ marginVertical: 16 }} />
 
 							<ActionCard
 								icon={Settings}
