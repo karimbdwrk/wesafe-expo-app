@@ -37,6 +37,7 @@ import { height, width } from "dom-helpers";
 
 // Tableau des catégories
 import { getCategoryLabel } from "@/constants/categories";
+import { formatSalary } from "@/constants/salary";
 
 const STATUS_ORDER = [
 	"applied",
@@ -118,35 +119,6 @@ const ApplyCard = ({
 	const [companyNotification, setCompanyNotification] = useState(
 		application?.company_notification || false,
 	);
-
-	const formatSalary = (salary_type) => {
-		if (!salary_type) return "Non spécifié";
-
-		switch (salary_type) {
-			case "selon_profil":
-				return "Selon profil";
-			case "hourly":
-				return salary_hourly ? `${salary_hourly}€/h` : "Non spécifié";
-			case "monthly_fixed":
-				return salary_monthly_fixed
-					? `${salary_monthly_fixed}€/mois`
-					: "Non spécifié";
-			case "annual_fixed":
-				return salary_annual_fixed
-					? `${salary_annual_fixed}€/an`
-					: "Non spécifié";
-			case "monthly_range":
-				return salary_monthly_min && salary_monthly_max
-					? `${salary_monthly_min}€ - ${salary_monthly_max}€/mois`
-					: "Non spécifié";
-			case "annual_range":
-				return salary_annual_min && salary_annual_max
-					? `${salary_annual_min}€ - ${salary_annual_max}€/an`
-					: "Non spécifié";
-			default:
-				return "Non spécifié";
-		}
-	};
 
 	// Synchroniser avec les props si elles changent
 	useEffect(() => {
@@ -394,6 +366,18 @@ const ApplyCard = ({
 									flexWrap: "wrap",
 								}}
 								className='mt-2'>
+								{contract_type && (
+									<Badge
+										size='sm'
+										variant='solid'
+										action='success'>
+										<BadgeIcon
+											as={Briefcase}
+											className='mr-2'
+										/>
+										<BadgeText>{contract_type}</BadgeText>
+									</Badge>
+								)}
 								{salary_type && (
 									<Badge
 										size='sm'
@@ -404,7 +388,16 @@ const ApplyCard = ({
 											className='mr-2'
 										/>
 										<BadgeText>
-											{formatSalary(salary_type)}
+											{formatSalary({
+												salary_type,
+												salary_hourly,
+												salary_monthly_fixed,
+												salary_annual_fixed,
+												salary_monthly_min,
+												salary_monthly_max,
+												salary_annual_min,
+												salary_annual_max,
+											})}
 										</BadgeText>
 									</Badge>
 								)}
