@@ -207,7 +207,7 @@ const JobCard = ({
 							)}
 						</VStack>
 					</HStack>
-					<HStack>
+					<HStack style={{ marginTop: 8 }}>
 						<Badge size='sm' variant='solid' action='info'>
 							<BadgeIcon as={IdCard} className='mr-2' />
 							<BadgeText>{getCategoryLabel(category)}</BadgeText>
