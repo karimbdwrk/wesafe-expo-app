@@ -70,6 +70,7 @@ const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
 // Tableau des catégories métiers
 import { CATEGORY, getCategoryLabel } from "@/constants/categories";
+import { formatSalary } from "@/constants/salary";
 
 const mapWorkTime = (value) => {
 	if (value === "fulltime") return "Temps plein";
@@ -88,37 +89,6 @@ const mapWorkHoursType = (value) => {
 	if (value === "weekly") return "semaine";
 	if (value === "daily") return "jour";
 	return value;
-};
-
-const formatSalary = (job) => {
-	if (!job?.salary_type) return "Non spécifié";
-
-	switch (job.salary_type) {
-		case "selon_profil":
-			return "Selon profil";
-		case "hourly":
-			return job.salary_hourly
-				? `${job.salary_hourly}€/h`
-				: "Non spécifié";
-		case "monthly_fixed":
-			return job.salary_monthly_fixed
-				? `${job.salary_monthly_fixed}€/mois`
-				: "Non spécifié";
-		case "annual_fixed":
-			return job.salary_annual_fixed
-				? `${job.salary_annual_fixed}€/an`
-				: "Non spécifié";
-		case "monthly_range":
-			return job.salary_monthly_min && job.salary_monthly_max
-				? `${job.salary_monthly_min}€ - ${job.salary_monthly_max}€/mois`
-				: "Non spécifié";
-		case "annual_range":
-			return job.salary_annual_min && job.salary_annual_max
-				? `${job.salary_annual_min}€ - ${job.salary_annual_max}€/an`
-				: "Non spécifié";
-		default:
-			return "Non spécifié";
-	}
 };
 
 const JobScreen = () => {
@@ -165,37 +135,6 @@ const JobScreen = () => {
 		if (value === "weekly") return "semaine";
 		if (value === "daily") return "jour";
 		return value;
-	};
-
-	const formatSalary = (job) => {
-		if (!job?.salary_type) return "Non spécifié";
-
-		switch (job.salary_type) {
-			case "selon_profil":
-				return "Selon profil";
-			case "hourly":
-				return job.salary_hourly
-					? `${job.salary_hourly}€/h`
-					: "Non spécifié";
-			case "monthly_fixed":
-				return job.salary_monthly_fixed
-					? `${job.salary_monthly_fixed}€/mois`
-					: "Non spécifié";
-			case "annual_fixed":
-				return job.salary_annual_fixed
-					? `${job.salary_annual_fixed}€/an`
-					: "Non spécifié";
-			case "monthly_range":
-				return job.salary_monthly_min && job.salary_monthly_max
-					? `${job.salary_monthly_min}€ - ${job.salary_monthly_max}€/mois`
-					: "Non spécifié";
-			case "annual_range":
-				return job.salary_annual_min && job.salary_annual_max
-					? `${job.salary_annual_min}€ - ${job.salary_annual_max}€/an`
-					: "Non spécifié";
-			default:
-				return "Non spécifié";
-		}
 	};
 
 	const router = useRouter();
@@ -544,16 +483,20 @@ const JobScreen = () => {
 											"Non spécifié"}
 									</BadgeText>
 								</Badge>
-								<Badge
-									size='sm'
-									variant='solid'
-									action='warning'>
-									<BadgeIcon
-										as={BadgeEuro}
-										className='mr-2'
-									/>
-									<BadgeText>{formatSalary(job)}</BadgeText>
-								</Badge>
+								{job?.salary_type && (
+									<Badge
+										size='sm'
+										variant='solid'
+										action='warning'>
+										<BadgeIcon
+											as={BadgeEuro}
+											className='mr-2'
+										/>
+										<BadgeText>
+											{formatSalary(job)}
+										</BadgeText>
+									</Badge>
+								)}
 								{job?.isLastMinute && (
 									<Badge
 										size='md'
