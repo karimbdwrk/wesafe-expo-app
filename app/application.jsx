@@ -71,6 +71,7 @@ import {
 	Briefcase,
 	IdCard,
 	Building2,
+	BadgeEuro,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -80,6 +81,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { sendApplicationSelectedEmail } from "@/utils/sendApplicationSelectedEmail";
 import { sendRecruitmentStatusEmail } from "@/utils/sendRecruitmentStatusEmail";
 import { getCategoryLabel } from "@/constants/categories";
+import { formatSalary } from "@/constants/salary";
 
 import JobCard from "@/components/JobCard";
 import { width } from "dom-helpers";
@@ -947,6 +949,61 @@ const ApplicationScreen = () => {
 													)}
 												</BadgeText>
 											</Badge>
+										</HStack>
+										<HStack space='sm'>
+											{application?.jobs
+												?.contract_type && (
+												<Badge
+													size='sm'
+													variant='solid'
+													action='success'>
+													<BadgeIcon
+														as={FileText}
+														className='mr-2'
+													/>
+													<BadgeText>
+														{
+															application?.jobs
+																?.contract_type
+														}
+													</BadgeText>
+												</Badge>
+											)}
+											{application?.jobs
+												?.working_time && (
+												<Badge
+													size='sm'
+													variant='solid'
+													action='muted'>
+													<BadgeIcon
+														as={Clock}
+														className='mr-2'
+													/>
+													<BadgeText>
+														{application?.jobsworking_time
+															.toLowerCase()
+															.includes("part")
+															? "Temps partiel"
+															: "Temps plein"}
+													</BadgeText>
+												</Badge>
+											)}
+											{application?.jobs?.salary_type && (
+												<Badge
+													size='sm'
+													variant='solid'
+													action='warning'>
+													<BadgeIcon
+														as={BadgeEuro}
+														className='mr-2'
+													/>
+													<BadgeText>
+														{formatSalary(
+															application?.jobs,
+														)}
+													</BadgeText>
+												</Badge>
+											)}
 										</HStack>
 									</VStack>
 									{role === "candidat" && (
