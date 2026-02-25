@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import Constants from "expo-constants";
@@ -35,6 +35,7 @@ import {
 	Calendar,
 	Upload,
 	X,
+	Globe,
 } from "lucide-react-native";
 
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -45,6 +46,13 @@ import { useTheme } from "@/context/ThemeContext";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const DOCUMENTS_BUCKET = "identity-documents";
+
+const flagEmoji = (cca2) =>
+	cca2
+		.toUpperCase()
+		.split("")
+		.map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
+		.join("");
 
 export default function IDDocumentVerification({ navigation }) {
 	const { user, userProfile, accessToken, loadUserData } = useAuth();
@@ -65,6 +73,63 @@ export default function IDDocumentVerification({ navigation }) {
 	const [date, setDate] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
+	// Nationalité
+	const [nationalityQuery, setNationalityQuery] = useState("");
+	const [nationalitySuggestions, setNationalitySuggestions] = useState([]);
+	const [selectedNationality, setSelectedNationality] = useState(null);
+	const [loadingNationalities, setLoadingNationalities] = useState(false);
+	const countriesCacheRef = useRef(null);
+	const searchTimeoutRef = useRef(null);
+
+	const searchNationality = async (query) => {
+		if (query.length < 3) {
+			setNationalitySuggestions([]);
+			return;
+		}
+		setLoadingNationalities(true);
+		try {
+			if (!countriesCacheRef.current) {
+				const res = await axios.get(
+					"https://restcountries.com/v3.1/all?fields=cca2,translations,flags",
+				);
+				countriesCacheRef.current = res.data;
+			}
+			const lower = query.toLowerCase();
+			const results = countriesCacheRef.current
+				.filter((c) => {
+					const frName = c.translations?.fra?.common || "";
+					return frName.toLowerCase().includes(lower);
+				})
+				.slice(0, 8)
+				.map((c) => ({
+					code: c.cca2,
+					name: c.translations?.fra?.common || c.cca2,
+					flag: flagEmoji(c.cca2),
+				}));
+			setNationalitySuggestions(results);
+		} catch (e) {
+			console.error("searchNationality error:", e);
+		} finally {
+			setLoadingNationalities(false);
+		}
+	};
+
+	const handleNationalityChange = (text) => {
+		setNationalityQuery(text);
+		if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+		searchTimeoutRef.current = setTimeout(
+			() => searchNationality(text),
+			300,
+		);
+	};
+
+	const handleSelectNationality = (country) => {
+		setSelectedNationality(country);
+		setNationalityQuery(country.name);
+		setNationalitySuggestions([]);
+		update("profiles", user.id, { nationality: country.code });
+	};
+
 	useFocusEffect(
 		useCallback(() => {
 			console.log("Document Verification Screen focused");
@@ -77,6 +142,28 @@ export default function IDDocumentVerification({ navigation }) {
 		setDocumentUploadedType(userProfile?.id_type || null);
 		setDocumentUploadedStatus(userProfile?.id_verification_status || null);
 		setDocumentUploadedValidityDate(userProfile?.id_validity_date || null);
+		// Charger la nationalité stockée
+		const code = userProfile?.nationality;
+		if (code) {
+			axios
+				.get(
+					`https://restcountries.com/v3.1/alpha/${code}?fields=cca2,translations`,
+				)
+				.then((res) => {
+					const c = res.data;
+					const country = {
+						code: c.cca2,
+						name: c.translations?.fra?.common || c.cca2,
+						flag: flagEmoji(c.cca2),
+					};
+					setSelectedNationality(country);
+					setNationalityQuery(country.name);
+				})
+				.catch(() => {
+					setSelectedNationality({ code, name: code, flag: "" });
+					setNationalityQuery(code);
+				});
+		}
 	}, [userProfile]);
 
 	useEffect(() => {
@@ -345,6 +432,217 @@ export default function IDDocumentVerification({ navigation }) {
 						</Text>
 					</VStack>
 
+					{/* Nationalité */}
+					<Card
+						style={{
+							padding: 20,
+							backgroundColor: isDark ? "#374151" : "#ffffff",
+							borderRadius: 12,
+							shadowColor: "#000",
+							shadowOffset: { width: 0, height: 2 },
+							shadowOpacity: 0.05,
+							shadowRadius: 8,
+							elevation: 2,
+						}}>
+						<VStack space='md'>
+							<HStack space='sm' style={{ alignItems: "center" }}>
+								<Icon
+									as={Globe}
+									size='md'
+									style={{
+										color: isDark ? "#60a5fa" : "#2563eb",
+									}}
+								/>
+								<Text
+									size='md'
+									style={{
+										fontWeight: "600",
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									Nationalité
+								</Text>
+							</HStack>
+
+							{selectedNationality ? (
+								<HStack
+									space='sm'
+									style={{
+										alignItems: "center",
+										padding: 12,
+										backgroundColor: isDark
+											? "#1f2937"
+											: "#f0fdf4",
+										borderRadius: 8,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#10b981"
+											: "#bbf7d0",
+									}}>
+									<Text style={{ fontSize: 22 }}>
+										{selectedNationality.flag}
+									</Text>
+									<Text
+										style={{
+											flex: 1,
+											fontWeight: "600",
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										{selectedNationality.name}
+									</Text>
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+											marginRight: 8,
+										}}>
+										{selectedNationality.code}
+									</Text>
+									<TouchableOpacity
+										onPress={() => {
+											setSelectedNationality(null);
+											setNationalityQuery("");
+										}}>
+										<Icon
+											as={X}
+											size='sm'
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}
+										/>
+									</TouchableOpacity>
+								</HStack>
+							) : (
+								<Input
+									variant='outline'
+									size='md'
+									style={{
+										backgroundColor: isDark
+											? "#1f2937"
+											: "#ffffff",
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}>
+									<InputField
+										placeholder='Tapez 3 lettres pour rechercher...'
+										value={nationalityQuery}
+										onChangeText={handleNationalityChange}
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}
+									/>
+								</Input>
+							)}
+
+							{loadingNationalities && (
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+										textAlign: "center",
+									}}>
+									Recherche en cours...
+								</Text>
+							)}
+
+							{nationalitySuggestions.length > 0 && (
+								<VStack
+									style={{
+										borderRadius: 8,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+										overflow: "hidden",
+									}}>
+									{nationalitySuggestions.map(
+										(country, i) => (
+											<TouchableOpacity
+												key={country.code}
+												onPress={() =>
+													handleSelectNationality(
+														country,
+													)
+												}
+												activeOpacity={0.7}>
+												<HStack
+													space='sm'
+													style={{
+														padding: 12,
+														alignItems: "center",
+														backgroundColor: isDark
+															? "#1f2937"
+															: "#ffffff",
+														borderBottomWidth:
+															i <
+															nationalitySuggestions.length -
+																1
+																? 1
+																: 0,
+														borderBottomColor:
+															isDark
+																? "#374151"
+																: "#f3f4f6",
+													}}>
+													<Text
+														style={{
+															fontSize: 20,
+															width: 32,
+														}}>
+														{country.flag}
+													</Text>
+													<Text
+														style={{
+															flex: 1,
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														{country.name}
+													</Text>
+													<Text
+														size='xs'
+														style={{
+															color: isDark
+																? "#6b7280"
+																: "#9ca3af",
+															fontWeight: "600",
+														}}>
+														{country.code}
+													</Text>
+												</HStack>
+											</TouchableOpacity>
+										),
+									)}
+								</VStack>
+							)}
+
+							{nationalityQuery.length >= 3 &&
+								nationalitySuggestions.length === 0 &&
+								!loadingNationalities &&
+								!selectedNationality && (
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+											textAlign: "center",
+										}}>
+										Aucun pays trouvé
+									</Text>
+								)}
+						</VStack>
+					</Card>
+
 					{/* Status Card */}
 					{documentUploadedStatus && (
 						<Card
@@ -400,7 +698,10 @@ export default function IDDocumentVerification({ navigation }) {
 											}}>
 											{documentUploadedType === "passport"
 												? "Passeport"
-												: "Carte d'identité nationale"}
+												: documentUploadedType ===
+													  "residence_permit"
+													? "Titre de séjour"
+													: "Carte d'identité nationale"}
 										</Text>
 									</HStack>
 
