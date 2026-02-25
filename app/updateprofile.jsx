@@ -140,6 +140,10 @@ const UpdateProfile = () => {
 		setRegionCode(cityData.codeRegion || "");
 		setLatitude(cityData.centre?.coordinates[1] || null);
 		setLongitude(cityData.centre?.coordinates[0] || null);
+		if (cityData.codesPostaux?.[0]) {
+			setPostcode(cityData.codesPostaux[0]);
+		}
+		setCities([]);
 	};
 
 	const handleUpdateProfile = async () => {
@@ -413,6 +417,15 @@ const UpdateProfile = () => {
 									}}>
 									<SelectInput
 										placeholder='Sélectionnez votre genre'
+										value={
+											gender === "male"
+												? "Homme"
+												: gender === "female"
+													? "Femme"
+													: gender === "other"
+														? "Autre"
+														: ""
+										}
 										style={{
 											color: isDark
 												? "#f3f4f6"
@@ -548,6 +561,7 @@ const UpdateProfile = () => {
 									type='text'
 									placeholder='Entrez votre code postal'
 									value={postcode}
+									defaultValue={postcode}
 									onChangeText={(text) => {
 										setPostcode(text);
 										searchCities(text);
