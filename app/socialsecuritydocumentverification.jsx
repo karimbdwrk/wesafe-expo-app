@@ -173,13 +173,12 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 		if (!validateSSN()) return;
 		try {
 			const fileUrl = await uploadDocument();
-			const digits = socialSecurityNumber.replace(/\D/g, "");
 
 			await update("profiles", user.id, {
 				social_security_doc_type: documentType,
 				social_security_document_url: fileUrl,
 				social_security_verification_status: "pending",
-				social_security_number: digits,
+				social_security_number: socialSecurityNumber.trim(),
 			});
 
 			loadUserData(user.id, accessToken);
