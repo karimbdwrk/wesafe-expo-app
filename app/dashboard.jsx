@@ -94,6 +94,7 @@ const DashboardScreen = () => {
 	}, [user?.id, accessToken]);
 
 	const loadData = async () => {
+		if (!user?.id) return;
 		const data = await getById("companies", user.id, `*`);
 		console.log("Company data:", data);
 		setCompany(data);
@@ -102,6 +103,7 @@ const DashboardScreen = () => {
 
 	useFocusEffect(
 		useCallback(() => {
+			if (!user?.id) return;
 			loadData();
 
 			// Souscription Realtime : écoute la table notifications (même pattern que applicationspro)
