@@ -1221,6 +1221,14 @@ export default function Tab1() {
 						</VStack>
 					)}
 				</VStack>
+				<VStack>
+					<Button
+						onPress={() => router.push("/lastminute")}
+						variant='outline'
+						style={{ margin: 16 }}>
+						<ButtonText>Last Minute</ButtonText>
+					</Button>
+				</VStack>
 			</ScrollView>
 		</KeyboardAvoidingView>
 	);
