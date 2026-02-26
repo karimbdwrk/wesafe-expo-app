@@ -83,11 +83,13 @@ const AccountScreen = () => {
 	}, [user?.id, accessToken]);
 
 	const loadData = async () => {
+		if (!user?.id) return;
 		const data = await getById("profiles", user.id, `*`);
 		setProfile(data);
 	};
 
 	const loadProcards = async () => {
+		if (!user?.id) return;
 		try {
 			const { data } = await getAll(
 				"procards",
@@ -447,6 +449,27 @@ const AccountScreen = () => {
 												{new Date(
 													profile.birthday,
 												).toLocaleDateString("fr-FR")}
+											</Text>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												(
+												{Math.floor(
+													(new Date() -
+														new Date(
+															profile.birthday,
+														)) /
+														(365.25 *
+															24 *
+															60 *
+															60 *
+															1000),
+												)}{" "}
+												ans)
 											</Text>
 										</HStack>
 									)}
