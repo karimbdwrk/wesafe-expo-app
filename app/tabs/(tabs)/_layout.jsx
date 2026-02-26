@@ -384,6 +384,14 @@ export default function TabLayout({ theme = "light" }) {
 						<Button
 							size='xl'
 							className={`rounded-full p-3.5`}
+							style={{
+								transform: [
+									{
+										translateY:
+											Platform.OS === "android" ? 10 : 0,
+									},
+								],
+							}}
 							onPress={() => {
 								router.push("/postjob");
 							}}>
@@ -394,6 +402,14 @@ export default function TabLayout({ theme = "light" }) {
 						<Button
 							size='xl'
 							className={`rounded-full p-3.5 bg-slate-400`}
+							style={{
+								transform: [
+									{
+										translateY:
+											Platform.OS === "android" ? 10 : 0,
+									},
+								],
+							}}
 							onPress={() => {
 								toast.show({
 									placement: "top",
