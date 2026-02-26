@@ -269,6 +269,10 @@ function RootLayoutNav() {
 								}}
 							/>
 							<Stack.Screen
+								name='prodocs'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
 								name='procards'
 								options={{ headerShown: true }}
 							/>
