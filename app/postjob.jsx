@@ -2905,6 +2905,7 @@ const PostJob = () => {
 												<>
 													<HStack space='md'>
 														<VStack
+															ref={salaryInputRef}
 															space='xs'
 															style={{ flex: 1 }}>
 															<Text
@@ -2949,7 +2950,7 @@ const PostJob = () => {
 																		scrollToInput(
 																			salaryInputRef,
 																			1,
-																			1500,
+																			100,
 																		)
 																	}
 																	keyboardType='decimal-pad'
@@ -3128,7 +3129,7 @@ const PostJob = () => {
 																		scrollToInput(
 																			hoursInputRef,
 																			1,
-																			200,
+																			100,
 																		)
 																	}
 																	keyboardType='decimal-pad'
@@ -3188,8 +3189,8 @@ const PostJob = () => {
 																	onFocus={() =>
 																		scrollToInput(
 																			hoursInputRef,
-																			200,
 																			1,
+																			100,
 																		)
 																	}
 																	keyboardType='decimal-pad'
@@ -3293,7 +3294,9 @@ const PostJob = () => {
 											{formData.salary_type ===
 												"monthly_fixed" && (
 												<>
-													<VStack space='xs'>
+													<VStack
+														ref={salaryInputRef}
+														space='xs'>
 														<Text
 															size='sm'
 															style={{
@@ -3343,7 +3346,7 @@ const PostJob = () => {
 																	scrollToInput(
 																		salaryInputRef,
 																		1,
-																		1500,
+																		100,
 																	)
 																}
 																keyboardType='numeric'
@@ -3362,7 +3365,9 @@ const PostJob = () => {
 											{formData.salary_type ===
 												"annual_fixed" && (
 												<>
-													<VStack space='xs'>
+													<VStack
+														ref={salaryInputRef}
+														space='xs'>
 														<Text
 															size='sm'
 															style={{
@@ -3412,7 +3417,7 @@ const PostJob = () => {
 																	scrollToInput(
 																		salaryInputRef,
 																		1,
-																		1500,
+																		100,
 																	)
 																}
 																keyboardType='numeric'
@@ -3431,7 +3436,9 @@ const PostJob = () => {
 											{formData.salary_type ===
 												"monthly_range" && (
 												<>
-													<HStack space='md'>
+													<HStack
+														ref={salaryInputRef}
+														space='md'>
 														<VStack
 															space='xs'
 															style={{ flex: 1 }}>
@@ -3484,7 +3491,7 @@ const PostJob = () => {
 																		scrollToInput(
 																			salaryInputRef,
 																			1,
-																			350,
+																			100,
 																		)
 																	}
 																	keyboardType='numeric'
@@ -3549,7 +3556,7 @@ const PostJob = () => {
 																		scrollToInput(
 																			salaryInputRef,
 																			1,
-																			350,
+																			100,
 																		)
 																	}
 																	keyboardType='numeric'
@@ -3569,7 +3576,9 @@ const PostJob = () => {
 											{formData.salary_type ===
 												"annual_range" && (
 												<>
-													<HStack space='md'>
+													<HStack
+														ref={salaryInputRef}
+														space='md'>
 														<VStack
 															space='xs'
 															style={{ flex: 1 }}>
@@ -3622,7 +3631,7 @@ const PostJob = () => {
 																		scrollToInput(
 																			salaryInputRef,
 																			1,
-																			350,
+																			100,
 																		)
 																	}
 																	keyboardType='numeric'
@@ -3687,7 +3696,7 @@ const PostJob = () => {
 																		scrollToInput(
 																			salaryInputRef,
 																			1,
-																			350,
+																			100,
 																		)
 																	}
 																	keyboardType='numeric'
