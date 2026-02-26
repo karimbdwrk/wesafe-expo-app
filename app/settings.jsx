@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ScrollView, Platform, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
+import Constants from "expo-constants";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Heading } from "@/components/ui/heading";
@@ -24,13 +25,24 @@ import {
 	Shield,
 	Smartphone,
 	Mail,
+	Trash2,
+	AlertTriangle,
 } from "lucide-react-native";
+import {
+	AlertDialog,
+	AlertDialogBackdrop,
+	AlertDialogContent,
+	AlertDialogHeader,
+	AlertDialogBody,
+	AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
+
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useDataContext } from "@/context/DataContext";
 
 const Settings = () => {
-	const { user, role, accessToken, logout } = useAuth();
+	const { user, role, accessToken, signOut } = useAuth();
 	const { colorMode, setTheme, isDark } = useTheme();
 	const { update } = useDataContext();
 	const toast = useToast();
@@ -51,6 +63,8 @@ const Settings = () => {
 	const [notifications, setNotifications] = useState(true);
 	const [emailNotifications, setEmailNotifications] = useState(true);
 	const [twoFactor, setTwoFactor] = useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	// Charger les préférences depuis Supabase
 	const loadNotifPrefs = useCallback(async () => {
@@ -111,8 +125,45 @@ const Settings = () => {
 	};
 
 	const handleLogout = async () => {
-		await logout();
+		await signOut();
 		router.replace("/connexion");
+	};
+
+	const handleDeleteAccount = async () => {
+		if (!user?.id) return;
+		setIsDeleting(true);
+		try {
+			// L'archivage ET l'email sont gérés côté serveur (bypass RLS)
+			const res = await fetch(
+				`https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/delete-account-notification`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${accessToken}`,
+					},
+					body: JSON.stringify({
+						email: user.email,
+						role,
+						userId: user.id,
+					}),
+				},
+			);
+
+			if (!res.ok) {
+				const err = await res.text();
+				console.error("Edge function error:", err);
+				setIsDeleting(false);
+				return;
+			}
+
+			setShowDeleteDialog(false);
+			await signOut();
+			router.replace("/connexion");
+		} catch (e) {
+			console.error("Delete account error:", e);
+			setIsDeleting(false);
+		}
 	};
 
 	const SettingItem = ({
@@ -392,7 +443,9 @@ const Settings = () => {
 				<Button
 					action='negative'
 					variant='link'
-					style={{ marginTop: 8 }}>
+					style={{ marginTop: 8 }}
+					onPress={() => setShowDeleteDialog(true)}>
+					<ButtonIcon as={Trash2} />
 					<ButtonText>Supprimer mon compte</ButtonText>
 				</Button>
 				<Text
@@ -405,6 +458,107 @@ const Settings = () => {
 					Version 2.0.0
 				</Text>
 			</VStack>
+
+			{/* Modal suppression compte */}
+			<AlertDialog
+				isOpen={showDeleteDialog}
+				onClose={() => !isDeleting && setShowDeleteDialog(false)}>
+				<AlertDialogBackdrop />
+				<AlertDialogContent
+					style={{
+						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+						borderRadius: 16,
+						padding: 24,
+					}}>
+					<AlertDialogHeader>
+						<HStack space='sm' style={{ alignItems: "center" }}>
+							<Icon
+								as={AlertTriangle}
+								size='lg'
+								style={{ color: "#ef4444" }}
+							/>
+							<Heading
+								size='lg'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								Supprimer mon compte
+							</Heading>
+						</HStack>
+					</AlertDialogHeader>
+					<AlertDialogBody>
+						<VStack space='md' style={{ marginTop: 12 }}>
+							<Text
+								style={{
+									color: isDark ? "#d1d5db" : "#374151",
+									fontSize: 15,
+									lineHeight: 22,
+								}}>
+								Votre compte sera{" "}
+								<Text
+									style={{
+										fontWeight: "700",
+										color: "#ef4444",
+									}}>
+									définitivement supprimé dans 30 jours
+								</Text>
+								. Toutes vos données seront effacées et cette
+								action ne pourra pas être annulée après ce
+								délai.
+							</Text>
+							<Text
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+									fontSize: 14,
+									lineHeight: 20,
+								}}>
+								Si vous changez d'avis, envoyez-nous un email à{" "}
+								<Text
+									style={{
+										color: isDark ? "#60a5fa" : "#2563eb",
+										fontWeight: "600",
+									}}>
+									support@wesafe.fr
+								</Text>{" "}
+								avant la fin du délai.
+							</Text>
+							<Text
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+									fontSize: 13,
+									fontStyle: "italic",
+								}}>
+								Un email de confirmation vous sera envoyé à{" "}
+								{user?.email}.
+							</Text>
+						</VStack>
+					</AlertDialogBody>
+					<AlertDialogFooter style={{ marginTop: 24 }}>
+						<HStack space='md' style={{ width: "100%" }}>
+							<Button
+								variant='outline'
+								action='secondary'
+								onPress={() => setShowDeleteDialog(false)}
+								isDisabled={isDeleting}
+								style={{ flex: 1 }}>
+								<ButtonText>Annuler</ButtonText>
+							</Button>
+							<Button
+								action='negative'
+								onPress={handleDeleteAccount}
+								isDisabled={isDeleting}
+								style={{ flex: 1 }}>
+								<ButtonIcon as={Trash2} />
+								<ButtonText>
+									{isDeleting
+										? "Suppression..."
+										: "Confirmer"}
+								</ButtonText>
+							</Button>
+						</HStack>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</ScrollView>
 	);
 };
