@@ -63,6 +63,7 @@ import {
 	ChevronDown,
 	ChevronUp,
 	CheckCircle,
+	Zap,
 } from "lucide-react-native";
 import { position } from "dom-helpers";
 
@@ -310,6 +311,9 @@ const JobScreen = () => {
 											alignItems: "center",
 											flexWrap: "wrap",
 										}}>
+										{job?.isLastMinute && (
+											<Zap size={16} color='orange' />
+										)}
 										<Heading
 											size='xl'
 											style={{
@@ -320,13 +324,6 @@ const JobScreen = () => {
 											}}>
 											{job?.title}
 										</Heading>
-										{job?.isLastMinute && (
-											<Icon
-												as={Timer}
-												size='lg'
-												style={{ color: "#ef4444" }}
-											/>
-										)}
 									</HStack>
 								</VStack>
 								{role === "candidat" && (
@@ -499,12 +496,17 @@ const JobScreen = () => {
 										</BadgeText>
 									</Badge>
 								)}
+							</HStack>
+							{job?.isLastMinute || job?.isArchived ? (
+								<Divider />
+							) : null}
+							<HStack>
 								{job?.isLastMinute && (
 									<Badge
 										size='md'
 										variant='solid'
-										action='error'>
-										<BadgeIcon as={Clock} />
+										action='warning'>
+										<BadgeIcon as={Zap} className='mr-2' />
 										<BadgeText>Dernière minute</BadgeText>
 									</Badge>
 								)}
