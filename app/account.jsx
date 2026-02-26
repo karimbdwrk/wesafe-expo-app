@@ -818,7 +818,7 @@ const AccountScreen = () => {
 								icon={IdCard}
 								title='Documents professionnelles'
 								subtitle='Cartes professionnels, diplômes, attestations...'
-								onPress={() => router.push("/procards")}
+								onPress={() => router.push("/prodocs")}
 							/>
 							<Divider style={{ marginVertical: 16 }} />
 
