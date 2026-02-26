@@ -399,6 +399,34 @@ const ProDocs = ({ navigation }) => {
 		if (!docImage) return;
 		if (selectedCategory === "cnaps" && cnapsCardNumber.trim().length !== 7)
 			return;
+		// Garde anti-doublon
+		const isDuplicate = docs.some(
+			(d) =>
+				d._category === selectedCategory &&
+				d.type === selectedType?.code,
+		);
+		if (isDuplicate) {
+			toast.show({
+				placement: "top",
+				duration: 3000,
+				render: ({ id }) => (
+					<Toast nativeID={id} action='warning' variant='accent'>
+						<Icon
+							as={AlertCircle}
+							size='lg'
+							style={{ color: "#f59e0b" }}
+						/>
+						<VStack space='xs' style={{ flex: 1, marginLeft: 8 }}>
+							<ToastTitle>Document déjà soumis</ToastTitle>
+							<ToastDescription>
+								Ce document est déjà dans votre dossier.
+							</ToastDescription>
+						</VStack>
+					</Toast>
+				),
+			});
+			return;
+		}
 		setIsSubmitting(true);
 		try {
 			const fileUrl = await uploadFile();
@@ -922,6 +950,12 @@ const ProDocs = ({ navigation }) => {
 					? "Diplôme"
 					: "Certification";
 
+		const existingTypes = new Set(
+			docs
+				.filter((d) => d._category === selectedCategory)
+				.map((d) => d.type),
+		);
+
 		return (
 			<VStack space='xl'>
 				<SectionHeader
@@ -937,11 +971,15 @@ const ProDocs = ({ navigation }) => {
 					Sélectionnez votre document
 				</Text>
 				<VStack space='sm'>
-					{items.map((item) => (
+					{items.map((item) => {
+						const alreadyAdded = existingTypes.has(item.code);
+						return (
 						<TouchableOpacity
 							key={item.code}
-							activeOpacity={0.7}
+							activeOpacity={alreadyAdded ? 1 : 0.7}
+							disabled={alreadyAdded}
 							onPress={() => {
+								if (alreadyAdded) return;
 								setSelectedType(item);
 								setStep("upload");
 							}}>
@@ -953,7 +991,10 @@ const ProDocs = ({ navigation }) => {
 										: "#ffffff",
 									borderRadius: 12,
 									borderWidth: 1,
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									borderColor: alreadyAdded
+										? isDark ? "#374151" : "#f3f4f6"
+										: isDark ? "#4b5563" : "#e5e7eb",
+									opacity: alreadyAdded ? 0.55 : 1,
 								}}>
 								<HStack
 									style={{
@@ -1001,19 +1042,33 @@ const ProDocs = ({ navigation }) => {
 											</Text>
 										) : null}
 									</VStack>
-									<Icon
-										as={ChevronRight}
-										size='md'
-										style={{
-											color: isDark
-												? "#6b7280"
-												: "#9ca3af",
-										}}
-									/>
+									{alreadyAdded ? (
+										<Badge
+											size='sm'
+											variant='solid'
+											action='success'>
+											<BadgeIcon as={CheckCircle} />
+											<BadgeText
+												style={{ marginLeft: 4 }}>
+												Déjà soumis
+											</BadgeText>
+										</Badge>
+									) : (
+										<Icon
+											as={ChevronRight}
+											size='md'
+											style={{
+												color: isDark
+													? "#6b7280"
+													: "#9ca3af",
+											}}
+										/>
+									)}
 								</HStack>
 							</Card>
 						</TouchableOpacity>
-					))}
+						);
+					})}
 				</VStack>
 			</VStack>
 		);
