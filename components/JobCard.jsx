@@ -7,6 +7,14 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { toast } from "sonner-native";
 
+import {
+	Popover,
+	PopoverBackdrop,
+	PopoverArrow,
+	PopoverBody,
+	PopoverContent,
+} from "@/components/ui/popover";
+import { Pressable } from "@/components/ui/pressable";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { HStack } from "@/components/ui/hstack";
@@ -32,6 +40,7 @@ import {
 	Banknote,
 	BadgeEuro,
 	ChevronRight,
+	Zap,
 } from "lucide-react-native";
 import { width } from "dom-helpers";
 import { getCategoryLabel } from "@/constants/categories";
@@ -69,6 +78,13 @@ const JobCard = ({
 	const { toggleWishlistJob, isJobInWishlist } = useDataContext();
 	const isFocused = useIsFocused();
 	const [isInWishlist, setIsInWishlist] = useState(false);
+	const [isOpen, setIsOpen] = React.useState(false);
+	const handleOpen = () => {
+		setIsOpen(true);
+	};
+	const handleClose = () => {
+		setIsOpen(false);
+	};
 
 	useEffect(() => {
 		const checkWishlist = async () => {
@@ -110,19 +126,13 @@ const JobCard = ({
 					backgroundColor: isDark ? "#374151" : "#ffffff",
 					borderRadius: 8,
 					padding: 16,
+					paddingBottom: 20,
 					marginBottom: 12,
 					borderWidth: 1,
 					borderColor: isDark ? "#4b5563" : "#e5e7eb",
 					flexDirection: "row",
 					justifyContent: "space-between",
 				}}>
-				{isLastMinute && (
-					<Timer
-						size={20}
-						color='#f59e0b'
-						style={{ position: "absolute", right: 50, top: 16 }}
-					/>
-				)}
 				{role !== "pro" && (
 					<TouchableOpacity
 						onPress={handleToggleWishlist}
@@ -147,15 +157,53 @@ const JobCard = ({
 					</TouchableOpacity>
 				)}
 				<VStack space='md' style={{ width: "90%" }}>
-					<Heading
-						size='lg'
-						style={{
-							color: isDark ? "#f3f4f6" : "#111827",
-							lineHeight: 24,
-						}}>
-						{title}
-					</Heading>
-
+					<HStack alignItems='center' space='sm'>
+						{isLastMinute && (
+							<Popover
+								isOpen={isOpen}
+								onClose={handleClose}
+								onOpen={handleOpen}
+								placement='top left'
+								size='xs'
+								trigger={(triggerProps) => {
+									return (
+										<Pressable {...triggerProps}>
+											{({ pressed }) => (
+												<Zap
+													size={16}
+													color={
+														pressed
+															? "#E67700"
+															: "#FFA94D"
+													}
+												/>
+											)}
+										</Pressable>
+									);
+								}}>
+								<PopoverBackdrop />
+								<PopoverContent>
+									<PopoverArrow />
+									<PopoverBody>
+										<HStack alignItems='center' space='sm'>
+											<Zap size={16} color='#FFA94D' />
+											<Text className='text-typography-600'>
+												Offre LastMinute
+											</Text>
+										</HStack>
+									</PopoverBody>
+								</PopoverContent>
+							</Popover>
+						)}
+						<Heading
+							size='lg'
+							style={{
+								color: isDark ? "#f3f4f6" : "#111827",
+								lineHeight: 24,
+							}}>
+							{title}
+						</Heading>
+					</HStack>
 					<HStack space='md' style={{ alignItems: "center" }}>
 						<Avatar size='md'>
 							<AvatarFallbackText>
