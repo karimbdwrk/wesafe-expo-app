@@ -352,40 +352,6 @@ const JobScreen = () => {
 									</TouchableOpacity>
 								)}
 							</HStack>
-
-							{/* Localisation */}
-							{/* {job?.city && (
-								<HStack
-									space='sm'
-									style={{ alignItems: "center" }}>
-									<Box
-										style={{
-											width: 40,
-											height: 40,
-											borderRadius: 20,
-											backgroundColor: "#fef3c7",
-											justifyContent: "center",
-											alignItems: "center",
-										}}>
-										<Icon
-											as={MapPin}
-											size='lg'
-											style={{ color: "#f59e0b" }}
-										/>
-									</Box>
-									<Text
-										size='md'
-										style={{
-											color: isDark
-												? "#d1d5db"
-												: "#374151",
-										}}>
-										{job?.city} ({job?.department} |{" "}
-										{job?.department_code})
-									</Text>
-								</HStack>
-							)} */}
-
 							<HStack space='md' style={{ alignItems: "center" }}>
 								<Avatar size='md'>
 									<AvatarFallbackText>
@@ -406,10 +372,6 @@ const JobScreen = () => {
 											alignItems: "center",
 											marginTop: 2,
 										}}>
-										{/* <Building2
-																size={14}
-																color={isDark ? "#f3f4f6" : "#111827"}
-															/> */}
 										<Text
 											size='md'
 											style={{
