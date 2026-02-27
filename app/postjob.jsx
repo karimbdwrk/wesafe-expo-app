@@ -48,6 +48,13 @@ import {
 	AlertDialogBackdrop,
 } from "@/components/ui/alert-dialog";
 import {
+	Actionsheet,
+	ActionsheetContent,
+	ActionsheetDragIndicator,
+	ActionsheetDragIndicatorWrapper,
+	ActionsheetBackdrop,
+} from "@/components/ui/actionsheet";
+import {
 	Checkbox,
 	CheckboxGroup,
 	CheckboxIcon,
@@ -459,18 +466,12 @@ const PostJob = () => {
 	};
 
 	const handleStartDateChange = (event, selectedDate) => {
-		if (Platform.OS === "android") {
-			setShowStartDatePicker(false);
-		}
 		if (selectedDate) {
 			updateField("start_date", selectedDate);
 		}
 	};
 
 	const handleEndDateChange = (event, selectedDate) => {
-		if (Platform.OS === "android") {
-			setShowEndDatePicker(false);
-		}
 		if (selectedDate) {
 			updateField("end_date", selectedDate);
 		}
@@ -1101,6 +1102,55 @@ const PostJob = () => {
 												: "#e5e7eb",
 										}}>
 										<VStack space='md'>
+											{/* Dernière minute */}
+											<HStack
+												space='md'
+												style={{
+													justifyContent:
+														"space-between",
+													alignItems: "center",
+												}}>
+												<VStack style={{ flex: 1 }}>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														Offre dernière minute
+													</Text>
+													<Text
+														size='xs'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}>
+														Visible avec un badge
+														urgence
+													</Text>
+												</VStack>
+												<Switch
+													value={
+														formData.isLastMinute
+													}
+													onValueChange={(value) =>
+														updateField(
+															"isLastMinute",
+															value,
+														)
+													}
+													trackColor={{
+														false: isDark
+															? "#4b5563"
+															: "#d1d5db",
+														true: "#3b82f6",
+													}}
+												/>
+											</HStack>
+
 											{/* Titre */}
 											<VStack space='xs'>
 												<Text
@@ -1219,9 +1269,7 @@ const PostJob = () => {
 																			cat.id
 																		}
 																		label={`${cat.acronym} - ${cat.name}`}
-																		value={
-																			cat.id
-																		}
+																		value={`${cat.acronym} - ${cat.name}`}
 																	/>
 																),
 															)}
@@ -2194,46 +2242,6 @@ const PostJob = () => {
 														setShowStartDatePicker(
 															true,
 														);
-														if (
-															startDateInputRef.current &&
-															scrollViewRefs
-																.current[1]
-														) {
-															setTimeout(() => {
-																startDateInputRef.current.measureLayout(
-																	scrollViewRefs
-																		.current[1],
-																	(x, y) => {
-																		const screenHeight =
-																			Dimensions.get(
-																				"window",
-																			).height;
-																		const keyboardHeight = 300;
-																		// Ne scroller que si le datepicker serait en dessous du clavier
-																		if (
-																			y +
-																				400 >
-																			screenHeight -
-																				keyboardHeight
-																		) {
-																			const centerOffset =
-																				screenHeight /
-																					2 -
-																				150;
-																			scrollViewRefs.current[1].scrollTo(
-																				{
-																					y:
-																						y -
-																						centerOffset,
-																					animated: true,
-																				},
-																			);
-																		}
-																	},
-																	() => {},
-																);
-															}, 150);
-														}
 													}}>
 													<Input
 														variant='outline'
@@ -2265,44 +2273,6 @@ const PostJob = () => {
 														/>
 													</Input>
 												</TouchableOpacity>
-												{showStartDatePicker && (
-													<DateTimePicker
-														value={
-															formData.start_date ||
-															new Date()
-														}
-														mode='date'
-														display={
-															Platform.OS ===
-															"ios"
-																? "spinner"
-																: "default"
-														}
-														onChange={
-															handleStartDateChange
-														}
-														minimumDate={new Date()}
-													/>
-												)}
-												{Platform.OS === "ios" &&
-													showStartDatePicker && (
-														<Button
-															size='sm'
-															onPress={() =>
-																setShowStartDatePicker(
-																	false,
-																)
-															}
-															style={{
-																marginTop: 8,
-																backgroundColor:
-																	"#3b82f6",
-															}}>
-															<ButtonText>
-																Confirmer
-															</ButtonText>
-														</Button>
-													)}
 											</VStack>
 
 											{/* Date de fin (conditionnelle pour non-CDI) */}
@@ -2327,52 +2297,6 @@ const PostJob = () => {
 															setShowEndDatePicker(
 																true,
 															);
-															if (
-																endDateInputRef.current &&
-																scrollViewRefs
-																	.current[1]
-															) {
-																setTimeout(
-																	() => {
-																		endDateInputRef.current.measureLayout(
-																			scrollViewRefs
-																				.current[1],
-																			(
-																				x,
-																				y,
-																			) => {
-																				const screenHeight =
-																					Dimensions.get(
-																						"window",
-																					).height;
-																				const keyboardHeight = 300;
-																				// Ne scroller que si le datepicker serait en dessous du clavier
-																				if (
-																					y +
-																						400 >
-																					screenHeight -
-																						keyboardHeight
-																				) {
-																					const centerOffset =
-																						screenHeight /
-																							2 -
-																						150;
-																					scrollViewRefs.current[1].scrollTo(
-																						{
-																							y:
-																								y -
-																								centerOffset,
-																							animated: true,
-																						},
-																					);
-																				}
-																			},
-																			() => {},
-																		);
-																	},
-																	150,
-																);
-															}
 														}}>
 														<Input
 															variant='outline'
@@ -2405,48 +2329,6 @@ const PostJob = () => {
 															/>
 														</Input>
 													</TouchableOpacity>
-													{showEndDatePicker && (
-														<DateTimePicker
-															value={
-																formData.end_date ||
-																formData.start_date ||
-																new Date()
-															}
-															mode='date'
-															display={
-																Platform.OS ===
-																"ios"
-																	? "spinner"
-																	: "default"
-															}
-															onChange={
-																handleEndDateChange
-															}
-															minimumDate={
-																formData.start_date ||
-																new Date()
-															}
-														/>
-													)}
-													{Platform.OS === "ios" &&
-														showEndDatePicker && (
-															<Button
-																size='sm'
-																onPress={() =>
-																	setShowEndDatePicker(
-																		false,
-																	)
-																}
-																style={{
-																	marginTop: 8,
-																	backgroundColor:
-																		"#3b82f6",
-																}}>
-																<ButtonText>
-																	Confirmer
-																</ButtonText>
-															</Button>
-														)}
 												</VStack>
 											)}
 										</VStack>
@@ -4316,55 +4198,6 @@ const PostJob = () => {
 												}}
 											/>
 
-											{/* Dernière minute */}
-											<HStack
-												space='md'
-												style={{
-													justifyContent:
-														"space-between",
-													alignItems: "center",
-												}}>
-												<VStack style={{ flex: 1 }}>
-													<Text
-														size='sm'
-														style={{
-															fontWeight: "600",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														Offre dernière minute
-													</Text>
-													<Text
-														size='xs'
-														style={{
-															color: isDark
-																? "#9ca3af"
-																: "#6b7280",
-														}}>
-														Visible avec un badge
-														urgence
-													</Text>
-												</VStack>
-												<Switch
-													value={
-														formData.isLastMinute
-													}
-													onValueChange={(value) =>
-														updateField(
-															"isLastMinute",
-															value,
-														)
-													}
-													trackColor={{
-														false: isDark
-															? "#4b5563"
-															: "#d1d5db",
-														true: "#3b82f6",
-													}}
-												/>
-											</HStack>
-
 											{/* Panier repas */}
 											<HStack
 												space='md'
@@ -5613,6 +5446,116 @@ const PostJob = () => {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			{/* Actionsheet — Date de début */}
+			<Actionsheet
+				isOpen={showStartDatePicker}
+				onClose={() => setShowStartDatePicker(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						paddingBottom: 32,
+						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack
+						space='md'
+						style={{
+							width: "100%",
+							alignItems: "center",
+							paddingTop: 8,
+						}}>
+						<Text
+							style={{
+								fontWeight: "600",
+								fontSize: 16,
+								color: isDark ? "#f9fafb" : "#111827",
+							}}>
+							Date de début
+						</Text>
+						<DateTimePicker
+							value={formData.start_date || new Date()}
+							mode='date'
+							display='spinner'
+							onChange={handleStartDateChange}
+							minimumDate={new Date()}
+							style={{ width: "100%" }}
+							textColor={isDark ? "#f9fafb" : "#111827"}
+						/>
+						<Button
+							size='md'
+							onPress={() => setShowStartDatePicker(false)}
+							style={{
+								backgroundColor: "#3b82f6",
+								width: "100%",
+								marginTop: 8,
+							}}>
+							<ButtonText style={{ color: "#ffffff" }}>
+								Confirmer
+							</ButtonText>
+						</Button>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
+
+			{/* Actionsheet — Date de fin */}
+			<Actionsheet
+				isOpen={showEndDatePicker}
+				onClose={() => setShowEndDatePicker(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						paddingBottom: 32,
+						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack
+						space='md'
+						style={{
+							width: "100%",
+							alignItems: "center",
+							paddingTop: 8,
+						}}>
+						<Text
+							style={{
+								fontWeight: "600",
+								fontSize: 16,
+								color: isDark ? "#f9fafb" : "#111827",
+							}}>
+							Date de fin
+						</Text>
+						<DateTimePicker
+							value={
+								formData.end_date ||
+								formData.start_date ||
+								new Date()
+							}
+							mode='date'
+							display='spinner'
+							onChange={handleEndDateChange}
+							minimumDate={formData.start_date || new Date()}
+							style={{ width: "100%" }}
+							textColor={isDark ? "#f9fafb" : "#111827"}
+						/>
+						<Button
+							size='md'
+							onPress={() => setShowEndDatePicker(false)}
+							style={{
+								backgroundColor: "#3b82f6",
+								width: "100%",
+								marginTop: 8,
+							}}>
+							<ButtonText style={{ color: "#ffffff" }}>
+								Confirmer
+							</ButtonText>
+						</Button>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
 		</Box>
 	);
 };
