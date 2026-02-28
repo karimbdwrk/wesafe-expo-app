@@ -498,7 +498,14 @@ export default function JobsList({
 						width: "100%",
 						justifyContent: "flex-end",
 						position: "absolute",
-						bottom: totalPages > 1 ? 60 : 0,
+						bottom:
+							totalPages > 1
+								? isLastMinute
+									? 84
+									: 60
+								: isLastMinute
+									? 24
+									: 0,
 						right: 0,
 						zIndex: 999,
 					}}>
@@ -669,9 +676,9 @@ export default function JobsList({
 							elevation: 8,
 							borderTopLeftRadius: 16,
 							borderTopRightRadius: 16,
-							paddingVertical: 12,
-							paddingHorizontal: 24,
-							paddingBottom: 12,
+							paddingVertical: 16,
+							paddingHorizontal: 28,
+							paddingBottom: isLastMinute ? 30 : 14,
 							alignItems: "center",
 						}}>
 						<HStack
