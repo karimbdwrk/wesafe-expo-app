@@ -309,10 +309,18 @@ const JobScreen = () => {
 										space='sm'
 										style={{
 											alignItems: "center",
-											flexWrap: "wrap",
+											// flexWrap: "wrap",
 										}}>
 										{job?.isLastMinute && (
-											<Zap size={16} color='orange' />
+											<VStack
+												style={{
+													justifyContent:
+														"flex-start",
+													height: "100%",
+													paddingTop: 5,
+												}}>
+												<Zap size={16} color='orange' />
+											</VStack>
 										)}
 										<Heading
 											size='xl'
