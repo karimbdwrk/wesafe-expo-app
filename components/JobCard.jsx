@@ -159,41 +159,53 @@ const JobCard = ({
 				<VStack space='md' style={{ width: "90%" }}>
 					<HStack alignItems='center' space='sm'>
 						{isLastMinute && (
-							<Popover
-								isOpen={isOpen}
-								onClose={handleClose}
-								onOpen={handleOpen}
-								placement='top left'
-								size='xs'
-								trigger={(triggerProps) => {
-									return (
-										<Pressable {...triggerProps}>
-											{({ pressed }) => (
+							<VStack
+								style={{
+									justifyContent: "flex-start",
+									height: "100%",
+									paddingTop: 5,
+								}}>
+								<Popover
+									isOpen={isOpen}
+									onClose={handleClose}
+									onOpen={handleOpen}
+									placement='top left'
+									size='xs'
+									trigger={(triggerProps) => {
+										return (
+											<Pressable {...triggerProps}>
+												{({ pressed }) => (
+													<Zap
+														size={16}
+														color={
+															pressed
+																? "#E67700"
+																: "#FFA94D"
+														}
+													/>
+												)}
+											</Pressable>
+										);
+									}}>
+									<PopoverBackdrop />
+									<PopoverContent>
+										<PopoverArrow />
+										<PopoverBody>
+											<HStack
+												alignItems='center'
+												space='sm'>
 												<Zap
 													size={16}
-													color={
-														pressed
-															? "#E67700"
-															: "#FFA94D"
-													}
+													color='#FFA94D'
 												/>
-											)}
-										</Pressable>
-									);
-								}}>
-								<PopoverBackdrop />
-								<PopoverContent>
-									<PopoverArrow />
-									<PopoverBody>
-										<HStack alignItems='center' space='sm'>
-											<Zap size={16} color='#FFA94D' />
-											<Text className='text-typography-600'>
-												Offre LastMinute
-											</Text>
-										</HStack>
-									</PopoverBody>
-								</PopoverContent>
-							</Popover>
+												<Text className='text-typography-600'>
+													Offre LastMinute
+												</Text>
+											</HStack>
+										</PopoverBody>
+									</PopoverContent>
+								</Popover>
+							</VStack>
 						)}
 						<Heading
 							size='lg'
