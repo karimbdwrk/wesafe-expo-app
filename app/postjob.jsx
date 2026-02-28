@@ -764,7 +764,9 @@ const PostJob = () => {
 		}
 		setFormData((prev) => ({
 			...prev,
-			vacations: [...prev.vacations, { ...currentVacation }],
+			vacations: [...prev.vacations, { ...currentVacation }].sort(
+				(a, b) => new Date(a.date) - new Date(b.date),
+			),
 		}));
 		setCurrentVacation({ date: null, start_time: "", end_time: "" });
 	};
