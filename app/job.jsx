@@ -138,6 +138,27 @@ const JobScreen = () => {
 		return value;
 	};
 
+	const mapContractType = (value) => {
+		if (value === "cdi") return "CDI";
+		if (value === "cdd") return "CDD";
+		return value;
+	};
+
+	const parseVacations = (field) => {
+		if (!field) return [];
+		if (Array.isArray(field)) return field;
+		try {
+			return JSON.parse(field);
+		} catch {
+			return [];
+		}
+	};
+
+	const formatVacationDate = (date) => {
+		if (!date) return "";
+		return new Date(date).toLocaleDateString("fr-FR");
+	};
+
 	const router = useRouter();
 	const scrollViewRef = React.useRef(null);
 
@@ -442,7 +463,8 @@ const JobScreen = () => {
 									action='success'>
 									<BadgeIcon as={FileText} className='mr-2' />
 									<BadgeText>
-										{job?.contract_type || "Non spécifié"}
+										{mapContractType(job?.contract_type) ||
+											"Non spécifié"}
 									</BadgeText>
 								</Badge>
 								<Badge size='sm' variant='solid' action='muted'>
@@ -905,7 +927,8 @@ const JobScreen = () => {
 												? "#f3f4f6"
 												: "#111827",
 										}}>
-										{job?.contract_type || "Non spécifié"}
+										{mapContractType(job?.contract_type) ||
+											"Non spécifié"}
 									</Text>
 								</HStack>
 								<Divider
@@ -1006,7 +1029,63 @@ const JobScreen = () => {
 											"Non spécifié"}
 									</Text>
 								</HStack>
-								{(job?.start_date || job?.end_date) && (
+								{/* Dates / Vacations */}
+								{job?.date_mode === "vacations" ? (
+									<>
+										<Divider
+											style={{
+												backgroundColor: isDark
+													? "#374151"
+													: "#f3f4f6",
+											}}
+										/>
+										<HStack
+											style={{
+												justifyContent: "space-between",
+												paddingVertical: 8,
+												alignItems: "flex-start",
+											}}>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												Vacations
+											</Text>
+											<VStack
+												space='xs'
+												style={{
+													alignItems: "flex-end",
+												}}>
+												{parseVacations(
+													job?.vacations,
+												).map((v, i) => (
+													<Text
+														key={i}
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														{formatVacationDate(
+															v.date,
+														)}
+														{v.start_time &&
+														v.end_time
+															? ` · ${v.start_time} - ${v.end_time}`
+															: ""}
+													</Text>
+												))}
+											</VStack>
+										</HStack>
+									</>
+								) : job?.start_date ||
+								  job?.start_date_asap ||
+								  job?.end_date ? (
 									<>
 										<Divider
 											style={{
@@ -1037,16 +1116,20 @@ const JobScreen = () => {
 														? "#f3f4f6"
 														: "#111827",
 												}}>
-												{job?.start_date &&
-													new Date(
-														job.start_date,
-													).toLocaleDateString(
-														"fr-FR",
-													)}
-												{job?.start_date &&
+												{job?.start_date_asap
+													? "Dès que possible"
+													: job?.start_date &&
+														new Date(
+															job.start_date,
+														).toLocaleDateString(
+															"fr-FR",
+														)}
+												{!job?.start_date_asap &&
+													job?.start_date &&
 													job?.end_date &&
 													" - "}
-												{job?.end_date &&
+												{!job?.start_date_asap &&
+													job?.end_date &&
 													new Date(
 														job.end_date,
 													).toLocaleDateString(
@@ -1055,7 +1138,7 @@ const JobScreen = () => {
 											</Text>
 										</HStack>
 									</>
-								)}
+								) : null}
 								{(job?.start_time || job?.end_time) && (
 									<>
 										<Divider
