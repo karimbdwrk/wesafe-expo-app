@@ -1104,6 +1104,12 @@ const PostJob = () => {
 				return value;
 			};
 
+			const mapContractType = (value) => {
+				if (value === "CDI") return "cdi";
+				if (value === "CDD") return "cdd";
+				return value;
+			};
+
 			const mapWorkHoursType = (value) => {
 				if (value === "semaine") return "weekly";
 				if (value === "jour") return "daily";
@@ -1122,7 +1128,7 @@ const PostJob = () => {
 				region_code: formData.region_code,
 				latitude: cleanNumericField(formData.latitude),
 				longitude: cleanNumericField(formData.longitude),
-				contract_type: formData.contract_type,
+				contract_type: mapContractType(formData.contract_type),
 				work_time: mapWorkTime(formData.work_time),
 				work_schedule: mapWorkSchedule(formData.work_schedule),
 				start_date: startDateISO,
@@ -1177,6 +1183,7 @@ const PostJob = () => {
 				),
 				company_id: user.id,
 				isArchived: false,
+				start_date_asap: formData.start_date_asap,
 			});
 
 			toast.show({
@@ -1539,7 +1546,9 @@ const PostJob = () => {
 																			cat.id
 																		}
 																		label={`${cat.acronym} - ${cat.name}`}
-																		value={`${cat.acronym} - ${cat.name}`}
+																		value={
+																			cat.id
+																		}
 																	/>
 																),
 															)}
@@ -2718,53 +2727,84 @@ const PostJob = () => {
 														<Text
 															size='sm'
 															style={{
-																fontWeight: "600",
+																fontWeight:
+																	"600",
 																color: isDark
 																	? "#f3f4f6"
 																	: "#111827",
 															}}>
-															{formData.contract_type === "CDI"
+															{formData.contract_type ===
+															"CDI"
 																? "Date de début"
 																: "Date de début *"}
 														</Text>
 														{/* Toggle Dès que possible — CDI uniquement */}
-														{formData.contract_type === "CDI" && (
+														{formData.contract_type ===
+															"CDI" && (
 															<HStack
 																style={{
-																	alignItems: "center",
-																	justifyContent: "space-between",
+																	alignItems:
+																		"center",
+																	justifyContent:
+																		"space-between",
 																	paddingVertical: 10,
 																	paddingHorizontal: 14,
 																	borderRadius: 10,
 																	borderWidth: 1,
-																	borderColor: formData.start_date_asap
-																		? "#3b82f6"
-																		: isDark ? "#4b5563" : "#e5e7eb",
-																	backgroundColor: formData.start_date_asap
-																		? isDark ? "#1e3a8a" : "#dbeafe"
-																		: isDark ? "#1f2937" : "#f9fafb",
+																	borderColor:
+																		formData.start_date_asap
+																			? "#3b82f6"
+																			: isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
+																	backgroundColor:
+																		formData.start_date_asap
+																			? isDark
+																				? "#1e3a8a"
+																				: "#dbeafe"
+																			: isDark
+																				? "#1f2937"
+																				: "#f9fafb",
 																}}>
 																<Text
 																	size='sm'
 																	style={{
-																		fontWeight: "600",
+																		fontWeight:
+																			"600",
 																		color: formData.start_date_asap
 																			? "#3b82f6"
-																			: isDark ? "#f3f4f6" : "#374151",
+																			: isDark
+																				? "#f3f4f6"
+																				: "#374151",
 																	}}>
-																	Dès que possible
+																	Dès que
+																	possible
 																</Text>
 																<Switch
-																	value={formData.start_date_asap}
-																	onValueChange={(v) =>
-																		setFormData((prev) => ({
-																			...prev,
-																			start_date_asap: v,
-																			start_date: v ? null : prev.start_date,
-																		}))
+																	value={
+																		formData.start_date_asap
+																	}
+																	onValueChange={(
+																		v,
+																	) =>
+																		setFormData(
+																			(
+																				prev,
+																			) => ({
+																				...prev,
+																				start_date_asap:
+																					v,
+																				start_date:
+																					v
+																						? null
+																						: prev.start_date,
+																			}),
+																		)
 																	}
 																	trackColor={{
-																		false: isDark ? "#4b5563" : "#d1d5db",
+																		false: isDark
+																			? "#4b5563"
+																			: "#d1d5db",
 																		true: "#3b82f6",
 																	}}
 																/>
@@ -2774,24 +2814,33 @@ const PostJob = () => {
 															<TouchableOpacity
 																onPress={() => {
 																	Keyboard.dismiss();
-																	setShowStartDatePicker(true);
+																	setShowStartDatePicker(
+																		true,
+																	);
 																}}>
 																<Input
 																	variant='outline'
 																	size='md'
 																	isDisabled
 																	style={{
-																		pointerEvents: "none",
-																		backgroundColor: isDark
-																			? "#1f2937"
-																			: "#ffffff",
-																		borderColor: isDark
-																			? "#4b5563"
-																			: "#e5e7eb",
+																		pointerEvents:
+																			"none",
+																		backgroundColor:
+																			isDark
+																				? "#1f2937"
+																				: "#ffffff",
+																		borderColor:
+																			isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
 																	}}>
 																	<InputField
-																		value={formatDate(formData.start_date)}
-																		editable={false}
+																		value={formatDate(
+																			formData.start_date,
+																		)}
+																		editable={
+																			false
+																		}
 																		style={{
 																			color: formData.start_date
 																				? isDark
@@ -2806,12 +2855,14 @@ const PostJob = () => {
 													</VStack>
 
 													{/* Date de fin — CDD uniquement */}
-													{formData.contract_type === "CDD" && (
+													{formData.contract_type ===
+														"CDD" && (
 														<VStack space='xs'>
 															<Text
 																size='sm'
 																style={{
-																	fontWeight: "600",
+																	fontWeight:
+																		"600",
 																	color: isDark
 																		? "#f3f4f6"
 																		: "#111827",
@@ -2821,24 +2872,33 @@ const PostJob = () => {
 															<TouchableOpacity
 																onPress={() => {
 																	Keyboard.dismiss();
-																	setShowEndDatePicker(true);
+																	setShowEndDatePicker(
+																		true,
+																	);
 																}}>
 																<Input
 																	variant='outline'
 																	size='md'
 																	isDisabled
 																	style={{
-																		pointerEvents: "none",
-																		backgroundColor: isDark
-																			? "#1f2937"
-																			: "#ffffff",
-																		borderColor: isDark
-																			? "#4b5563"
-																			: "#e5e7eb",
+																		pointerEvents:
+																			"none",
+																		backgroundColor:
+																			isDark
+																				? "#1f2937"
+																				: "#ffffff",
+																		borderColor:
+																			isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
 																	}}>
 																	<InputField
-																		value={formatDate(formData.end_date)}
-																		editable={false}
+																		value={formatDate(
+																			formData.end_date,
+																		)}
+																		editable={
+																			false
+																		}
 																		style={{
 																			color: formData.end_date
 																				? isDark
@@ -3400,7 +3460,10 @@ const PostJob = () => {
 																onPress={() =>
 																	updateField(
 																		"work_schedule",
-																		formData.work_schedule === schedule ? "" : schedule,
+																		formData.work_schedule ===
+																			schedule
+																			? ""
+																			: schedule,
 																	)
 																}
 																style={{
@@ -3459,99 +3522,124 @@ const PostJob = () => {
 												</HStack>
 
 												{/* Horaires */}
-												{(formData.work_schedule === "Jour" || formData.work_schedule === "Nuit") && <HStack space='md'>
-													{/* Heure de début */}
-													<VStack
-														ref={startTimeInputRef}
-														space='xs'
-														style={{ flex: 1 }}>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															Heure de début
-														</Text>
-														<Input
-															variant='outline'
-															size='md'
-															isDisabled={false}
-															isInvalid={false}
-															isReadOnly={false}>
-															<InputField
-																placeholder='HH:MM'
-																value={
-																	formData.start_time
+												{(formData.work_schedule ===
+													"Jour" ||
+													formData.work_schedule ===
+														"Nuit") && (
+													<HStack space='md'>
+														{/* Heure de début */}
+														<VStack
+															ref={
+																startTimeInputRef
+															}
+															space='xs'
+															style={{ flex: 1 }}>
+															<Text
+																size='sm'
+																style={{
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																Heure de début
+															</Text>
+															<Input
+																variant='outline'
+																size='md'
+																isDisabled={
+																	false
 																}
-																onChangeText={(
-																	value,
-																) =>
-																	formatTimeInput(
+																isInvalid={
+																	false
+																}
+																isReadOnly={
+																	false
+																}>
+																<InputField
+																	placeholder='HH:MM'
+																	value={
+																		formData.start_time
+																	}
+																	onChangeText={(
 																		value,
-																		"start_time",
-																	)
-																}
-																onFocus={() =>
-																	scrollToInput(
-																		startTimeInputRef,
-																	)
-																}
-																keyboardType='numeric'
-																maxLength={5}
-															/>
-														</Input>
-													</VStack>
+																	) =>
+																		formatTimeInput(
+																			value,
+																			"start_time",
+																		)
+																	}
+																	onFocus={() =>
+																		scrollToInput(
+																			startTimeInputRef,
+																		)
+																	}
+																	keyboardType='numeric'
+																	maxLength={
+																		5
+																	}
+																/>
+															</Input>
+														</VStack>
 
-													{/* Heure de fin */}
-													<VStack
-														ref={endTimeInputRef}
-														space='xs'
-														style={{ flex: 1 }}>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															Heure de fin
-														</Text>
-														<Input
-															variant='outline'
-															size='md'
-															isDisabled={false}
-															isInvalid={false}
-															isReadOnly={false}>
-															<InputField
-																placeholder='HH:MM'
-																value={
-																	formData.end_time
+														{/* Heure de fin */}
+														<VStack
+															ref={
+																endTimeInputRef
+															}
+															space='xs'
+															style={{ flex: 1 }}>
+															<Text
+																size='sm'
+																style={{
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																Heure de fin
+															</Text>
+															<Input
+																variant='outline'
+																size='md'
+																isDisabled={
+																	false
 																}
-																onChangeText={(
-																	value,
-																) =>
-																	formatTimeInput(
+																isInvalid={
+																	false
+																}
+																isReadOnly={
+																	false
+																}>
+																<InputField
+																	placeholder='HH:MM'
+																	value={
+																		formData.end_time
+																	}
+																	onChangeText={(
 																		value,
-																		"end_time",
-																	)
-																}
-																onFocus={() =>
-																	scrollToInput(
-																		endTimeInputRef,
-																	)
-																}
-																keyboardType='numeric'
-																maxLength={5}
-															/>
-														</Input>
-													</VStack>
-												</HStack>}
+																	) =>
+																		formatTimeInput(
+																			value,
+																			"end_time",
+																		)
+																	}
+																	onFocus={() =>
+																		scrollToInput(
+																			endTimeInputRef,
+																		)
+																	}
+																	keyboardType='numeric'
+																	maxLength={
+																		5
+																	}
+																/>
+															</Input>
+														</VStack>
+													</HStack>
+												)}
 											</VStack>
 										</Card>
 									)}
@@ -5472,7 +5560,18 @@ const PostJob = () => {
 														flex: 2,
 														textAlign: "right",
 													}}>
-													{formData.category || "—"}
+													{(() => {
+														const cat =
+															CATEGORIES.find(
+																(c) =>
+																	c.id ===
+																	formData.category,
+															);
+														return cat
+															? `${cat.acronym} - ${cat.name}`
+															: formData.category ||
+																	"—";
+													})()}
 												</Text>
 											</HStack>
 											{formData.isLastMinute && (
@@ -5880,8 +5979,8 @@ const PostJob = () => {
 														{formData.start_date_asap
 															? "Dès que possible"
 															: formatDate(
-																formData.start_date,
-															  )}
+																	formData.start_date,
+																)}
 													</Text>
 												</HStack>
 											)}
