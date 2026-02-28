@@ -79,6 +79,8 @@ import {
 	ChevronRight,
 	ChevronDownIcon,
 	GraduationCap,
+	Zap,
+	CalendarDays,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -260,6 +262,13 @@ const PostJob = () => {
 	const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 	const [showStartTimePicker, setShowStartTimePicker] = useState(false);
 	const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+	const [showVacationDatePicker, setShowVacationDatePicker] = useState(false);
+	const [currentVacation, setCurrentVacation] = useState({
+		date: null,
+		start_time: "",
+		end_time: "",
+	});
+	const [vacationWarnings, setVacationWarnings] = useState(new Set());
 	const [cities, setCities] = useState([]);
 	const [formData, setFormData] = useState({
 		title: "",
@@ -298,6 +307,8 @@ const PostJob = () => {
 		packed_lunch: false,
 		accommodations: false,
 		isLastMinute: false,
+		date_mode: "dates",
+		vacations: [],
 	});
 
 	const updateField = (field, value) => {
@@ -309,7 +320,50 @@ const PostJob = () => {
 				weekly_hours: "",
 				daily_hours: "",
 			}));
+		} else if (field === "contract_type" && value === "CDI") {
+			// En passant en CDI, réinitialiser mode date et vacations
+			setFormData((prev) => ({
+				...prev,
+				[field]: value,
+				date_mode: "dates",
+				vacations: [],
+				end_date: null,
+			}));
+		} else if (field === "date_mode" && value === "vacations") {
+			// En mode vacations, forcer le taux horaire et heures par jour
+			setFormData((prev) => ({
+				...prev,
+				date_mode: value,
+				salary_type: "hourly",
+				work_hours_type: "jour",
+				weekly_hours: "",
+			}));
+		} else if (field === "date_mode" && value === "dates") {
+			setFormData((prev) => ({
+				...prev,
+				date_mode: value,
+				vacations: [],
+			}));
 		} else {
+			if (field === "isLastMinute") {
+				if (value === true) {
+					// Calculer les vacations hors délai 7j
+					const today = new Date();
+					today.setHours(0, 0, 0, 0);
+					const limit = new Date(today);
+					limit.setDate(limit.getDate() + 7);
+					const warned = new Set(
+						formData.vacations
+							.map((v, i) =>
+								new Date(v.date) > limit ? i : null,
+							)
+							.filter((i) => i !== null),
+					);
+					setVacationWarnings(warned);
+				} else {
+					setVacationWarnings(new Set());
+				}
+			}
 			setFormData((prev) => ({ ...prev, [field]: value }));
 		}
 	};
@@ -468,6 +522,24 @@ const PostJob = () => {
 	const handleStartDateChange = (event, selectedDate) => {
 		if (selectedDate) {
 			updateField("start_date", selectedDate);
+			// Si lastMinute actif et date > 7 jours, auto-désactiver
+			if (formData.isLastMinute) {
+				const today = new Date();
+				today.setHours(0, 0, 0, 0);
+				const limit = new Date(today);
+				limit.setDate(limit.getDate() + 7);
+				if (selectedDate > limit) {
+					setFormData((prev) => ({
+						...prev,
+						start_date: selectedDate,
+						isLastMinute: false,
+					}));
+					showError(
+						"Attention",
+						"\u00ab Dernière minute \u00bb désactivé : la date dépasse les 7 prochains jours",
+					);
+				}
+			}
 		}
 	};
 
@@ -612,6 +684,114 @@ const PostJob = () => {
 		});
 	};
 
+	const handleVacationDateChange = (event, selectedDate) => {
+		if (selectedDate) {
+			setCurrentVacation((prev) => ({ ...prev, date: selectedDate }));
+		}
+	};
+
+	const formatVacationTimeInput = (value, field) => {
+		const numbers = value.replace(/[^0-9]/g, "");
+		const limited = numbers.slice(0, 4);
+		let formatted = "";
+		if (limited.length === 0) {
+			formatted = "";
+		} else if (limited.length === 1) {
+			formatted = limited;
+		} else if (limited.length === 2) {
+			const validHours = Math.min(parseInt(limited), 23)
+				.toString()
+				.padStart(2, "0");
+			formatted = validHours;
+		} else if (limited.length === 3) {
+			const hours = limited.slice(0, 2);
+			const minutes = limited.slice(2, 3);
+			const validHours = Math.min(parseInt(hours), 23)
+				.toString()
+				.padStart(2, "0");
+			formatted = `${validHours}:${minutes}`;
+		} else {
+			const hours = limited.slice(0, 2);
+			const minutes = limited.slice(2, 4);
+			const validHours = Math.min(parseInt(hours), 23)
+				.toString()
+				.padStart(2, "0");
+			const validMinutes = Math.min(parseInt(minutes), 59)
+				.toString()
+				.padStart(2, "0");
+			formatted = `${validHours}:${validMinutes}`;
+		}
+		setCurrentVacation((prev) => ({ ...prev, [field]: formatted }));
+	};
+
+	const addVacation = () => {
+		if (
+			!currentVacation.date ||
+			!currentVacation.start_time ||
+			!currentVacation.end_time
+		) {
+			showError(
+				"Erreur",
+				"Veuillez remplir la date, l'heure de début et l'heure de fin",
+			);
+			return;
+		}
+		if (formData.vacations.length >= 7) {
+			showError(
+				"Erreur",
+				"Vous ne pouvez pas ajouter plus de 7 vacations",
+			);
+			return;
+		}
+		// Vérifier la contrainte lastMinute
+		if (formData.isLastMinute) {
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+			const limit = new Date(today);
+			limit.setDate(limit.getDate() + 7);
+			limit.setHours(23, 59, 59, 999);
+			const vacDate = new Date(currentVacation.date);
+			vacDate.setHours(0, 0, 0, 0);
+			if (vacDate > limit) {
+				showError(
+					"Erreur",
+					"Une offre \u00ab Dernière minute \u00bb ne peut pas avoir une vacation au-delà des 7 prochains jours",
+				);
+				return;
+			}
+		}
+		setFormData((prev) => ({
+			...prev,
+			vacations: [...prev.vacations, { ...currentVacation }],
+		}));
+		setCurrentVacation({ date: null, start_time: "", end_time: "" });
+	};
+
+	const removeVacation = (index) => {
+		setFormData((prev) => {
+			const updated = prev.vacations.filter((_, i) => i !== index);
+			// Recalculer les warnings avec les nouveaux indices
+			if (prev.isLastMinute) {
+				const today = new Date();
+				today.setHours(0, 0, 0, 0);
+				const limit = new Date(today);
+				limit.setDate(limit.getDate() + 7);
+				limit.setHours(23, 59, 59, 999);
+				const warned = new Set(
+					updated
+						.map((v, i) => {
+							const d = new Date(v.date);
+							d.setHours(0, 0, 0, 0);
+							return d > limit ? i : null;
+						})
+						.filter((i) => i !== null),
+				);
+				setVacationWarnings(warned);
+			}
+			return { ...prev, vacations: updated };
+		});
+	};
+
 	const validateStep = () => {
 		switch (currentStep) {
 			case 1:
@@ -628,19 +808,77 @@ const PostJob = () => {
 				}
 				break;
 			case 2:
-				if (!formData.city || !formData.start_date) {
+				if (!formData.city) {
 					showError(
 						"Erreur",
-						"Veuillez remplir tous les champs obligatoires (localisation et dates)",
+						"Veuillez remplir tous les champs obligatoires (localisation)",
 					);
 					return false;
 				}
-				if (formData.contract_type !== "CDI" && !formData.end_date) {
-					showError(
-						"Erreur",
-						"La date de fin est obligatoire pour ce type de contrat",
-					);
-					return false;
+				// Validation selon le mode de planification
+				if (
+					formData.contract_type === "CDD" &&
+					formData.date_mode === "vacations"
+				) {
+					if (formData.vacations.length === 0) {
+						showError(
+							"Erreur",
+							"Veuillez ajouter au moins une vacation",
+						);
+						return false;
+					}
+					// Contrainte lastMinute sur les vacations
+					if (formData.isLastMinute) {
+						const today = new Date();
+						today.setHours(0, 0, 0, 0);
+						const limit = new Date(today);
+						limit.setDate(limit.getDate() + 7);
+						limit.setHours(23, 59, 59, 999);
+						const hasOutOfRange = formData.vacations.some((v) => {
+							const d = new Date(v.date);
+							d.setHours(0, 0, 0, 0);
+							return d > limit;
+						});
+						if (hasOutOfRange) {
+							showError(
+								"Erreur",
+								"Une offre \u00ab Dernière minute \u00bb ne peut contenir que des vacations dans les 7 prochains jours",
+							);
+							return false;
+						}
+					}
+				} else {
+					if (!formData.start_date) {
+						showError(
+							"Erreur",
+							"Veuillez indiquer une date de début",
+						);
+						return false;
+					}
+					if (
+						formData.contract_type !== "CDI" &&
+						!formData.end_date
+					) {
+						showError(
+							"Erreur",
+							"La date de fin est obligatoire pour ce type de contrat",
+						);
+						return false;
+					}
+					// Contrainte lastMinute sur la date de début
+					if (formData.isLastMinute && formData.start_date) {
+						const today = new Date();
+						today.setHours(0, 0, 0, 0);
+						const limit = new Date(today);
+						limit.setDate(limit.getDate() + 7);
+						if (new Date(formData.start_date) > limit) {
+							showError(
+								"Erreur",
+								"Une offre \u00ab Dernière minute \u00bb doit commencer dans les 7 prochains jours",
+							);
+							return false;
+						}
+					}
 				}
 				if (!formData.contract_type) {
 					showError(
@@ -668,7 +906,11 @@ const PostJob = () => {
 					}
 					if (
 						formData.work_hours_type === "jour" &&
-						!formData.daily_hours
+						!formData.daily_hours &&
+						!(
+							formData.contract_type === "CDD" &&
+							formData.date_mode === "vacations"
+						)
 					) {
 						showError(
 							"Erreur",
@@ -815,12 +1057,19 @@ const PostJob = () => {
 			}
 
 			// Formater les dates au format ISO pour la base de données
-			const startDateISO = formData.start_date
-				? formData.start_date.toISOString().split("T")[0]
-				: null;
-			const endDateISO = formData.end_date
-				? formData.end_date.toISOString().split("T")[0]
-				: null;
+			const isVacationsMode =
+				formData.contract_type === "CDD" &&
+				formData.date_mode === "vacations";
+			const startDateISO = isVacationsMode
+				? null
+				: formData.start_date
+					? formData.start_date.toISOString().split("T")[0]
+					: null;
+			const endDateISO = isVacationsMode
+				? null
+				: formData.end_date
+					? formData.end_date.toISOString().split("T")[0]
+					: null;
 
 			// Convertir les chaînes vides en null pour les champs numériques
 			const cleanNumericField = (value) => {
@@ -910,6 +1159,20 @@ const PostJob = () => {
 				packed_lunch: formData.packed_lunch,
 				accommodations: formData.accommodations,
 				isLastMinute: formData.isLastMinute,
+				date_mode: formData.date_mode || "dates",
+				vacations: cleanArrayField(
+					isVacationsMode
+						? formData.vacations.map((v) => ({
+								date: v.date
+									? new Date(v.date)
+											.toISOString()
+											.split("T")[0]
+									: null,
+								start_time: v.start_time,
+								end_time: v.end_time,
+							}))
+						: [],
+				),
 				company_id: user.id,
 				isArchived: false,
 			});
@@ -967,6 +1230,8 @@ const PostJob = () => {
 				packed_lunch: false,
 				accommodations: false,
 				isLastMinute: false,
+				date_mode: "dates",
+				vacations: [],
 			});
 
 			// Réinitialiser les inputs temporaires
@@ -976,6 +1241,7 @@ const PostJob = () => {
 			setCurrentDrivingLicense("");
 			setCurrentLanguage("");
 			setCurrentReimbursement("");
+			setCurrentVacation({ date: null, start_time: "", end_time: "" });
 
 			// Retourner au step 1
 			setCurrentStep(1);
@@ -1110,6 +1376,7 @@ const PostJob = () => {
 														"space-between",
 													alignItems: "center",
 												}}>
+												<Zap color='orange' />
 												<VStack style={{ flex: 1 }}>
 													<Text
 														size='sm'
@@ -2118,6 +2385,64 @@ const PostJob = () => {
 											)}
 										</VStack>
 									</Card>
+									<Card
+										style={{
+											padding: 20,
+											backgroundColor: isDark
+												? "#374151"
+												: "#ffffff",
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}>
+										<HStack
+											space='md'
+											style={{
+												justifyContent: "space-between",
+												alignItems: "center",
+											}}>
+											<Zap color='orange' />
+											<VStack style={{ flex: 1 }}>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Offre dernière minute
+												</Text>
+												<Text
+													size='xs'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													Visible avec un badge
+													urgence
+												</Text>
+											</VStack>
+											<Switch
+												value={formData.isLastMinute}
+												onValueChange={(value) =>
+													updateField(
+														"isLastMinute",
+														value,
+													)
+												}
+												trackColor={{
+													false: isDark
+														? "#4b5563"
+														: "#d1d5db",
+													true: "#3b82f6",
+												}}
+											/>
+										</HStack>
+									</Card>
 
 									{/* Type de contrat */}
 									<Card
@@ -2222,65 +2547,43 @@ const PostJob = () => {
 												: "#e5e7eb",
 										}}>
 										<VStack space='md'>
-											{/* Date de début */}
-											<VStack
-												space='xs'
-												ref={startDateInputRef}>
-												<Text
-													size='sm'
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={CalendarDays}
+													size='lg'
 													style={{
-														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}
+												/>
+												<Heading
+													size='md'
+													style={{
 														color: isDark
 															? "#f3f4f6"
 															: "#111827",
 													}}>
-													Date de début *
-												</Text>
-												<TouchableOpacity
-													onPress={() => {
-														Keyboard.dismiss();
-														setShowStartDatePicker(
-															true,
-														);
-													}}>
-													<Input
-														variant='outline'
-														size='md'
-														isDisabled
-														style={{
-															pointerEvents:
-																"none",
-															backgroundColor:
-																isDark
-																	? "#1f2937"
-																	: "#ffffff",
-															borderColor: isDark
-																? "#4b5563"
-																: "#e5e7eb",
-														}}>
-														<InputField
-															value={formatDate(
-																formData.start_date,
-															)}
-															editable={false}
-															style={{
-																color: formData.start_date
-																	? isDark
-																		? "#f3f4f6"
-																		: "#111827"
-																	: "#9ca3af",
-															}}
-														/>
-													</Input>
-												</TouchableOpacity>
-											</VStack>
+													Dates
+												</Heading>
+											</HStack>
 
-											{/* Date de fin (conditionnelle pour non-CDI) */}
-											{formData.contract_type !==
-												"CDI" && (
-												<VStack
-													space='xs'
-													ref={endDateInputRef}>
+											<Divider
+												style={{
+													backgroundColor: isDark
+														? "#4b5563"
+														: "#e5e7eb",
+												}}
+											/>
+
+											{/* Sélecteur de mode — uniquement pour CDD */}
+											{formData.contract_type ===
+												"CDD" && (
+												<VStack space='xs'>
 													<Text
 														size='sm'
 														style={{
@@ -2289,180 +2592,698 @@ const PostJob = () => {
 																? "#f3f4f6"
 																: "#111827",
 														}}>
-														Date de fin *
+														Mode de planification *
 													</Text>
-													<TouchableOpacity
-														onPress={() => {
-															Keyboard.dismiss();
-															setShowEndDatePicker(
-																true,
-															);
-														}}>
-														<Input
-															variant='outline'
-															size='md'
-															isDisabled
-															style={{
-																pointerEvents:
-																	"none",
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#ffffff",
-																borderColor:
-																	isDark
-																		? "#4b5563"
-																		: "#e5e7eb",
-															}}>
-															<InputField
-																value={formatDate(
-																	formData.end_date,
-																)}
-																editable={false}
+													<HStack space='sm'>
+														<Pressable
+															onPress={() =>
+																updateField(
+																	"date_mode",
+																	"dates",
+																)
+															}
+															style={{ flex: 1 }}>
+															<Box
 																style={{
-																	color: formData.end_date
-																		? isDark
-																			? "#f3f4f6"
-																			: "#111827"
-																		: "#9ca3af",
-																}}
-															/>
-														</Input>
-													</TouchableOpacity>
+																	padding: 12,
+																	borderRadius: 10,
+																	borderWidth: 2,
+																	borderColor:
+																		formData.date_mode ===
+																		"dates"
+																			? "#3b82f6"
+																			: isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
+																	backgroundColor:
+																		formData.date_mode ===
+																		"dates"
+																			? isDark
+																				? "#1e3a8a"
+																				: "#dbeafe"
+																			: isDark
+																				? "#1f2937"
+																				: "#f9fafb",
+																	alignItems:
+																		"center",
+																}}>
+																<Text
+																	style={{
+																		fontWeight:
+																			"600",
+																		fontSize: 13,
+																		textAlign:
+																			"center",
+																		color:
+																			formData.date_mode ===
+																			"dates"
+																				? "#3b82f6"
+																				: isDark
+																					? "#f3f4f6"
+																					: "#111827",
+																	}}>
+																	Dates
+																	début/fin
+																</Text>
+															</Box>
+														</Pressable>
+														<Pressable
+															onPress={() =>
+																updateField(
+																	"date_mode",
+																	"vacations",
+																)
+															}
+															style={{ flex: 1 }}>
+															<Box
+																style={{
+																	padding: 12,
+																	borderRadius: 10,
+																	borderWidth: 2,
+																	borderColor:
+																		formData.date_mode ===
+																		"vacations"
+																			? "#3b82f6"
+																			: isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
+																	backgroundColor:
+																		formData.date_mode ===
+																		"vacations"
+																			? isDark
+																				? "#1e3a8a"
+																				: "#dbeafe"
+																			: isDark
+																				? "#1f2937"
+																				: "#f9fafb",
+																	alignItems:
+																		"center",
+																}}>
+																<Text
+																	style={{
+																		fontWeight:
+																			"600",
+																		fontSize: 13,
+																		textAlign:
+																			"center",
+																		color:
+																			formData.date_mode ===
+																			"vacations"
+																				? "#3b82f6"
+																				: isDark
+																					? "#f3f4f6"
+																					: "#111827",
+																	}}>
+																	Vacations
+																</Text>
+															</Box>
+														</Pressable>
+													</HStack>
 												</VStack>
 											)}
-										</VStack>
-									</Card>
 
-									{/* Temps de travail */}
-									<Card
-										style={{
-											padding: 20,
-											backgroundColor: isDark
-												? "#374151"
-												: "#ffffff",
-											borderRadius: 12,
-											borderWidth: 1,
-											borderColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}>
-										<VStack space='md'>
-											<Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Temps de travail *
-											</Text>
-											<HStack
-												space='sm'
-												style={{ flexWrap: "wrap" }}>
-												{WORK_TIME.map((time) => (
-													<Pressable
-														key={time}
-														onPress={() =>
-															updateField(
-																"work_time",
-																time,
-															)
-														}
-														style={{
-															flex: 1,
-															minWidth: "45%",
-															marginBottom: 8,
-														}}>
-														<Box
+											{/* Mode "dates" : pour CDI ou si date_mode = dates */}
+											{(formData.contract_type ===
+												"CDI" ||
+												formData.date_mode ===
+													"dates") && (
+												<>
+													{/* Date de début */}
+													<VStack
+														space='xs'
+														ref={startDateInputRef}>
+														<Text
+															size='sm'
 															style={{
-																padding: 16,
-																borderRadius: 10,
-																borderWidth: 2,
-																borderColor:
-																	formData.work_time ===
-																	time
-																		? "#3b82f6"
-																		: isDark
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Date de début *
+														</Text>
+														<TouchableOpacity
+															onPress={() => {
+																Keyboard.dismiss();
+																setShowStartDatePicker(
+																	true,
+																);
+															}}>
+															<Input
+																variant='outline'
+																size='md'
+																isDisabled
+																style={{
+																	pointerEvents:
+																		"none",
+																	backgroundColor:
+																		isDark
+																			? "#1f2937"
+																			: "#ffffff",
+																	borderColor:
+																		isDark
 																			? "#4b5563"
 																			: "#e5e7eb",
-																backgroundColor:
-																	formData.work_time ===
-																	time
-																		? isDark
-																			? "#1e3a8a"
-																			: "#dbeafe"
-																		: isDark
-																			? "#1f2937"
-																			: "#f9fafb",
-																alignItems:
-																	"center",
-																justifyContent:
-																	"center",
-															}}>
+																}}>
+																<InputField
+																	value={formatDate(
+																		formData.start_date,
+																	)}
+																	editable={
+																		false
+																	}
+																	style={{
+																		color: formData.start_date
+																			? isDark
+																				? "#f3f4f6"
+																				: "#111827"
+																			: "#9ca3af",
+																	}}
+																/>
+															</Input>
+														</TouchableOpacity>
+													</VStack>
+
+													{/* Date de fin (conditionnelle pour CDD) */}
+													{formData.contract_type !==
+														"CDI" && (
+														<VStack
+															space='xs'
+															ref={
+																endDateInputRef
+															}>
 															<Text
+																size='sm'
 																style={{
 																	fontWeight:
 																		"600",
-																	fontSize: 15,
-																	color:
-																		formData.work_time ===
-																		time
-																			? "#3b82f6"
-																			: isDark
-																				? "#f3f4f6"
-																				: "#111827",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
 																}}>
-																{time}
+																Date de fin *
 															</Text>
-														</Box>
-													</Pressable>
-												))}
-											</HStack>
+															<TouchableOpacity
+																onPress={() => {
+																	Keyboard.dismiss();
+																	setShowEndDatePicker(
+																		true,
+																	);
+																}}>
+																<Input
+																	variant='outline'
+																	size='md'
+																	isDisabled
+																	style={{
+																		pointerEvents:
+																			"none",
+																		backgroundColor:
+																			isDark
+																				? "#1f2937"
+																				: "#ffffff",
+																		borderColor:
+																			isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
+																	}}>
+																	<InputField
+																		value={formatDate(
+																			formData.end_date,
+																		)}
+																		editable={
+																			false
+																		}
+																		style={{
+																			color: formData.end_date
+																				? isDark
+																					? "#f3f4f6"
+																					: "#111827"
+																				: "#9ca3af",
+																		}}
+																	/>
+																</Input>
+															</TouchableOpacity>
+														</VStack>
+													)}
+												</>
+											)}
+
+											{/* Mode "vacations" — uniquement pour CDD */}
+											{formData.contract_type === "CDD" &&
+												formData.date_mode ===
+													"vacations" && (
+													<VStack space='md'>
+														<HStack
+															style={{
+																justifyContent:
+																	"space-between",
+																alignItems:
+																	"center",
+															}}>
+															<Text
+																size='sm'
+																style={{
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																Vacations (
+																{
+																	formData
+																		.vacations
+																		.length
+																}
+																/7)
+															</Text>
+															{formData.vacations
+																.length >=
+																7 && (
+																<Text
+																	size='xs'
+																	style={{
+																		color: "#ef4444",
+																		fontWeight:
+																			"500",
+																	}}>
+																	Limite
+																	atteinte
+																</Text>
+															)}
+														</HStack>
+
+														{/* Formulaire ajout vacation */}
+														{formData.vacations
+															.length < 7 && (
+															<VStack
+																space='sm'
+																style={{
+																	padding: 12,
+																	borderRadius: 10,
+																	borderWidth: 1,
+																	borderColor:
+																		isDark
+																			? "#4b5563"
+																			: "#d1d5db",
+																	backgroundColor:
+																		isDark
+																			? "#1f2937"
+																			: "#f9fafb",
+																}}>
+																<Text
+																	size='sm'
+																	style={{
+																		fontWeight:
+																			"600",
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}>
+																	Nouvelle
+																	vacation
+																</Text>
+
+																{/* Date */}
+																<VStack space='xs'>
+																	<Text
+																		size='xs'
+																		style={{
+																			fontWeight:
+																				"500",
+																			color: isDark
+																				? "#9ca3af"
+																				: "#6b7280",
+																		}}>
+																		Date *
+																	</Text>
+																	<TouchableOpacity
+																		onPress={() => {
+																			Keyboard.dismiss();
+																			setShowVacationDatePicker(
+																				true,
+																			);
+																		}}>
+																		<Input
+																			variant='outline'
+																			size='md'
+																			isDisabled
+																			style={{
+																				pointerEvents:
+																					"none",
+																				backgroundColor:
+																					isDark
+																						? "#374151"
+																						: "#ffffff",
+																				borderColor:
+																					isDark
+																						? "#4b5563"
+																						: "#e5e7eb",
+																			}}>
+																			<InputField
+																				value={
+																					currentVacation.date
+																						? formatDate(
+																								currentVacation.date,
+																							)
+																						: ""
+																				}
+																				placeholder='Sélectionner une date'
+																				editable={
+																					false
+																				}
+																				style={{
+																					color: currentVacation.date
+																						? isDark
+																							? "#f3f4f6"
+																							: "#111827"
+																						: "#9ca3af",
+																				}}
+																			/>
+																		</Input>
+																	</TouchableOpacity>
+																</VStack>
+
+																{/* Heures */}
+																<HStack space='md'>
+																	<VStack
+																		space='xs'
+																		style={{
+																			flex: 1,
+																		}}>
+																		<Text
+																			size='xs'
+																			style={{
+																				fontWeight:
+																					"500",
+																				color: isDark
+																					? "#9ca3af"
+																					: "#6b7280",
+																			}}>
+																			Heure
+																			début
+																			*
+																		</Text>
+																		<Input
+																			variant='outline'
+																			size='md'
+																			style={{
+																				backgroundColor:
+																					isDark
+																						? "#374151"
+																						: "#ffffff",
+																				borderColor:
+																					isDark
+																						? "#4b5563"
+																						: "#e5e7eb",
+																			}}>
+																			<InputField
+																				placeholder='HH:MM'
+																				value={
+																					currentVacation.start_time
+																				}
+																				onChangeText={(
+																					v,
+																				) =>
+																					formatVacationTimeInput(
+																						v,
+																						"start_time",
+																					)
+																				}
+																				keyboardType='numeric'
+																				maxLength={
+																					5
+																				}
+																				style={{
+																					color: isDark
+																						? "#f3f4f6"
+																						: "#111827",
+																				}}
+																			/>
+																		</Input>
+																	</VStack>
+																	<VStack
+																		space='xs'
+																		style={{
+																			flex: 1,
+																		}}>
+																		<Text
+																			size='xs'
+																			style={{
+																				fontWeight:
+																					"500",
+																				color: isDark
+																					? "#9ca3af"
+																					: "#6b7280",
+																			}}>
+																			Heure
+																			fin
+																			*
+																		</Text>
+																		<Input
+																			variant='outline'
+																			size='md'
+																			style={{
+																				backgroundColor:
+																					isDark
+																						? "#374151"
+																						: "#ffffff",
+																				borderColor:
+																					isDark
+																						? "#4b5563"
+																						: "#e5e7eb",
+																			}}>
+																			<InputField
+																				placeholder='HH:MM'
+																				value={
+																					currentVacation.end_time
+																				}
+																				onChangeText={(
+																					v,
+																				) =>
+																					formatVacationTimeInput(
+																						v,
+																						"end_time",
+																					)
+																				}
+																				keyboardType='numeric'
+																				maxLength={
+																					5
+																				}
+																				style={{
+																					color: isDark
+																						? "#f3f4f6"
+																						: "#111827",
+																				}}
+																			/>
+																		</Input>
+																	</VStack>
+																</HStack>
+
+																<Button
+																	size='md'
+																	onPress={
+																		addVacation
+																	}
+																	style={{
+																		backgroundColor:
+																			"#3b82f6",
+																	}}>
+																	<ButtonIcon
+																		as={
+																			Plus
+																		}
+																		style={{
+																			color: "#ffffff",
+																		}}
+																	/>
+																	<ButtonText
+																		style={{
+																			color: "#ffffff",
+																		}}>
+																		Ajouter
+																	</ButtonText>
+																</Button>
+															</VStack>
+														)}
+
+														{/* Liste des vacations */}
+														{formData.vacations
+															.length > 0 && (
+															<VStack space='xs'>
+																{formData.vacations.map(
+																	(
+																		vacation,
+																		index,
+																	) => {
+																		const isWarned =
+																			vacationWarnings.has(
+																				index,
+																			);
+																		return (
+																			<VStack
+																				key={
+																					index
+																				}
+																				space='none'>
+																				<HStack
+																					space='sm'
+																					style={{
+																						alignItems:
+																							"center",
+																						padding: 12,
+																						backgroundColor:
+																							isWarned
+																								? isDark
+																									? "#431407"
+																									: "#fff7ed"
+																								: isDark
+																									? "#1e3a8a"
+																									: "#dbeafe",
+																						borderRadius: 8,
+																						borderWidth: 1,
+																						borderColor:
+																							isWarned
+																								? "#f97316"
+																								: "#3b82f6",
+																					}}>
+																					<VStack
+																						style={{
+																							flex: 1,
+																						}}>
+																						<Text
+																							size='sm'
+																							style={{
+																								fontWeight:
+																									"700",
+																								color: isWarned
+																									? "#f97316"
+																									: isDark
+																										? "#93c5fd"
+																										: "#1d4ed8",
+																							}}>
+																							{formatDate(
+																								vacation.date,
+																							)}
+																						</Text>
+																						<Text
+																							size='xs'
+																							style={{
+																								color: isWarned
+																									? "#fb923c"
+																									: isDark
+																										? "#60a5fa"
+																										: "#3b82f6",
+																							}}>
+																							{
+																								vacation.start_time
+																							}{" "}
+																							→{" "}
+																							{
+																								vacation.end_time
+																							}
+																						</Text>
+																					</VStack>
+																					<Button
+																						size='xs'
+																						variant='link'
+																						onPress={() =>
+																							removeVacation(
+																								index,
+																							)
+																						}>
+																						<ButtonIcon
+																							as={
+																								Trash2
+																							}
+																							size='sm'
+																							style={{
+																								color: "#ef4444",
+																							}}
+																						/>
+																					</Button>
+																				</HStack>
+																				{isWarned && (
+																					<Text
+																						size='xs'
+																						style={{
+																							color: "#f97316",
+																							fontStyle:
+																								"italic",
+																							paddingHorizontal: 12,
+																							paddingBottom: 4,
+																						}}>
+																						⚠️
+																						Plus
+																						de
+																						7
+																						jours
+																						—
+																						incompatible
+																						avec
+																						«
+																						Dernière
+																						minute
+																						»
+																					</Text>
+																				)}
+																			</VStack>
+																		);
+																	},
+																)}
+															</VStack>
+														)}
+													</VStack>
+												)}
 										</VStack>
 									</Card>
 
-									{/* Horaires de travail */}
-									<Card
-										style={{
-											padding: 20,
-											backgroundColor: isDark
-												? "#374151"
-												: "#ffffff",
-											borderRadius: 12,
-											borderWidth: 1,
-											borderColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										}}>
-										<VStack space='md'>
-											<Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												Horaires de travail
-											</Text>
-											<HStack
-												space='sm'
-												style={{ flexWrap: "wrap" }}>
-												{WORK_SCHEDULE.map(
-													(schedule) => (
+									{/* Temps de travail — masqué en mode vacations */}
+									{!(
+										formData.contract_type === "CDD" &&
+										formData.date_mode === "vacations"
+									) && (
+										<Card
+											style={{
+												padding: 20,
+												backgroundColor: isDark
+													? "#374151"
+													: "#ffffff",
+												borderRadius: 12,
+												borderWidth: 1,
+												borderColor: isDark
+													? "#4b5563"
+													: "#e5e7eb",
+											}}>
+											<VStack space='md'>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Temps de travail *
+												</Text>
+												<HStack
+													space='sm'
+													style={{
+														flexWrap: "wrap",
+													}}>
+													{WORK_TIME.map((time) => (
 														<Pressable
-															key={schedule}
+															key={time}
 															onPress={() =>
 																updateField(
-																	"work_schedule",
-																	schedule,
+																	"work_time",
+																	time,
 																)
 															}
 															style={{
 																flex: 1,
-																minWidth: "30%",
+																minWidth: "45%",
 																marginBottom: 8,
 															}}>
 															<Box
@@ -2471,15 +3292,15 @@ const PostJob = () => {
 																	borderRadius: 10,
 																	borderWidth: 2,
 																	borderColor:
-																		formData.work_schedule ===
-																		schedule
+																		formData.work_time ===
+																		time
 																			? "#3b82f6"
 																			: isDark
 																				? "#4b5563"
 																				: "#e5e7eb",
 																	backgroundColor:
-																		formData.work_schedule ===
-																		schedule
+																		formData.work_time ===
+																		time
 																			? isDark
 																				? "#1e3a8a"
 																				: "#dbeafe"
@@ -2497,115 +3318,218 @@ const PostJob = () => {
 																			"600",
 																		fontSize: 15,
 																		color:
-																			formData.work_schedule ===
-																			schedule
+																			formData.work_time ===
+																			time
 																				? "#3b82f6"
 																				: isDark
 																					? "#f3f4f6"
 																					: "#111827",
 																	}}>
-																	{schedule}
+																	{time}
 																</Text>
 															</Box>
 														</Pressable>
-													),
-												)}
-											</HStack>
+													))}
+												</HStack>
+											</VStack>
+										</Card>
+									)}
 
-											{/* Horaires */}
-											<HStack space='md'>
-												{/* Heure de début */}
-												<VStack
-													ref={startTimeInputRef}
-													space='xs'
-													style={{ flex: 1 }}>
-													<Text
-														size='sm'
-														style={{
-															fontWeight: "600",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														Heure de début
-													</Text>
-													<Input
-														variant='outline'
-														size='md'
-														isDisabled={false}
-														isInvalid={false}
-														isReadOnly={false}>
-														<InputField
-															placeholder='HH:MM'
-															value={
-																formData.start_time
-															}
-															onChangeText={(
-																value,
-															) =>
-																formatTimeInput(
-																	value,
-																	"start_time",
-																)
-															}
-															onFocus={() =>
-																scrollToInput(
-																	startTimeInputRef,
-																)
-															}
-															keyboardType='numeric'
-															maxLength={5}
-														/>
-													</Input>
-												</VStack>
+									{/* Horaires de travail — masqué en mode vacations */}
+									{!(
+										formData.contract_type === "CDD" &&
+										formData.date_mode === "vacations"
+									) && (
+										<Card
+											style={{
+												padding: 20,
+												backgroundColor: isDark
+													? "#374151"
+													: "#ffffff",
+												borderRadius: 12,
+												borderWidth: 1,
+												borderColor: isDark
+													? "#4b5563"
+													: "#e5e7eb",
+											}}>
+											<VStack space='md'>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													Horaires de travail
+												</Text>
+												<HStack
+													space='sm'
+													style={{
+														flexWrap: "wrap",
+													}}>
+													{WORK_SCHEDULE.map(
+														(schedule) => (
+															<Pressable
+																key={schedule}
+																onPress={() =>
+																	updateField(
+																		"work_schedule",
+																		schedule,
+																	)
+																}
+																style={{
+																	flex: 1,
+																	minWidth:
+																		"30%",
+																	marginBottom: 8,
+																}}>
+																<Box
+																	style={{
+																		padding: 16,
+																		borderRadius: 10,
+																		borderWidth: 2,
+																		borderColor:
+																			formData.work_schedule ===
+																			schedule
+																				? "#3b82f6"
+																				: isDark
+																					? "#4b5563"
+																					: "#e5e7eb",
+																		backgroundColor:
+																			formData.work_schedule ===
+																			schedule
+																				? isDark
+																					? "#1e3a8a"
+																					: "#dbeafe"
+																				: isDark
+																					? "#1f2937"
+																					: "#f9fafb",
+																		alignItems:
+																			"center",
+																		justifyContent:
+																			"center",
+																	}}>
+																	<Text
+																		style={{
+																			fontWeight:
+																				"600",
+																			fontSize: 15,
+																			color:
+																				formData.work_schedule ===
+																				schedule
+																					? "#3b82f6"
+																					: isDark
+																						? "#f3f4f6"
+																						: "#111827",
+																		}}>
+																		{
+																			schedule
+																		}
+																	</Text>
+																</Box>
+															</Pressable>
+														),
+													)}
+												</HStack>
 
-												{/* Heure de fin */}
-												<VStack
-													ref={endTimeInputRef}
-													space='xs'
-													style={{ flex: 1 }}>
-													<Text
-														size='sm'
-														style={{
-															fontWeight: "600",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														Heure de fin
-													</Text>
-													<Input
-														variant='outline'
-														size='md'
-														isDisabled={false}
-														isInvalid={false}
-														isReadOnly={false}>
-														<InputField
-															placeholder='HH:MM'
-															value={
-																formData.end_time
-															}
-															onChangeText={(
-																value,
-															) =>
-																formatTimeInput(
+												{/* Horaires */}
+												<HStack space='md'>
+													{/* Heure de début */}
+													<VStack
+														ref={startTimeInputRef}
+														space='xs'
+														style={{ flex: 1 }}>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Heure de début
+														</Text>
+														<Input
+															variant='outline'
+															size='md'
+															isDisabled={false}
+															isInvalid={false}
+															isReadOnly={false}>
+															<InputField
+																placeholder='HH:MM'
+																value={
+																	formData.start_time
+																}
+																onChangeText={(
 																	value,
-																	"end_time",
-																)
-															}
-															onFocus={() =>
-																scrollToInput(
-																	endTimeInputRef,
-																)
-															}
-															keyboardType='numeric'
-															maxLength={5}
-														/>
-													</Input>
-												</VStack>
-											</HStack>
-										</VStack>
-									</Card>
+																) =>
+																	formatTimeInput(
+																		value,
+																		"start_time",
+																	)
+																}
+																onFocus={() =>
+																	scrollToInput(
+																		startTimeInputRef,
+																	)
+																}
+																keyboardType='numeric'
+																maxLength={5}
+															/>
+														</Input>
+													</VStack>
+
+													{/* Heure de fin */}
+													<VStack
+														ref={endTimeInputRef}
+														space='xs'
+														style={{ flex: 1 }}>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Heure de fin
+														</Text>
+														<Input
+															variant='outline'
+															size='md'
+															isDisabled={false}
+															isInvalid={false}
+															isReadOnly={false}>
+															<InputField
+																placeholder='HH:MM'
+																value={
+																	formData.end_time
+																}
+																onChangeText={(
+																	value,
+																) =>
+																	formatTimeInput(
+																		value,
+																		"end_time",
+																	)
+																}
+																onFocus={() =>
+																	scrollToInput(
+																		endTimeInputRef,
+																	)
+																}
+																keyboardType='numeric'
+																maxLength={5}
+															/>
+														</Input>
+													</VStack>
+												</HStack>
+											</VStack>
+										</Card>
+									)}
 
 									<Card
 										style={{
@@ -2665,120 +3589,160 @@ const PostJob = () => {
 													}}>
 													Type de rémunération *
 												</Text>
-												<Select
-													selectedValue={
-														formData.salary_type
-													}
-													onValueChange={(value) => {
-														updateField(
-															"salary_type",
-															value,
-														);
-														// Réinitialiser les champs de salaire
-														setFormData((prev) => ({
-															...prev,
-															salary_type: value,
-															salary_hourly: "",
-															salary_amount: "",
-															salary_min: "",
-															salary_max: "",
-															weekly_hours: "",
-															daily_hours: "",
-														}));
-													}}>
-													<SelectTrigger
-														variant='outline'
-														size='md'
-														style={{
-															backgroundColor:
-																isDark
-																	? "#1f2937"
-																	: "#ffffff",
-															borderColor: isDark
-																? "#4b5563"
-																: "#e5e7eb",
-														}}>
-														<SelectInput
-															placeholder='Sélectionner'
-															value={
-																formData.salary_type ===
-																"selon_profil"
-																	? "Selon profil"
-																	: formData.salary_type ===
-																		  "hourly"
-																		? "Taux horaire"
-																		: formData.salary_type ===
-																			  "monthly_fixed"
-																			? "Salaire mensuel fixe"
-																			: formData.salary_type ===
-																				  "annual_fixed"
-																				? "Salaire annuel fixe"
-																				: formData.salary_type ===
-																					  "monthly_range"
-																					? "Fourchette mensuelle"
-																					: formData.salary_type ===
-																						  "annual_range"
-																						? "Fourchette annuelle"
-																						: ""
-															}
-															style={{
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}
-														/>
-														<SelectIcon className='mr-3'>
-															<Icon
-																as={
-																	ChevronDownIcon
-																}
-																style={{
-																	color: isDark
-																		? "#9ca3af"
-																		: "#6b7280",
-																}}
-															/>
-														</SelectIcon>
-													</SelectTrigger>
-													<SelectPortal>
-														<SelectBackdrop />
-														<SelectContent
-															style={{
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#ffffff",
-															}}>
-															<SelectDragIndicatorWrapper>
-																<SelectDragIndicator />
-															</SelectDragIndicatorWrapper>
-															<SelectItem
-																label='Selon profil'
-																value='selon_profil'
-															/>
-															<SelectItem
-																label='Taux horaire'
-																value='hourly'
-															/>
-															<SelectItem
-																label='Salaire mensuel fixe'
-																value='monthly_fixed'
-															/>
-															<SelectItem
-																label='Salaire annuel fixe'
-																value='annual_fixed'
-															/>
-															<SelectItem
-																label='Fourchette mensuelle'
-																value='monthly_range'
-															/>
-															<SelectItem
-																label='Fourchette annuelle'
-																value='annual_range'
-															/>
-														</SelectContent>
-													</SelectPortal>
-												</Select>
+												{(() => {
+													const isVacMode =
+														formData.contract_type ===
+															"CDD" &&
+														formData.date_mode ===
+															"vacations";
+													const salaryOptions = [
+														{
+															label: "Selon profil",
+															value: "selon_profil",
+														},
+														{
+															label: "Taux horaire",
+															value: "hourly",
+														},
+														{
+															label: "Salaire mensuel fixe",
+															value: "monthly_fixed",
+														},
+														{
+															label: "Salaire annuel fixe",
+															value: "annual_fixed",
+														},
+														{
+															label: "Fourchette mensuelle",
+															value: "monthly_range",
+														},
+														{
+															label: "Fourchette annuelle",
+															value: "annual_range",
+														},
+													];
+													return (
+														<VStack space='xs'>
+															{salaryOptions.map(
+																(opt) => {
+																	const isSelected =
+																		formData.salary_type ===
+																		opt.value;
+																	const isDisabled =
+																		isVacMode &&
+																		opt.value !==
+																			"hourly";
+																	return (
+																		<Pressable
+																			key={
+																				opt.value
+																			}
+																			onPress={() =>
+																				!isDisabled &&
+																				setFormData(
+																					(
+																						prev,
+																					) => ({
+																						...prev,
+																						salary_type:
+																							opt.value,
+																						salary_hourly:
+																							"",
+																						salary_amount:
+																							"",
+																						salary_min:
+																							"",
+																						salary_max:
+																							"",
+																						weekly_hours:
+																							"",
+																						daily_hours:
+																							"",
+																					}),
+																				)
+																			}>
+																			<Box
+																				style={{
+																					paddingHorizontal: 14,
+																					paddingVertical: 12,
+																					borderRadius: 10,
+																					borderWidth: 2,
+																					borderColor:
+																						isDisabled
+																							? isDark
+																								? "#374151"
+																								: "#e5e7eb"
+																							: isSelected
+																								? "#3b82f6"
+																								: isDark
+																									? "#4b5563"
+																									: "#e5e7eb",
+																					backgroundColor:
+																						isDisabled
+																							? isDark
+																								? "#1f2937"
+																								: "#f3f4f6"
+																							: isSelected
+																								? isDark
+																									? "#1e3a8a"
+																									: "#dbeafe"
+																								: isDark
+																									? "#1f2937"
+																									: "#f9fafb",
+																					opacity:
+																						isDisabled
+																							? 0.45
+																							: 1,
+																					flexDirection:
+																						"row",
+																					alignItems:
+																						"center",
+																					justifyContent:
+																						"space-between",
+																				}}>
+																				<Text
+																					style={{
+																						fontWeight:
+																							"600",
+																						fontSize: 14,
+																						color: isDisabled
+																							? isDark
+																								? "#6b7280"
+																								: "#9ca3af"
+																							: isSelected
+																								? "#3b82f6"
+																								: isDark
+																									? "#f3f4f6"
+																									: "#111827",
+																					}}>
+																					{
+																						opt.label
+																					}
+																				</Text>
+																				{isDisabled && (
+																					<Text
+																						size='xs'
+																						style={{
+																							color: isDark
+																								? "#6b7280"
+																								: "#9ca3af",
+																							fontStyle:
+																								"italic",
+																						}}>
+																						Non
+																						disponible
+																						en
+																						vacations
+																					</Text>
+																				)}
+																			</Box>
+																		</Pressable>
+																	);
+																},
+															)}
+														</VStack>
+													);
+												})()}
 											</VStack>
 
 											{/* Taux horaire */}
@@ -2846,245 +3810,278 @@ const PostJob = () => {
 														</VStack>
 													</HStack>
 
-													{/* Sélecteur semaine/jour */}
-													<VStack space='xs'>
-														<Text
-															size='sm'
-															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
-															}}>
-															Période de travail *
-														</Text>
-														<HStack space='sm'>
-															<Pressable
-																onPress={() =>
-																	updateField(
-																		"work_hours_type",
-																		"semaine",
-																	)
-																}
+													{/* Sélecteur semaine/jour — masqué en mode vacations */}
+													{!(
+														formData.contract_type ===
+															"CDD" &&
+														formData.date_mode ===
+															"vacations"
+													) && (
+														<VStack space='xs'>
+															<Text
+																size='sm'
 																style={{
-																	flex: 1,
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
 																}}>
-																<Box
+																Période de
+																travail *
+															</Text>
+															<HStack space='sm'>
+																<Pressable
+																	onPress={() =>
+																		updateField(
+																			"work_hours_type",
+																			"semaine",
+																		)
+																	}
 																	style={{
-																		padding: 12,
-																		borderRadius: 10,
-																		borderWidth: 2,
-																		borderColor:
-																			formData.work_hours_type ===
-																			"semaine"
-																				? "#3b82f6"
-																				: isDark
-																					? "#4b5563"
-																					: "#e5e7eb",
-																		backgroundColor:
-																			formData.work_hours_type ===
-																			"semaine"
-																				? isDark
-																					? "#1e3a8a"
-																					: "#dbeafe"
-																				: isDark
-																					? "#1f2937"
-																					: "#f9fafb",
-																		alignItems:
-																			"center",
+																		flex: 1,
 																	}}>
-																	<Text
+																	<Box
 																		style={{
-																			fontWeight:
-																				"600",
-																			color:
+																			padding: 12,
+																			borderRadius: 10,
+																			borderWidth: 2,
+																			borderColor:
 																				formData.work_hours_type ===
 																				"semaine"
 																					? "#3b82f6"
 																					: isDark
-																						? "#f3f4f6"
-																						: "#111827",
+																						? "#4b5563"
+																						: "#e5e7eb",
+																			backgroundColor:
+																				formData.work_hours_type ===
+																				"semaine"
+																					? isDark
+																						? "#1e3a8a"
+																						: "#dbeafe"
+																					: isDark
+																						? "#1f2937"
+																						: "#f9fafb",
+																			alignItems:
+																				"center",
 																		}}>
-																		Par
-																		semaine
-																	</Text>
-																</Box>
-															</Pressable>
-															<Pressable
-																onPress={() =>
-																	updateField(
-																		"work_hours_type",
-																		"jour",
-																	)
-																}
-																style={{
-																	flex: 1,
-																}}>
-																<Box
+																		<Text
+																			style={{
+																				fontWeight:
+																					"600",
+																				color:
+																					formData.work_hours_type ===
+																					"semaine"
+																						? "#3b82f6"
+																						: isDark
+																							? "#f3f4f6"
+																							: "#111827",
+																			}}>
+																			Par
+																			semaine
+																		</Text>
+																	</Box>
+																</Pressable>
+																<Pressable
+																	onPress={() =>
+																		updateField(
+																			"work_hours_type",
+																			"jour",
+																		)
+																	}
 																	style={{
-																		padding: 12,
-																		borderRadius: 10,
-																		borderWidth: 2,
-																		borderColor:
-																			formData.work_hours_type ===
-																			"jour"
-																				? "#3b82f6"
-																				: isDark
-																					? "#4b5563"
-																					: "#e5e7eb",
-																		backgroundColor:
-																			formData.work_hours_type ===
-																			"jour"
-																				? isDark
-																					? "#1e3a8a"
-																					: "#dbeafe"
-																				: isDark
-																					? "#1f2937"
-																					: "#f9fafb",
-																		alignItems:
-																			"center",
+																		flex: 1,
 																	}}>
-																	<Text
+																	<Box
 																		style={{
-																			fontWeight:
-																				"600",
-																			color:
+																			padding: 12,
+																			borderRadius: 10,
+																			borderWidth: 2,
+																			borderColor:
 																				formData.work_hours_type ===
 																				"jour"
 																					? "#3b82f6"
 																					: isDark
-																						? "#f3f4f6"
-																						: "#111827",
+																						? "#4b5563"
+																						: "#e5e7eb",
+																			backgroundColor:
+																				formData.work_hours_type ===
+																				"jour"
+																					? isDark
+																						? "#1e3a8a"
+																						: "#dbeafe"
+																					: isDark
+																						? "#1f2937"
+																						: "#f9fafb",
+																			alignItems:
+																				"center",
 																		}}>
-																		Par jour
-																	</Text>
-																</Box>
-															</Pressable>
-														</HStack>
-													</VStack>
-
-													{/* Input heures par semaine */}
-													{formData.work_hours_type ===
-														"semaine" && (
-														<VStack
-															space='xs'
-															ref={hoursInputRef}>
-															<Text
-																size='sm'
-																style={{
-																	fontWeight:
-																		"600",
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}>
-																Heures/semaine *
-															</Text>
-															<Input
-																variant='outline'
-																size='md'
-																style={{
-																	backgroundColor:
-																		isDark
-																			? "#1f2937"
-																			: "#ffffff",
-																	borderColor:
-																		isDark
-																			? "#4b5563"
-																			: "#e5e7eb",
-																}}>
-																<InputField
-																	placeholder='Ex: 35'
-																	value={
-																		formData.weekly_hours
-																	}
-																	onChangeText={(
-																		value,
-																	) =>
-																		updateField(
-																			"weekly_hours",
-																			value,
-																		)
-																	}
-																	onFocus={() =>
-																		scrollToInput(
-																			hoursInputRef,
-																			1,
-																			100,
-																		)
-																	}
-																	keyboardType='decimal-pad'
-																	style={{
-																		color: isDark
-																			? "#f3f4f6"
-																			: "#111827",
-																	}}
-																/>
-															</Input>
+																		<Text
+																			style={{
+																				fontWeight:
+																					"600",
+																				color:
+																					formData.work_hours_type ===
+																					"jour"
+																						? "#3b82f6"
+																						: isDark
+																							? "#f3f4f6"
+																							: "#111827",
+																			}}>
+																			Par
+																			jour
+																		</Text>
+																	</Box>
+																</Pressable>
+															</HStack>
 														</VStack>
 													)}
 
-													{/* Input heures par jour */}
-													{formData.work_hours_type ===
-														"jour" && (
-														<VStack
-															space='xs'
-															ref={hoursInputRef}>
-															<Text
-																size='sm'
-																style={{
-																	fontWeight:
-																		"600",
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}>
-																Heures/jour *
-															</Text>
-															<Input
-																variant='outline'
-																size='md'
-																style={{
-																	backgroundColor:
-																		isDark
-																			? "#1f2937"
-																			: "#ffffff",
-																	borderColor:
-																		isDark
-																			? "#4b5563"
-																			: "#e5e7eb",
-																}}>
-																<InputField
-																	placeholder='Ex: 7'
-																	value={
-																		formData.daily_hours
-																	}
-																	onChangeText={(
-																		value,
-																	) =>
-																		updateField(
-																			"daily_hours",
-																			value,
-																		)
-																	}
-																	onFocus={() =>
-																		scrollToInput(
-																			hoursInputRef,
-																			1,
-																			100,
-																		)
-																	}
-																	keyboardType='decimal-pad'
+													{/* Input heures par semaine — masqué en mode vacations */}
+													{!(
+														formData.contract_type ===
+															"CDD" &&
+														formData.date_mode ===
+															"vacations"
+													) &&
+														formData.work_hours_type ===
+															"semaine" && (
+															<VStack
+																space='xs'
+																ref={
+																	hoursInputRef
+																}>
+																<Text
+																	size='sm'
 																	style={{
+																		fontWeight:
+																			"600",
 																		color: isDark
 																			? "#f3f4f6"
 																			: "#111827",
-																	}}
-																/>
-															</Input>
-														</VStack>
-													)}
+																	}}>
+																	Heures/semaine
+																	*
+																</Text>
+																<Input
+																	variant='outline'
+																	size='md'
+																	style={{
+																		backgroundColor:
+																			isDark
+																				? "#1f2937"
+																				: "#ffffff",
+																		borderColor:
+																			isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
+																	}}>
+																	<InputField
+																		placeholder='Ex: 35'
+																		value={
+																			formData.weekly_hours
+																		}
+																		onChangeText={(
+																			value,
+																		) =>
+																			updateField(
+																				"weekly_hours",
+																				value,
+																			)
+																		}
+																		onFocus={() =>
+																			scrollToInput(
+																				hoursInputRef,
+																				1,
+																				100,
+																			)
+																		}
+																		keyboardType='decimal-pad'
+																		style={{
+																			color: isDark
+																				? "#f3f4f6"
+																				: "#111827",
+																		}}
+																	/>
+																</Input>
+															</VStack>
+														)}
+
+													{/* Input heures par jour — masqué en mode vacations */}
+													{formData.work_hours_type ===
+														"jour" &&
+														!(
+															formData.contract_type ===
+																"CDD" &&
+															formData.date_mode ===
+																"vacations"
+														) && (
+															<VStack
+																space='xs'
+																ref={
+																	hoursInputRef
+																}>
+																<Text
+																	size='sm'
+																	style={{
+																		fontWeight:
+																			"600",
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}>
+																	{!(
+																		formData.contract_type ===
+																			"CDD" &&
+																		formData.date_mode ===
+																			"vacations"
+																	)
+																		? "Heures/jour *"
+																		: "Heures/jour"}
+																</Text>
+																<Input
+																	variant='outline'
+																	size='md'
+																	style={{
+																		backgroundColor:
+																			isDark
+																				? "#1f2937"
+																				: "#ffffff",
+																		borderColor:
+																			isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
+																	}}>
+																	<InputField
+																		placeholder='Ex: 7'
+																		value={
+																			formData.daily_hours
+																		}
+																		onChangeText={(
+																			value,
+																		) =>
+																			updateField(
+																				"daily_hours",
+																				value,
+																			)
+																		}
+																		onFocus={() =>
+																			scrollToInput(
+																				hoursInputRef,
+																				1,
+																				100,
+																			)
+																		}
+																		keyboardType='decimal-pad'
+																		style={{
+																			color: isDark
+																				? "#f3f4f6"
+																				: "#111827",
+																		}}
+																	/>
+																</Input>
+															</VStack>
+														)}
 													{/* Calcul du salaire mensuel */}
 													{formData.salary_hourly &&
 														((formData.work_hours_type ===
@@ -4450,13 +5447,7 @@ const PostJob = () => {
 														flex: 2,
 														textAlign: "right",
 													}}>
-													{CATEGORIES.find(
-														(c) =>
-															c.id ===
-															formData.category,
-													)
-														? `${CATEGORIES.find((c) => c.id === formData.category).acronym} - ${CATEGORIES.find((c) => c.id === formData.category).name}`
-														: "—"}
+													{formData.category || "—"}
 												</Text>
 											</HStack>
 											{formData.isLastMinute && (
@@ -4816,36 +5807,43 @@ const PostJob = () => {
 														"—"}
 												</Text>
 											</HStack>
-											<HStack
-												style={{
-													justifyContent:
-														"space-between",
-												}}>
-												<Text
-													size='sm'
+											{!(
+												formData.contract_type ===
+													"CDD" &&
+												formData.date_mode ===
+													"vacations"
+											) && (
+												<HStack
 													style={{
-														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
-														flex: 1,
+														justifyContent:
+															"space-between",
 													}}>
-													Date de début
-												</Text>
-												<Text
-													size='sm'
-													style={{
-														fontWeight: "600",
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-														flex: 2,
-														textAlign: "right",
-													}}>
-													{formatDate(
-														formData.start_date,
-													)}
-												</Text>
-											</HStack>
+													<Text
+														size='sm'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+															flex: 1,
+														}}>
+														Date de début
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+															flex: 2,
+															textAlign: "right",
+														}}>
+														{formatDate(
+															formData.start_date,
+														)}
+													</Text>
+												</HStack>
+											)}
 											{formData.end_date && (
 												<HStack
 													style={{
@@ -4918,6 +5916,71 @@ const PostJob = () => {
 													</Text>
 												</HStack>
 											)}
+											{/* Vacations — mode CDD vacations */}
+											{formData.contract_type === "CDD" &&
+												formData.date_mode ===
+													"vacations" &&
+												formData.vacations.length >
+													0 && (
+													<>
+														<Divider
+															style={{
+																backgroundColor:
+																	isDark
+																		? "#4b5563"
+																		: "#e5e7eb",
+															}}
+														/>
+														<Text
+															size='xs'
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+															}}>
+															Vacations
+														</Text>
+														<VStack space='xs'>
+															{formData.vacations.map(
+																(v, i) => (
+																	<HStack
+																		key={i}
+																		style={{
+																			justifyContent:
+																				"space-between",
+																			alignItems:
+																				"flex-start",
+																		}}>
+																		<Text
+																			size='sm'
+																			style={{
+																				color: isDark
+																					? "#9ca3af"
+																					: "#6b7280",
+																				flex: 0.4,
+																			}}>
+																			{`${i + 1}.`}
+																		</Text>
+																		<Text
+																			size='sm'
+																			style={{
+																				fontWeight:
+																					"600",
+																				color: isDark
+																					? "#f3f4f6"
+																					: "#111827",
+																				flex: 2.6,
+																				textAlign:
+																					"right",
+																			}}>
+																			{`${formatDate(v.date)}  ${v.start_time} → ${v.end_time}`}
+																		</Text>
+																	</HStack>
+																),
+															)}
+														</VStack>
+													</>
+												)}
 										</VStack>
 									</VStack>
 								</Card>
@@ -5544,6 +6607,59 @@ const PostJob = () => {
 						<Button
 							size='md'
 							onPress={() => setShowEndDatePicker(false)}
+							style={{
+								backgroundColor: "#3b82f6",
+								width: "100%",
+								marginTop: 8,
+							}}>
+							<ButtonText style={{ color: "#ffffff" }}>
+								Confirmer
+							</ButtonText>
+						</Button>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
+
+			{/* Actionsheet — Date vacation */}
+			<Actionsheet
+				isOpen={showVacationDatePicker}
+				onClose={() => setShowVacationDatePicker(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						paddingBottom: 32,
+						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack
+						space='md'
+						style={{
+							width: "100%",
+							alignItems: "center",
+							paddingTop: 8,
+						}}>
+						<Text
+							style={{
+								fontWeight: "600",
+								fontSize: 16,
+								color: isDark ? "#f9fafb" : "#111827",
+							}}>
+							Date de la vacation
+						</Text>
+						<DateTimePicker
+							value={currentVacation.date || new Date()}
+							mode='date'
+							display='spinner'
+							onChange={handleVacationDateChange}
+							minimumDate={new Date()}
+							style={{ width: "100%" }}
+							textColor={isDark ? "#f9fafb" : "#111827"}
+						/>
+						<Button
+							size='md'
+							onPress={() => setShowVacationDatePicker(false)}
 							style={{
 								backgroundColor: "#3b82f6",
 								width: "100%",
