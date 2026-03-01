@@ -27,6 +27,8 @@ import {
 import { Text } from "@/components/ui/text";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
+import { Divider } from "@/components/ui/divider";
+
 import {
 	MapPin,
 	Timer,
@@ -347,6 +349,7 @@ const JobCard = ({
 							</Badge>
 						)}
 					</HStack>
+					<Divider className='mt-2' />
 					{parsedVacations.length > 0 && (
 						<HStack
 							space='sm'
