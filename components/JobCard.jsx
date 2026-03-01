@@ -41,6 +41,7 @@ import {
 	BadgeEuro,
 	ChevronRight,
 	Zap,
+	Calendar,
 } from "lucide-react-native";
 import { width } from "dom-helpers";
 import { getCategoryLabel } from "@/constants/categories";
@@ -71,6 +72,11 @@ const JobCard = ({
 	salary_annual_fixed,
 	salary_annual_min,
 	salary_annual_max,
+	vacations,
+	date_mode,
+	start_date_asap,
+	start_date,
+	end_date,
 }) => {
 	const router = useRouter();
 	const { isDark } = useTheme();
@@ -78,6 +84,29 @@ const JobCard = ({
 	const { toggleWishlistJob, isJobInWishlist } = useDataContext();
 	const isFocused = useIsFocused();
 	const [isInWishlist, setIsInWishlist] = useState(false);
+
+	const parsedVacations = React.useMemo(() => {
+		if (!vacations) return [];
+		try {
+			const arr =
+				typeof vacations === "string"
+					? JSON.parse(vacations)
+					: vacations;
+			return Array.isArray(arr) ? arr : [];
+		} catch {
+			return [];
+		}
+	}, [vacations]);
+
+	const formatVacDate = (dateStr) => {
+		if (!dateStr) return "";
+		const d = new Date(dateStr + "T00:00:00");
+		return d.toLocaleDateString("fr-FR", {
+			weekday: "short",
+			day: "2-digit",
+			month: "short",
+		});
+	};
 	const [isOpen, setIsOpen] = React.useState(false);
 	const handleOpen = () => {
 		setIsOpen(true);
@@ -295,12 +324,12 @@ const JobCard = ({
 								</BadgeText>
 							</Badge>
 						)}
-						{salary_type && (
+						{(salary_type || salary_hourly) && (
 							<Badge size='sm' variant='solid' action='warning'>
 								<BadgeIcon as={BadgeEuro} className='mr-2' />
 								<BadgeText>
 									{formatSalary({
-										salary_type,
+										salary_type: salary_type || "hourly",
 										salary_hourly,
 										salary_monthly_fixed,
 										salary_annual_fixed,
@@ -318,6 +347,82 @@ const JobCard = ({
 							</Badge>
 						)}
 					</HStack>
+					{parsedVacations.length > 0 && (
+						<HStack
+							space='sm'
+							style={{
+								alignItems: "center",
+								flexWrap: "wrap",
+								marginTop: 4,
+							}}>
+							<Calendar
+								size={13}
+								color={isDark ? "#9ca3af" : "#6b7280"}
+							/>
+							<Text
+								size='sm'
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+								}}>
+								{formatVacDate(parsedVacations[0].date)}
+								{parsedVacations[0].start_time &&
+								parsedVacations[0].end_time
+									? ` · ${parsedVacations[0].start_time} - ${parsedVacations[0].end_time}`
+									: ""}
+							</Text>
+							{parsedVacations.length > 1 && (
+								<Badge
+									size='sm'
+									// variant='outline'
+									action='muted'>
+									<BadgeText>
+										+{parsedVacations.length - 1} date
+										{parsedVacations.length > 2 ? "s" : ""}
+									</BadgeText>
+								</Badge>
+							)}
+						</HStack>
+					)}
+					{parsedVacations.length === 0 &&
+						(contract_type?.toLowerCase() === "cdi" ||
+							contract_type?.toLowerCase() === "cdd") && (
+							<HStack
+								space='xs'
+								style={{
+									alignItems: "center",
+									marginTop: 4,
+								}}>
+								<Calendar
+									size={13}
+									color={isDark ? "#9ca3af" : "#6b7280"}
+								/>
+								{start_date_asap ? (
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}>
+										Dès que possible
+									</Text>
+								) : start_date ? (
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}>
+										{formatVacDate(start_date)}
+										{contract_type?.toLowerCase() ===
+											"cdd" && end_date
+											? ` → ${formatVacDate(end_date)}`
+											: ""}
+									</Text>
+								) : null}
+							</HStack>
+						)}
 				</VStack>
 				<HStack
 					space='sm'
