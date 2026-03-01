@@ -1216,6 +1216,11 @@ export default function Tab1() {
 									salary_annual_max={job?.salary_annual_max}
 									isArchived={job.isArchived}
 									isLastMinute={job.isLastMinute}
+									vacations={job?.vacations}
+									date_mode={job?.date_mode}
+									start_date_asap={job?.start_date_asap}
+									start_date={job?.start_date}
+									end_date={job?.end_date}
 								/>
 							))}
 						</VStack>
