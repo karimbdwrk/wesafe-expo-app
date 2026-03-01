@@ -653,6 +653,11 @@ export default function JobsList({
 											job?.salary_annual_max
 										}
 										isLastMinute={job?.isLastMinute}
+										vacations={job?.vacations}
+										date_mode={job?.date_mode}
+										start_date_asap={job?.start_date_asap}
+										start_date={job?.start_date}
+										end_date={job?.end_date}
 									/>
 								))
 							)}
