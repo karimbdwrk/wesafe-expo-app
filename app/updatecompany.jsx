@@ -38,7 +38,7 @@ import { Icon } from "@/components/ui/icon";
 const UpdateCompany = () => {
 	const router = useRouter();
 	const { user } = useAuth();
-	const { update, getById } = useDataContext();
+	const { update, getById, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const toast = useToast();
 
@@ -140,7 +140,7 @@ const UpdateCompany = () => {
 					</Toast>
 				),
 			});
-
+			trackActivity("update_profile");
 			setTimeout(() => router.back(), 1500);
 		} catch (error) {
 			console.log("error update company", error);
