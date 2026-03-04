@@ -764,6 +764,22 @@ export const DataProvider = ({ children }) => {
 		}
 	};
 
+	const trackActivity = useCallback(
+		async (eventType) => {
+			if (!user?.id) return;
+			try {
+				await axiosInstance.post("/user_activity", {
+					user_id: user.id,
+					event_type: eventType,
+				});
+			} catch (error) {
+				// Silencieux : l'activité est non-critique
+				console.warn("trackActivity error:", error?.message);
+			}
+		},
+		[axiosInstance, user?.id],
+	);
+
 	return (
 		<DataContext.Provider
 			value={{
@@ -786,6 +802,7 @@ export const DataProvider = ({ children }) => {
 				refuseApplication,
 				proCardDelete,
 				createNotification,
+				trackActivity,
 			}}>
 			{children}
 		</DataContext.Provider>
