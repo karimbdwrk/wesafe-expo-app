@@ -107,6 +107,7 @@ const JobScreen = () => {
 		isJobArchived,
 		getById,
 		createNotification,
+		trackActivity,
 	} = useDataContext();
 
 	// Fonctions helper pour parser et mapper les données
@@ -193,7 +194,10 @@ const JobScreen = () => {
 
 	useFocusEffect(
 		useCallback(() => {
-			id && loadJob();
+			if (id) {
+				loadJob();
+				trackActivity("view_job");
+			}
 		}, []),
 	);
 
@@ -225,6 +229,7 @@ const JobScreen = () => {
 			userProfile.lastname,
 			userProfile.email,
 		);
+		trackActivity("apply_job");
 
 		const notificationPayload = {
 			offer_id: id,
