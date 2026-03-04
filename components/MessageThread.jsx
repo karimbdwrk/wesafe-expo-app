@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { createSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
@@ -156,6 +157,7 @@ const MessageThread = ({
 	onTypingChange,
 }) => {
 	const { user, accessToken, role } = useAuth();
+	const { trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const [messages, setMessages] = useState([]);
 	const [newMessage, setNewMessage] = useState("");
@@ -413,6 +415,7 @@ const MessageThread = ({
 				console.error("❌ Erreur envoi message:", error);
 				return;
 			}
+			trackActivity("send_message");
 
 			// Récupérer l'apply pour trouver le destinataire et vérifier sa présence
 			const { data: applyData, error: applyError } = await supabase
