@@ -1,3 +1,4 @@
+import React from "react";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import "@/global.css";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -19,7 +20,7 @@ import { Toaster } from "sonner-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { DataProvider } from "@/context/DataContext";
+import { DataProvider, useDataContext } from "@/context/DataContext";
 import { NotificationsProvider } from "@/context/NotificationsContext";
 import { ImageProvider } from "@/context/ImageContext";
 import {
@@ -72,6 +73,17 @@ function RootLayoutNav() {
 	const pathname = usePathname();
 	const { user, role, loading: authLoading } = useAuth();
 	const { colorMode, toggleColorMode } = useTheme();
+	const { trackActivity } = useDataContext();
+
+	// Track open_app une seule fois quand l'user est connecté
+	const hasTrackedOpen = React.useRef(false);
+	useEffect(() => {
+		if (user?.id && !hasTrackedOpen.current) {
+			hasTrackedOpen.current = true;
+			trackActivity("open_app");
+		}
+		if (!user) hasTrackedOpen.current = false;
+	}, [user?.id]);
 
 	useEffect(() => {
 		console.log(
