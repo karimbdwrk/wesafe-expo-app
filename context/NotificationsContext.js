@@ -30,7 +30,7 @@ export const NotificationsProvider = ({ children }) => {
 				.from("notifications")
 				.select(
 					`
-                    id, title, body, entity_type, entity_id, 
+                    id, type, title, body, entity_type, entity_id, 
                     is_read, read_at, metadata, created_at
                     `,
 					{
