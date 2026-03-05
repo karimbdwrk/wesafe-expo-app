@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system/legacy";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useFocusEffect } from "expo-router";
 import {
@@ -312,7 +313,7 @@ const ProDocs = ({ navigation }) => {
 			await ImagePicker.requestMediaLibraryPermissionsAsync();
 		if (status !== "granted") return;
 		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ImagePicker.MediaTypeOptions.Images,
+			mediaTypes: ["images"],
 			quality: 0.8,
 		});
 		if (!result.canceled) setDocImage(result.assets[0]);
@@ -369,15 +370,23 @@ const ProDocs = ({ navigation }) => {
 
 		const filename = `${user.id}/${selectedCategory}_${selectedType.code}_${Date.now()}.${storageExt}`;
 
-		// Lire le fichier local → blob (React Native fetch supporte file://)
-		const localResponse = await fetch(docImage.uri);
-		const blob = await localResponse.blob();
+		// Lire le fichier local en base64 (fetch→blob renvoie 0 bytes en React Native)
+		const base64 = await FileSystem.readAsStringAsync(docImage.uri, {
+			encoding: "base64",
+		});
+
+		// Convertir base64 → Uint8Array
+		const binaryStr = atob(base64);
+		const bytes = new Uint8Array(binaryStr.length);
+		for (let i = 0; i < binaryStr.length; i++) {
+			bytes[i] = binaryStr.charCodeAt(i);
+		}
 
 		// Upload via le client Supabase (JWT injecté automatiquement)
 		const supabase = createSupabaseClient(accessToken);
 		const { error: uploadError } = await supabase.storage
 			.from(DOCUMENTS_BUCKET)
-			.upload(filename, blob, {
+			.upload(filename, bytes, {
 				contentType: mime,
 				upsert: true,
 			});
@@ -974,99 +983,103 @@ const ProDocs = ({ navigation }) => {
 					{items.map((item) => {
 						const alreadyAdded = existingTypes.has(item.code);
 						return (
-						<TouchableOpacity
-							key={item.code}
-							activeOpacity={alreadyAdded ? 1 : 0.7}
-							disabled={alreadyAdded}
-							onPress={() => {
-								if (alreadyAdded) return;
-								setSelectedType(item);
-								setStep("upload");
-							}}>
-							<Card
-								style={{
-									padding: 16,
-									backgroundColor: isDark
-										? "#374151"
-										: "#ffffff",
-									borderRadius: 12,
-									borderWidth: 1,
-									borderColor: alreadyAdded
-										? isDark ? "#374151" : "#f3f4f6"
-										: isDark ? "#4b5563" : "#e5e7eb",
-									opacity: alreadyAdded ? 0.55 : 1,
+							<TouchableOpacity
+								key={item.code}
+								activeOpacity={alreadyAdded ? 1 : 0.7}
+								disabled={alreadyAdded}
+								onPress={() => {
+									if (alreadyAdded) return;
+									setSelectedType(item);
+									setStep("upload");
 								}}>
-								<HStack
+								<Card
 									style={{
-										justifyContent: "space-between",
-										alignItems: "center",
+										padding: 16,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: alreadyAdded
+											? isDark
+												? "#374151"
+												: "#f3f4f6"
+											: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										opacity: alreadyAdded ? 0.55 : 1,
 									}}>
-									<VStack
-										space='xs'
-										style={{ flex: 1, marginRight: 8 }}>
-										{item.acronym ? (
+									<HStack
+										style={{
+											justifyContent: "space-between",
+											alignItems: "center",
+										}}>
+										<VStack
+											space='xs'
+											style={{ flex: 1, marginRight: 8 }}>
+											{item.acronym ? (
+												<Text
+													style={{
+														fontWeight: "800",
+														fontSize: 15,
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													{item.acronym}
+												</Text>
+											) : null}
 											<Text
-												style={{
-													fontWeight: "800",
-													fontSize: 15,
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												{item.acronym}
-											</Text>
-										) : null}
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-												lineHeight: 18,
-											}}>
-											{item.name}
-										</Text>
-										{item.validity_years ? (
-											<Text
-												size='xs'
+												size='sm'
 												style={{
 													color: isDark
-														? "#60a5fa"
-														: "#2563eb",
+														? "#9ca3af"
+														: "#6b7280",
+													lineHeight: 18,
 												}}>
-												Validité : {item.validity_years}{" "}
-												an
-												{item.validity_years > 1
-													? "s"
-													: ""}
+												{item.name}
 											</Text>
-										) : null}
-									</VStack>
-									{alreadyAdded ? (
-										<Badge
-											size='sm'
-											variant='solid'
-											action='success'>
-											<BadgeIcon as={CheckCircle} />
-											<BadgeText
-												style={{ marginLeft: 4 }}>
-												Déjà soumis
-											</BadgeText>
-										</Badge>
-									) : (
-										<Icon
-											as={ChevronRight}
-											size='md'
-											style={{
-												color: isDark
-													? "#6b7280"
-													: "#9ca3af",
-											}}
-										/>
-									)}
-								</HStack>
-							</Card>
-						</TouchableOpacity>
+											{item.validity_years ? (
+												<Text
+													size='xs'
+													style={{
+														color: isDark
+															? "#60a5fa"
+															: "#2563eb",
+													}}>
+													Validité :{" "}
+													{item.validity_years} an
+													{item.validity_years > 1
+														? "s"
+														: ""}
+												</Text>
+											) : null}
+										</VStack>
+										{alreadyAdded ? (
+											<Badge
+												size='sm'
+												variant='solid'
+												action='success'>
+												<BadgeIcon as={CheckCircle} />
+												<BadgeText
+													style={{ marginLeft: 4 }}>
+													Déjà soumis
+												</BadgeText>
+											</Badge>
+										) : (
+											<Icon
+												as={ChevronRight}
+												size='md'
+												style={{
+													color: isDark
+														? "#6b7280"
+														: "#9ca3af",
+												}}
+											/>
+										)}
+									</HStack>
+								</Card>
+							</TouchableOpacity>
 						);
 					})}
 				</VStack>
