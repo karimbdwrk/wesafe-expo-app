@@ -194,6 +194,8 @@ const Notifications = () => {
 				pathname: "/job",
 				params: { id: notification.entity_id },
 			});
+		} else if (notification.type === "document_status_update") {
+			router.push({ pathname: "/prodocs" });
 		}
 	};
 
@@ -230,6 +232,8 @@ const Notifications = () => {
 			case "contract_signed_candidate":
 				return FileText;
 			case "contract_signed_pro":
+				return FileText;
+			case "document_status_update":
 				return FileText;
 			case "job_offer":
 				return Briefcase;
