@@ -66,6 +66,11 @@ const AccountScreen = () => {
 	const [showQRModal, setShowQRModal] = useState(false);
 	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 	const [notifCount, setNotifCount] = useState(0);
+	const [verifiedDocs, setVerifiedDocs] = useState({
+		cnaps: [],
+		diplomas: [],
+		certifications: [],
+	});
 
 	const fetchNotifCount = useCallback(async () => {
 		if (!user?.id || !accessToken) return;
@@ -106,10 +111,45 @@ const AccountScreen = () => {
 		}
 	};
 
+	const loadDiplomas = async () => {
+		if (!user?.id) return;
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			const [cnaps, diplomas, certifications] = await Promise.all([
+				supabase
+					.from("user_cnaps_cards")
+					.select("*")
+					.eq("user_id", user.id)
+					.eq("status", "verified"),
+				supabase
+					.from("user_diplomas")
+					.select("*")
+					.eq("user_id", user.id)
+					.eq("status", "verified"),
+				supabase
+					.from("user_certifications")
+					.select("*")
+					.eq("user_id", user.id)
+					.eq("status", "verified"),
+			]);
+			console.log("📋 CNAPS cards:", cnaps.data);
+			console.log("🎓 Diplômes:", diplomas.data);
+			console.log("🏅 Certifications:", certifications.data);
+			setVerifiedDocs({
+				cnaps: cnaps.data || [],
+				diplomas: diplomas.data || [],
+				certifications: certifications.data || [],
+			});
+		} catch (error) {
+			console.error("Erreur chargement diplômes:", error);
+		}
+	};
+
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
 			loadProcards();
+			loadDiplomas();
 			fetchNotifCount();
 
 			const supabase = createSupabaseClient(accessToken);
@@ -388,6 +428,69 @@ const AccountScreen = () => {
 												}}>
 												{profile.email}
 											</Text>
+										)}
+										{(verifiedDocs.cnaps.length > 0 ||
+											verifiedDocs.diplomas.length > 0 ||
+											verifiedDocs.certifications.length >
+												0) && (
+											<HStack
+												space='xs'
+												style={{
+													flexWrap: "wrap",
+													marginTop: 6,
+												}}>
+												{verifiedDocs.cnaps.map(
+													(doc) => (
+														<Badge
+															key={doc.id}
+															size='sm'
+															variant='solid'
+															action='success'>
+															<BadgeIcon
+																as={IdCard}
+																className='mr-1'
+															/>
+															<BadgeText>
+																{doc.type}
+															</BadgeText>
+														</Badge>
+													),
+												)}
+												{verifiedDocs.diplomas.map(
+													(doc) => (
+														<Badge
+															key={doc.id}
+															size='sm'
+															variant='solid'
+															action='success'>
+															<BadgeIcon
+																as={IdCard}
+																className='mr-1'
+															/>
+															<BadgeText>
+																{doc.type}
+															</BadgeText>
+														</Badge>
+													),
+												)}
+												{verifiedDocs.certifications.map(
+													(doc) => (
+														<Badge
+															key={doc.id}
+															size='sm'
+															variant='solid'
+															action='success'>
+															<BadgeIcon
+																as={IdCard}
+																className='mr-1'
+															/>
+															<BadgeText>
+																{doc.type}
+															</BadgeText>
+														</Badge>
+													),
+												)}
+											</HStack>
 										)}
 									</VStack>
 								</HStack>
