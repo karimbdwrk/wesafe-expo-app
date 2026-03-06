@@ -43,6 +43,7 @@ import {
 	GraduationCap,
 	Settings,
 	LogOut,
+	BookmarkCheck,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -926,7 +927,7 @@ const AccountScreen = () => {
 							<Divider style={{ marginVertical: 16 }} />
 
 							<ActionCard
-								icon={BookmarkIcon}
+								icon={BookmarkCheck}
 								title='Liste de souhaits'
 								subtitle='Vos missions favorites'
 								onPress={() => router.push("/wishlist")}
