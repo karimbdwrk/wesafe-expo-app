@@ -10,6 +10,7 @@
     "extra": {
       "SUPABASE_URL": "https://hzvbylhdptwgblpdondm.supabase.co",
       "SUPABASE_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6dmJ5bGhkcHR3Z2JscGRvbmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTA5MjksImV4cCI6MjA2MTAyNjkyOX0.UdtpnbES2Ul7TDFBcHIpGnVxFxqQYmGt-WVtMHgewk4",
+      "SUPERADMIN_ID": "c5f72d6f-7ab4-4e19-8b3b-12714740efad",
       "eas": {
         "projectId": "dd6d1001-e217-43e0-b545-e89b21412e4b"
       }
