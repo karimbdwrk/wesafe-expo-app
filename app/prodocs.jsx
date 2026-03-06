@@ -50,8 +50,12 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { createSupabaseClient } from "@/lib/supabase";
+import Constants from "expo-constants";
 
 const DOCUMENTS_BUCKET = "pro-documents";
+
+// UUID du superadmin (récupéré depuis app.json > extra, ou à saisir en dur)
+const SUPERADMIN_ID = Constants.expoConfig?.extra?.SUPERADMIN_ID;
 
 /* ------------------------------------------------------------------ */
 /* Data                                                                 */
@@ -475,6 +479,31 @@ const ProDocs = ({ navigation }) => {
 			}
 			const { error } = await supabase.from(tableName).insert(payload);
 			if (error) throw error;
+
+			// Notifier le superadmin d'un nouveau document à vérifier
+			const docInfo = getDocInfo(selectedCategory, selectedType.code);
+			const categoryLabel =
+				selectedCategory === "cnaps"
+					? "Carte CNAPS"
+					: selectedCategory === "diploma"
+						? "Diplôme"
+						: "Certification";
+			await supabase.from("notifications").insert({
+				recipient_id: SUPERADMIN_ID,
+				actor_id: user.id,
+				type: "document_created",
+				title: `Nouveau document à vérifier`,
+				body: `${categoryLabel} — ${docInfo.acronym ? `${docInfo.acronym} · ` : ""}${docInfo.name}`,
+				entity_type: selectedCategory,
+				is_read: false,
+				metadata: {
+					user_id: user.id,
+					document_type: selectedType.code,
+					category: selectedCategory,
+					table: tableName,
+				},
+			});
+
 			await loadDocs();
 			// Reset wizard
 			setStep("list");
