@@ -74,7 +74,7 @@ const EXPERIENCE_CATEGORIES = [
 
 const CurriculumScreen = () => {
 	const { user } = useAuth();
-	const { getAll, create, update, remove } = useDataContext();
+	const { getAll, create, update, remove, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const toast = useToast();
 	const router = useRouter();
@@ -178,6 +178,7 @@ const CurriculumScreen = () => {
 
 		try {
 			await remove("experiences", expToDelete.id);
+			trackActivity("experience_deleted");
 			toast.show({
 				placement: "top",
 				duration: 3000,
@@ -251,6 +252,7 @@ const CurriculumScreen = () => {
 
 			if (editingId) {
 				await update("experiences", editingId, expData);
+				trackActivity("experience_updated");
 				toast.show({
 					placement: "top",
 					duration: 3000,
@@ -267,6 +269,7 @@ const CurriculumScreen = () => {
 				});
 			} else {
 				await create("experiences", expData);
+				trackActivity("experience_created");
 				toast.show({
 					placement: "top",
 					duration: 3000,
