@@ -36,7 +36,7 @@ const SignatureScreen = () => {
 	const { setSignature, signature } = useImage();
 	const { user, accessToken, loadUserData, userProfile, userCompany } =
 		useAuth();
-	const { update } = useDataContext();
+	const { update, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const { signatureUrl, isPro, type } = useLocalSearchParams();
 
@@ -114,6 +114,9 @@ const SignatureScreen = () => {
 			await update(table, user.id, {
 				signature_url: publicUrl,
 			});
+			trackActivity(
+				signatureImg ? "signature_updated" : "signature_created",
+			);
 			loadUserData(user.id, accessToken);
 			setSignature(null);
 
