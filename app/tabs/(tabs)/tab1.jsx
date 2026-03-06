@@ -91,7 +91,7 @@ export default function Tab1() {
 			const { data: jobs } = await getAll(
 				"jobs",
 				"*, companies(name, logo_url)",
-				`&isArchived=eq.false&or=(title.ilike.*${searchTerm}*,description.ilike.*${searchTerm}*,city.ilike.*${searchTerm}*,department.ilike.*${searchTerm}*,region.ilike.*${searchTerm}*,category.ilike.*${searchTerm}*)`,
+				`&is_archived=eq.false&or=(title.ilike.*${searchTerm}*,description.ilike.*${searchTerm}*,city.ilike.*${searchTerm}*,department.ilike.*${searchTerm}*,region.ilike.*${searchTerm}*,category.ilike.*${searchTerm}*)`,
 				1,
 				3,
 				"created_at.desc",
@@ -138,7 +138,7 @@ export default function Tab1() {
 				const { data: jobs, totalCount: jobsCount } = await getAll(
 					"jobs",
 					"*",
-					`&company_id=eq.${user.id}&isArchived=eq.false`,
+					`&company_id=eq.${user.id}&is_archived=eq.false`,
 					1,
 					100,
 					"created_at.desc",
@@ -207,7 +207,7 @@ export default function Tab1() {
 				const { data: jobs } = await getAll(
 					"jobs",
 					"*, companies(name, logo_url)",
-					`&isArchived=eq.false`,
+					`&is_archived=eq.false`,
 					1,
 					5,
 					"created_at.desc",
@@ -782,7 +782,7 @@ export default function Tab1() {
 									}
 									salary_annual_min={job?.salary_annual_min}
 									salary_annual_max={job?.salary_annual_max}
-									isArchived={job.isArchived}
+									isArchived={job.is_archived}
 									isLastMinute={job.isLastMinute}
 								/>
 							))}
@@ -1214,7 +1214,7 @@ export default function Tab1() {
 									}
 									salary_annual_min={job?.salary_annual_min}
 									salary_annual_max={job?.salary_annual_max}
-									isArchived={job.isArchived}
+									isArchived={job.is_archived}
 									isLastMinute={job.isLastMinute}
 									vacations={job?.vacations}
 									date_mode={job?.date_mode}

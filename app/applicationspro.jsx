@@ -43,7 +43,7 @@ const ApplicationsProScreen = () => {
 		const { data, totalCount } = await getAll(
 			"applications",
 			"*,jobs(*), profiles(*), companies(*)",
-			`&jobs.isArchived=eq.FALSE&jobs=not.is.null&company_id=eq.${user.id}`,
+			`&jobs.is_archived=eq.FALSE&jobs=not.is.null&company_id=eq.${user.id}`,
 			page,
 			ITEMS_PER_PAGE,
 			"updated_at.desc.nullslast,created_at.desc",

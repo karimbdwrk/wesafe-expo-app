@@ -23,7 +23,7 @@ const ApplicationsProList = ({ userId, title }) => {
 		const { data } = await getAll(
 			"applications",
 			"*,jobs(*),profiles(*)",
-			`&jobs.isArchived=eq.FALSE&jobs=not.is.null&company_id=eq.${userId}`,
+			`&jobs.is_archived=eq.FALSE&jobs=not.is.null&company_id=eq.${userId}`,
 			1,
 			5,
 			"created_at.desc",

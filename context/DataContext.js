@@ -369,7 +369,7 @@ export const DataProvider = ({ children }) => {
 			const res = await axiosInstance.patch(
 				`/jobs?id=eq.${jobId}`,
 				{
-					isArchived: true,
+					is_archived: true,
 				},
 				{
 					headers: {
@@ -391,7 +391,7 @@ export const DataProvider = ({ children }) => {
 	const isJobArchived = async (jobId) => {
 		try {
 			const res = await axiosInstance.get(
-				`/jobs?id=eq.${jobId}&isArchived=eq.true`,
+				`/jobs?id=eq.${jobId}&is_archived=eq.true`,
 			);
 
 			return res.data.length > 0; // true if applied

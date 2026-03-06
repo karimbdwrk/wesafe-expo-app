@@ -128,7 +128,7 @@ const OffersScreen = () => {
 								department={offer?.department_code}
 								logo={offer?.companies?.logo_url}
 								company_name={offer?.companies?.name}
-								isArchived={!offer.isArchived ? false : true}
+								isArchived={!offer.is_archived ? false : true}
 								contract_type={offer?.contract_type}
 								working_time={offer?.work_time}
 								salary_hourly={offer?.salary_hourly}

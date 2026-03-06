@@ -198,7 +198,7 @@ export default function JobsList({
 			const { data, totalCount } = await getAll(
 				"jobs",
 				"*,companies(logo_url, name)",
-				`&isArchived=eq.FALSE${filters}&isLastMinute=eq.${isLastMinute}${
+				`&is_archived=eq.FALSE${filters}&isLastMinute=eq.${isLastMinute}${
 					isLastMinute ? "&created_at=gte." + limit72h : ""
 				}`,
 				page,

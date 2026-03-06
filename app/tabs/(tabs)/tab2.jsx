@@ -92,7 +92,7 @@ export default function Tab2() {
 		const { data, totalCount } = await getAll(
 			"jobs",
 			"*",
-			`&isArchived=eq.FALSE${filters}&isLastMinute=eq.TRUE&date=eq.${currentDate}`,
+			`&is_archived=eq.FALSE${filters}&isLastMinute=eq.TRUE&date=eq.${currentDate}`,
 			page,
 			ITEMS_PER_PAGE,
 			"date.desc",

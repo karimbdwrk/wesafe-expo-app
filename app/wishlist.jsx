@@ -43,7 +43,7 @@ const WishlistScreen = () => {
 		const { data, totalCount } = await getAll(
 			"wishlists",
 			"*,jobs(*, companies(*))",
-			`&jobs.isArchived=eq.FALSE&jobs=not.is.null&profile_id=eq.${user.id}`,
+			`&jobs.is_archived=eq.FALSE&jobs=not.is.null&profile_id=eq.${user.id}`,
 			page,
 			ITEMS_PER_PAGE,
 			"created_at.desc",

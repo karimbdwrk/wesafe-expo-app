@@ -496,7 +496,7 @@ const JobScreen = () => {
 									</Badge>
 								)}
 							</HStack>
-							{job?.isLastMinute || job?.isArchived ? (
+							{job?.isLastMinute || job?.is_archived ? (
 								<Divider />
 							) : null}
 							<HStack>
@@ -509,7 +509,7 @@ const JobScreen = () => {
 										<BadgeText>Dernière minute</BadgeText>
 									</Badge>
 								)}
-								{job?.isArchived && (
+								{job?.is_archived && (
 									<Badge
 										size='md'
 										variant='solid'

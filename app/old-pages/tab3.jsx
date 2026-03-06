@@ -215,7 +215,7 @@ export default function Tab3() {
 		const { data, totalCount } = await getAll(
 			"jobs",
 			"*",
-			`&isArchived=eq.FALSE${filters}`,
+			`&is_archived=eq.FALSE${filters}`,
 			page,
 			ITEMS_PER_PAGE,
 			"date.desc",

@@ -87,7 +87,7 @@ const MiniJobsList = ({
 		const { data, totalCount } = await getAll(
 			"jobs",
 			"*,companies(logo_url, name)",
-			`&isArchived=eq.FALSE${filtersSup}&region_code=eq.${regionCode}${filters}`,
+			`&is_archived=eq.FALSE${filtersSup}&region_code=eq.${regionCode}${filters}`,
 			1,
 			itemsPerPage,
 			"date.desc",
