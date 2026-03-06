@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
+import * as ImageManipulator from "expo-image-manipulator";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useFocusEffect } from "expo-router";
 import {
@@ -364,6 +365,22 @@ const ProDocs = ({ navigation }) => {
 			mime = `image/${ext === "jpg" ? "jpeg" : ext}`;
 		}
 
+		// Convertir HEIC/HEIF → JPEG
+		let sourceUri = docImage.uri;
+		if (
+			mime === "image/heic" ||
+			mime === "image/heif" ||
+			sourceUri.toLowerCase().match(/\.hei[cf]$/)
+		) {
+			const converted = await ImageManipulator.manipulateAsync(
+				sourceUri,
+				[],
+				{ compress: 0.85, format: ImageManipulator.SaveFormat.JPEG },
+			);
+			sourceUri = converted.uri;
+			mime = "image/jpeg";
+		}
+
 		// Extension de stockage
 		const storageExt =
 			mime === "application/pdf"
@@ -375,7 +392,7 @@ const ProDocs = ({ navigation }) => {
 		const filename = `${user.id}/${selectedCategory}_${selectedType.code}_${Date.now()}.${storageExt}`;
 
 		// Lire le fichier local en base64 (fetch→blob renvoie 0 bytes en React Native)
-		const base64 = await FileSystem.readAsStringAsync(docImage.uri, {
+		const base64 = await FileSystem.readAsStringAsync(sourceUri, {
 			encoding: "base64",
 		});
 
@@ -412,11 +429,12 @@ const ProDocs = ({ navigation }) => {
 		if (!docImage) return;
 		if (selectedCategory === "cnaps" && cnapsCardNumber.trim().length !== 7)
 			return;
-		// Garde anti-doublon
+		// Garde anti-doublon (ignorer les documents expirés)
 		const isDuplicate = docs.some(
 			(d) =>
 				d._category === selectedCategory &&
-				d.type === selectedType?.code,
+				d.type === selectedType?.code &&
+				!(d.expires_at && new Date(d.expires_at) < new Date()),
 		);
 		if (isDuplicate) {
 			toast.show({
@@ -990,7 +1008,13 @@ const ProDocs = ({ navigation }) => {
 
 		const existingTypes = new Set(
 			docs
-				.filter((d) => d._category === selectedCategory)
+				.filter((d) => {
+					if (d._category !== selectedCategory) return false;
+					// Exclure les documents expirés : ils peuvent être re-soumis
+					if (d.expires_at && new Date(d.expires_at) < new Date())
+						return false;
+					return true;
+				})
 				.map((d) => d.type),
 		);
 
@@ -1011,13 +1035,24 @@ const ProDocs = ({ navigation }) => {
 				<VStack space='sm'>
 					{items.map((item) => {
 						const alreadyAdded = existingTypes.has(item.code);
+						// Vérifier si le doc existe mais est expiré (re-soumission autorisée)
+						const expiredDoc = docs.find(
+							(d) =>
+								d._category === selectedCategory &&
+								d.type === item.code &&
+								d.expires_at &&
+								new Date(d.expires_at) < new Date(),
+						);
+						const isExpired = !!expiredDoc;
 						return (
 							<TouchableOpacity
 								key={item.code}
-								activeOpacity={alreadyAdded ? 1 : 0.7}
-								disabled={alreadyAdded}
+								activeOpacity={
+									alreadyAdded && !isExpired ? 1 : 0.7
+								}
+								disabled={alreadyAdded && !isExpired}
 								onPress={() => {
-									if (alreadyAdded) return;
+									if (alreadyAdded && !isExpired) return;
 									setSelectedType(item);
 									setStep("upload");
 								}}>
@@ -1029,14 +1064,19 @@ const ProDocs = ({ navigation }) => {
 											: "#ffffff",
 										borderRadius: 12,
 										borderWidth: 1,
-										borderColor: alreadyAdded
-											? isDark
-												? "#374151"
-												: "#f3f4f6"
-											: isDark
-												? "#4b5563"
-												: "#e5e7eb",
-										opacity: alreadyAdded ? 0.55 : 1,
+										borderColor: isExpired
+											? "#f59e0b"
+											: alreadyAdded
+												? isDark
+													? "#374151"
+													: "#f3f4f6"
+												: isDark
+													? "#4b5563"
+													: "#e5e7eb",
+										opacity:
+											alreadyAdded && !isExpired
+												? 0.55
+												: 1,
 									}}>
 									<HStack
 										style={{
@@ -1084,7 +1124,7 @@ const ProDocs = ({ navigation }) => {
 												</Text>
 											) : null}
 										</VStack>
-										{alreadyAdded ? (
+										{alreadyAdded && !isExpired ? (
 											<Badge
 												size='sm'
 												variant='solid'
@@ -1093,6 +1133,17 @@ const ProDocs = ({ navigation }) => {
 												<BadgeText
 													style={{ marginLeft: 4 }}>
 													Déjà soumis
+												</BadgeText>
+											</Badge>
+										) : isExpired ? (
+											<Badge
+												size='sm'
+												variant='solid'
+												action='warning'>
+												<BadgeIcon as={AlertCircle} />
+												<BadgeText
+													style={{ marginLeft: 4 }}>
+													Expiré — renouveler
 												</BadgeText>
 											</Badge>
 										) : (
