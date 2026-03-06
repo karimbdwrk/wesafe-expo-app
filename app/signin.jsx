@@ -1,31 +1,37 @@
 import React, { useState } from "react";
 import {
-	View,
-	TextInput,
-	StyleSheet,
+	Image,
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
 	ActivityIndicator,
 	Alert,
+	TouchableOpacity,
 } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Box } from "@/components/ui/box";
 import { Button, ButtonText } from "@/components/ui/button";
-import { Link, LinkText } from "@/components/ui/link";
+import { Card } from "@/components/ui/card";
+import { Divider } from "@/components/ui/divider";
 import { FormControl } from "@/components/ui/form-control";
 import { Heading } from "@/components/ui/heading";
+import { HStack } from "@/components/ui/hstack";
 import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
+import { Link, LinkText } from "@/components/ui/link";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import { HStack } from "@/components/ui/hstack";
-import { EyeIcon, EyeOffIcon } from "@/components/ui/icon";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { EyeIcon, EyeOffIcon, Icon } from "@/components/ui/icon";
+import { ChevronLeft } from "lucide-react-native";
+
+import { useTheme } from "@/context/ThemeContext";
 
 const SignInScreen = () => {
 	const { signIn, loading } = useAuth();
 	const router = useRouter();
+	const { isDark } = useTheme();
 
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -37,12 +43,9 @@ const SignInScreen = () => {
 			Alert.alert("Erreur", "Merci de remplir tous les champs");
 			return;
 		}
-
 		setSubmitting(true);
 		try {
 			await signIn(email, password);
-			// console.log("redirection from signin.jsx");
-			// router.replace("/tabs/(tabs)");
 		} catch (error) {
 			Alert.alert("Échec de la connexion", error.message);
 		} finally {
@@ -52,46 +55,152 @@ const SignInScreen = () => {
 
 	return (
 		<SafeAreaView
-			style={{ flex: 1, padding: 16, backgroundColor: "#FFFFFF" }}>
+			style={{
+				flex: 1,
+				backgroundColor: isDark ? "#111827" : "#f9fafb",
+			}}>
 			<KeyboardAvoidingView
 				style={{ flex: 1 }}
-				behavior={Platform.OS === "ios" ? "padding" : "height"}
-				keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // Ajuste si tu as un header
-			>
+				behavior={Platform.OS === "ios" ? "padding" : "height"}>
 				<ScrollView
-					contentContainerStyle={{
-						flex: 1,
-						flexGrow: 1,
-					}}
+					contentContainerStyle={{ flexGrow: 1 }}
 					keyboardShouldPersistTaps='handled'>
-					<View style={styles.container}>
-						<FormControl
-							className='p-4 border rounded-lg border-outline-300'
-							style={{ width: "100%" }}>
-							<VStack space='xl'>
-								<Heading className='text-typography-900'>
-									Je me connecte
-								</Heading>
+					<VStack
+						style={{
+							flex: 1,
+							paddingHorizontal: 24,
+							paddingBottom: 32,
+						}}>
+						{/* Back button */}
+						<TouchableOpacity
+							onPress={() => router.back()}
+							activeOpacity={0.7}
+							style={{
+								paddingTop: 12,
+								paddingBottom: 8,
+								alignSelf: "flex-start",
+							}}>
+							<HStack space='xs' style={{ alignItems: "center" }}>
+								<Icon
+									as={ChevronLeft}
+									size='sm'
+									style={{
+										color: isDark ? "#60a5fa" : "#2563eb",
+									}}
+								/>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#60a5fa" : "#2563eb",
+										fontWeight: "600",
+									}}>
+									Retour
+								</Text>
+							</HStack>
+						</TouchableOpacity>
+
+						{/* Logo */}
+						<VStack
+							style={{
+								alignItems: "center",
+								paddingTop: 24,
+								paddingBottom: 32,
+							}}>
+							<Image
+								source={require("@/assets/images/logo-wesafe-v2.png")}
+								style={{ width: 80, height: 80 }}
+								resizeMode='contain'
+							/>
+							<Text
+								style={{
+									fontSize: 24,
+									fontWeight: "800",
+									color: isDark ? "#f9fafb" : "#111827",
+									marginTop: 16,
+									letterSpacing: -0.5,
+								}}>
+								Connexion
+							</Text>
+							<Text
+								size='sm'
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+									marginTop: 6,
+								}}>
+								Content de vous revoir 👋
+							</Text>
+						</VStack>
+
+						{/* Form Card */}
+						<Card
+							style={{
+								padding: 24,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderRadius: 16,
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}>
+							<VStack space='lg'>
+								{/* Email */}
 								<VStack space='xs'>
-									<Text className='text-typography-500'>
-										Email
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "600",
+											color: isDark
+												? "#d1d5db"
+												: "#374151",
+										}}>
+										Adresse email
 									</Text>
-									<Input className='min-w-[250px]'>
+									<Input
+										style={{
+											borderRadius: 10,
+											backgroundColor: isDark
+												? "#1f2937"
+												: "#f9fafb",
+											borderColor: isDark
+												? "#4b5563"
+												: "#d1d5db",
+										}}>
 										<InputField
 											type='text'
-											placeholder='example@wesafeapp.com'
+											placeholder='exemple@wesafeapp.com'
 											value={email}
 											onChangeText={setEmail}
 											autoCapitalize='none'
 											keyboardType='email-address'
+											style={{
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}
 										/>
 									</Input>
 								</VStack>
+
+								{/* Password */}
 								<VStack space='xs'>
-									<Text className='text-typography-500'>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "600",
+											color: isDark
+												? "#d1d5db"
+												: "#374151",
+										}}>
 										Mot de passe
 									</Text>
-									<Input className='text-center'>
+									<Input
+										style={{
+											borderRadius: 10,
+											backgroundColor: isDark
+												? "#1f2937"
+												: "#f9fafb",
+											borderColor: isDark
+												? "#4b5563"
+												: "#d1d5db",
+										}}>
 										<InputField
 											type={
 												showPassword
@@ -101,6 +210,11 @@ const SignInScreen = () => {
 											placeholder='MonMotDePasse$'
 											value={password}
 											onChangeText={setPassword}
+											style={{
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}
 										/>
 										<InputSlot
 											className='pr-3'
@@ -117,35 +231,65 @@ const SignInScreen = () => {
 										</InputSlot>
 									</Input>
 								</VStack>
+
+								{/* Submit */}
 								{submitting ? (
-									<ActivityIndicator size='large' />
+									<ActivityIndicator
+										size='large'
+										color={isDark ? "#60a5fa" : "#2563eb"}
+										style={{ marginTop: 8 }}
+									/>
 								) : (
 									<Button
-										className='ml-auto mt-6'
-										style={{ width: "100%" }}
+										size='lg'
+										style={{
+											backgroundColor: "#2563eb",
+											borderRadius: 12,
+											height: 52,
+											marginTop: 8,
+										}}
 										onPress={handleLogin}>
-										<ButtonText className='text-typography-0'>
+										<ButtonText
+											style={{
+												fontWeight: "700",
+												fontSize: 16,
+												color: "#ffffff",
+											}}>
 											Se connecter
 										</ButtonText>
 									</Button>
 								)}
 							</VStack>
-							<HStack
-								space={"sm"}
-								style={{ paddingTop: 30, paddingBottom: 5 }}
-								justifyContent='center'>
-								<Text>Je n'ai pas de compte</Text>
-								<Link onPress={() => router.replace("/signup")}>
-									<LinkText>M'inscrire</LinkText>
-								</Link>
-							</HStack>
-						</FormControl>
-						{loading && (
-							<Text style={styles.loading}>
-								Chargement de la session...
+						</Card>
+
+						<Divider style={{ marginVertical: 24 }} />
+
+						{/* Sign up link */}
+						<HStack
+							style={{
+								justifyContent: "center",
+								alignItems: "center",
+							}}
+							space='xs'>
+							<Text
+								size='sm'
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+								}}>
+								Pas encore de compte ?
 							</Text>
-						)}
-					</View>
+							<Link onPress={() => router.replace("/signup")}>
+								<LinkText
+									size='sm'
+									style={{
+										color: isDark ? "#60a5fa" : "#2563eb",
+										fontWeight: "600",
+									}}>
+									M'inscrire
+								</LinkText>
+							</Link>
+						</HStack>
+					</VStack>
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
@@ -153,31 +297,3 @@ const SignInScreen = () => {
 };
 
 export default SignInScreen;
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-		width: "100%",
-		padding: 15,
-		backgroundColor: "#FFFFFF",
-	},
-	title: {
-		fontSize: 28,
-		marginBottom: 24,
-		textAlign: "center",
-	},
-	input: {
-		borderWidth: 1,
-		borderColor: "#ccc",
-		padding: 12,
-		marginBottom: 16,
-		borderRadius: 8,
-	},
-	loading: {
-		marginTop: 16,
-		textAlign: "center",
-		color: "#555",
-	},
-});
