@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Constants from "expo-constants";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { ScrollView } from "react-native";
+import { ScrollView, Image as RNImage } from "react-native";
 import axios from "axios";
 import { decode } from "base64-arraybuffer";
 
@@ -34,7 +34,8 @@ const STORAGE_URL = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}`;
 
 const SignatureScreen = () => {
 	const { setSignature, signature } = useImage();
-	const { user, accessToken, loadUserData } = useAuth();
+	const { user, accessToken, loadUserData, userProfile, userCompany } =
+		useAuth();
 	const { update } = useDataContext();
 	const { isDark } = useTheme();
 	const { signatureUrl, isPro, type } = useLocalSearchParams();
@@ -42,11 +43,24 @@ const SignatureScreen = () => {
 	const [signatureImg, setSignatureImg] = useState(null);
 	const [showActionsheet, setShowActionsheet] = useState(false);
 
-	useEffect(() => {
-		// console.log("signature in context :", signature, signatureImg);
-		signatureUrl && setSignatureImg(signatureUrl);
-		console.log("signature url param and is Pro :", signatureUrl);
-	}, [signatureUrl]);
+	useFocusEffect(
+		useCallback(() => {
+			if (signatureUrl) {
+				setSignatureImg(signatureUrl);
+			} else {
+				// Fallback : charger depuis le profil si le param n'est pas passé
+				const url =
+					userProfile?.signature_url ??
+					userCompany?.signature_url ??
+					null;
+				setSignatureImg(url);
+			}
+		}, [
+			signatureUrl,
+			userProfile?.signature_url,
+			userCompany?.signature_url,
+		]),
+	);
 
 	const handleSaveSign = (signature) => {
 		setSignatureImg(signature);
@@ -56,10 +70,6 @@ const SignatureScreen = () => {
 	useEffect(() => {
 		signature && handleUpload(signature);
 	}, [signature]);
-
-	useEffect(() => {
-		console.log("type param in signature screen :", type);
-	}, [type]);
 
 	const handleUpload = async (signatureBase64) => {
 		try {
@@ -98,7 +108,10 @@ const SignatureScreen = () => {
 
 			const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${filePath}`;
 
-			await update(type, user.id, {
+			// Déterminer la bonne table si le param `type` n'est pas passé
+			const table = type ?? (userCompany ? "companies" : "profiles");
+
+			await update(table, user.id, {
 				signature_url: publicUrl,
 			});
 			loadUserData(user.id, accessToken);
@@ -167,9 +180,6 @@ const SignatureScreen = () => {
 
 							<Box
 								style={{
-									minHeight: 200,
-									justifyContent: "center",
-									alignItems: "center",
 									backgroundColor: isDark
 										? "#1f2937"
 										: "#f9fafb",
@@ -178,17 +188,14 @@ const SignatureScreen = () => {
 									borderStyle: "dashed",
 									borderColor: isDark ? "#4b5563" : "#d1d5db",
 									padding: 8,
+									height: 200,
+									justifyContent: "center",
+									alignItems: "center",
 								}}>
-								<Image
+								<RNImage
 									source={{ uri: signatureImg }}
-									style={{
-										width: "100%",
-										height: 250,
-										borderWidth: 2,
-										borderColor: "red",
-									}}
-									contentFit='cover'
-									alt='Signature'
+									style={{ width: "100%", height: "100%" }}
+									resizeMode='contain'
 								/>
 							</Box>
 						</VStack>
