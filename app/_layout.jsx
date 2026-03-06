@@ -263,7 +263,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='curriculumvitae'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Mon CV",
+								}}
 							/>
 							<Stack.Screen
 								name='addexperience'
