@@ -448,6 +448,15 @@ const SignUpScreen = () => {
 									</>
 								)}
 							</VStack>
+							<HStack
+								space={"sm"}
+								style={{ paddingTop: 30, paddingBottom: 5 }}
+								justifyContent='center'>
+								<Text>J'ai déjà un compte</Text>
+								<Link onPress={() => router.replace("/signin")}>
+									<LinkText>Me connecter</LinkText>
+								</Link>
+							</HStack>
 						</FormControl>
 					</View>
 				)}
