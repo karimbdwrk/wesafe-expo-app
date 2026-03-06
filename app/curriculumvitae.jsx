@@ -1,9 +1,10 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
 	ScrollView,
 	TouchableOpacity,
 	KeyboardAvoidingView,
 	Platform,
+	Dimensions,
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -97,6 +98,29 @@ const CurriculumScreen = () => {
 		useState(false);
 	const [isEndDatePickerVisible, setEndDatePickerVisibility] =
 		useState(false);
+
+	const scrollViewRef = useRef(null);
+	const titleRef = useRef(null);
+	const companyRef = useRef(null);
+	const locationRef = useRef(null);
+	const descriptionRef = useRef(null);
+
+	const scrollToInput = (inputRef, offset = 120) => {
+		if (inputRef.current && scrollViewRef.current) {
+			setTimeout(() => {
+				inputRef.current.measureLayout(
+					scrollViewRef.current,
+					(x, y) => {
+						scrollViewRef.current.scrollTo({
+							y: y - offset,
+							animated: true,
+						});
+					},
+					() => {},
+				);
+			}, 100);
+		}
+	};
 
 	const loadData = async () => {
 		try {
@@ -298,6 +322,8 @@ const CurriculumScreen = () => {
 				backgroundColor: isDark ? "#111827" : "#ffffff",
 			}}>
 			<ScrollView
+				ref={scrollViewRef}
+				keyboardShouldPersistTaps='handled'
 				style={{
 					flex: 1,
 					backgroundColor: isDark ? "#111827" : "#ffffff",
@@ -375,9 +401,13 @@ const CurriculumScreen = () => {
 												: "#f9fafb",
 										}}>
 										<InputField
+											ref={titleRef}
 											placeholder='Ex: Agent de sécurité'
 											value={title}
 											onChangeText={setTitle}
+											onFocus={() =>
+												scrollToInput(titleRef)
+											}
 											style={{
 												color: isDark
 													? "#f3f4f6"
@@ -408,9 +438,13 @@ const CurriculumScreen = () => {
 												: "#f9fafb",
 										}}>
 										<InputField
+											ref={companyRef}
 											placeholder='Ex: Société de sécurité XYZ'
 											value={company}
 											onChangeText={setCompany}
+											onFocus={() =>
+												scrollToInput(companyRef)
+											}
 											style={{
 												color: isDark
 													? "#f3f4f6"
@@ -441,9 +475,13 @@ const CurriculumScreen = () => {
 												: "#f9fafb",
 										}}>
 										<InputField
+											ref={locationRef}
 											placeholder='Ex: Paris, France'
 											value={location}
 											onChangeText={setLocation}
+											onFocus={() =>
+												scrollToInput(locationRef)
+											}
 											style={{
 												color: isDark
 													? "#f3f4f6"
@@ -628,9 +666,16 @@ const CurriculumScreen = () => {
 												: "#f9fafb",
 										}}>
 										<TextareaInput
+											ref={descriptionRef}
 											placeholder='Décrivez vos missions et responsabilités...'
 											value={description}
 											onChangeText={setDescription}
+											onFocus={() =>
+												scrollToInput(
+													descriptionRef,
+													80,
+												)
+											}
 											style={{
 												color: isDark
 													? "#f3f4f6"
