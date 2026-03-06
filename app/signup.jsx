@@ -1,40 +1,32 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-	View,
+	Image,
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
-	StyleSheet,
 	ActivityIndicator,
 	Alert,
+	TouchableOpacity,
 } from "react-native";
 import axios from "axios";
 import Constants from "expo-constants";
+import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Box } from "@/components/ui/box";
 import { Button, ButtonText } from "@/components/ui/button";
-import { Link, LinkText } from "@/components/ui/link";
+import { Card } from "@/components/ui/card";
 import {
 	Checkbox,
 	CheckboxIndicator,
 	CheckboxLabel,
 	CheckboxIcon,
 } from "@/components/ui/checkbox";
-import { FormControl } from "@/components/ui/form-control";
+import { Divider } from "@/components/ui/divider";
 import { Heading } from "@/components/ui/heading";
-import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
-import { Text } from "@/components/ui/text";
 import { HStack } from "@/components/ui/hstack";
-import { VStack } from "@/components/ui/vstack";
-import { EyeIcon, EyeOffIcon, CheckIcon } from "@/components/ui/icon";
-import {
-	Actionsheet,
-	ActionsheetContent,
-	ActionsheetItem,
-	ActionsheetItemText,
-	ActionsheetDragIndicator,
-	ActionsheetDragIndicatorWrapper,
-	ActionsheetBackdrop,
-} from "@/components/ui/actionsheet";
+import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
+import { Link, LinkText } from "@/components/ui/link";
 import {
 	Modal,
 	ModalBackdrop,
@@ -44,25 +36,31 @@ import {
 	ModalBody,
 	ModalFooter,
 } from "@/components/ui/modal";
-
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { Icon, CloseIcon } from "@/components/ui/icon";
+import { Text } from "@/components/ui/text";
+import { VStack } from "@/components/ui/vstack";
+import {
+	CheckIcon,
+	EyeIcon,
+	EyeOffIcon,
+	Icon,
+	CloseIcon,
+} from "@/components/ui/icon";
+import { ChevronLeft } from "lucide-react-native";
 
 import { useAuth } from "../context/AuthContext";
-import { useRouter } from "expo-router";
+import { useTheme } from "@/context/ThemeContext";
 import { createSupabaseClient } from "../lib/supabase";
-
 import OTPForm from "../components/OTPForm";
 
 const SignUpScreen = () => {
 	const { signUp, loading } = useAuth();
 	const router = useRouter();
+	const { isDark } = useTheme();
 	const initialRef = useRef(null);
 
 	const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
 	const [generatedOTP, setGeneratedTP] = useState(null);
-
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [password2, setPassword2] = useState("");
@@ -71,42 +69,28 @@ const SignUpScreen = () => {
 	const [isCandidate, setIsCandidate] = useState(null);
 	const [isCompany, setIsCompany] = useState(null);
 	const [submitting, setSubmitting] = useState(false);
-
-	// État pour gérer les étapes du formulaire
-	const [step, setStep] = useState(1); // 1 = email, 2 = password + role
+	const [step, setStep] = useState(1);
 	const [emailError, setEmailError] = useState("");
 	const [checkingEmail, setCheckingEmail] = useState(false);
-
 	const [showModal, setShowModal] = React.useState(false);
-	const [showActionsheet, setShowActionsheet] = React.useState(false);
-	const handleClose = () => setShowActionsheet(false);
 
 	const generateOTP = async () => {
 		try {
 			const supabase = createSupabaseClient();
 			const { data, error } = await supabase.functions.invoke(
 				"send-signup-otp",
-				{
-					body: {
-						email: email,
-						name: email,
-					},
-				},
+				{ body: { email, name: email } },
 			);
-
 			if (error) {
-				console.error("Erreur envoi OTP:", error);
 				Alert.alert(
 					"Erreur",
 					"Échec de l'envoi du code de vérification",
 				);
 				return;
 			}
-
-			setGeneratedTP("sent"); // Juste pour activer l'affichage du formulaire OTP
+			setGeneratedTP("sent");
 			setShowModal(true);
 		} catch (error) {
-			console.error("Erreur:", error);
 			Alert.alert("Erreur", "Échec de l'envoi du code");
 		}
 	};
@@ -115,20 +99,17 @@ const SignUpScreen = () => {
 		console.log("isCandidate or isCompany :", isCandidate, isCompany);
 	}, [isCandidate, isCompany]);
 
-	// Vérifier si l'email existe déjà
 	const checkEmailExists = async () => {
 		if (!email || !email.includes("@")) {
 			setEmailError("Veuillez entrer une adresse email valide");
 			return;
 		}
-
 		setCheckingEmail(true);
 		setEmailError("");
-
 		try {
 			const response = await axios.post(
 				`${SUPABASE_URL}/functions/v1/check-email-exists`,
-				{ email: email },
+				{ email },
 				{
 					headers: {
 						"Content-Type": "application/json",
@@ -136,15 +117,13 @@ const SignUpScreen = () => {
 					},
 				},
 			);
-
 			if (response.data.exists === true) {
 				setEmailError("Cet email est déjà utilisé");
 			} else {
-				// Email disponible, passer à l'étape 2
-				setStep(2);
+				// Email disponible → envoyer OTP pour vérifier l'email
+				await generateOTP();
 			}
 		} catch (error) {
-			console.error("Erreur vérification email :", error);
 			setEmailError("Erreur lors de la vérification");
 		} finally {
 			setCheckingEmail(false);
@@ -152,50 +131,33 @@ const SignUpScreen = () => {
 	};
 
 	const handleLogup = async () => {
-		// generateOTP();
-
 		if (!email || !password || isCandidate === null || isCompany === null) {
 			Alert.alert("Erreur", "Merci de remplir tous les champs");
 			return;
 		}
-
 		setSubmitting(true);
 		try {
 			await signUp(email, password, isCandidate, isCompany);
-			// router.replace("/(tabs)");
-			// Redirige vers la page principale
-			// router.replace("/updatecompany");
 		} catch (error) {
-			Alert.alert("Échec de la connexion", error.message);
+			Alert.alert("Échec de l'inscription", error.message);
 		} finally {
 			setSubmitting(false);
 		}
 	};
 
 	const handleOTP = async (newOTP) => {
-		console.log("Vérification OTP :", newOTP);
-
 		if (newOTP.length !== 6) {
 			Alert.alert("Erreur", "Le code doit contenir 6 chiffres");
 			return;
 		}
-
 		try {
 			const supabase = createSupabaseClient();
 			const { data, error } = await supabase.functions.invoke(
 				"verify-signup-otp",
-				{
-					body: {
-						email: email,
-						otp: newOTP,
-					},
-				},
+				{ body: { email, otp: newOTP } },
 			);
-
 			if (error || !data?.success) {
-				console.error("Erreur vérification OTP:", error || data?.error);
 				const errorMessage = data?.error || "Code invalide ou expiré";
-
 				if (data?.attemptsLeft !== undefined) {
 					Alert.alert(
 						"Code invalide",
@@ -206,51 +168,130 @@ const SignUpScreen = () => {
 				}
 				return;
 			}
-
-			// ✅ Code valide, créer le compte
 			setShowModal(false);
-			await handleLogup();
+			// OTP vérifié → passer à l'étape mots de passe + rôle
+			setStep(2);
 		} catch (error) {
-			console.error("Erreur:", error);
 			Alert.alert("Erreur", "Échec de la vérification du code");
 		}
 	};
 
 	const handleReset = () => {
-		console.log("reset signup infos !");
 		setGeneratedTP(null);
 	};
 
-	return (
-		<KeyboardAvoidingView
-			style={{ flex: 1 }}
-			behavior={Platform.OS === "ios" ? "padding" : "height"}
-			keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // Ajuste si tu as un header
-		>
-			<ScrollView
-				contentContainerStyle={{
-					flex: 1,
-					flexGrow: 1,
-				}}
-				keyboardShouldPersistTaps='handled'>
-				{!generatedOTP && (
-					<View style={styles.container}>
-						<FormControl className='p-4 border rounded-lg border-outline-300'>
-							<VStack space='xl'>
-								<Heading className='text-typography-900'>
-									Je créé mon compte
-								</Heading>
+	const inputStyle = {
+		borderRadius: 10,
+		backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+		borderColor: isDark ? "#4b5563" : "#d1d5db",
+	};
+	const inputTextStyle = { color: isDark ? "#f3f4f6" : "#111827" };
+	const labelStyle = {
+		fontWeight: "600",
+		color: isDark ? "#d1d5db" : "#374151",
+	};
 
+	return (
+		<SafeAreaView
+			style={{
+				flex: 1,
+				backgroundColor: isDark ? "#111827" : "#f9fafb",
+			}}>
+			<KeyboardAvoidingView
+				style={{ flex: 1 }}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}>
+				<ScrollView
+					contentContainerStyle={{ flexGrow: 1 }}
+					keyboardShouldPersistTaps='handled'>
+					<VStack
+						style={{
+							flex: 1,
+							paddingHorizontal: 24,
+							paddingBottom: 32,
+						}}>
+						{/* Back */}
+						<TouchableOpacity
+							onPress={() => router.back()}
+							activeOpacity={0.7}
+							style={{
+								paddingTop: 12,
+								paddingBottom: 8,
+								alignSelf: "flex-start",
+							}}>
+							<HStack space='xs' style={{ alignItems: "center" }}>
+								<Icon
+									as={ChevronLeft}
+									size='sm'
+									style={{
+										color: isDark ? "#60a5fa" : "#2563eb",
+									}}
+								/>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#60a5fa" : "#2563eb",
+										fontWeight: "600",
+									}}>
+									Retour
+								</Text>
+							</HStack>
+						</TouchableOpacity>
+
+						{/* Logo */}
+						<VStack
+							style={{
+								alignItems: "center",
+								paddingTop: 24,
+								paddingBottom: 32,
+							}}>
+							<Image
+								source={require("@/assets/images/logo-wesafe-v2.png")}
+								style={{ width: 80, height: 80 }}
+								resizeMode='contain'
+							/>
+							<Text
+								style={{
+									fontSize: 24,
+									fontWeight: "800",
+									color: isDark ? "#f9fafb" : "#111827",
+									marginTop: 16,
+									letterSpacing: -0.5,
+								}}>
+								Créer un compte
+							</Text>
+							<Text
+								size='sm'
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+									marginTop: 6,
+								}}>
+								{step === 1
+									? "Étape 1 / 2 — Votre email"
+									: "Étape 2 / 2 — Mot de passe et profil"}
+							</Text>
+						</VStack>
+
+						{/* Form Card */}
+						<Card
+							style={{
+								padding: 24,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderRadius: 16,
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}>
+							<VStack space='lg'>
+								{/* STEP 1 — Email */}
 								{step === 1 && (
 									<>
 										<VStack space='xs'>
-											<Text className='text-typography-500'>
-												Email
+											<Text size='sm' style={labelStyle}>
+												Adresse email
 											</Text>
-											<Input className='min-w-[250px]'>
+											<Input style={inputStyle}>
 												<InputField
 													type='text'
-													placeholder='example@wesafeapp.com'
+													placeholder='exemple@wesafeapp.com'
 													value={email}
 													onChangeText={(text) => {
 														setEmail(text);
@@ -258,23 +299,45 @@ const SignUpScreen = () => {
 													}}
 													autoCapitalize='none'
 													keyboardType='email-address'
+													style={inputTextStyle}
 												/>
 											</Input>
 											{emailError ? (
-												<Text className='text-error-500 text-sm'>
+												<Text
+													size='xs'
+													style={{
+														color: "#ef4444",
+														marginTop: 2,
+													}}>
 													{emailError}
 												</Text>
 											) : null}
 										</VStack>
 
 										{checkingEmail ? (
-											<ActivityIndicator size='large' />
+											<ActivityIndicator
+												size='large'
+												color={
+													isDark
+														? "#60a5fa"
+														: "#2563eb"
+												}
+											/>
 										) : (
 											<Button
-												className='ml-auto'
-												style={{ width: "100%" }}
+												size='lg'
+												style={{
+													backgroundColor: "#2563eb",
+													borderRadius: 12,
+													height: 52,
+												}}
 												onPress={checkEmailExists}>
-												<ButtonText className='text-typography-0'>
+												<ButtonText
+													style={{
+														fontWeight: "700",
+														fontSize: 16,
+														color: "#ffffff",
+													}}>
 													Suivant
 												</ButtonText>
 											</Button>
@@ -282,19 +345,25 @@ const SignUpScreen = () => {
 									</>
 								)}
 
+								{/* STEP 2 — Password + role */}
 								{step === 2 && (
 									<>
+										{/* Email readonly */}
 										<VStack space='xs'>
-											<Text className='text-typography-500'>
-												Email
+											<Text size='sm' style={labelStyle}>
+												Adresse email
 											</Text>
 											<Input
-												className='min-w-[250px]'
-												isDisabled={true}>
+												style={{
+													...inputStyle,
+													opacity: 0.7,
+												}}
+												isDisabled>
 												<InputField
 													type='text'
 													value={email}
 													editable={false}
+													style={inputTextStyle}
 												/>
 											</Input>
 											<Button
@@ -310,17 +379,24 @@ const SignUpScreen = () => {
 												style={{
 													alignSelf: "flex-start",
 												}}>
-												<ButtonText className='text-sm'>
+												<ButtonText
+													style={{
+														color: isDark
+															? "#60a5fa"
+															: "#2563eb",
+														fontSize: 13,
+													}}>
 													Modifier l'email
 												</ButtonText>
 											</Button>
 										</VStack>
 
+										{/* Password */}
 										<VStack space='xs'>
-											<Text className='text-typography-500'>
+											<Text size='sm' style={labelStyle}>
 												Mot de passe
 											</Text>
-											<Input className='text-center'>
+											<Input style={inputStyle}>
 												<InputField
 													type={
 														showPassword
@@ -330,6 +406,7 @@ const SignUpScreen = () => {
 													placeholder='MonMotDePasse$'
 													value={password}
 													onChangeText={setPassword}
+													style={inputTextStyle}
 												/>
 												<InputSlot
 													className='pr-3'
@@ -349,11 +426,12 @@ const SignUpScreen = () => {
 											</Input>
 										</VStack>
 
+										{/* Confirm password */}
 										<VStack space='xs'>
-											<Text className='text-typography-500'>
-												Confirmer mot de passe
+											<Text size='sm' style={labelStyle}>
+												Confirmer le mot de passe
 											</Text>
-											<Input className='text-center'>
+											<Input style={inputStyle}>
 												<InputField
 													type={
 														showPassword2
@@ -363,6 +441,7 @@ const SignUpScreen = () => {
 													placeholder='MonMotDePasse$'
 													value={password2}
 													onChangeText={setPassword2}
+													style={inputTextStyle}
 												/>
 												<InputSlot
 													className='pr-3'
@@ -382,93 +461,128 @@ const SignUpScreen = () => {
 											</Input>
 										</VStack>
 
-										<HStack space={"md"}>
-											<Checkbox
-												size='md'
-												onChange={() => (
-													setIsCandidate(
-														!isCandidate,
-													),
-													setIsCompany(false)
-												)}
-												isChecked={isCandidate}>
-												<CheckboxIndicator>
-													<CheckboxIcon
-														as={CheckIcon}
-													/>
-												</CheckboxIndicator>
-												<CheckboxLabel>
-													Candidat
-												</CheckboxLabel>
-											</Checkbox>
-											<Checkbox
-												size='md'
-												onChange={() => (
-													setIsCompany(!isCompany),
-													setIsCandidate(false)
-												)}
-												isChecked={isCompany}>
-												<CheckboxIndicator>
-													<CheckboxIcon
-														as={CheckIcon}
-													/>
-												</CheckboxIndicator>
-												<CheckboxLabel>
-													Professionnel
-												</CheckboxLabel>
-											</Checkbox>
-										</HStack>
+										{/* Role */}
+										<VStack space='xs'>
+											<Text size='sm' style={labelStyle}>
+												Je suis
+											</Text>
+											<HStack
+												space='lg'
+												style={{ marginTop: 4 }}>
+												<Checkbox
+													size='md'
+													onChange={() => {
+														setIsCandidate(
+															!isCandidate,
+														);
+														setIsCompany(false);
+													}}
+													isChecked={isCandidate}>
+													<CheckboxIndicator>
+														<CheckboxIcon
+															as={CheckIcon}
+														/>
+													</CheckboxIndicator>
+													<CheckboxLabel
+														style={{
+															color: isDark
+																? "#d1d5db"
+																: "#374151",
+														}}>
+														Candidat
+													</CheckboxLabel>
+												</Checkbox>
+												<Checkbox
+													size='md'
+													onChange={() => {
+														setIsCompany(
+															!isCompany,
+														);
+														setIsCandidate(false);
+													}}
+													isChecked={isCompany}>
+													<CheckboxIndicator>
+														<CheckboxIcon
+															as={CheckIcon}
+														/>
+													</CheckboxIndicator>
+													<CheckboxLabel
+														style={{
+															color: isDark
+																? "#d1d5db"
+																: "#374151",
+														}}>
+														Professionnel
+													</CheckboxLabel>
+												</Checkbox>
+											</HStack>
+										</VStack>
 
 										{submitting ? (
-											<ActivityIndicator size='large' />
+											<ActivityIndicator
+												size='large'
+												color={
+													isDark
+														? "#60a5fa"
+														: "#2563eb"
+												}
+											/>
 										) : (
 											<Button
-												className='ml-auto'
-												style={{ width: "100%" }}
-												onPress={generateOTP}>
-												<ButtonText className='text-typography-0'>
+												size='lg'
+												style={{
+													backgroundColor: "#2563eb",
+													borderRadius: 12,
+													height: 52,
+												}}
+												onPress={handleLogup}>
+												<ButtonText
+													style={{
+														fontWeight: "700",
+														fontSize: 16,
+														color: "#ffffff",
+													}}>
 													S'inscrire
 												</ButtonText>
 											</Button>
 										)}
-
-										<HStack
-											space={"sm"}
-											justifyContent='center'>
-											<Text>J'ai déjà un compte</Text>
-											<Link
-												onPress={() =>
-													router.replace("/signin")
-												}>
-												<LinkText>
-													Me connecter
-												</LinkText>
-											</Link>
-										</HStack>
 									</>
 								)}
 							</VStack>
-							<HStack
-								space={"sm"}
-								style={{ paddingTop: 30, paddingBottom: 5 }}
-								justifyContent='center'>
-								<Text>J'ai déjà un compte</Text>
-								<Link onPress={() => router.replace("/signin")}>
-									<LinkText>Me connecter</LinkText>
-								</Link>
-							</HStack>
-						</FormControl>
-					</View>
-				)}
-				{generatedOTP && (
-					<View style={styles.container}>
-						<OTPForm onSubmit={handleOTP} />
-						<Button onPress={handleReset}>
-							<ButtonText>Modifier mes informations</ButtonText>
-						</Button>
-					</View>
-				)}
-			</ScrollView>
+						</Card>
+
+						<Divider style={{ marginVertical: 24 }} />
+
+						{/* Sign in link */}
+						<HStack
+							style={{
+								justifyContent: "center",
+								alignItems: "center",
+							}}
+							space='xs'>
+							<Text
+								size='sm'
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+								}}>
+								Déjà un compte ?
+							</Text>
+							<Link onPress={() => router.replace("/signin")}>
+								<LinkText
+									size='sm'
+									style={{
+										color: isDark ? "#60a5fa" : "#2563eb",
+										fontWeight: "600",
+									}}>
+									Me connecter
+								</LinkText>
+							</Link>
+						</HStack>
+					</VStack>
+				</ScrollView>
+			</KeyboardAvoidingView>
+
+			{/* OTP Modal */}
 			<Modal
 				isOpen={showModal}
 				initialFocusRef={initialRef}
@@ -478,13 +592,26 @@ const SignUpScreen = () => {
 				}}
 				size='lg'>
 				<ModalBackdrop />
-				<ModalContent>
+				<ModalContent
+					style={{
+						backgroundColor: isDark ? "#374151" : "#ffffff",
+						borderRadius: 16,
+					}}>
 					<ModalHeader alignItems='flex-start'>
 						<VStack>
-							<Heading size='md' className='text-typography-950'>
-								Entrez votre code OTP
+							<Heading
+								size='md'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								Vérification par email
 							</Heading>
-							<Text size='xs'>
+							<Text
+								size='xs'
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+									marginTop: 4,
+								}}>
 								Vous avez reçu un code OTP par e-mail
 							</Text>
 						</VStack>
@@ -497,16 +624,15 @@ const SignUpScreen = () => {
 						</ModalCloseButton>
 					</ModalHeader>
 					<ModalBody>
-						<VStack>
+						<VStack space='md'>
 							<OTPForm onSubmit={handleOTP} />
-						</VStack>
-						<VStack style={{ alignItems: "flex-start" }}>
 							<Button onPress={generateOTP} variant='link'>
 								<ButtonText
 									style={{
 										textDecorationLine: "underline",
-										fontWeight: 300,
+										fontWeight: "300",
 										fontStyle: "italic",
+										color: isDark ? "#60a5fa" : "#2563eb",
 									}}>
 									Je n'ai pas reçu de code
 								</ButtonText>
@@ -514,70 +640,34 @@ const SignUpScreen = () => {
 						</VStack>
 					</ModalBody>
 					<ModalFooter>
-						<Button
-							variant='outline'
-							action='secondary'
-							onPress={() => {
-								setShowModal(false);
-								handleReset();
-							}}>
-							<ButtonText>Annuler</ButtonText>
-						</Button>
-						<Button
-							onPress={() => {
-								setShowModal(false);
-							}}>
-							<ButtonText>Valider</ButtonText>
-						</Button>
+						<HStack space='md' style={{ width: "100%" }}>
+							<Button
+								variant='outline'
+								action='secondary'
+								style={{ flex: 1, borderRadius: 10 }}
+								onPress={() => {
+									setShowModal(false);
+									handleReset();
+								}}>
+								<ButtonText>Annuler</ButtonText>
+							</Button>
+							<Button
+								style={{
+									flex: 1,
+									borderRadius: 10,
+									backgroundColor: "#2563eb",
+								}}
+								onPress={() => setShowModal(false)}>
+								<ButtonText style={{ color: "#ffffff" }}>
+									Valider
+								</ButtonText>
+							</Button>
+						</HStack>
 					</ModalFooter>
 				</ModalContent>
 			</Modal>
-			<Actionsheet
-				isOpen={showActionsheet}
-				onClose={handleClose}
-				preventScroll={true}
-				isKeyboardDismissable={true}>
-				<ActionsheetBackdrop />
-				<ActionsheetContent>
-					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
-					</ActionsheetDragIndicatorWrapper>
-					<VStack style={{ paddingBottom: 90 }}>
-						<OTPForm ref={initialRef} onSubmit={handleOTP} />
-						<Button onPress={handleReset}>
-							<ButtonText>Modifier mes informations</ButtonText>
-						</Button>
-					</VStack>
-				</ActionsheetContent>
-			</Actionsheet>
-		</KeyboardAvoidingView>
+		</SafeAreaView>
 	);
 };
 
 export default SignUpScreen;
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		padding: 24,
-		justifyContent: "center",
-		backgroundColor: "#fff",
-	},
-	title: {
-		fontSize: 28,
-		marginBottom: 24,
-		textAlign: "center",
-	},
-	input: {
-		borderWidth: 1,
-		borderColor: "#ccc",
-		padding: 12,
-		marginBottom: 16,
-		borderRadius: 8,
-	},
-	loading: {
-		marginTop: 16,
-		textAlign: "center",
-		color: "#555",
-	},
-});
