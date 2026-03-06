@@ -263,21 +263,25 @@ const ProDocs = ({ navigation }) => {
 		setLoadingDocs(true);
 		try {
 			const supabase = createSupabaseClient(accessToken);
+			const now = new Date().toISOString();
 			const [cnapsRes, diplomasRes, certsRes] = await Promise.all([
 				supabase
 					.from("user_cnaps_cards")
 					.select("*")
 					.eq("user_id", user.id)
+					.or(`expires_at.is.null,expires_at.gt.${now}`)
 					.order("created_at", { ascending: false }),
 				supabase
 					.from("user_diplomas")
 					.select("*")
 					.eq("user_id", user.id)
+					.or(`expires_at.is.null,expires_at.gt.${now}`)
 					.order("created_at", { ascending: false }),
 				supabase
 					.from("user_certifications")
 					.select("*")
 					.eq("user_id", user.id)
+					.or(`expires_at.is.null,expires_at.gt.${now}`)
 					.order("created_at", { ascending: false }),
 			]);
 			if (cnapsRes.error) throw cnapsRes.error;
@@ -1135,7 +1139,8 @@ const ProDocs = ({ navigation }) => {
 													Déjà soumis
 												</BadgeText>
 											</Badge>
-										) : isExpired ? (
+										) : isExpired &&
+										  selectedCategory === "diploma" ? (
 											<Badge
 												size='sm'
 												variant='solid'
