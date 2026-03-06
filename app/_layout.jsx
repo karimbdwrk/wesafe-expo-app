@@ -274,7 +274,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='signature'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Ma signature",
+								}}
 							/>
 							<Stack.Screen
 								name='settings'
