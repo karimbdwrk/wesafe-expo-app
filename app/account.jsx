@@ -116,22 +116,26 @@ const AccountScreen = () => {
 		if (!user?.id) return;
 		try {
 			const supabase = createSupabaseClient(accessToken);
+			const now = new Date().toISOString();
 			const [cnaps, diplomas, certifications] = await Promise.all([
 				supabase
 					.from("user_cnaps_cards")
 					.select("*")
 					.eq("user_id", user.id)
-					.eq("status", "verified"),
+					.eq("status", "verified")
+					.or(`expires_at.is.null,expires_at.gt.${now}`),
 				supabase
 					.from("user_diplomas")
 					.select("*")
 					.eq("user_id", user.id)
-					.eq("status", "verified"),
+					.eq("status", "verified")
+					.or(`expires_at.is.null,expires_at.gt.${now}`),
 				supabase
 					.from("user_certifications")
 					.select("*")
 					.eq("user_id", user.id)
-					.eq("status", "verified"),
+					.eq("status", "verified")
+					.or(`expires_at.is.null,expires_at.gt.${now}`),
 			]);
 			console.log("📋 CNAPS cards:", cnaps.data);
 			console.log("🎓 Diplômes:", diplomas.data);
