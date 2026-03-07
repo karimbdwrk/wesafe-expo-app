@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 						Authorization: `Bearer ${token}`,
 						apikey: SUPABASE_API_KEY,
 					},
-				}
+				},
 			);
 			if (profileRes.data.length > 0) return "candidat";
 
@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
 						Authorization: `Bearer ${token}`,
 						apikey: SUPABASE_API_KEY,
 					},
-				}
+				},
 			);
 			if (companyRes.data.length > 0) return "pro";
 
@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
 						apikey: SUPABASE_API_KEY,
 						Authorization: `Bearer ${token}`,
 					},
-				}
+				},
 			);
 			if (res.data.length === 0) {
 				console.warn("Profile not found for user:", userId);
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }) => {
 						apikey: SUPABASE_API_KEY,
 						Authorization: `Bearer ${token}`,
 					},
-				}
+				},
 			);
 			if (res.data.length === 0) {
 				console.warn("Company not found for user:", userId);
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }) => {
 						apikey: SUPABASE_API_KEY,
 						"Content-Type": "application/json",
 					},
-				}
+				},
 			);
 
 			await saveSession(data);
@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
 		} catch (err) {
 			console.error(
 				"Erreur connexion:",
-				err?.response?.data || err.message
+				err?.response?.data || err.message,
 			);
 			throw err;
 		} finally {
@@ -138,7 +138,11 @@ export const AuthProvider = ({ children }) => {
 		}
 	};
 
-	const signUp = async (email, password, isCandidateFlag, isCompanyFlag) => {
+	const signUp = async (
+		email,
+		password,
+		// isCandidateFlag, isCompanyFlag
+	) => {
 		setLoading(true);
 		try {
 			const { data } = await axios.post(
@@ -149,7 +153,7 @@ export const AuthProvider = ({ children }) => {
 						apikey: SUPABASE_API_KEY,
 						"Content-Type": "application/json",
 					},
-				}
+				},
 			);
 			if (data) {
 				setUser(data.user);
@@ -165,15 +169,15 @@ export const AuthProvider = ({ children }) => {
 
 			await loadUserData(data.user.id, data.access_token);
 
-			if (isCompanyFlag) {
-				router.replace("/createcompany");
-			} else if (isCandidateFlag) {
-				router.replace("/createprofile");
-			}
+			// if (isCompanyFlag) {
+			// 	router.replace("/createcompany");
+			// } else if (isCandidateFlag) {
+			// 	router.replace("/createprofile");
+			// }
 		} catch (error) {
 			console.error(
 				"Erreur lors de l'inscription :",
-				error.response?.data || error.message
+				error.response?.data || error.message,
 			);
 			throw error;
 		} finally {
@@ -206,7 +210,7 @@ export const AuthProvider = ({ children }) => {
 					apikey: SUPABASE_API_KEY,
 					"Content-Type": "application/json",
 				},
-			}
+			},
 		);
 
 		await saveSession(data);
@@ -247,7 +251,7 @@ export const AuthProvider = ({ children }) => {
 				console.warn("iscompany in authcontext");
 				const companyData = await fetchCompanyFromSession(
 					userId,
-					token
+					token,
 				);
 				setUserCompany(companyData); // Ceci est l'objet complet de la compagnie
 				setUserProfile(null); // S'assurer que l'autre est null
@@ -257,7 +261,7 @@ export const AuthProvider = ({ children }) => {
 					// Vérifier l'abonnement ici si companyData est disponible
 					const hasSub = await checkSubscription(
 						companyData.id,
-						token
+						token,
 					); // Passer l'accessToken
 					setHasSubscription(hasSub);
 				}
@@ -271,7 +275,7 @@ export const AuthProvider = ({ children }) => {
 		} catch (error) {
 			console.error(
 				"Erreur lors du chargement des données utilisateur:",
-				error
+				error,
 			);
 			// Gérer les erreurs de chargement de données ici
 		}
@@ -293,7 +297,7 @@ export const AuthProvider = ({ children }) => {
 							Authorization: `Bearer ${token}`,
 							apikey: SUPABASE_API_KEY,
 						},
-					}
+					},
 				);
 
 				setUser(userData); // Définir l'utilisateur de base
@@ -313,7 +317,7 @@ export const AuthProvider = ({ children }) => {
 									Authorization: `Bearer ${newAccessToken}`,
 									apikey: SUPABASE_API_KEY,
 								},
-							}
+							},
 						);
 						setUser(newUserData);
 						setAccessToken(newAccessToken);
@@ -321,14 +325,14 @@ export const AuthProvider = ({ children }) => {
 					} catch (refreshErr) {
 						console.error(
 							"Erreur lors du rafraîchissement du token:",
-							refreshErr
+							refreshErr,
 						);
 						await signOut(); // Déconnexion si refresh échoue
 					}
 				} else {
 					console.error(
 						"Erreur de chargement de session ou token invalide:",
-						err
+						err,
 					);
 					await signOut(); // Déconnexion si le token est invalide
 				}
@@ -351,7 +355,7 @@ export const AuthProvider = ({ children }) => {
 	const checkSubscription = async (company_id, token) => {
 		if (!company_id || !token) {
 			console.warn(
-				"checkSubscription called without company_id or token."
+				"checkSubscription called without company_id or token.",
 			);
 			return false;
 		}
@@ -369,7 +373,7 @@ export const AuthProvider = ({ children }) => {
 						company_id: `eq.${company_id}`, // Filtrer par company_id
 						status: "in.(active,canceled)", // Filtrer par statut si RLS ne le fait pas déjà
 					},
-				}
+				},
 			);
 
 			if (data.length > 0) {
@@ -387,7 +391,7 @@ export const AuthProvider = ({ children }) => {
 		} catch (err) {
 			console.error(
 				"❌ Erreur lors de la vérification de l’abonnement :",
-				err.message
+				err.message,
 			);
 			return false;
 		}
