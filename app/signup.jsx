@@ -73,6 +73,7 @@ const SignUpScreen = () => {
 	const [emailError, setEmailError] = useState("");
 	const [checkingEmail, setCheckingEmail] = useState(false);
 	const [showModal, setShowModal] = React.useState(false);
+	const [countdown, setCountdown] = useState(0);
 
 	const generateOTP = async () => {
 		try {
@@ -90,6 +91,7 @@ const SignUpScreen = () => {
 			}
 			setGeneratedTP("sent");
 			setShowModal(true);
+			setCountdown(30);
 		} catch (error) {
 			Alert.alert("Erreur", "Échec de l'envoi du code");
 		}
@@ -98,6 +100,12 @@ const SignUpScreen = () => {
 	useEffect(() => {
 		console.log("isCandidate or isCompany :", isCandidate, isCompany);
 	}, [isCandidate, isCompany]);
+
+	useEffect(() => {
+		if (countdown <= 0) return;
+		const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+		return () => clearTimeout(timer);
+	}, [countdown]);
 
 	const checkEmailExists = async () => {
 		if (!email || !email.includes("@")) {
@@ -312,10 +320,22 @@ const SignUpScreen = () => {
 													style={{
 														color: "#ef4444",
 														marginTop: 2,
+														marginBottom: 2,
 													}}>
 													{emailError}
 												</Text>
-											) : null}
+											) : (
+												<Text
+													size='xs'
+													style={{
+														color: "gray",
+														marginTop: 2,
+														marginBottom: 2,
+													}}>
+													Un code vous sera envoyé par
+													email, valable 5 minutes
+												</Text>
+											)}
 										</VStack>
 
 										{checkingEmail ? (
@@ -630,17 +650,31 @@ const SignUpScreen = () => {
 					<ModalBody>
 						<VStack space='md'>
 							<OTPForm onSubmit={handleOTP} />
-							<Button onPress={generateOTP} variant='link'>
-								<ButtonText
+							{countdown > 0 ? (
+								<Text
+									size='sm'
 									style={{
-										textDecorationLine: "underline",
-										fontWeight: "300",
+										textAlign: "center",
+										color: isDark ? "#9ca3af" : "#6b7280",
 										fontStyle: "italic",
-										color: isDark ? "#60a5fa" : "#2563eb",
 									}}>
-									Je n'ai pas reçu de code
-								</ButtonText>
-							</Button>
+									Renvoyer un code dans {countdown}s
+								</Text>
+							) : (
+								<Button onPress={generateOTP} variant='link'>
+									<ButtonText
+										style={{
+											textDecorationLine: "underline",
+											fontWeight: "300",
+											fontStyle: "italic",
+											color: isDark
+												? "#60a5fa"
+												: "#2563eb",
+										}}>
+										Renvoyer un code
+									</ButtonText>
+								</Button>
+							)}
 						</VStack>
 					</ModalBody>
 					<ModalFooter>
