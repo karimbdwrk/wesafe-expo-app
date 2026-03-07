@@ -190,6 +190,14 @@ function RootLayoutNav() {
 								}}
 							/>
 							<Stack.Screen
+								name='createprofile'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='createcompany'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
 								name='updatecompany'
 								options={{ headerShown: true }}
 							/>
