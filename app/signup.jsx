@@ -131,8 +131,12 @@ const SignUpScreen = () => {
 	};
 
 	const handleLogup = async () => {
-		if (!email || !password || isCandidate === null || isCompany === null) {
+		if (!email || !password) {
 			Alert.alert("Erreur", "Merci de remplir tous les champs");
+			return;
+		}
+		if (password !== password2) {
+			Alert.alert("Erreur", "Les mots de passe ne correspondent pas");
 			return;
 		}
 		setSubmitting(true);
@@ -462,7 +466,7 @@ const SignUpScreen = () => {
 										</VStack>
 
 										{/* Role */}
-										<VStack space='xs'>
+										{/* <VStack space='xs'>
 											<Text size='sm' style={labelStyle}>
 												Je suis
 											</Text>
@@ -516,7 +520,7 @@ const SignUpScreen = () => {
 													</CheckboxLabel>
 												</Checkbox>
 											</HStack>
-										</VStack>
+										</VStack> */}
 
 										{submitting ? (
 											<ActivityIndicator
@@ -640,29 +644,16 @@ const SignUpScreen = () => {
 						</VStack>
 					</ModalBody>
 					<ModalFooter>
-						<HStack space='md' style={{ width: "100%" }}>
-							<Button
-								variant='outline'
-								action='secondary'
-								style={{ flex: 1, borderRadius: 10 }}
-								onPress={() => {
-									setShowModal(false);
-									handleReset();
-								}}>
-								<ButtonText>Annuler</ButtonText>
-							</Button>
-							<Button
-								style={{
-									flex: 1,
-									borderRadius: 10,
-									backgroundColor: "#2563eb",
-								}}
-								onPress={() => setShowModal(false)}>
-								<ButtonText style={{ color: "#ffffff" }}>
-									Valider
-								</ButtonText>
-							</Button>
-						</HStack>
+						<Button
+							variant='outline'
+							action='secondary'
+							style={{ flex: 1, borderRadius: 10 }}
+							onPress={() => {
+								setShowModal(false);
+								handleReset();
+							}}>
+							<ButtonText>Annuler</ButtonText>
+						</Button>
 					</ModalFooter>
 				</ModalContent>
 			</Modal>
