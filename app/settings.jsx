@@ -133,6 +133,25 @@ const Settings = () => {
 		if (!user?.id) return;
 		setIsDeleting(true);
 		try {
+			// Marquer le compte comme supprimé côté BDD
+			const now = new Date();
+			const deletionDate = new Date(
+				now.getTime() + 30 * 24 * 60 * 60 * 1000,
+			).toISOString();
+			if (role === "pro") {
+				await update("companies", user.id, {
+					company_status: "deleted",
+					updated_at: now.toISOString(),
+					deletion_date: deletionDate,
+				});
+			} else {
+				await update("profiles", user.id, {
+					profile_status: "deleted",
+					updated_at: now.toISOString(),
+					deletion_date: deletionDate,
+				});
+			}
+
 			// L'archivage ET l'email sont gérés côté serveur (bypass RLS)
 			const res = await fetch(
 				`https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/delete-account-notification`,
