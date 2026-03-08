@@ -11,6 +11,7 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
+import { Input, InputField } from "@/components/ui/input";
 import { Image } from "@/components/ui/image";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
@@ -62,6 +63,17 @@ export default function KBISDocumentVerification() {
 	const [kbisImage, setKbisImage] = useState(null);
 	const [showActionsheet, setShowActionsheet] = useState(false);
 
+	const [siret, setSiret] = useState("");
+	const [savedSiret, setSavedSiret] = useState("");
+
+	const formatSiret = (raw) => {
+		if (raw.length <= 3) return raw;
+		if (raw.length <= 6) return `${raw.slice(0, 3)} ${raw.slice(3)}`;
+		if (raw.length <= 9)
+			return `${raw.slice(0, 3)} ${raw.slice(3, 6)} ${raw.slice(6)}`;
+		return `${raw.slice(0, 3)} ${raw.slice(3, 6)} ${raw.slice(6, 9)} ${raw.slice(9)}`;
+	};
+
 	const [kbisUploadedStatus, setKbisUploadedStatus] = useState(null);
 	const [kbisUploadedUrl, setKbisUploadedUrl] = useState(null);
 
@@ -80,12 +92,13 @@ export default function KBISDocumentVerification() {
 				const companyData = await getById(
 					"companies",
 					user.id,
-					"kbis_verification_status,kbis_url",
+					"kbis_verification_status,kbis_url,siret",
 				);
 
 				if (companyData) {
 					setKbisUploadedStatus(companyData.kbis_verification_status);
 					setKbisUploadedUrl(companyData.kbis_url);
+					if (companyData.siret) setSavedSiret(companyData.siret);
 
 					console.log("Loaded company data:", {
 						kbis_verification_status:
@@ -214,10 +227,12 @@ export default function KBISDocumentVerification() {
 		try {
 			const kbisUrl = await uploadKBIS();
 
-			await update("companies", userCompany.id, {
+			const updatePayload = {
 				kbis_url: kbisUrl,
 				kbis_verification_status: "pending",
-			});
+				...(siret.trim().length === 14 && { siret: siret.trim() }),
+			};
+			await update("companies", userCompany.id, updatePayload);
 
 			console.log("KBIS submitted successfully");
 
@@ -226,6 +241,8 @@ export default function KBISDocumentVerification() {
 
 			// Réinitialiser le formulaire
 			setKbisImage(null);
+			if (siret.trim().length === 14) setSavedSiret(siret.trim());
+			setSiret("");
 
 			toast.show({
 				placement: "top",
@@ -374,6 +391,19 @@ export default function KBISDocumentVerification() {
 										}}>
 										KBIS téléchargé
 									</Text>
+									{savedSiret.length > 0 && (
+										<Text
+											size='sm'
+											style={{
+												color: isDark
+													? "#d1d5db"
+													: "#374151",
+												fontWeight: "600",
+												fontFamily: "monospace",
+											}}>
+											SIRET : {formatSiret(savedSiret)}
+										</Text>
+									)}
 								</VStack>
 								{getStatusBadge()}
 							</HStack>
@@ -505,6 +535,60 @@ export default function KBISDocumentVerification() {
 								</Text>
 							</VStack>
 
+							{/* SIRET input */}
+							<VStack space='xs'>
+								<Text
+									size='sm'
+									style={{
+										fontWeight: "600",
+										color: isDark ? "#d1d5db" : "#374151",
+									}}>
+									Numéro SIRET *
+								</Text>
+								<Input
+									style={{
+										backgroundColor: isDark
+											? "#1f2937"
+											: "#f9fafb",
+										borderColor: isDark
+											? "#4b5563"
+											: "#d1d5db",
+										borderRadius: 8,
+										borderWidth: 1,
+									}}>
+									<InputField
+										placeholder='XXX XXX XXX XXXXX'
+										value={formatSiret(siret)}
+										onChangeText={(t) =>
+											setSiret(
+												t
+													.replace(/\D/g, "")
+													.slice(0, 14),
+											)
+										}
+										keyboardType='numeric'
+										maxLength={18}
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}
+									/>
+								</Input>
+								<Text
+									size='xs'
+									style={{
+										color:
+											siret.length === 14
+												? "#10b981"
+												: isDark
+													? "#9ca3af"
+													: "#6b7280",
+									}}>
+									{siret.length}/14 chiffres
+								</Text>
+							</VStack>
+
 							{/* Document sélectionné */}
 							{kbisImage && (
 								<HStack
@@ -590,7 +674,9 @@ export default function KBISDocumentVerification() {
 									size='lg'
 									action='positive'
 									onPress={handleSubmitKBIS}
-									isDisabled={isSubmitting}
+									isDisabled={
+										isSubmitting || siret.length !== 14
+									}
 									style={{
 										backgroundColor: "#10b981",
 										borderRadius: 8,
