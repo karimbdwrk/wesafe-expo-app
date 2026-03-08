@@ -174,6 +174,7 @@ const CreateProfile = () => {
 				...(languages.length > 0 && {
 					languages: languages.join(", "),
 				}),
+				profile_status: "pending",
 			};
 
 			await create("profiles", profileData);
