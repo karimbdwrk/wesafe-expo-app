@@ -43,7 +43,7 @@ const UpdateCompany = () => {
 	const toast = useToast();
 
 	const [name, setName] = useState("");
-	const [siret, setSiret] = useState("");
+	// const [siret, setSiret] = useState("");
 	const [email, setEmail] = useState("");
 	const [description, setDescription] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,7 +94,7 @@ const UpdateCompany = () => {
 	};
 
 	const handleUpdateCompany = async () => {
-		if (!name || !siret || !email) {
+		if (!name || !email) {
 			toast.show({
 				placement: "top",
 				duration: 4000,
@@ -118,7 +118,7 @@ const UpdateCompany = () => {
 		try {
 			const updateCompany = await update("companies", user.id, {
 				name: name,
-				siret: siret,
+				// siret: siret,
 				email: email,
 				description: description,
 			});
@@ -176,7 +176,7 @@ const UpdateCompany = () => {
 
 					if (companyData) {
 						setName(companyData.name || "");
-						setSiret(companyData.siret || "");
+						// setSiret(companyData.siret || "");
 						setEmail(companyData.email || "");
 						setDescription(companyData.description || "");
 					}
@@ -327,7 +327,7 @@ const UpdateCompany = () => {
 							/>
 
 							{/* SIRET */}
-							<VStack space='sm' ref={siretInputRef}>
+							{/* <VStack space='sm' ref={siretInputRef}>
 								<Text
 									size='sm'
 									style={{
@@ -370,15 +370,15 @@ const UpdateCompany = () => {
 										}}
 									/>
 								</Input>
-							</VStack>
-
+							</VStack> */}
+							{/* 
 							<Divider
 								style={{
 									backgroundColor: isDark
 										? "#4b5563"
 										: "#e5e7eb",
 								}}
-							/>
+							/> */}
 
 							{/* Email */}
 							<VStack space='sm' ref={emailInputRef}>
