@@ -342,6 +342,7 @@ export default function TabLayout({ theme = "light" }) {
 												alignItems: "center",
 												position: "absolute",
 												left: -5,
+												top: -5,
 												padding: 0,
 											}}
 											variant='solid'>
@@ -364,6 +365,7 @@ export default function TabLayout({ theme = "light" }) {
 												alignItems: "center",
 												position: "absolute",
 												left: -5,
+												top: -5,
 												padding: 0,
 											}}
 											variant='solid'>
