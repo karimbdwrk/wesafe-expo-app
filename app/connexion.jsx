@@ -93,6 +93,7 @@ export default function Connexion() {
 							color: isDark ? "#f9fafb" : "#111827",
 							marginTop: 20,
 							letterSpacing: -0.5,
+							lineHeight: 32,
 						}}>
 						WeSafe
 					</Text>
@@ -102,7 +103,7 @@ export default function Connexion() {
 							color: isDark ? "#9ca3af" : "#6b7280",
 							textAlign: "center",
 							marginTop: 8,
-							lineHeight: 24,
+							lineHeight: 18,
 						}}>
 						La plateforme de sécurité privée{"\n"}qui connecte les
 						professionnels
