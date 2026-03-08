@@ -332,7 +332,8 @@ export default function TabLayout({ theme = "light" }) {
 										</Avatar>
 									</Pressable>
 									{userCompany &&
-									userCompany.company_status === "pending" ? (
+									userCompany?.company_status ===
+										"pending" ? (
 										<Badge
 											className='z-10 h-[16px] w-[16px] bg-yellow-500 rounded-full'
 											style={{
@@ -353,7 +354,7 @@ export default function TabLayout({ theme = "light" }) {
 												!
 											</BadgeText>
 										</Badge>
-									) : userCompany.company_status ===
+									) : userCompany?.company_status ===
 									  "suspended" ? (
 										<Badge
 											className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
