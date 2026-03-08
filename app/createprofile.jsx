@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
 	Image,
 	KeyboardAvoidingView,
@@ -7,6 +7,7 @@ import {
 	ActivityIndicator,
 	Alert,
 	TouchableOpacity,
+	Animated,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
@@ -49,6 +50,17 @@ const CreateProfile = () => {
 
 	const [step, setStep] = useState(1);
 	const [submitting, setSubmitting] = useState(false);
+
+	const PROGRESS_VALUES = [0, 33, 67, 100];
+	const progressAnim = useRef(new Animated.Value(0)).current;
+
+	useEffect(() => {
+		Animated.timing(progressAnim, {
+			toValue: PROGRESS_VALUES[step - 1],
+			duration: 400,
+			useNativeDriver: false,
+		}).start();
+	}, [step]);
 
 	// Step 1
 	const [firstname, setFirstname] = useState("");
@@ -195,11 +207,13 @@ const CreateProfile = () => {
 				lastname.trim().length > 0 &&
 				birthdaySet &&
 				gender.length > 0
-			: step === 3
-				? height.trim().length > 0 &&
-					weight.trim().length > 0 &&
-					languages.length > 0
-				: true;
+			: step === 2
+				? selectedCommune !== null
+				: step === 3
+					? height.trim().length > 0 &&
+						weight.trim().length > 0 &&
+						languages.length > 0
+					: true;
 
 	const STEP_LABELS = [
 		"Identité",
@@ -264,10 +278,13 @@ const CreateProfile = () => {
 								borderRadius: 2,
 								marginBottom: 24,
 							}}>
-							<Box
+							<Animated.View
 								style={{
 									height: 4,
-									width: `${[0, 33, 67, 100][step - 1]}%`,
+									width: progressAnim.interpolate({
+										inputRange: [0, 100],
+										outputRange: ["0%", "100%"],
+									}),
 									backgroundColor: "#2563eb",
 									borderRadius: 2,
 								}}
@@ -533,14 +550,28 @@ const CreateProfile = () => {
 											<Button
 												onPress={fetchCommunes}
 												style={{
-													backgroundColor: "#2563eb",
+													backgroundColor:
+														postalCode.length === 5
+															? "#2563eb"
+															: isDark
+																? "#374151"
+																: "#e5e7eb",
 													borderRadius: 10,
 													paddingHorizontal: 16,
 													height: 44,
-												}}>
+												}}
+												disabled={
+													postalCode.length !== 5
+												}>
 												<ButtonText
 													style={{
-														color: "#ffffff",
+														color:
+															postalCode.length ===
+															5
+																? "#ffffff"
+																: isDark
+																	? "#6b7280"
+																	: "#9ca3af",
 														fontWeight: "700",
 													}}>
 													Chercher
@@ -679,7 +710,7 @@ const CreateProfile = () => {
 									<HStack space='md'>
 										<VStack space='xs' style={{ flex: 1 }}>
 											<Text size='sm' style={labelStyle}>
-												Taille (cm)
+												Taille (cm) *
 											</Text>
 											<Input style={inputStyle}>
 												<InputField
@@ -693,7 +724,7 @@ const CreateProfile = () => {
 										</VStack>
 										<VStack space='xs' style={{ flex: 1 }}>
 											<Text size='sm' style={labelStyle}>
-												Poids (kg)
+												Poids (kg) *
 											</Text>
 											<Input style={inputStyle}>
 												<InputField
@@ -706,6 +737,119 @@ const CreateProfile = () => {
 											</Input>
 										</VStack>
 									</HStack>
+
+									{/* Langues */}
+									<VStack space='xs'>
+										<Text size='sm' style={labelStyle}>
+											Langues parlées *
+										</Text>
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Input
+												style={{
+													...inputStyle,
+													flex: 1,
+												}}>
+												<InputField
+													placeholder='Français, Anglais...'
+													value={languageInput}
+													onChangeText={
+														setLanguageInput
+													}
+													onSubmitEditing={
+														addLanguage
+													}
+													style={inputTextStyle}
+												/>
+											</Input>
+											<TouchableOpacity
+												onPress={addLanguage}
+												style={{
+													width: 44,
+													height: 44,
+													borderRadius: 10,
+													backgroundColor: "#2563eb",
+													justifyContent: "center",
+													alignItems: "center",
+												}}>
+												<Icon
+													as={Plus}
+													size='sm'
+													style={{ color: "#ffffff" }}
+												/>
+											</TouchableOpacity>
+										</HStack>
+										{languages.length > 0 && (
+											<HStack
+												style={{
+													flexWrap: "wrap",
+													gap: 6,
+													marginTop: 6,
+												}}>
+												{languages.map((l) => (
+													<TouchableOpacity
+														key={l}
+														onPress={() =>
+															setLanguages(
+																languages.filter(
+																	(x) =>
+																		x !== l,
+																),
+															)
+														}
+														style={{
+															flexDirection:
+																"row",
+															alignItems:
+																"center",
+															paddingHorizontal: 10,
+															paddingVertical: 6,
+															borderRadius: 16,
+															backgroundColor:
+																isDark
+																	? "#1a2e1a"
+																	: "#f0fdf4",
+															gap: 4,
+														}}>
+														<Text
+															size='xs'
+															style={{
+																color: isDark
+																	? "#4ade80"
+																	: "#16a34a",
+																fontWeight:
+																	"600",
+															}}>
+															{l}
+														</Text>
+														<Icon
+															as={X}
+															size='xs'
+															style={{
+																color: isDark
+																	? "#4ade80"
+																	: "#16a34a",
+															}}
+														/>
+													</TouchableOpacity>
+												))}
+											</HStack>
+										)}
+										{languages.length > 0 && (
+											<Text
+												size='xs'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+													fontStyle: "italic",
+												}}>
+												Enregistré :{" "}
+												{languages.join(", ")}
+											</Text>
+										)}
+									</VStack>
 
 									{/* Permis de conduire */}
 									<VStack space='xs'>
@@ -815,119 +959,6 @@ const CreateProfile = () => {
 												}}>
 												Enregistré :{" "}
 												{licenses.join(", ")}
-											</Text>
-										)}
-									</VStack>
-
-									{/* Langues */}
-									<VStack space='xs'>
-										<Text size='sm' style={labelStyle}>
-											Langues parlées
-										</Text>
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Input
-												style={{
-													...inputStyle,
-													flex: 1,
-												}}>
-												<InputField
-													placeholder='Français, Anglais...'
-													value={languageInput}
-													onChangeText={
-														setLanguageInput
-													}
-													onSubmitEditing={
-														addLanguage
-													}
-													style={inputTextStyle}
-												/>
-											</Input>
-											<TouchableOpacity
-												onPress={addLanguage}
-												style={{
-													width: 44,
-													height: 44,
-													borderRadius: 10,
-													backgroundColor: "#2563eb",
-													justifyContent: "center",
-													alignItems: "center",
-												}}>
-												<Icon
-													as={Plus}
-													size='sm'
-													style={{ color: "#ffffff" }}
-												/>
-											</TouchableOpacity>
-										</HStack>
-										{languages.length > 0 && (
-											<HStack
-												style={{
-													flexWrap: "wrap",
-													gap: 6,
-													marginTop: 6,
-												}}>
-												{languages.map((l) => (
-													<TouchableOpacity
-														key={l}
-														onPress={() =>
-															setLanguages(
-																languages.filter(
-																	(x) =>
-																		x !== l,
-																),
-															)
-														}
-														style={{
-															flexDirection:
-																"row",
-															alignItems:
-																"center",
-															paddingHorizontal: 10,
-															paddingVertical: 6,
-															borderRadius: 16,
-															backgroundColor:
-																isDark
-																	? "#1a2e1a"
-																	: "#f0fdf4",
-															gap: 4,
-														}}>
-														<Text
-															size='xs'
-															style={{
-																color: isDark
-																	? "#4ade80"
-																	: "#16a34a",
-																fontWeight:
-																	"600",
-															}}>
-															{l}
-														</Text>
-														<Icon
-															as={X}
-															size='xs'
-															style={{
-																color: isDark
-																	? "#4ade80"
-																	: "#16a34a",
-															}}
-														/>
-													</TouchableOpacity>
-												))}
-											</HStack>
-										)}
-										{languages.length > 0 && (
-											<Text
-												size='xs'
-												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
-													fontStyle: "italic",
-												}}>
-												Enregistré :{" "}
-												{languages.join(", ")}
 											</Text>
 										)}
 									</VStack>
@@ -1051,7 +1082,7 @@ const CreateProfile = () => {
 								marginTop: 24,
 								justifyContent: "space-between",
 							}}>
-							{step > 1 ? (
+							{step > 1 && (
 								<Button
 									variant='outline'
 									style={{
@@ -1085,8 +1116,6 @@ const CreateProfile = () => {
 										</ButtonText>
 									</HStack>
 								</Button>
-							) : (
-								<Box style={{ flex: 1 }} />
 							)}
 
 							{step < 4 ? (
