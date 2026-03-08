@@ -402,7 +402,7 @@ export default function TabLayout({ theme = "light" }) {
 			</Tabs>
 			{role === "pro" && userCompany && (
 				<View style={styles.floatingButtonContainer}>
-					{userCompany.isConfirmed && (
+					{userCompany.company_status === "active" && (
 						<Button
 							size='xl'
 							className={`rounded-full p-3.5`}
@@ -420,7 +420,7 @@ export default function TabLayout({ theme = "light" }) {
 							<ButtonIcon size='xl' as={Plus} />
 						</Button>
 					)}
-					{!userCompany.isConfirmed && (
+					{userCompany.company_status !== "active" && (
 						<Button
 							size='xl'
 							className={`rounded-full p-3.5 bg-slate-400`}
