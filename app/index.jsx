@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
 	View,
 	Image,
 	StyleSheet,
 	ActivityIndicator,
 	TouchableOpacity,
+	Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
