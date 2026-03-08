@@ -102,7 +102,7 @@ export default function Connexion() {
 							color: isDark ? "#9ca3af" : "#6b7280",
 							textAlign: "center",
 							marginTop: 8,
-							lineHeight: 22,
+							lineHeight: 24,
 						}}>
 						La plateforme de sécurité privée{"\n"}qui connecte les
 						professionnels
