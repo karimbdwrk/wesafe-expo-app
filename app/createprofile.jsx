@@ -62,6 +62,16 @@ const CreateProfile = () => {
 	const formatDate = (d) =>
 		`${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
 
+	const formatName = (val) => {
+		const cleaned = val.replace(/[^a-zA-ZÀ-ÖØ-öø-ÿ \-]/g, "");
+		return cleaned
+			.toLowerCase()
+			.replace(
+				/(^|[\s\-])(\S)/g,
+				(_, sep, char) => sep + char.toUpperCase(),
+			);
+	};
+
 	// Step 2
 	const [postalCode, setPostalCode] = useState("");
 	const [communes, setCommunes] = useState([]);
@@ -181,8 +191,15 @@ const CreateProfile = () => {
 
 	const canAdvance =
 		step === 1
-			? firstname.trim().length > 0 && lastname.trim().length > 0
-			: true;
+			? firstname.trim().length > 0 &&
+				lastname.trim().length > 0 &&
+				birthdaySet &&
+				gender.length > 0
+			: step === 3
+				? height.trim().length > 0 &&
+					weight.trim().length > 0 &&
+					languages.length > 0
+				: true;
 
 	const STEP_LABELS = [
 		"Identité",
@@ -276,7 +293,11 @@ const CreateProfile = () => {
 											<InputField
 												placeholder='Jean'
 												value={firstname}
-												onChangeText={setFirstname}
+												onChangeText={(val) =>
+													setFirstname(
+														formatName(val),
+													)
+												}
 												style={inputTextStyle}
 											/>
 										</Input>
@@ -290,7 +311,9 @@ const CreateProfile = () => {
 											<InputField
 												placeholder='Dupont'
 												value={lastname}
-												onChangeText={setLastname}
+												onChangeText={(val) =>
+													setLastname(formatName(val))
+												}
 												style={inputTextStyle}
 											/>
 										</Input>
@@ -298,7 +321,7 @@ const CreateProfile = () => {
 
 									<VStack space='xs'>
 										<Text size='sm' style={labelStyle}>
-											Date de naissance
+											Date de naissance *
 										</Text>
 										<TouchableOpacity
 											onPress={() =>
@@ -406,7 +429,7 @@ const CreateProfile = () => {
 
 									<VStack space='xs'>
 										<Text size='sm' style={labelStyle}>
-											Genre
+											Genre *
 										</Text>
 										<HStack
 											style={{
