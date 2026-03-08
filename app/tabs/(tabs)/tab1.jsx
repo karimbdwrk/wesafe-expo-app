@@ -465,7 +465,143 @@ export default function Tab1() {
 						</Text>
 					</VStack>
 
-					<HomeChartsPro />
+					{/* Statut du compte */}
+					{userCompany?.company_status !== "active" ? (
+						<Card
+							style={{
+								padding: 24,
+								backgroundColor: isDark ? "#1f2937" : "#fff7ed",
+								borderRadius: 16,
+								borderWidth: 1,
+								borderColor: isDark ? "#92400e" : "#fed7aa",
+							}}>
+							<VStack space='md' style={{ alignItems: "center" }}>
+								<Icon
+									as={Clock}
+									size='xl'
+									style={{
+										color: isDark ? "#fbbf24" : "#f59e0b",
+									}}
+								/>
+								<Text
+									style={{
+										fontSize: 18,
+										fontWeight: "700",
+										color: isDark ? "#fde68a" : "#92400e",
+										textAlign: "center",
+									}}>
+									Compte en attente de validation
+								</Text>
+								<Text
+									style={{
+										fontSize: 14,
+										color: isDark ? "#fcd34d" : "#b45309",
+										textAlign: "center",
+										lineHeight: 22,
+									}}>
+									Votre entreprise est en cours de
+									vérification par notre équipe. Vous serez
+									notifié dès que votre compte sera activé
+									(généralement sous 24–48h).
+								</Text>
+								<Text
+									style={{
+										fontSize: 13,
+										color: isDark ? "#9ca3af" : "#6b7280",
+										textAlign: "center",
+										fontStyle: "italic",
+									}}>
+									En cas de question : support@wesafe.fr
+								</Text>
+							</VStack>
+						</Card>
+					) : (
+						(() => {
+							const createdAt = userCompany?.created_at
+								? new Date(userCompany.created_at)
+								: null;
+							const daysSinceCreation = createdAt
+								? Math.floor(
+										(Date.now() - createdAt.getTime()) /
+											(1000 * 60 * 60 * 24),
+									)
+								: 999;
+
+							if (daysSinceCreation < 7) {
+								return (
+									<Card
+										style={{
+											padding: 24,
+											backgroundColor: isDark
+												? "#1e3a5f"
+												: "#eff6ff",
+											borderRadius: 16,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#1d4ed8"
+												: "#bfdbfe",
+										}}>
+										<VStack
+											space='md'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={TrendingUp}
+												size='xl'
+												style={{
+													color: isDark
+														? "#60a5fa"
+														: "#2563eb",
+												}}
+											/>
+											<Text
+												style={{
+													fontSize: 18,
+													fontWeight: "700",
+													color: isDark
+														? "#93c5fd"
+														: "#1d4ed8",
+													textAlign: "center",
+												}}>
+												Pas encore assez de données
+											</Text>
+											<Text
+												style={{
+													fontSize: 14,
+													color: isDark
+														? "#bfdbfe"
+														: "#1e40af",
+													textAlign: "center",
+													lineHeight: 22,
+												}}>
+												Votre compte a été créé il y a{" "}
+												{daysSinceCreation} jour
+												{daysSinceCreation > 1
+													? "s"
+													: ""}
+												. Les statistiques et graphiques
+												s'afficheront après 7 jours
+												d'activité.
+											</Text>
+											<Text
+												style={{
+													fontSize: 13,
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+													textAlign: "center",
+													fontStyle: "italic",
+												}}>
+												Commencez par publier vos
+												premières offres d'emploi !
+											</Text>
+										</VStack>
+									</Card>
+								);
+							}
+
+							return <HomeChartsPro />;
+						})()
+					)}
 
 					{/* Time Period Filter */}
 					<VStack space='md'>
