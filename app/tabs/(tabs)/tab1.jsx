@@ -56,6 +56,7 @@ import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import { width } from "dom-helpers";
 import { Spinner } from "@/components/ui/spinner";
+import HomeChartsPro from "../../../components/HomeChartsPro";
 
 export default function Tab1() {
 	const router = useRouter();
@@ -463,6 +464,8 @@ export default function Tab1() {
 							Bonjour {userCompany?.name || ""}
 						</Text>
 					</VStack>
+
+					<HomeChartsPro />
 
 					{/* Time Period Filter */}
 					<VStack space='md'>
