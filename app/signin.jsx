@@ -9,6 +9,7 @@ import {
 	TouchableOpacity,
 } from "react-native";
 import axios from "axios";
+import * as Linking from "expo-linking";
 import Constants from "expo-constants";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
@@ -42,6 +43,44 @@ const SignInScreen = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
 	const [deletedAccount, setDeletedAccount] = useState(false);
+	const [forgotSent, setForgotSent] = useState(false);
+	const [forgotLoading, setForgotLoading] = useState(false);
+
+	const handleForgotPassword = async () => {
+		const trimmed = email.trim();
+		if (!trimmed) {
+			Alert.alert(
+				"Champ requis",
+				'Saisissez votre adresse email dans le champ ci-dessus, puis appuyez sur "Mot de passe oublié".',
+			);
+			return;
+		}
+		setForgotLoading(true);
+		try {
+			await axios.post(
+				`${SUPABASE_URL}/auth/v1/recover`,
+				{
+					email: trimmed,
+					redirect_to:
+						"https://VOTRE-DOMAINE-NEXTJS.com/reset-password",
+				},
+				{
+					headers: {
+						apikey: SUPABASE_API_KEY,
+						"Content-Type": "application/json",
+					},
+				},
+			);
+			setForgotSent(true);
+		} catch (e) {
+			Alert.alert(
+				"Erreur",
+				"Impossible d'envoyer l'email. Vérifiez votre adresse et réessayez.",
+			);
+		} finally {
+			setForgotLoading(false);
+		}
+	};
 
 	const handleLogin = async () => {
 		if (!email || !password) {
@@ -179,6 +218,7 @@ const SignInScreen = () => {
 									color: isDark ? "#f9fafb" : "#111827",
 									marginTop: 16,
 									letterSpacing: -0.5,
+									lineHeight: 28,
 								}}>
 								Connexion
 							</Text>
@@ -293,6 +333,35 @@ const SignInScreen = () => {
 									</Input>
 								</VStack>
 
+								{/* Mot de passe oublié */}
+								<TouchableOpacity
+									onPress={handleForgotPassword}
+									disabled={forgotLoading}
+									activeOpacity={0.7}
+									style={{
+										alignSelf: "flex-end",
+										marginTop: -4,
+									}}>
+									{forgotLoading ? (
+										<ActivityIndicator
+											size='small'
+											color={
+												isDark ? "#60a5fa" : "#2563eb"
+											}
+										/>
+									) : (
+										<Text
+											size='sm'
+											style={{
+												color: isDark
+													? "#60a5fa"
+													: "#2563eb",
+												fontWeight: "600",
+											}}>
+											Mot de passe oublié ?
+										</Text>
+									)}
+								</TouchableOpacity>
 								{/* Submit */}
 								{submitting ? (
 									<ActivityIndicator
@@ -362,6 +431,40 @@ const SignInScreen = () => {
 							</Box>
 						)}
 
+						{/* Email reset envoyé */}
+						{forgotSent && (
+							<Box
+								style={{
+									backgroundColor: isDark
+										? "#052e16"
+										: "#f0fdf4",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#166534" : "#bbf7d0",
+									padding: 16,
+									marginTop: 16,
+								}}>
+								<Text
+									style={{
+										color: isDark ? "#86efac" : "#166534",
+										fontWeight: "700",
+										fontSize: 15,
+										marginBottom: 4,
+									}}>
+									Email envoyé ✓
+								</Text>
+								<Text
+									style={{
+										color: isDark ? "#bbf7d0" : "#15803d",
+										fontSize: 14,
+										lineHeight: 20,
+									}}>
+									Un lien de réinitialisation a été envoyé à{" "}
+									{email}. Vérifiez votre boîte de réception
+									(et vos spams).
+								</Text>
+							</Box>
+						)}
 						<Divider style={{ marginVertical: 24 }} />
 
 						{/* Sign up link */}
