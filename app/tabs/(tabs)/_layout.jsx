@@ -332,28 +332,50 @@ export default function TabLayout({ theme = "light" }) {
 										</Avatar>
 									</Pressable>
 									{userCompany &&
-										!userCompany.isConfirmed && (
-											<Badge
-												className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
+									userCompany.company_status === "pending" ? (
+										<Badge
+											className='z-10 h-[16px] w-[16px] bg-yellow-500 rounded-full'
+											style={{
+												display: "flex",
+												justifyContent: "center",
+												alignItems: "center",
+												position: "absolute",
+												left: -5,
+												padding: 0,
+											}}
+											variant='solid'>
+											<BadgeText
+												className='text-white font-semibold'
 												style={{
-													display: "flex",
-													justifyContent: "center",
-													alignItems: "center",
 													position: "absolute",
-													left: -5,
-													padding: 0,
-												}}
-												variant='solid'>
-												<BadgeText
-													className='text-white font-semibold'
-													style={{
-														position: "absolute",
-														top: 1,
-													}}>
-													!
-												</BadgeText>
-											</Badge>
-										)}
+													top: 1,
+												}}>
+												!
+											</BadgeText>
+										</Badge>
+									) : userCompany.company_status ===
+									  "suspended" ? (
+										<Badge
+											className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
+											style={{
+												display: "flex",
+												justifyContent: "center",
+												alignItems: "center",
+												position: "absolute",
+												left: -5,
+												padding: 0,
+											}}
+											variant='solid'>
+											<BadgeText
+												className='text-white font-semibold'
+												style={{
+													position: "absolute",
+													top: 1,
+												}}>
+												!
+											</BadgeText>
+										</Badge>
+									) : null}
 								</VStack>
 							)}
 						</>
