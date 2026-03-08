@@ -8,6 +8,8 @@ import {
 	Alert,
 	TouchableOpacity,
 } from "react-native";
+import axios from "axios";
+import Constants from "expo-constants";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -33,21 +35,80 @@ const SignInScreen = () => {
 	const router = useRouter();
 	const { isDark } = useTheme();
 
+	const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
+
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
+	const [deletedAccount, setDeletedAccount] = useState(false);
 
 	const handleLogin = async () => {
 		if (!email || !password) {
 			Alert.alert("Erreur", "Merci de remplir tous les champs");
 			return;
 		}
+		setDeletedAccount(false);
 		setSubmitting(true);
 		try {
+			// Pré-authentification pour vérifier le statut du compte
+			const { data: authData } = await axios.post(
+				`${SUPABASE_URL}/auth/v1/token?grant_type=password`,
+				{ email, password },
+				{
+					headers: {
+						apikey: SUPABASE_API_KEY,
+						"Content-Type": "application/json",
+					},
+				},
+			);
+
+			const userId = authData.user.id;
+			const token = authData.access_token;
+			const authHeaders = {
+				Authorization: `Bearer ${token}`,
+				apikey: SUPABASE_API_KEY,
+			};
+
+			// Vérifier le statut dans les deux tables en parallèle
+			const [profileRes, companyRes] = await Promise.all([
+				axios.get(
+					`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=profile_status`,
+					{ headers: authHeaders },
+				),
+				axios.get(
+					`${SUPABASE_URL}/rest/v1/companies?id=eq.${userId}&select=company_status`,
+					{ headers: authHeaders },
+				),
+			]);
+
+			const profile = profileRes.data[0];
+			const company = companyRes.data[0];
+
+			if (
+				profile?.profile_status === "deleted" ||
+				company?.company_status === "deleted"
+			) {
+				// Invalider la session et bloquer la connexion
+				await axios
+					.post(
+						`${SUPABASE_URL}/auth/v1/logout`,
+						{},
+						{ headers: authHeaders },
+					)
+					.catch(() => {});
+				setDeletedAccount(true);
+				return;
+			}
+
+			// Compte actif → connexion normale
 			await signIn(email, password);
 		} catch (error) {
-			Alert.alert("Échec de la connexion", error.message);
+			const msg =
+				error?.response?.data?.error_description ||
+				error?.response?.data?.msg ||
+				error.message;
+			Alert.alert("Échec de la connexion", msg);
 		} finally {
 			setSubmitting(false);
 		}
@@ -261,6 +322,45 @@ const SignInScreen = () => {
 								)}
 							</VStack>
 						</Card>
+
+						{/* Message compte supprimé */}
+						{deletedAccount && (
+							<Box
+								style={{
+									backgroundColor: isDark
+										? "#450a0a"
+										: "#fef2f2",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#991b1b" : "#fecaca",
+									padding: 16,
+									marginTop: 16,
+								}}>
+								<Text
+									style={{
+										color: isDark ? "#fca5a5" : "#dc2626",
+										fontWeight: "700",
+										fontSize: 15,
+										marginBottom: 4,
+									}}>
+									Compte en cours de suppression
+								</Text>
+								<Text
+									style={{
+										color: isDark ? "#fecaca" : "#991b1b",
+										fontSize: 14,
+										lineHeight: 20,
+									}}>
+									Ce compte a été marqué pour suppression. Si
+									vous pensez qu'il s'agit d'une erreur,
+									contactez-nous à{" "}
+									<Text style={{ fontWeight: "700" }}>
+										support@wesafe.fr
+									</Text>{" "}
+									avant la date d'échéance.
+								</Text>
+							</Box>
+						)}
 
 						<Divider style={{ marginVertical: 24 }} />
 
