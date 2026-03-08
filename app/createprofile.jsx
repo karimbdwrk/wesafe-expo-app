@@ -40,7 +40,10 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 
-const GENDERS = ["Homme", "Femme", "Non-binaire", "Autre"];
+const GENDERS = [
+	{ label: "Homme", value: "male" },
+	{ label: "Femme", value: "female" },
+];
 
 const CreateProfile = () => {
 	const router = useRouter();
@@ -151,7 +154,7 @@ const CreateProfile = () => {
 				firstname,
 				email: user.email,
 				...(birthdaySet && {
-					birthday: birthdayDate.toISOString().split("T")[0],
+					birthday: `${birthdayDate.getFullYear()}-${String(birthdayDate.getMonth() + 1).padStart(2, "0")}-${String(birthdayDate.getDate()).padStart(2, "0")}`,
 				}),
 				...(gender && { gender }),
 				...(selectedCommune && {
@@ -454,14 +457,14 @@ const CreateProfile = () => {
 												gap: 8,
 												marginTop: 4,
 											}}>
-											{GENDERS.map((g) => (
+											{GENDERS.map(({ label, value }) => (
 												<TouchableOpacity
-													key={g}
+													key={value}
 													onPress={() =>
 														setGender(
-															g === gender
+															value === gender
 																? ""
-																: g,
+																: value,
 														)
 													}
 													style={{
@@ -470,13 +473,13 @@ const CreateProfile = () => {
 														borderRadius: 20,
 														borderWidth: 1.5,
 														borderColor:
-															gender === g
+															gender === value
 																? "#2563eb"
 																: isDark
 																	? "#4b5563"
 																	: "#d1d5db",
 														backgroundColor:
-															gender === g
+															gender === value
 																? isDark
 																	? "#1e3a5f"
 																	: "#eff6ff"
@@ -486,7 +489,7 @@ const CreateProfile = () => {
 														size='sm'
 														style={{
 															color:
-																gender === g
+																gender === value
 																	? isDark
 																		? "#60a5fa"
 																		: "#2563eb"
@@ -494,11 +497,11 @@ const CreateProfile = () => {
 																		? "#d1d5db"
 																		: "#374151",
 															fontWeight:
-																gender === g
+																gender === value
 																	? "600"
 																	: "400",
 														}}>
-														{g}
+														{label}
 													</Text>
 												</TouchableOpacity>
 											))}
@@ -1004,7 +1007,14 @@ const CreateProfile = () => {
 												? formatDate(birthdayDate)
 												: "—",
 										],
-										["Genre", gender || "—"],
+										[
+											"Genre",
+											gender === "male"
+												? "Homme"
+												: gender === "female"
+													? "Femme"
+													: "—",
+										],
 										["Ville", selectedCommune?.nom || "—"],
 										[
 											"Département",
