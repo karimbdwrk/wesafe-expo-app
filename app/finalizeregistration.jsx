@@ -72,6 +72,7 @@ const FinalizeRegistrationScreen = () => {
 							marginTop: 20,
 							letterSpacing: -0.5,
 							textAlign: "center",
+							lineHeight: 30,
 						}}>
 						Bienvenue sur WeSafe !
 					</Text>
@@ -81,7 +82,7 @@ const FinalizeRegistrationScreen = () => {
 							color: isDark ? "#9ca3af" : "#6b7280",
 							textAlign: "center",
 							marginTop: 8,
-							lineHeight: 22,
+							lineHeight: 16,
 						}}>
 						Pour finaliser votre inscription,{"\n"}dites-nous qui
 						vous êtes.
