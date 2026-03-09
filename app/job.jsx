@@ -106,6 +106,7 @@ const JobScreen = () => {
 		archiveJob,
 		isJobArchived,
 		getById,
+		getAll,
 		createNotification,
 		trackActivity,
 	} = useDataContext();
@@ -168,6 +169,7 @@ const JobScreen = () => {
 	const [isApplied, setIsApplied] = useState(false);
 	const [isArchived, setIsArchived] = useState(false);
 	const [showApplyModal, setShowApplyModal] = useState(false);
+	const [wishlistCount, setWishlistCount] = useState(0);
 
 	// useEffect(() => {
 	// 	console.warn("user data :", user);
@@ -182,6 +184,14 @@ const JobScreen = () => {
 		);
 		console.log("Fetched job data:", data);
 		setJob(data);
+		const { totalCount } = await getAll(
+			"wishlists",
+			"wish_id",
+			`&job_id=eq.${id}`,
+			1,
+			1,
+		);
+		setWishlistCount(totalCount || 0);
 	};
 
 	useEffect(() => {
@@ -518,6 +528,32 @@ const JobScreen = () => {
 									</Badge>
 								)}
 							</HStack>
+							{wishlistCount > 0 && (
+								<HStack
+									space='xs'
+									style={{
+										alignItems: "center",
+										marginTop: 4,
+										opacity: 0.6,
+									}}>
+									<Bookmark
+										size={11}
+										color={isDark ? "#9ca3af" : "#6b7280"}
+									/>
+									<Text
+										size='xs'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}>
+										{wishlistCount} candidat
+										{wishlistCount > 1 ? "s" : ""}{" "}
+										{wishlistCount > 1 ? "ont" : "a"}{" "}
+										sauvegardé cette offre
+									</Text>
+								</HStack>
+							)}
 						</VStack>
 					</Card>
 
