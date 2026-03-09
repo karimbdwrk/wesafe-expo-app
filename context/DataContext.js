@@ -595,7 +595,7 @@ export const DataProvider = ({ children }) => {
 				const from = (page - 1) * limit;
 				const to = from + limit - 1;
 
-				const query = `/${table}?select=${select}${filters}&order=${order}&offset=${from}&limit=${limit}`;
+				const query = `/${table}?select=${select}${filters}${order ? `&order=${order}` : ""}&offset=${from}&limit=${limit}`;
 
 				const res = await axiosInstance.get(query, {
 					headers: {
