@@ -57,13 +57,23 @@ const SignInScreen = () => {
 		}
 		setForgotLoading(true);
 		try {
+			// await axios.post(
+			// 	`${SUPABASE_URL}/auth/v1/recover`,
+			// 	{
+			// 		email: trimmed,
+			// 		redirect_to:
+			// 			"https://VOTRE-DOMAINE-NEXTJS.com/reset-password",
+			// 	},
+			// 	{
+			// 		headers: {
+			// 			apikey: SUPABASE_API_KEY,
+			// 			"Content-Type": "application/json",
+			// 		},
+			// 	},
+			// );
 			await axios.post(
-				`${SUPABASE_URL}/auth/v1/recover`,
-				{
-					email: trimmed,
-					redirect_to:
-						"https://VOTRE-DOMAINE-NEXTJS.com/reset-password",
-				},
+				`${SUPABASE_URL}/functions/v1/send-password-reset`,
+				{ email: trimmed },
 				{
 					headers: {
 						apikey: SUPABASE_API_KEY,
