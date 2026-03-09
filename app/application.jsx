@@ -10,6 +10,7 @@ import {
 	KeyboardAvoidingView,
 	Pressable,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
@@ -48,6 +49,7 @@ import {
 	ActionsheetDragIndicator,
 } from "@/components/ui/actionsheet";
 import { Spinner } from "@/components/ui/spinner";
+import { Input, InputField } from "@/components/ui/input";
 
 import MessageThread from "@/components/MessageThread";
 
@@ -163,6 +165,7 @@ const ApplicationScreen = () => {
 		applyToJob,
 		getById,
 		getAll,
+		create,
 		confirmApplication,
 		selectApplication,
 		refuseApplication,
@@ -176,6 +179,14 @@ const ApplicationScreen = () => {
 	const [showSelectModal, setShowSelectModal] = useState(false);
 	const [showRejectModal, setShowRejectModal] = useState(false);
 	const [showGenerateContractModal, setShowGenerateContractModal] =
+		useState(false);
+	const [contractHourlyRate, setContractHourlyRate] = useState("");
+	const [contractLocation, setContractLocation] = useState("");
+	const [contractStartDate, setContractStartDate] = useState(null);
+	const [contractEndDate, setContractEndDate] = useState(null);
+	const [showContractStartDatePicker, setShowContractStartDatePicker] =
+		useState(false);
+	const [showContractEndDatePicker, setShowContractEndDatePicker] =
 		useState(false);
 	const [showMessaging, setShowMessaging] = useState(false);
 	const [isOtherPartyTyping, setIsOtherPartyTyping] = useState(false);
@@ -681,6 +692,37 @@ const ApplicationScreen = () => {
 
 	const handleGenerateContract = () => {
 		setShowGenerateContractModal(true);
+	};
+
+	const formatContractDate = (date) => {
+		if (!date) return "Sélectionner une date";
+		const d = new Date(date);
+		const day = String(d.getDate()).padStart(2, "0");
+		const month = String(d.getMonth() + 1).padStart(2, "0");
+		const year = d.getFullYear();
+		return `${day}/${month}/${year}`;
+	};
+
+	const handleSubmitContract = async () => {
+		await create("contracts", {
+			apply_id: apply_id,
+			candidate_id: application.candidate_id,
+			company_id: application.company_id,
+			job_id: application.job_id,
+			category: application.jobs?.category || null,
+			hourly_rate: contractHourlyRate
+				? parseFloat(contractHourlyRate)
+				: null,
+			work_location: contractLocation || null,
+			start_date: contractStartDate
+				? contractStartDate.toISOString().split("T")[0]
+				: null,
+			end_date: contractEndDate
+				? contractEndDate.toISOString().split("T")[0]
+				: null,
+			isSigned: false,
+		});
+		await confirmGenerateContract();
 	};
 
 	const confirmReject = async () => {
@@ -1647,56 +1689,236 @@ const ApplicationScreen = () => {
 				</ModalContent>
 			</Modal>
 
-			{/* Modal de confirmation pour générer le contrat */}
+			{/* Modal formulaire pour générer le contrat */}
 			<Modal
 				isOpen={showGenerateContractModal}
 				onClose={() => setShowGenerateContractModal(false)}>
 				<ModalBackdrop />
 				<ModalContent
 					style={{
-						maxWidth: 400,
+						maxWidth: 420,
 						backgroundColor: isDark ? "#374151" : "#ffffff",
 						borderRadius: 16,
-						padding: 24,
 					}}>
-					<VStack space='lg' style={{ alignItems: "center" }}>
-						<Box
-							style={{
-								width: 64,
-								height: 64,
-								borderRadius: 32,
-								backgroundColor: "#dbeafe",
-								justifyContent: "center",
-								alignItems: "center",
-							}}>
-							<Icon
-								as={FileCheck}
-								size='2xl'
-								style={{ color: "#2563eb" }}
-							/>
-						</Box>
-						<VStack space='sm' style={{ alignItems: "center" }}>
+					<ModalHeader
+						style={{
+							borderBottomWidth: 1,
+							borderBottomColor: isDark ? "#4b5563" : "#e5e7eb",
+							paddingHorizontal: 5,
+							paddingBottom: 15,
+						}}>
+						<HStack
+							space='sm'
+							style={{ alignItems: "center", flex: 1 }}>
+							<Box
+								style={{
+									width: 36,
+									height: 36,
+									borderRadius: 18,
+									backgroundColor: "#dbeafe",
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Icon
+									as={FileCheck}
+									size='lg'
+									style={{ color: "#2563eb" }}
+								/>
+							</Box>
 							<Heading
-								size='xl'
+								size='lg'
 								style={{
 									color: isDark ? "#f3f4f6" : "#111827",
-									textAlign: "center",
 								}}>
-								Confirmer la génération du contrat
+								Générer le contrat
 							</Heading>
-							<Text
+						</HStack>
+						<ModalCloseButton>
+							<Icon
+								as={X}
 								size='md'
 								style={{
-									color: isDark ? "#d1d5db" : "#6b7280",
-									textAlign: "center",
-								}}>
-								Êtes-vous sûr de vouloir générer et envoyer le
-								contrat à ce candidat ?
-							</Text>
+									color: isDark ? "#9ca3af" : "#6b7280",
+								}}
+							/>
+						</ModalCloseButton>
+					</ModalHeader>
+					<ModalBody
+						style={{ paddingHorizontal: 5, paddingVertical: 16 }}>
+						<VStack space='lg'>
+							<VStack space='xs'>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#d1d5db" : "#374151",
+										fontWeight: "600",
+									}}>
+									Taux horaire brut (€/h)
+								</Text>
+								<Input
+									variant='outline'
+									size='md'
+									style={{
+										backgroundColor: isDark
+											? "#4b5563"
+											: "#f9fafb",
+										borderColor: isDark
+											? "#4b5563"
+											: "#d1d5db",
+									}}>
+									<InputField
+										value={contractHourlyRate}
+										onChangeText={setContractHourlyRate}
+										keyboardType='numeric'
+										placeholder='Ex: 15.50'
+										placeholderTextColor={
+											isDark ? "#6b7280" : "#9ca3af"
+										}
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}
+									/>
+								</Input>
+							</VStack>
+							<VStack space='xs'>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#d1d5db" : "#374151",
+										fontWeight: "600",
+									}}>
+									Lieu d'exécution du contrat
+								</Text>
+								<Input
+									variant='outline'
+									size='md'
+									style={{
+										backgroundColor: isDark
+											? "#4b5563"
+											: "#f9fafb",
+										borderColor: isDark
+											? "#4b5563"
+											: "#d1d5db",
+									}}>
+									<InputField
+										value={contractLocation}
+										onChangeText={setContractLocation}
+										placeholder='Ex: Centre commercial Westfield Les 4 Temps, 15 Parvis de la Défense, 92000 Nanterre'
+										placeholderTextColor={
+											isDark ? "#6b7280" : "#9ca3af"
+										}
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}
+									/>
+								</Input>
+							</VStack>
+							<VStack space='xs'>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#d1d5db" : "#374151",
+										fontWeight: "600",
+									}}>
+									Date de début
+								</Text>
+								<Pressable
+									onPress={() => {
+										Keyboard.dismiss();
+										setShowContractStartDatePicker(true);
+									}}>
+									<Input
+										variant='outline'
+										size='md'
+										isDisabled
+										style={{
+											pointerEvents: "none",
+											backgroundColor: isDark
+												? "#4b5563"
+												: "#f9fafb",
+											borderColor: isDark
+												? "#4b5563"
+												: "#d1d5db",
+										}}>
+										<InputField
+											value={formatContractDate(
+												contractStartDate,
+											)}
+											editable={false}
+											style={{
+												color: contractStartDate
+													? isDark
+														? "#f3f4f6"
+														: "#111827"
+													: "#9ca3af",
+											}}
+										/>
+									</Input>
+								</Pressable>
+							</VStack>
+							{application.jobs?.contract_type?.toLowerCase() !==
+								"cdi" && (
+								<VStack space='xs'>
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#d1d5db"
+												: "#374151",
+											fontWeight: "600",
+										}}>
+										Date de fin
+									</Text>
+									<Pressable
+										onPress={() => {
+											Keyboard.dismiss();
+											setShowContractEndDatePicker(true);
+										}}>
+										<Input
+											variant='outline'
+											size='md'
+											isDisabled
+											style={{
+												pointerEvents: "none",
+												backgroundColor: isDark
+													? "#4b5563"
+													: "#f9fafb",
+												borderColor: isDark
+													? "#4b5563"
+													: "#d1d5db",
+											}}>
+											<InputField
+												value={formatContractDate(
+													contractEndDate,
+												)}
+												editable={false}
+												style={{
+													color: contractEndDate
+														? isDark
+															? "#f3f4f6"
+															: "#111827"
+														: "#9ca3af",
+												}}
+											/>
+										</Input>
+									</Pressable>
+								</VStack>
+							)}
 						</VStack>
-						<HStack
-							space='md'
-							style={{ width: "100%", marginTop: 8 }}>
+					</ModalBody>
+					<ModalFooter
+						style={{
+							paddingHorizontal: 5,
+							paddingBottom: 5,
+							paddingTop: 8,
+							// borderTopWidth: 1,
+							// borderTopColor: isDark ? "#4b5563" : "#e5e7eb",
+						}}>
+						<HStack space='md' style={{ width: "100%" }}>
 							<Button
 								variant='outline'
 								action='secondary'
@@ -1708,14 +1930,132 @@ const ApplicationScreen = () => {
 							</Button>
 							<Button
 								action='positive'
-								onPress={confirmGenerateContract}
+								onPress={handleSubmitContract}
 								style={{ flex: 1 }}>
-								<ButtonText>Confirmer</ButtonText>
+								<ButtonText>Générer</ButtonText>
 							</Button>
 						</HStack>
-					</VStack>
+					</ModalFooter>
 				</ModalContent>
 			</Modal>
+
+			{/* Actionsheet — Date de début du contrat */}
+			<Actionsheet
+				isOpen={showContractStartDatePicker}
+				onClose={() => setShowContractStartDatePicker(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						paddingBottom: 32,
+						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack
+						space='md'
+						style={{
+							width: "100%",
+							alignItems: "center",
+							paddingTop: 8,
+						}}>
+						<Text
+							style={{
+								fontWeight: "600",
+								fontSize: 16,
+								color: isDark ? "#f9fafb" : "#111827",
+							}}>
+							Date de début
+						</Text>
+						<DateTimePicker
+							value={contractStartDate || new Date()}
+							mode='date'
+							display='spinner'
+							onChange={(event, selectedDate) => {
+								if (selectedDate)
+									setContractStartDate(selectedDate);
+							}}
+							minimumDate={new Date()}
+							style={{ width: "100%" }}
+							textColor={isDark ? "#f9fafb" : "#111827"}
+						/>
+						<Button
+							size='md'
+							onPress={() =>
+								setShowContractStartDatePicker(false)
+							}
+							style={{
+								backgroundColor: "#3b82f6",
+								width: "100%",
+								marginTop: 8,
+							}}>
+							<ButtonText style={{ color: "#ffffff" }}>
+								Confirmer
+							</ButtonText>
+						</Button>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
+
+			{/* Actionsheet — Date de fin du contrat */}
+			<Actionsheet
+				isOpen={showContractEndDatePicker}
+				onClose={() => setShowContractEndDatePicker(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						paddingBottom: 32,
+						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack
+						space='md'
+						style={{
+							width: "100%",
+							alignItems: "center",
+							paddingTop: 8,
+						}}>
+						<Text
+							style={{
+								fontWeight: "600",
+								fontSize: 16,
+								color: isDark ? "#f9fafb" : "#111827",
+							}}>
+							Date de fin
+						</Text>
+						<DateTimePicker
+							value={
+								contractEndDate ||
+								contractStartDate ||
+								new Date()
+							}
+							mode='date'
+							display='spinner'
+							onChange={(event, selectedDate) => {
+								if (selectedDate)
+									setContractEndDate(selectedDate);
+							}}
+							minimumDate={contractStartDate || new Date()}
+							style={{ width: "100%" }}
+							textColor={isDark ? "#f9fafb" : "#111827"}
+						/>
+						<Button
+							size='md'
+							onPress={() => setShowContractEndDatePicker(false)}
+							style={{
+								backgroundColor: "#3b82f6",
+								width: "100%",
+								marginTop: 8,
+							}}>
+							<ButtonText style={{ color: "#ffffff" }}>
+								Confirmer
+							</ButtonText>
+						</Button>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
 
 			{/* ActionSheet Messagerie */}
 			<Actionsheet
