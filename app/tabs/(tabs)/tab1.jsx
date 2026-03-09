@@ -48,11 +48,13 @@ import {
 	Sparkles,
 	BookmarkCheck,
 	IdCard,
+	Bell,
 } from "lucide-react-native";
 
 import JobCard from "@/components/JobCard";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { useNotifications } from "@/context/NotificationsContext";
 import { useTheme } from "@/context/ThemeContext";
 import { width } from "dom-helpers";
 import { Spinner } from "@/components/ui/spinner";
@@ -63,6 +65,7 @@ export default function Tab1() {
 	const { user, role, userCompany } = useAuth();
 	const { getAll } = useDataContext();
 	const { isDark } = useTheme();
+	const { unreadCount } = useNotifications();
 
 	const [refreshing, setRefreshing] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -293,6 +296,17 @@ export default function Tab1() {
 		]);
 	};
 
+	const getGreeting = () => {
+		const now = new Date();
+		const hour = now.getHours();
+		const month = now.getMonth(); // 0 = janvier
+		// Heures approximatives de coucher du soleil en France métropolitaine
+		const sunsets = [17, 18, 19, 20, 21, 22, 21, 21, 20, 19, 17, 16];
+		const sunset = sunsets[month];
+		if (hour >= 5 && hour < sunset) return "Bonjour 👋";
+		return "Bonsoir 🌙";
+	};
+
 	const ActionCard = ({ icon, title, subtitle, onPress, badge }) => (
 		<TouchableOpacity onPress={onPress} activeOpacity={0.7}>
 			<Card
@@ -367,7 +381,15 @@ export default function Tab1() {
 		</TouchableOpacity>
 	);
 
-	const StatCard = ({ icon: CardIcon, iconColor, iconBg, value, label, sub, pressed }) => (
+	const StatCard = ({
+		icon: CardIcon,
+		iconColor,
+		iconBg,
+		value,
+		label,
+		sub,
+		pressed,
+	}) => (
 		<Box
 			style={{
 				flex: 1,
@@ -380,7 +402,9 @@ export default function Tab1() {
 				opacity: pressed ? 0.75 : 1,
 				transform: pressed ? [{ scale: 0.97 }] : [{ scale: 1 }],
 			}}>
-			<HStack space='sm' style={{ alignItems: "center", marginBottom: 10 }}>
+			<HStack
+				space='sm'
+				style={{ alignItems: "center", marginBottom: 10 }}>
 				<Box
 					style={{
 						width: 36,
@@ -402,7 +426,10 @@ export default function Tab1() {
 					}}>
 					{label}
 				</Text>
-				<ChevronRight size={14} color={isDark ? "#4b5563" : "#d1d5db"} />
+				<ChevronRight
+					size={14}
+					color={isDark ? "#4b5563" : "#d1d5db"}
+				/>
 			</HStack>
 			<Text
 				style={{
@@ -414,7 +441,12 @@ export default function Tab1() {
 				{value}
 			</Text>
 			{sub ? (
-				<Text size='xs' style={{ color: isDark ? "#6b7280" : "#9ca3af", marginTop: 2 }}>
+				<Text
+					size='xs'
+					style={{
+						color: isDark ? "#6b7280" : "#9ca3af",
+						marginTop: 2,
+					}}>
 					{sub}
 				</Text>
 			) : null}
@@ -442,22 +474,32 @@ export default function Tab1() {
 						paddingBottom: 40,
 					}}>
 					{/* Header */}
-					<VStack space='sm'>
-						<Heading
-							size='2xl'
-							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
-							}}>
-							Tableau de bord
-						</Heading>
-						<Text
-							size='md'
-							style={{
-								color: isDark ? "#9ca3af" : "#6b7280",
-							}}>
-							Bonjour {userCompany?.name || ""}
-						</Text>
-					</VStack>
+					<HStack
+						style={{
+							alignItems: "center",
+							justifyContent: "space-between",
+						}}>
+						<VStack
+							space='xs'
+							style={{ flex: 1, paddingRight: 12 }}>
+							<Text
+								size='sm'
+								style={{
+									color: isDark ? "#9ca3af" : "#6b7280",
+									fontWeight: "500",
+								}}>
+								{getGreeting()}
+							</Text>
+							<Heading
+								size='2xl'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+									lineHeight: 34,
+								}}>
+								{userCompany?.name || "Tableau de bord"}
+							</Heading>
+						</VStack>
+					</HStack>
 
 					{/* Statut du compte */}
 					{userCompany?.company_status !== "active" ? (
@@ -951,20 +993,39 @@ export default function Tab1() {
 					}}>
 					{/* Header with Search */}
 					<VStack space='md'>
-						<Heading
-							size='2xl'
+						<HStack
 							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
+								alignItems: "center",
+								justifyContent: "space-between",
 							}}>
-							Trouvez votre emploi
-						</Heading>
-						<Text
-							size='md'
-							style={{
-								color: isDark ? "#9ca3af" : "#6b7280",
-							}}>
-							Les meilleures offres dans la sécurité
-						</Text>
+							<VStack
+								space='xs'
+								style={{ flex: 1, paddingRight: 12 }}>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+										fontWeight: "500",
+									}}>
+									{getGreeting()}
+								</Text>
+								<Heading
+									size='2xl'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+										lineHeight: 34,
+									}}>
+									Trouvez votre emploi
+								</Heading>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}>
+									Les meilleures offres dans la sécurité
+								</Text>
+							</VStack>
+						</HStack>
 
 						{/* Search Bar */}
 						<VStack>
