@@ -285,32 +285,43 @@ export default function TabLayout({ theme = "light" }) {
 									onPress={() =>
 										router.push("/notifications")
 									}>
-									<Bell
-										color={
-											colorScheme === "dark"
-												? "#f3f4f6"
-												: "#111827"
-										}
-										size={22}
-									/>
+									{({ pressed }) => (
+										<Bell
+											color={
+												colorScheme === "dark"
+													? "#f3f4f6"
+													: "#111827"
+											}
+											size={22}
+											style={{
+												opacity: pressed ? 0.7 : 1,
+											}}
+										/>
+									)}
 								</Pressable>
 							</VStack>
 							{role === "candidat" && (
 								<Pressable
 									onPress={() => router.push("/account")}
 									style={{ marginRight: 15 }}>
-									<Avatar size='sm'>
-										<AvatarFallbackText>
-											{userProfile?.firstname +
-												" " +
-												userProfile?.lastname}
-										</AvatarFallbackText>
-										<AvatarImage
-											source={{
-												uri: userProfile?.avatar_url,
-											}}
-										/>
-									</Avatar>
+									{({ pressed }) => (
+										<Avatar
+											size='sm'
+											style={{
+												opacity: pressed ? 0.7 : 1,
+											}}>
+											<AvatarFallbackText>
+												{userProfile?.firstname +
+													" " +
+													userProfile?.lastname}
+											</AvatarFallbackText>
+											<AvatarImage
+												source={{
+													uri: userProfile?.avatar_url,
+												}}
+											/>
+										</Avatar>
+									)}
 								</Pressable>
 							)}
 							{role === "pro" && (
@@ -320,16 +331,22 @@ export default function TabLayout({ theme = "light" }) {
 											router.push("/dashboard")
 										}
 										style={{ marginRight: 15 }}>
-										<Avatar size='sm'>
-											<AvatarFallbackText>
-												{userCompany?.name}
-											</AvatarFallbackText>
-											<AvatarImage
-												source={{
-													uri: userCompany?.logo_url,
-												}}
-											/>
-										</Avatar>
+										{({ pressed }) => (
+											<Avatar
+												size='sm'
+												style={{
+													opacity: pressed ? 0.7 : 1,
+												}}>
+												<AvatarFallbackText>
+													{userCompany?.name}
+												</AvatarFallbackText>
+												<AvatarImage
+													source={{
+														uri: userCompany?.logo_url,
+													}}
+												/>
+											</Avatar>
+										)}
 									</Pressable>
 									{userCompany &&
 									userCompany?.company_status ===
