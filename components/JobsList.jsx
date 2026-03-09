@@ -203,7 +203,7 @@ export default function JobsList({
 				}`,
 				page,
 				itemsPerPage,
-				"date.desc",
+				"sponsorship_date.desc.nullslast,date.desc",
 			);
 			setJobs(data || []);
 			setTotalCount(totalCount || 0);
@@ -658,6 +658,7 @@ export default function JobsList({
 										start_date_asap={job?.start_date_asap}
 										start_date={job?.start_date}
 										end_date={job?.end_date}
+										sponsorship_date={job?.sponsorship_date}
 									/>
 								))
 							)}
