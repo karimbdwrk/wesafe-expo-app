@@ -43,6 +43,7 @@ import {
 	BadgeEuro,
 	ChevronRight,
 	Zap,
+	Sparkles,
 	Calendar,
 } from "lucide-react-native";
 import { width } from "dom-helpers";
@@ -79,6 +80,7 @@ const JobCard = ({
 	start_date_asap,
 	start_date,
 	end_date,
+	sponsorship_date,
 }) => {
 	const router = useRouter();
 	const { isDark } = useTheme();
@@ -238,14 +240,42 @@ const JobCard = ({
 								</Popover>
 							</VStack>
 						)}
-						<Heading
-							size='lg'
-							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
-								lineHeight: 24,
-							}}>
-							{title}
-						</Heading>
+						<VStack>
+							<Heading
+								size='lg'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+									lineHeight: 24,
+								}}>
+								{title}
+							</Heading>
+							{sponsorship_date &&
+								new Date(sponsorship_date) >= new Date() && (
+									<HStack
+										space='xs'
+										style={{
+											alignItems: "center",
+											marginTop: 2,
+										}}>
+										<Sparkles
+											size={11}
+											color={
+												isDark ? "#fbbf24" : "#d97706"
+											}
+										/>
+										<Text
+											size='xs'
+											style={{
+												color: isDark
+													? "#fbbf24"
+													: "#d97706",
+												fontWeight: "500",
+											}}>
+											Annonce sponsorisée
+										</Text>
+									</HStack>
+								)}
+						</VStack>
 					</HStack>
 					<HStack space='md' style={{ alignItems: "center" }}>
 						<Avatar size='md'>
