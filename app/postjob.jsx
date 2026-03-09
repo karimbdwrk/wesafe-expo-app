@@ -1184,8 +1184,9 @@ const PostJob = () => {
 						: [],
 				),
 				company_id: user.id,
-				isArchived: false,
+				is_archived: false,
 				start_date_asap: formData.start_date_asap,
+				status: "published",
 			});
 
 			toast.show({
