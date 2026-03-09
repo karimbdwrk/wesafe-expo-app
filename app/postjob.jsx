@@ -80,6 +80,7 @@ import {
 	ChevronDownIcon,
 	GraduationCap,
 	Zap,
+	Sparkles,
 	CalendarDays,
 } from "lucide-react-native";
 
@@ -235,6 +236,8 @@ const PostJob = () => {
 	const [loading, setLoading] = useState(false);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [currentStep, setCurrentStep] = useState(1);
+	const [isSponsored, setIsSponsored] = useState(false);
+	const [sponsorshipDuration, setSponsorshipDuration] = useState(null); // "1w" | "2w" | "1m"
 	const scrollX = useRef(new Animated.Value(0)).current;
 	const scrollViewRefs = useRef([null, null, null, null]);
 	const titleInputRef = useRef(null);
@@ -1187,6 +1190,17 @@ const PostJob = () => {
 				is_archived: false,
 				start_date_asap: formData.start_date_asap,
 				status: "published",
+				sponsorship_date: (() => {
+					if (!isSponsored || !sponsorshipDuration) return null;
+					const d = new Date();
+					if (sponsorshipDuration === "1w")
+						d.setDate(d.getDate() + 7);
+					else if (sponsorshipDuration === "2w")
+						d.setDate(d.getDate() + 14);
+					else if (sponsorshipDuration === "1m")
+						d.setMonth(d.getMonth() + 1);
+					return d.toISOString().split("T")[0];
+				})(),
 			});
 
 			toast.show({
@@ -6476,6 +6490,221 @@ const PostJob = () => {
 										</VStack>
 									</Card>
 								)}
+								{/* Sponsoring */}
+								<Card
+									style={{
+										padding: 20,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isSponsored
+											? isDark
+												? "#92400e"
+												: "#fde68a"
+											: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+									}}>
+									<VStack space='md'>
+										<HStack
+											style={{
+												alignItems: "center",
+												justifyContent: "space-between",
+											}}>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+													flex: 1,
+												}}>
+												<Box
+													style={{
+														width: 32,
+														height: 32,
+														borderRadius: 8,
+														backgroundColor: isDark
+															? "#451a03"
+															: "#fefce8",
+														justifyContent:
+															"center",
+														alignItems: "center",
+													}}>
+													<Sparkles
+														size={16}
+														color={
+															isDark
+																? "#fbbf24"
+																: "#d97706"
+														}
+													/>
+												</Box>
+												<VStack style={{ flex: 1 }}>
+													<Text
+														size='md'
+														style={{
+															fontWeight: "700",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														Sponsoriser l'annonce
+													</Text>
+													<Text
+														size='xs'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}>
+														Votre annonce apparaîtra
+														en tête de liste
+													</Text>
+												</VStack>
+											</HStack>
+											<Switch
+												value={isSponsored}
+												onValueChange={(val) => {
+													setIsSponsored(val);
+													if (!val) {
+														setSponsorshipDuration(
+															null,
+														);
+													} else {
+														setTimeout(() => {
+															scrollViewRefs.current[3]?.scrollToEnd(
+																{
+																	animated: true,
+																},
+															);
+														}, 150);
+													}
+												}}
+												trackColor={{
+													false: isDark
+														? "#4b5563"
+														: "#d1d5db",
+													true: "#d97706",
+												}}
+												thumbColor='#ffffff'
+											/>
+										</HStack>
+
+										{isSponsored && (
+											<>
+												<Divider
+													style={{
+														backgroundColor: isDark
+															? "#4b5563"
+															: "#e5e7eb",
+													}}
+												/>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														fontWeight: "600",
+													}}>
+													Durée du sponsoring
+												</Text>
+												<HStack space='sm'>
+													{[
+														{
+															key: "1w",
+															label: "1 semaine",
+															price: "7,99 €",
+														},
+														{
+															key: "2w",
+															label: "2 semaines",
+															price: "13,99 €",
+														},
+														{
+															key: "1m",
+															label: "1 mois",
+															price: "24,99 €",
+														},
+													].map((opt) => {
+														const active =
+															sponsorshipDuration ===
+															opt.key;
+														return (
+															<TouchableOpacity
+																key={opt.key}
+																onPress={() =>
+																	setSponsorshipDuration(
+																		opt.key,
+																	)
+																}
+																activeOpacity={
+																	0.7
+																}
+																style={{
+																	flex: 1,
+																	paddingVertical: 10,
+																	alignItems:
+																		"center",
+																	borderRadius: 10,
+																	borderWidth: 1.5,
+																	borderColor:
+																		active
+																			? "#d97706"
+																			: isDark
+																				? "#4b5563"
+																				: "#e5e7eb",
+																	backgroundColor:
+																		active
+																			? isDark
+																				? "#451a03"
+																				: "#fefce8"
+																			: isDark
+																				? "#1f2937"
+																				: "#f9fafb",
+																}}>
+																<Text
+																	size='sm'
+																	style={{
+																		fontWeight:
+																			active
+																				? "700"
+																				: "500",
+																		color: active
+																			? isDark
+																				? "#fbbf24"
+																				: "#d97706"
+																			: isDark
+																				? "#9ca3af"
+																				: "#6b7280",
+																	}}>
+																	{opt.label}
+																</Text>
+																<Text
+																	size='xs'
+																	style={{
+																		fontWeight:
+																			"700",
+																		color: active
+																			? isDark
+																				? "#fbbf24"
+																				: "#d97706"
+																			: isDark
+																				? "#9ca3af"
+																				: "#6b7280",
+																		marginTop: 2,
+																	}}>
+																	{opt.price}
+																</Text>
+															</TouchableOpacity>
+														);
+													})}
+												</HStack>
+											</>
+										)}
+									</VStack>
+								</Card>
 							</VStack>
 						</ScrollView>
 					</Box>
