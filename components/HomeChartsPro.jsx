@@ -944,418 +944,518 @@ const HomeChartsPro = () => {
 
 			<Divider style={{ backgroundColor: borderColor }} />
 
-			{/* Stats Last Minute */}
-			<VStack space='sm'>
-				<HStack
-					style={{ alignItems: "center", gap: 8, marginBottom: 4 }}>
-					<Box
-						style={{
-							width: 28,
-							height: 28,
-							borderRadius: 8,
-							backgroundColor: isDark ? "#451a03" : "#fff7ed",
-							justifyContent: "center",
-							alignItems: "center",
-						}}>
-						<Zap size={15} color='#ea580c' />
-					</Box>
-					<Heading size='sm' style={{ color: textPrimary }}>
-						Missions Last Minute
-					</Heading>
-				</HStack>
-
-				<HStack space='sm'>
-					<KpiCard
-						icon={Zap}
-						iconColor='#ea580c'
-						iconBg={isDark ? "#451a03" : "#fff7ed"}
-						label='Missions last minute'
-						value={lmKpis.total}
-						sub='actives'
-						isDark={isDark}
-						onPress={() => router.push("/lastminute")}
-					/>
-					<KpiCard
-						icon={Users}
-						iconColor='#be185d'
-						iconBg={isDark ? "#4a0520" : "#fdf2f8"}
-						label='Candidatures reçues'
-						value={lmKpis.apps}
-						sub='sur missions LM'
-						isDark={isDark}
-						onPress={() => router.push("/applicationspro")}
-					/>
-				</HStack>
-
-				<HStack space='sm'>
-					<KpiCard
-						icon={Target}
-						iconColor='#16a34a'
-						iconBg={isDark ? "#052e16" : "#f0fdf4"}
-						label='Taux de pourvoi LM'
-						value={`${lmKpis.fillRate} %`}
-						isDark={isDark}
-					/>
-					<KpiCard
-						icon={Timer}
-						iconColor='#0891b2'
-						iconBg={isDark ? "#0c2a35" : "#ecfeff"}
-						label='Temps moyen pourvoi LM'
-						value={(() => {
-							if (lmKpis.avgMs === null) return "—";
-							const mins = Math.round(lmKpis.avgMs / 60000);
-							if (mins < 60) return `${mins} min`;
-							const hours = Math.round(lmKpis.avgMs / 3600000);
-							if (hours < 24) return `${hours} h`;
-							return `${Math.round(lmKpis.avgMs / 86400000)} j`;
-						})()}
-						sub={(() => {
-							if (lmKpis.avgMs === null)
-								return "pas encore de données";
-							const mins = Math.round(lmKpis.avgMs / 60000);
-							if (mins < 60) return "minutes en moyenne";
-							const hours = Math.round(lmKpis.avgMs / 3600000);
-							if (hours < 24) return "heures en moyenne";
-							return "jours en moyenne";
-						})()}
-						isDark={isDark}
-					/>
-				</HStack>
-
-				{/* Row 3 LM */}
-				<HStack space='sm'>
-					<KpiCard
-						icon={UserCheck}
-						iconColor='#0891b2'
-						iconBg={isDark ? "#0c2a35" : "#ecfeff"}
-						label='Agents recrutés LM'
-						value={lmKpis.uniqueAgents ?? "—"}
-						sub='profils uniques'
-						isDark={isDark}
-					/>
-					<KpiCard
-						icon={TrendingUp}
-						iconColor='#9333ea'
-						iconBg={isDark ? "#2e0a4a" : "#faf5ff"}
-						label='Moy. candidatures / mission LM'
-						value={lmKpis.avgAppsPerJob ?? "—"}
-						sub='candidatures en moyenne'
-						isDark={isDark}
-					/>
-				</HStack>
-			</VStack>
-
-			{/* Line chart LM */}
-			<VStack space='xs'>
-				<HStack
-					style={{
-						justifyContent: "space-between",
-						alignItems: "center",
-						marginBottom: 8,
-					}}>
-					<Heading size='sm' style={{ color: textPrimary }}>
-						Missions LM publiées
-					</Heading>
-					<HStack
-						style={{
-							backgroundColor: isDark ? "#111827" : "#f3f4f6",
-							borderRadius: 10,
-							padding: 3,
-						}}>
-						{PERIODS.map(({ key, label }) => {
-							const active = lmPeriod === key;
-							return (
-								<TouchableOpacity
-									key={key}
-									onPress={() => setLmPeriod(key)}
-									activeOpacity={0.7}
-									style={{
-										paddingHorizontal: 10,
-										paddingVertical: 5,
-										borderRadius: 8,
-										backgroundColor: active
-											? "#ea580c"
-											: "transparent",
-									}}>
-									<Text
-										size='xs'
-										style={{
-											fontWeight: active ? "700" : "500",
-											color: active
-												? "#ffffff"
-												: isDark
-													? "#6b7280"
-													: "#9ca3af",
-										}}>
-										{label}
-									</Text>
-								</TouchableOpacity>
-							);
-						})}
-					</HStack>
-				</HStack>
+			{lmKpis.total === 0 ? (
 				<Box
 					style={{
-						backgroundColor: cardBg,
+						backgroundColor: isDark ? "#422006" : "#fefce8",
 						borderRadius: 16,
 						borderWidth: 1,
-						borderColor,
-						paddingTop: 20,
-						paddingBottom: 8,
-						paddingHorizontal: 8,
-						overflow: "hidden",
-					}}>
-					<HStack
-						space='lg'
-						style={{ paddingHorizontal: 8, marginBottom: 12 }}>
-						<HStack space='xs' style={{ alignItems: "center" }}>
-							<Box
-								style={{
-									width: 24,
-									height: 3,
-									borderRadius: 2,
-									backgroundColor: isDark
-										? "#fb923c"
-										: "#ea580c",
-								}}
-							/>
-							<Text size='xs' style={{ color: textSecondary }}>
-								Missions LM
-							</Text>
-						</HStack>
-						<HStack space='xs' style={{ alignItems: "center" }}>
-							<Box
-								style={{
-									width: 24,
-									height: 3,
-									borderRadius: 2,
-									backgroundColor: isDark
-										? "#a78bfa"
-										: "#7c3aed",
-								}}
-							/>
-							<Text size='xs' style={{ color: textSecondary }}>
-								Candidatures
-							</Text>
-						</HStack>
-					</HStack>
-					<LineChart
-						data={lmLineData}
-						data2={lmLineData2}
-						width={SCREEN_WIDTH - 96}
-						height={180}
-						spacing={(SCREEN_WIDTH - 96) / (lmLineData.length + 1)}
-						color1={isDark ? "#fb923c" : "#ea580c"}
-						color2={isDark ? "#a78bfa" : "#7c3aed"}
-						thickness1={2.5}
-						thickness2={2.5}
-						startFillColor1={isDark ? "#431407" : "#ffedd5"}
-						endFillColor1={isDark ? "#111827" : "#ffffff"}
-						startFillColor2={isDark ? "#2e1065" : "#f5f3ff"}
-						endFillColor2={isDark ? "#111827" : "#ffffff"}
-						startOpacity1={0.35}
-						endOpacity1={0}
-						startOpacity2={0.25}
-						endOpacity2={0}
-						areaChart
-						hideRules
-						xAxisColor={axisColor}
-						yAxisColor='transparent'
-						yAxisTextStyle={{ color: labelColor, fontSize: 11 }}
-						xAxisLabelTextStyle={{
-							color: labelColor,
-							fontSize: 10,
-						}}
-						dataPointsColor1={isDark ? "#fb923c" : "#ea580c"}
-						dataPointsColor2={isDark ? "#c4b5fd" : "#7c3aed"}
-						dataPointsRadius={4}
-						noOfSections={4}
-						maxValue={Math.max(
-							...lmLineData.map((d) => d.value),
-							...lmLineData2.map((d) => d.value),
-							4,
-						)}
-						isAnimated
-						animationDuration={600}
-						curved
-					/>
-				</Box>
-			</VStack>
-
-			{/* Bar chart répartition LM */}
-			<VStack space='xs'>
-				<HStack
-					style={{
-						justifyContent: "space-between",
+						borderColor: isDark ? "#92400e" : "#fde68a",
+						padding: 16,
+						flexDirection: "row",
 						alignItems: "center",
-						marginBottom: 8,
+						gap: 10,
 					}}>
-					<Heading size='sm' style={{ color: textPrimary }}>
-						Répartition postes LM
-					</Heading>
-					<HStack
-						style={{
-							backgroundColor: isDark ? "#111827" : "#f3f4f6",
-							borderRadius: 10,
-							padding: 3,
-						}}>
-						{PERIODS.map(({ key, label }) => {
-							const active = lmCatPeriod === key;
-							return (
-								<TouchableOpacity
-									key={key}
-									onPress={() => setLmCatPeriod(key)}
-									activeOpacity={0.7}
-									style={{
-										paddingHorizontal: 10,
-										paddingVertical: 5,
-										borderRadius: 8,
-										backgroundColor: active
-											? "#ea580c"
-											: "transparent",
-									}}>
-									<Text
-										size='xs'
-										style={{
-											fontWeight: active ? "700" : "500",
-											color: active
-												? "#ffffff"
-												: isDark
-													? "#6b7280"
-													: "#9ca3af",
-										}}>
-										{label}
-									</Text>
-								</TouchableOpacity>
-							);
-						})}
-					</HStack>
-				</HStack>
-
-				{lmCatChartData.barData.length === 0 ? (
-					<Box
-						style={{
-							backgroundColor: cardBg,
-							borderRadius: 16,
-							borderWidth: 1,
-							borderColor,
-							padding: 24,
-							alignItems: "center",
-						}}>
-						<Text size='sm' style={{ color: textSecondary }}>
-							Aucune mission LM sur cette période
+					<Zap size={18} color={isDark ? "#fbbf24" : "#d97706"} />
+					<VStack style={{ flex: 1 }}>
+						<Text
+							style={{
+								color: isDark ? "#fbbf24" : "#92400e",
+								fontWeight: "700",
+								fontSize: 14,
+							}}>
+							Aucune donnée Last Minute
 						</Text>
-					</Box>
-				) : (
-					<Box
-						style={{
-							backgroundColor: cardBg,
-							borderRadius: 16,
-							borderWidth: 1,
-							borderColor,
-							padding: 16,
-							overflow: "hidden",
-						}}>
+						<Text
+							style={{
+								color: isDark ? "#fcd34d" : "#b45309",
+								fontSize: 12,
+								marginTop: 2,
+							}}>
+							Publiez une annonce Last Minute pour voir vos
+							statistiques apparaître ici.
+						</Text>
+					</VStack>
+				</Box>
+			) : (
+				<>
+					{/* Stats Last Minute */}
+					<VStack space='sm'>
 						<HStack
 							style={{
-								justifyContent: "flex-end",
-								marginBottom: 10,
-								gap: 14,
+								alignItems: "center",
+								gap: 8,
+								marginBottom: 4,
 							}}>
-							<HStack style={{ alignItems: "center", gap: 5 }}>
-								<Box
-									style={{
-										width: 12,
-										height: 12,
-										borderRadius: 3,
-										backgroundColor: CAT_COLORS[0],
-									}}
-								/>
-								<Text
-									size='xs'
-									style={{ color: textSecondary }}>
-									Missions LM
-								</Text>
-							</HStack>
-							<HStack style={{ alignItems: "center", gap: 5 }}>
-								<Box
-									style={{
-										width: 12,
-										height: 3,
-										borderRadius: 2,
-										backgroundColor: isDark
-											? "#a78bfa"
-											: "#7c3aed",
-									}}
-								/>
-								<Text
-									size='xs'
-									style={{ color: textSecondary }}>
-									Candidatures
-								</Text>
+							<Box
+								style={{
+									width: 28,
+									height: 28,
+									borderRadius: 8,
+									backgroundColor: isDark
+										? "#451a03"
+										: "#fff7ed",
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Zap size={15} color='#ea580c' />
+							</Box>
+							<Heading size='sm' style={{ color: textPrimary }}>
+								Missions Last Minute
+							</Heading>
+						</HStack>
+
+						<HStack space='sm'>
+							<KpiCard
+								icon={Zap}
+								iconColor='#ea580c'
+								iconBg={isDark ? "#451a03" : "#fff7ed"}
+								label='Missions last minute'
+								value={lmKpis.total}
+								sub='actives'
+								isDark={isDark}
+								onPress={() => router.push("/lastminute")}
+							/>
+							<KpiCard
+								icon={Users}
+								iconColor='#be185d'
+								iconBg={isDark ? "#4a0520" : "#fdf2f8"}
+								label='Candidatures reçues'
+								value={lmKpis.apps}
+								sub='sur missions LM'
+								isDark={isDark}
+								onPress={() => router.push("/applicationspro")}
+							/>
+						</HStack>
+
+						<HStack space='sm'>
+							<KpiCard
+								icon={Target}
+								iconColor='#16a34a'
+								iconBg={isDark ? "#052e16" : "#f0fdf4"}
+								label='Taux de pourvoi LM'
+								value={`${lmKpis.fillRate} %`}
+								isDark={isDark}
+							/>
+							<KpiCard
+								icon={Timer}
+								iconColor='#0891b2'
+								iconBg={isDark ? "#0c2a35" : "#ecfeff"}
+								label='Temps moyen pourvoi LM'
+								value={(() => {
+									if (lmKpis.avgMs === null) return "—";
+									const mins = Math.round(
+										lmKpis.avgMs / 60000,
+									);
+									if (mins < 60) return `${mins} min`;
+									const hours = Math.round(
+										lmKpis.avgMs / 3600000,
+									);
+									if (hours < 24) return `${hours} h`;
+									return `${Math.round(lmKpis.avgMs / 86400000)} j`;
+								})()}
+								sub={(() => {
+									if (lmKpis.avgMs === null)
+										return "pas encore de données";
+									const mins = Math.round(
+										lmKpis.avgMs / 60000,
+									);
+									if (mins < 60) return "minutes en moyenne";
+									const hours = Math.round(
+										lmKpis.avgMs / 3600000,
+									);
+									if (hours < 24) return "heures en moyenne";
+									return "jours en moyenne";
+								})()}
+								isDark={isDark}
+							/>
+						</HStack>
+
+						{/* Row 3 LM */}
+						<HStack space='sm'>
+							<KpiCard
+								icon={UserCheck}
+								iconColor='#0891b2'
+								iconBg={isDark ? "#0c2a35" : "#ecfeff"}
+								label='Agents recrutés LM'
+								value={lmKpis.uniqueAgents ?? "—"}
+								sub='profils uniques'
+								isDark={isDark}
+							/>
+							<KpiCard
+								icon={TrendingUp}
+								iconColor='#9333ea'
+								iconBg={isDark ? "#2e0a4a" : "#faf5ff"}
+								label='Moy. candidatures / mission LM'
+								value={lmKpis.avgAppsPerJob ?? "—"}
+								sub='candidatures en moyenne'
+								isDark={isDark}
+							/>
+						</HStack>
+					</VStack>
+
+					{/* Line chart LM */}
+					<VStack space='xs'>
+						<HStack
+							style={{
+								justifyContent: "space-between",
+								alignItems: "center",
+								marginBottom: 8,
+							}}>
+							<Heading size='sm' style={{ color: textPrimary }}>
+								Missions LM publiées
+							</Heading>
+							<HStack
+								style={{
+									backgroundColor: isDark
+										? "#111827"
+										: "#f3f4f6",
+									borderRadius: 10,
+									padding: 3,
+								}}>
+								{PERIODS.map(({ key, label }) => {
+									const active = lmPeriod === key;
+									return (
+										<TouchableOpacity
+											key={key}
+											onPress={() => setLmPeriod(key)}
+											activeOpacity={0.7}
+											style={{
+												paddingHorizontal: 10,
+												paddingVertical: 5,
+												borderRadius: 8,
+												backgroundColor: active
+													? "#ea580c"
+													: "transparent",
+											}}>
+											<Text
+												size='xs'
+												style={{
+													fontWeight: active
+														? "700"
+														: "500",
+													color: active
+														? "#ffffff"
+														: isDark
+															? "#6b7280"
+															: "#9ca3af",
+												}}>
+												{label}
+											</Text>
+										</TouchableOpacity>
+									);
+								})}
 							</HStack>
 						</HStack>
-						<BarChart
-							data={lmCatChartData.barData}
-							showLine
-							lineData={lmCatChartData.lineData}
-							lineConfig={{
-								color: isDark ? "#a78bfa" : "#7c3aed",
-								thickness: 2.5,
-								curved: false,
-								dataPointsColor: isDark ? "#c4b5fd" : "#7c3aed",
-								dataPointsRadius: 5,
-								dataPointsWidth: 5,
-								shiftY: 0,
-							}}
-							height={200}
-							width={SCREEN_WIDTH - 96}
-							barWidth={28}
-							spacing={20}
-							roundedTop
-							hideRules
-							yAxisColor='transparent'
-							xAxisColor={axisColor}
-							yAxisTextStyle={{ color: labelColor, fontSize: 11 }}
-							xAxisLabelTextStyle={{
-								color: labelColor,
-								fontSize: 10,
-							}}
-							noOfSections={4}
-							maxValue={Math.max(
-								...lmCatChartData.barData.map((d) => d.value),
-								...lmCatChartData.lineData.map((d) => d.value),
-								4,
-							)}
-							isAnimated
-							animationDuration={500}
-							renderTooltip={(item) => (
-								<Box
-									style={{
-										backgroundColor: isDark
-											? "#374151"
-											: "#1f2937",
-										paddingHorizontal: 8,
-										paddingVertical: 4,
-										borderRadius: 6,
-										marginBottom: 4,
-									}}>
-									<Text
+						<Box
+							style={{
+								backgroundColor: cardBg,
+								borderRadius: 16,
+								borderWidth: 1,
+								borderColor,
+								paddingTop: 20,
+								paddingBottom: 8,
+								paddingHorizontal: 8,
+								overflow: "hidden",
+							}}>
+							<HStack
+								space='lg'
+								style={{
+									paddingHorizontal: 8,
+									marginBottom: 12,
+								}}>
+								<HStack
+									space='xs'
+									style={{ alignItems: "center" }}>
+									<Box
 										style={{
-											color: "#ffffff",
-											fontSize: 12,
-											fontWeight: "700",
-										}}>
-										{item.value} mission
-										{item.value > 1 ? "s" : ""} · {item.pct}
-										%
+											width: 24,
+											height: 3,
+											borderRadius: 2,
+											backgroundColor: isDark
+												? "#fb923c"
+												: "#ea580c",
+										}}
+									/>
+									<Text
+										size='xs'
+										style={{ color: textSecondary }}>
+										Missions LM
 									</Text>
-								</Box>
-							)}
-						/>
-					</Box>
-				)}
-			</VStack>
+								</HStack>
+								<HStack
+									space='xs'
+									style={{ alignItems: "center" }}>
+									<Box
+										style={{
+											width: 24,
+											height: 3,
+											borderRadius: 2,
+											backgroundColor: isDark
+												? "#a78bfa"
+												: "#7c3aed",
+										}}
+									/>
+									<Text
+										size='xs'
+										style={{ color: textSecondary }}>
+										Candidatures
+									</Text>
+								</HStack>
+							</HStack>
+							<LineChart
+								data={lmLineData}
+								data2={lmLineData2}
+								width={SCREEN_WIDTH - 96}
+								height={180}
+								spacing={
+									(SCREEN_WIDTH - 96) /
+									(lmLineData.length + 1)
+								}
+								color1={isDark ? "#fb923c" : "#ea580c"}
+								color2={isDark ? "#a78bfa" : "#7c3aed"}
+								thickness1={2.5}
+								thickness2={2.5}
+								startFillColor1={isDark ? "#431407" : "#ffedd5"}
+								endFillColor1={isDark ? "#111827" : "#ffffff"}
+								startFillColor2={isDark ? "#2e1065" : "#f5f3ff"}
+								endFillColor2={isDark ? "#111827" : "#ffffff"}
+								startOpacity1={0.35}
+								endOpacity1={0}
+								startOpacity2={0.25}
+								endOpacity2={0}
+								areaChart
+								hideRules
+								xAxisColor={axisColor}
+								yAxisColor='transparent'
+								yAxisTextStyle={{
+									color: labelColor,
+									fontSize: 11,
+								}}
+								xAxisLabelTextStyle={{
+									color: labelColor,
+									fontSize: 10,
+								}}
+								dataPointsColor1={
+									isDark ? "#fb923c" : "#ea580c"
+								}
+								dataPointsColor2={
+									isDark ? "#c4b5fd" : "#7c3aed"
+								}
+								dataPointsRadius={4}
+								noOfSections={4}
+								maxValue={Math.max(
+									...lmLineData.map((d) => d.value),
+									...lmLineData2.map((d) => d.value),
+									4,
+								)}
+								isAnimated
+								animationDuration={600}
+								curved
+							/>
+						</Box>
+					</VStack>
+
+					{/* Bar chart répartition LM */}
+					<VStack space='xs'>
+						<HStack
+							style={{
+								justifyContent: "space-between",
+								alignItems: "center",
+								marginBottom: 8,
+							}}>
+							<Heading size='sm' style={{ color: textPrimary }}>
+								Répartition postes LM
+							</Heading>
+							<HStack
+								style={{
+									backgroundColor: isDark
+										? "#111827"
+										: "#f3f4f6",
+									borderRadius: 10,
+									padding: 3,
+								}}>
+								{PERIODS.map(({ key, label }) => {
+									const active = lmCatPeriod === key;
+									return (
+										<TouchableOpacity
+											key={key}
+											onPress={() => setLmCatPeriod(key)}
+											activeOpacity={0.7}
+											style={{
+												paddingHorizontal: 10,
+												paddingVertical: 5,
+												borderRadius: 8,
+												backgroundColor: active
+													? "#ea580c"
+													: "transparent",
+											}}>
+											<Text
+												size='xs'
+												style={{
+													fontWeight: active
+														? "700"
+														: "500",
+													color: active
+														? "#ffffff"
+														: isDark
+															? "#6b7280"
+															: "#9ca3af",
+												}}>
+												{label}
+											</Text>
+										</TouchableOpacity>
+									);
+								})}
+							</HStack>
+						</HStack>
+
+						{lmCatChartData.barData.length === 0 ? (
+							<Box
+								style={{
+									backgroundColor: cardBg,
+									borderRadius: 16,
+									borderWidth: 1,
+									borderColor,
+									padding: 24,
+									alignItems: "center",
+								}}>
+								<Text
+									size='sm'
+									style={{ color: textSecondary }}>
+									Aucune mission LM sur cette période
+								</Text>
+							</Box>
+						) : (
+							<Box
+								style={{
+									backgroundColor: cardBg,
+									borderRadius: 16,
+									borderWidth: 1,
+									borderColor,
+									padding: 16,
+									overflow: "hidden",
+								}}>
+								<HStack
+									style={{
+										justifyContent: "flex-end",
+										marginBottom: 10,
+										gap: 14,
+									}}>
+									<HStack
+										style={{
+											alignItems: "center",
+											gap: 5,
+										}}>
+										<Box
+											style={{
+												width: 12,
+												height: 12,
+												borderRadius: 3,
+												backgroundColor: CAT_COLORS[0],
+											}}
+										/>
+										<Text
+											size='xs'
+											style={{ color: textSecondary }}>
+											Missions LM
+										</Text>
+									</HStack>
+									<HStack
+										style={{
+											alignItems: "center",
+											gap: 5,
+										}}>
+										<Box
+											style={{
+												width: 12,
+												height: 3,
+												borderRadius: 2,
+												backgroundColor: isDark
+													? "#a78bfa"
+													: "#7c3aed",
+											}}
+										/>
+										<Text
+											size='xs'
+											style={{ color: textSecondary }}>
+											Candidatures
+										</Text>
+									</HStack>
+								</HStack>
+								<BarChart
+									data={lmCatChartData.barData}
+									showLine
+									lineData={lmCatChartData.lineData}
+									lineConfig={{
+										color: isDark ? "#a78bfa" : "#7c3aed",
+										thickness: 2.5,
+										curved: false,
+										dataPointsColor: isDark
+											? "#c4b5fd"
+											: "#7c3aed",
+										dataPointsRadius: 5,
+										dataPointsWidth: 5,
+										shiftY: 0,
+									}}
+									height={200}
+									width={SCREEN_WIDTH - 96}
+									barWidth={28}
+									spacing={20}
+									roundedTop
+									hideRules
+									yAxisColor='transparent'
+									xAxisColor={axisColor}
+									yAxisTextStyle={{
+										color: labelColor,
+										fontSize: 11,
+									}}
+									xAxisLabelTextStyle={{
+										color: labelColor,
+										fontSize: 10,
+									}}
+									noOfSections={4}
+									maxValue={Math.max(
+										...lmCatChartData.barData.map(
+											(d) => d.value,
+										),
+										...lmCatChartData.lineData.map(
+											(d) => d.value,
+										),
+										4,
+									)}
+									isAnimated
+									animationDuration={500}
+									renderTooltip={(item) => (
+										<Box
+											style={{
+												backgroundColor: isDark
+													? "#374151"
+													: "#1f2937",
+												paddingHorizontal: 8,
+												paddingVertical: 4,
+												borderRadius: 6,
+												marginBottom: 4,
+											}}>
+											<Text
+												style={{
+													color: "#ffffff",
+													fontSize: 12,
+													fontWeight: "700",
+												}}>
+												{item.value} mission
+												{item.value > 1
+													? "s"
+													: ""} · {item.pct}%
+											</Text>
+										</Box>
+									)}
+								/>
+							</Box>
+						)}
+					</VStack>
+				</>
+			)}
 		</VStack>
 	);
 };
