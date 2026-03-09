@@ -367,64 +367,58 @@ export default function Tab1() {
 		</TouchableOpacity>
 	);
 
-	const StatCard = ({ icon, value, label, color = "#3b82f6", pressed }) => (
-		<Card
+	const StatCard = ({ icon: CardIcon, iconColor, iconBg, value, label, sub, pressed }) => (
+		<Box
 			style={{
 				flex: 1,
-				width: "100%",
-				minWidth: 0,
-				padding: 16,
-				backgroundColor: isDark ? "#374151" : "#ffffff",
-				borderRadius: 12,
+				backgroundColor: isDark ? "#1f2937" : "#ffffff",
+				borderRadius: 16,
 				borderWidth: 1,
-				borderColor: isDark ? "#4b5563" : "#e5e7eb",
-				opacity: pressed ? 0.6 : 1,
+				borderColor: isDark ? "#374151" : "#e5e7eb",
+				padding: 16,
+				minWidth: "47%",
+				opacity: pressed ? 0.75 : 1,
 				transform: pressed ? [{ scale: 0.97 }] : [{ scale: 1 }],
 			}}>
-			<HStack
-				style={{
-					alignItems: "center",
-					justifyContent: "space-between",
-				}}>
-				<VStack space='sm'>
-					<Box
-						style={{
-							backgroundColor: "#F7F7F7",
-							width: 40,
-							height: 40,
-							borderRadius: 5,
-							justifyContent: "center",
-							alignItems: "center",
-						}}>
-						<Icon as={icon} size='lg' style={{ color }} />
-					</Box>
-					<VStack space='sm' style={{ paddingLeft: 5 }}>
-						<Text
-							size='2xl'
-							style={{
-								fontWeight: "700",
-								color: isDark ? "#f3f4f6" : "#111827",
-							}}>
-							{value}
-						</Text>
-						<Text
-							size='sm'
-							style={{
-								color: isDark ? "#9ca3af" : "#6b7280",
-							}}>
-							{label}
-						</Text>
-					</VStack>
-				</VStack>
-				<Icon
-					as={ChevronRight}
-					size='lg'
+			<HStack space='sm' style={{ alignItems: "center", marginBottom: 10 }}>
+				<Box
+					style={{
+						width: 36,
+						height: 36,
+						borderRadius: 10,
+						backgroundColor: iconBg,
+						justifyContent: "center",
+						alignItems: "center",
+					}}>
+					<CardIcon size={18} color={iconColor} />
+				</Box>
+				<Text
+					size='xs'
 					style={{
 						color: isDark ? "#9ca3af" : "#6b7280",
-					}}
-				/>
+						fontWeight: "600",
+						flex: 1,
+						lineHeight: 16,
+					}}>
+					{label}
+				</Text>
+				<ChevronRight size={14} color={isDark ? "#4b5563" : "#d1d5db"} />
 			</HStack>
-		</Card>
+			<Text
+				style={{
+					fontSize: 28,
+					fontWeight: "800",
+					color: isDark ? "#f3f4f6" : "#111827",
+					lineHeight: 34,
+				}}>
+				{value}
+			</Text>
+			{sub ? (
+				<Text size='xs' style={{ color: isDark ? "#6b7280" : "#9ca3af", marginTop: 2 }}>
+					{sub}
+				</Text>
+			) : null}
+		</Box>
 	);
 
 	// Version PRO
@@ -1227,9 +1221,11 @@ export default function Tab1() {
 							{({ pressed }) => (
 								<StatCard
 									icon={FileText}
+									iconColor='#2563eb'
+									iconBg={isDark ? "#1e3a5f" : "#eff6ff"}
 									value={stats.applications || 0}
 									label='Candidatures'
-									color='#3b82f6'
+									sub='mes candidatures'
 									pressed={pressed}
 								/>
 							)}
@@ -1240,9 +1236,11 @@ export default function Tab1() {
 							{({ pressed }) => (
 								<StatCard
 									icon={BookmarkCheck}
+									iconColor='#d97706'
+									iconBg={isDark ? "#451a03" : "#fffbeb"}
 									value={stats.wishlist || 0}
 									label='Favoris'
-									color='#f59e0b'
+									sub='offres sauvegardées'
 									pressed={pressed}
 								/>
 							)}
