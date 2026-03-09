@@ -604,7 +604,7 @@ export default function Tab1() {
 					)}
 
 					{/* Time Period Filter */}
-					<VStack space='md'>
+					{/* <VStack space='md'>
 						<Text
 							size='lg'
 							style={{
@@ -642,10 +642,10 @@ export default function Tab1() {
 								</TouchableOpacity>
 							))}
 						</HStack>
-					</VStack>
+					</VStack> */}
 
 					{/* Stats Cards */}
-					<VStack space='md'>
+					{/* <VStack space='md'>
 						<Text
 							size='lg'
 							style={{
@@ -682,10 +682,10 @@ export default function Tab1() {
 								)}
 							</Pressable>
 						</HStack>
-					</VStack>
+					</VStack> */}
 
 					{/* Graphique en barres */}
-					{chartData.length > 0 && (
+					{/* {chartData.length > 0 && (
 						<VStack space='md'>
 							<Text
 								size='lg'
@@ -734,10 +734,10 @@ export default function Tab1() {
 								/>
 							</Card>
 						</VStack>
-					)}
+					)} */}
 
 					{/* Graphique circulaire */}
-					{chartData.length > 0 && stats.applications > 0 && (
+					{/* {chartData.length > 0 && stats.applications > 0 && (
 						<VStack space='md'>
 							<Text
 								size='lg'
@@ -823,7 +823,7 @@ export default function Tab1() {
 								</VStack>
 							</Card>
 						</VStack>
-					)}
+					)} */}
 
 					{/* Quick Actions */}
 					{/* <VStack space='md'>
