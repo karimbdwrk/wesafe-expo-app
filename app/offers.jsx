@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ScrollView, View, RefreshControl } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useLocalSearchParams } from "expo-router";
 
 import { VStack } from "@/components/ui/vstack";
 import { Text } from "@/components/ui/text";
@@ -25,6 +26,7 @@ const OffersScreen = () => {
 	const { accessToken, user, signOut } = useAuth();
 	const { getAll } = useDataContext();
 	const { isDark } = useTheme();
+	const { isLastMinute } = useLocalSearchParams();
 
 	const [refreshing, setRefreshing] = useState(false);
 
@@ -43,15 +45,15 @@ const OffersScreen = () => {
 
 	const loadDataOffers = async () => {
 		setIsLoading(true);
+		let filters = `&company_id=eq.${user.id}&isLastMinute=eq.${isLastMinute}`;
 		const { data, totalCount } = await getAll(
 			"jobs",
 			"*, companies(name, logo_url)",
-			`&company_id=eq.${user.id}`,
+			filters,
 			page,
 			ITEMS_PER_PAGE,
 			"created_at.desc",
 		);
-		console.log(data, data.length);
 		setOffers(data);
 		setTotalCount(totalCount);
 		setIsLoading(false);
