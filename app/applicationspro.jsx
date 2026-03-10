@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ScrollView, StyleSheet, View, RefreshControl } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useGlobalSearchParams } from "expo-router";
 import { createSupabaseClient } from "@/lib/supabase";
 import { Text } from "@/components/ui/text";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
@@ -23,6 +23,7 @@ const ApplicationsProScreen = () => {
 	const { isDark } = useTheme();
 	const { accessToken, user, signOut } = useAuth();
 	const { getAll, isLoading } = useDataContext();
+	const { isLastMinute } = useGlobalSearchParams();
 
 	const [refreshing, setRefreshing] = useState(false);
 
@@ -43,7 +44,7 @@ const ApplicationsProScreen = () => {
 		const { data, totalCount } = await getAll(
 			"applications",
 			"*,jobs(*), profiles(*), companies(*)",
-			`&jobs.is_archived=eq.FALSE&jobs=not.is.null&company_id=eq.${user.id}`,
+			`&jobs.is_archived=eq.FALSE&jobs=not.is.null&company_id=eq.${user.id}&jobs.isLastMinute=eq.${isLastMinute}`,
 			page,
 			ITEMS_PER_PAGE,
 			"updated_at.desc.nullslast,created_at.desc",
