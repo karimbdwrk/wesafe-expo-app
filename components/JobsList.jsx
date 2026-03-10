@@ -70,6 +70,32 @@ import { useTheme } from "@/context/ThemeContext";
 
 const ITEMS_PER_PAGE = 100;
 
+// Génère toutes les variantes accentuées/désaccentuées d'un mot
+// pour rendre la recherche insensible aux accents côté client
+const ACCENT_MAP = {
+	e: ["é", "è", "ê", "ë"],
+	a: ["à", "â", "ä"],
+	u: ["ù", "û", "ü"],
+	i: ["î", "ï"],
+	o: ["ô"],
+	c: ["ç"],
+};
+
+const buildAccentVariants = (kw) => {
+	const lower = kw.toLowerCase();
+	const stripped = lower.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+	const variants = new Set([lower, stripped]);
+	const uniqueLetters = [...new Set(stripped.split(""))];
+	for (const letter of uniqueLetters) {
+		if (ACCENT_MAP[letter]) {
+			for (const accented of ACCENT_MAP[letter]) {
+				variants.add(stripped.replaceAll(letter, accented));
+			}
+		}
+	}
+	return [...variants];
+};
+
 export default function JobsList({
 	pageNbr = 1,
 	itemsPerPage = ITEMS_PER_PAGE,
@@ -221,10 +247,12 @@ export default function JobsList({
 	// filter builder unique — keywords OU values/distance, jamais les deux ensemble
 	useEffect(() => {
 		if (keywords.trim() !== "") {
-			const encodedKeyword = encodeURIComponent(keywords);
-			setFilters(
-				`&or=(title.ilike.*${encodedKeyword}*,category.ilike.*${encodedKeyword}*)`,
+			const variants = buildAccentVariants(keywords.trim());
+			const fields = ["title", "description", "category"];
+			const conditions = variants.flatMap((t) =>
+				fields.map((f) => `${f}.ilike.*${t}*`),
 			);
+			setFilters(`&or=(${conditions.join(",")})`);
 		} else {
 			let filterString = "";
 			if (values.length > 0) {
