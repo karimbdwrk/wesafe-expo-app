@@ -423,10 +423,14 @@ const HomeChartsPro = () => {
 			const applications = appsRes.data ?? [];
 			const filledApps = filledAppsRes.data ?? [];
 
-			// KPI : jobs actifs uniquement
+			// KPI : jobs actifs uniquement (hors Last Minute)
 			const activeJobs = jobs.filter((j) => !j.is_archived);
-			const jobsTotal = jobs.filter((j) => !j.is_archived).length;
-			const applicationsTotal = applications.length;
+			const nonLmJobs = activeJobs.filter((j) => !j.isLastMinute);
+			const nonLmJobIds = new Set(nonLmJobs.map((j) => j.id));
+			const jobsTotal = nonLmJobs.length;
+			const applicationsTotal = applications.filter((a) =>
+				nonLmJobIds.has(a.job_id),
+			).length;
 
 			const filledJobIds = new Set(
 				(
