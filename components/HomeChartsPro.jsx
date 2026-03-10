@@ -1,5 +1,10 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { ActivityIndicator, Dimensions, TouchableOpacity } from "react-native";
+import {
+	ActivityIndicator,
+	Dimensions,
+	TouchableOpacity,
+	Image,
+} from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
 import Constants from "expo-constants";
@@ -232,6 +237,7 @@ const HomeChartsPro = () => {
 	});
 	const [lmKpis, setLmKpis] = useState({
 		total: 0,
+		active: 0,
 		apps: 0,
 		fillRate: 0,
 		avgMs: null,
@@ -240,6 +246,7 @@ const HomeChartsPro = () => {
 	});
 	const [allJobs, setAllJobs] = useState([]);
 	const [allApplications, setAllApplications] = useState([]);
+	const [topAgents, setTopAgents] = useState([]);
 	const [period, setPeriod] = useState("6M");
 	const [catPeriod, setCatPeriod] = useState("6M");
 	const [lmPeriod, setLmPeriod] = useState("6M");
@@ -399,7 +406,7 @@ const HomeChartsPro = () => {
 			// Récupère TOUS les jobs (archivés ou non) pour avoir l'historique complet du chart
 			const [jobsRes, appsRes, filledAppsRes] = await Promise.all([
 				axios.get(
-					`${base}/jobs?company_id=eq.${user.id}&select=id,created_at,category,is_archived,isLastMinute`,
+					`${base}/jobs?company_id=eq.${user.id}&select=id,created_at,category,is_archived,isLastMinute,start_date`,
 					{ headers },
 				),
 				axios.get(
@@ -453,6 +460,22 @@ const HomeChartsPro = () => {
 
 			// Stats Last Minute
 			const lmJobs = jobs.filter((j) => !j.is_archived && j.isLastMinute);
+
+			// Missions réellement actives : < 7j ET start_date null ou <= aujourd'hui
+			const now = new Date();
+			const limit7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+			const todayStart = new Date(now);
+			todayStart.setHours(0, 0, 0, 0);
+			todayStart.setDate(todayStart.getDate() - 1);
+			const lmActive = lmJobs.filter((j) => {
+				if (new Date(j.created_at) < limit7d) return false;
+				if (j.start_date) {
+					const sd = new Date(j.start_date);
+					sd.setHours(0, 0, 0, 0);
+					if (sd < todayStart) return false;
+				}
+				return true;
+			}).length;
 			const lmJobIds = new Set(lmJobs.map((j) => j.id));
 			const lmAppsTotal = applications.filter((a) =>
 				lmJobIds.has(a.job_id),
@@ -489,6 +512,7 @@ const HomeChartsPro = () => {
 			});
 			setLmKpis({
 				total: lmJobs.length,
+				active: lmActive,
 				apps: lmAppsTotal,
 				fillRate: lmFillRate,
 				avgMs: lmAvgMs,
@@ -501,6 +525,37 @@ const HomeChartsPro = () => {
 			});
 			setAllJobs(jobs);
 			setAllApplications(applications);
+
+			// Top 3 agents (par nb de contrats signés)
+			const agentCounts = {};
+			for (const a of filledApps) {
+				agentCounts[a.candidate_id] =
+					(agentCounts[a.candidate_id] || 0) + 1;
+			}
+			const top3Ids = Object.entries(agentCounts)
+				.sort((a, b) => b[1] - a[1])
+				.slice(0, 3)
+				.map(([id, count]) => ({ id, count }));
+
+			if (top3Ids.length > 0) {
+				const ids = top3Ids.map((a) => a.id).join(",");
+				const profilesRes = await axios.get(
+					`${base}/profiles?id=in.(${ids})&select=id,firstname,lastname,avatar_url`,
+					{ headers },
+				);
+				const profileMap = {};
+				for (const p of profilesRes.data ?? []) {
+					profileMap[p.id] = p;
+				}
+				setTopAgents(
+					top3Ids.map(({ id, count }) => ({
+						...profileMap[id],
+						count,
+					})),
+				);
+			} else {
+				setTopAgents([]);
+			}
 		} catch (e) {
 			console.error(
 				"HomeChartsPro fetchStats:",
@@ -1011,7 +1066,7 @@ const HomeChartsPro = () => {
 								iconColor='#ea580c'
 								iconBg={isDark ? "#451a03" : "#fff7ed"}
 								label='Missions last minute'
-								value={lmKpis.total}
+								value={lmKpis.active}
 								sub='actives'
 								isDark={isDark}
 								onPress={() => router.push("/lastminute")}
@@ -1095,6 +1150,8 @@ const HomeChartsPro = () => {
 					</VStack>
 
 					{/* Line chart LM */}
+
+					<Divider style={{ marginVertical: 8 }} />
 					<VStack space='xs'>
 						<HStack
 							style={{
@@ -1257,6 +1314,8 @@ const HomeChartsPro = () => {
 					</VStack>
 
 					{/* Bar chart répartition LM */}
+
+					<Divider style={{ marginVertical: 8 }} />
 					<VStack space='xs'>
 						<HStack
 							style={{
@@ -1456,8 +1515,158 @@ const HomeChartsPro = () => {
 					</VStack>
 				</>
 			)}
+
+			{/* Top agents */}
+			{topAgents.length > 0 && (
+				<>
+					<Divider style={{ marginVertical: 8 }} />
+					<VStack
+						space='sm'
+						style={{
+							paddingHorizontal: 0,
+							paddingBottom: 16,
+							marginTop: 10,
+						}}>
+						<HStack
+							style={{
+								alignItems: "center",
+								justifyContent: "space-between",
+								marginBottom: 4,
+							}}>
+							<Heading
+								size='sm'
+								style={{
+									color: isDark ? "#f9fafb" : "#111827",
+								}}>
+								Top agents
+							</Heading>
+							<Text
+								size='xs'
+								style={{
+									color: isDark ? "#6b7280" : "#9ca3af",
+								}}>
+								contrats signés
+							</Text>
+						</HStack>
+						{topAgents.map((agent, idx) => (
+							<HStack
+								key={agent.id}
+								space='sm'
+								style={{
+									alignItems: "center",
+									paddingVertical: 10,
+									paddingHorizontal: 14,
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#374151" : "#e5e7eb",
+									backgroundColor: isDark
+										? "#1f2937"
+										: "#ffffff",
+								}}>
+								{/* Rang */}
+								<Box
+									style={{
+										width: 28,
+										height: 28,
+										borderRadius: 8,
+										backgroundColor: isDark
+											? "#374151"
+											: "#f3f4f6",
+										alignItems: "center",
+										justifyContent: "center",
+									}}>
+									<Text
+										size='xs'
+										style={{
+											fontWeight: "700",
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}>
+										#{idx + 1}
+									</Text>
+								</Box>
+								{/* Avatar */}
+								{agent.avatar_url ? (
+									<Image
+										source={{ uri: agent.avatar_url }}
+										style={{
+											width: 36,
+											height: 36,
+											borderRadius: 18,
+										}}
+									/>
+								) : (
+									<Box
+										style={{
+											width: 36,
+											height: 36,
+											borderRadius: 18,
+											backgroundColor: isDark
+												? "#374151"
+												: "#e5e7eb",
+											alignItems: "center",
+											justifyContent: "center",
+										}}>
+										<Text
+											style={{
+												fontWeight: "700",
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+												fontSize: 14,
+											}}>
+											{(
+												agent.firstname?.[0] ?? "?"
+											).toUpperCase()}
+										</Text>
+									</Box>
+								)}
+								{/* Nom */}
+								<VStack style={{ flex: 1 }}>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "600",
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										{agent.firstname ?? ""}{" "}
+										{agent.lastname ?? ""}
+									</Text>
+								</VStack>
+								{/* Score */}
+								<HStack
+									space='xs'
+									style={{ alignItems: "center" }}>
+									<Text
+										style={{
+											fontWeight: "700",
+											fontSize: 16,
+											color: isDark
+												? "#fbbf24"
+												: "#d97706",
+										}}>
+										{agent.count}
+									</Text>
+									<Text
+										size='xs'
+										style={{
+											color: isDark
+												? "#6b7280"
+												: "#9ca3af",
+										}}>
+										contrat{agent.count > 1 ? "s" : ""}
+									</Text>
+								</HStack>
+							</HStack>
+						))}
+					</VStack>
+					<Divider style={{ marginVertical: 8 }} />
+				</>
+			)}
 		</VStack>
 	);
 };
-
 export default HomeChartsPro;
