@@ -218,15 +218,23 @@ export default function JobsList({
 	const loadDataJobs = useCallback(async () => {
 		setIsLoading(true);
 		try {
-			const limit72h = new Date(
-				Date.now() - 72 * 60 * 60 * 1000,
+			// Limite max : 7 jours après création
+			const limit7d = new Date(
+				Date.now() - 7 * 24 * 60 * 60 * 1000,
 			).toISOString();
+			// Pour les annonces LM avec une start_date : masquer dès le lendemain de la mission
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+			const todayISO = today.toISOString().split("T")[0];
+
+			const lmFilters = isLastMinute
+				? `&created_at=gte.${limit7d}&or=(start_date.is.null,start_date.gte.${todayISO})`
+				: "";
+
 			const { data, totalCount } = await getAll(
 				"jobs",
 				"*,companies(logo_url, name)",
-				`&is_archived=eq.FALSE${filters}&isLastMinute=eq.${isLastMinute}${
-					isLastMinute ? "&created_at=gte." + limit72h : ""
-				}`,
+				`&is_archived=eq.FALSE${filters}&isLastMinute=eq.${isLastMinute}${lmFilters}`,
 				page,
 				itemsPerPage,
 				"sponsorship_date.desc.nullslast,date.desc",
