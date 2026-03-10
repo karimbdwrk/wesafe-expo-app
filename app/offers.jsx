@@ -146,6 +146,13 @@ const OffersScreen = () => {
 								salary_annual_fixed={offer?.salary_annual_fixed}
 								salary_annual_min={offer?.salary_annual_min}
 								salary_annual_max={offer?.salary_annual_max}
+								isLastMinute={offer?.isLastMinute}
+								vacations={offer?.vacations}
+								date_mode={offer?.date_mode}
+								start_date_asap={offer?.start_date_asap}
+								start_date={offer?.start_date}
+								end_date={offer?.end_date}
+								sponsorship_date={offer?.sponsorship_date}
 							/>
 						))}
 					</VStack>
