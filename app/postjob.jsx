@@ -6581,6 +6581,9 @@ const PostJob = () => {
 																null,
 															);
 														} else {
+															setSponsorshipDuration(
+																"1w",
+															);
 															setTimeout(() => {
 																scrollViewRefs.current[3]?.scrollToEnd(
 																	{
