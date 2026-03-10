@@ -38,6 +38,7 @@ import {
 	ModalBody,
 	ModalFooter,
 } from "@/components/ui/modal";
+import { Spinner } from "@/components/ui/spinner";
 
 import { useLocalSearchParams, useRouter } from "expo-router";
 
@@ -111,6 +112,8 @@ const JobScreen = () => {
 		trackActivity,
 	} = useDataContext();
 
+	const [isLoading, setIsLoading] = useState(true);
+
 	// Fonctions helper pour parser et mapper les données
 	const parseJsonField = (field) => {
 		if (!field) return [];
@@ -177,6 +180,7 @@ const JobScreen = () => {
 	// }, [isApplied, user]);
 
 	const loadJob = async () => {
+		setIsLoading(true);
 		const data = await getById(
 			"jobs",
 			id,
@@ -192,6 +196,7 @@ const JobScreen = () => {
 			1,
 		);
 		setWishlistCount(totalCount || 0);
+		setIsLoading(false);
 	};
 
 	useEffect(() => {
@@ -323,552 +328,605 @@ const JobScreen = () => {
 				flex: 1,
 				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
 			}}>
-			<ScrollView ref={scrollViewRef}>
-				<VStack space='lg' style={{ padding: 20, paddingBottom: 100 }}>
-					{/* Card Principale - Informations du poste */}
-					<Card
-						style={{
-							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
-							borderRadius: 12,
-							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
-						}}>
-						<VStack space='md'>
-							<HStack
-								style={{
-									justifyContent: "space-between",
-									alignItems: "flex-start",
-								}}>
-								<VStack style={{ flex: 1 }}>
-									<HStack
-										space='sm'
-										style={{
-											alignItems: "center",
-											// flexWrap: "wrap",
-										}}>
-										{job?.isLastMinute && (
-											<VStack
+			{isLoading ? (
+				<Box
+					style={{
+						flex: 1,
+						justifyContent: "center",
+						alignItems: "center",
+						backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					}}>
+					<Spinner />
+				</Box>
+			) : (
+				<ScrollView ref={scrollViewRef}>
+					<VStack
+						space='lg'
+						style={{ padding: 20, paddingBottom: 100 }}>
+						{/* Card Principale - Informations du poste */}
+						<Card
+							style={{
+								padding: 20,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}>
+							<VStack space='md'>
+								<HStack
+									style={{
+										justifyContent: "space-between",
+										alignItems: "flex-start",
+									}}>
+									<VStack style={{ flex: 1 }}>
+										<HStack
+											space='sm'
+											style={{
+												alignItems: "center",
+												// flexWrap: "wrap",
+											}}>
+											{job?.isLastMinute && (
+												<VStack
+													style={{
+														justifyContent:
+															"flex-start",
+														height: "100%",
+														paddingTop: 5,
+													}}>
+													<Zap
+														size={16}
+														color='orange'
+													/>
+												</VStack>
+											)}
+											<Heading
+												size='xl'
 												style={{
-													justifyContent:
-														"flex-start",
-													height: "100%",
-													paddingTop: 5,
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+													paddingRight:
+														job?.isLastMinute
+															? 35
+															: 30,
 												}}>
-												<Zap size={16} color='orange' />
-											</VStack>
-										)}
-										<Heading
-											size='xl'
+												{job?.title}
+											</Heading>
+										</HStack>
+									</VStack>
+									{role === "candidat" && (
+										<TouchableOpacity
+											onPress={handleToggle}
 											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-												paddingRight: job?.isLastMinute
-													? 35
-													: 30,
+												position: "absolute",
+												right: -5,
+												top: -5,
 											}}>
-											{job?.title}
-										</Heading>
-									</HStack>
-								</VStack>
-								{role === "candidat" && (
-									<TouchableOpacity
-										onPress={handleToggle}
-										style={{
-											position: "absolute",
-											right: -5,
-											top: -5,
-										}}>
-										<Icon
-											as={
-												isInWishlist
-													? BookmarkCheck
-													: Bookmark
-											}
-											size='xl'
-											style={{
-												color: isInWishlist
-													? "#3b82f6"
-													: isDark
-														? "#9ca3af"
-														: "#6b7280",
-											}}
-										/>
-									</TouchableOpacity>
-								)}
-							</HStack>
-							<HStack space='md' style={{ alignItems: "center" }}>
-								<Avatar size='md'>
-									<AvatarFallbackText>
-										{job?.companies?.name || "Company"}
-									</AvatarFallbackText>
-									{job?.companies?.logo_url && (
-										<AvatarImage
-											source={{
-												uri: job?.companies?.logo_url,
-											}}
-										/>
+											<Icon
+												as={
+													isInWishlist
+														? BookmarkCheck
+														: Bookmark
+												}
+												size='xl'
+												style={{
+													color: isInWishlist
+														? "#3b82f6"
+														: isDark
+															? "#9ca3af"
+															: "#6b7280",
+												}}
+											/>
+										</TouchableOpacity>
 									)}
-								</Avatar>
-								<VStack style={{ flex: 1 }}>
-									<HStack
-										space='xs'
-										style={{
-											alignItems: "center",
-											marginTop: 2,
-										}}>
-										<Text
-											size='md'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-												fontWeight: "500",
-											}}>
-											{job?.companies?.name ||
-												"Entreprise"}
-										</Text>
-									</HStack>
-									{job?.city && (
+								</HStack>
+								<HStack
+									space='md'
+									style={{ alignItems: "center" }}>
+									<Avatar size='md'>
+										<AvatarFallbackText>
+											{job?.companies?.name || "Company"}
+										</AvatarFallbackText>
+										{job?.companies?.logo_url && (
+											<AvatarImage
+												source={{
+													uri: job?.companies
+														?.logo_url,
+												}}
+											/>
+										)}
+									</Avatar>
+									<VStack style={{ flex: 1 }}>
 										<HStack
 											space='xs'
 											style={{
 												alignItems: "center",
 												marginTop: 2,
 											}}>
-											<MapPin
-												size={12}
-												color={
-													isDark
-														? "#9ca3af"
-														: "#6b7280"
-												}
-											/>
 											<Text
-												size='sm'
+												size='md'
 												style={{
 													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+														? "#f3f4f6"
+														: "#111827",
+													fontWeight: "500",
 												}}>
-												{job?.city +
-													" (" +
-													job?.postcode +
-													")"}
+												{job?.companies?.name ||
+													"Entreprise"}
 											</Text>
 										</HStack>
-									)}
-								</VStack>
-							</HStack>
+										{job?.city && (
+											<HStack
+												space='xs'
+												style={{
+													alignItems: "center",
+													marginTop: 2,
+												}}>
+												<MapPin
+													size={12}
+													color={
+														isDark
+															? "#9ca3af"
+															: "#6b7280"
+													}
+												/>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													{job?.city +
+														" (" +
+														job?.postcode +
+														")"}
+												</Text>
+											</HStack>
+										)}
+									</VStack>
+								</HStack>
 
-							{/* Badges */}
-							<HStack
-								space='sm'
-								style={{ flexWrap: "wrap", marginTop: 10 }}>
-								<Badge size='md' variant='solid' action='info'>
-									<BadgeIcon as={IdCard} className='mr-2' />
-									<BadgeText>
-										{getCategoryLabel(job?.category)}
-									</BadgeText>
-								</Badge>
-							</HStack>
-							<HStack space='sm' style={{ flexWrap: "wrap" }}>
-								<Badge
-									size='sm'
-									variant='solid'
-									action='success'>
-									<BadgeIcon as={FileText} className='mr-2' />
-									<BadgeText>
-										{mapContractType(job?.contract_type) ||
-											"Non spécifié"}
-									</BadgeText>
-								</Badge>
-								<Badge size='sm' variant='solid' action='muted'>
-									<BadgeIcon as={Clock} className='mr-2' />
-									<BadgeText>
-										{mapWorkTime(job?.work_time) ||
-											"Non spécifié"}
-									</BadgeText>
-								</Badge>
-								{job?.salary_type && (
+								{/* Badges */}
+								<HStack
+									space='sm'
+									style={{ flexWrap: "wrap", marginTop: 10 }}>
 									<Badge
-										size='sm'
+										size='md'
 										variant='solid'
-										action='warning'>
+										action='info'>
 										<BadgeIcon
-											as={BadgeEuro}
+											as={IdCard}
 											className='mr-2'
 										/>
 										<BadgeText>
-											{formatSalary(job)}
+											{getCategoryLabel(job?.category)}
 										</BadgeText>
 									</Badge>
-								)}
-							</HStack>
-							{job?.isLastMinute || job?.is_archived ? (
-								<Divider />
-							) : null}
-							<HStack>
-								{job?.isLastMinute && (
-									<Badge
-										size='md'
-										variant='solid'
-										action='warning'>
-										<BadgeIcon as={Zap} className='mr-2' />
-										<BadgeText>Dernière minute</BadgeText>
-									</Badge>
-								)}
-								{job?.is_archived && (
-									<Badge
-										size='md'
-										variant='solid'
-										action='warning'>
-										<BadgeText>Archivé</BadgeText>
-									</Badge>
-								)}
-							</HStack>
-							{wishlistCount > 0 && (
-								<HStack
-									space='xs'
-									style={{
-										alignItems: "center",
-										marginTop: 4,
-										opacity: 0.6,
-									}}>
-									<Bookmark
-										size={11}
-										color={isDark ? "#9ca3af" : "#6b7280"}
-									/>
-									<Text
-										size='xs'
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-										}}>
-										{wishlistCount} candidat
-										{wishlistCount > 1 ? "s" : ""}{" "}
-										{wishlistCount > 1 ? "ont" : "a"}{" "}
-										sauvegardé cette offre
-									</Text>
 								</HStack>
-							)}
-						</VStack>
-					</Card>
-
-					{/* Card Description du poste */}
-					<Card
-						style={{
-							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
-							borderRadius: 12,
-							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
-						}}>
-						<VStack space='md'>
-							<HStack space='sm' style={{ alignItems: "center" }}>
-								<Box
-									style={{
-										width: 48,
-										height: 48,
-										borderRadius: 24,
-										backgroundColor: "#dbeafe",
-										justifyContent: "center",
-										alignItems: "center",
-									}}>
-									<Icon
-										as={Briefcase}
-										size='xl'
-										style={{ color: "#2563eb" }}
-									/>
-								</Box>
-								<Heading
-									size='lg'
-									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}>
-									Description du poste
-								</Heading>
-							</HStack>
-
-							<Divider
-								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
-								}}
-							/>
-
-							<Text
-								size='md'
-								style={{
-									color: isDark ? "#d1d5db" : "#374151",
-									lineHeight: 22,
-								}}>
-								{job?.description ||
-									"Aucune description disponible"}
-							</Text>
-
-							{parseJsonField(job?.missions).length > 0 && (
-								<VStack space='sm'>
-									<Text
+								<HStack space='sm' style={{ flexWrap: "wrap" }}>
+									<Badge
 										size='sm'
+										variant='solid'
+										action='success'>
+										<BadgeIcon
+											as={FileText}
+											className='mr-2'
+										/>
+										<BadgeText>
+											{mapContractType(
+												job?.contract_type,
+											) || "Non spécifié"}
+										</BadgeText>
+									</Badge>
+									<Badge
+										size='sm'
+										variant='solid'
+										action='muted'>
+										<BadgeIcon
+											as={Clock}
+											className='mr-2'
+										/>
+										<BadgeText>
+											{mapWorkTime(job?.work_time) ||
+												"Non spécifié"}
+										</BadgeText>
+									</Badge>
+									{job?.salary_type && (
+										<Badge
+											size='sm'
+											variant='solid'
+											action='warning'>
+											<BadgeIcon
+												as={BadgeEuro}
+												className='mr-2'
+											/>
+											<BadgeText>
+												{formatSalary(job)}
+											</BadgeText>
+										</Badge>
+									)}
+								</HStack>
+								{job?.isLastMinute || job?.is_archived ? (
+									<Divider />
+								) : null}
+								<HStack>
+									{job?.isLastMinute && (
+										<Badge
+											size='md'
+											variant='solid'
+											action='warning'>
+											<BadgeIcon
+												as={Zap}
+												className='mr-2'
+											/>
+											<BadgeText>
+												Dernière minute
+											</BadgeText>
+										</Badge>
+									)}
+									{job?.is_archived && (
+										<Badge
+											size='md'
+											variant='solid'
+											action='warning'>
+											<BadgeText>Archivé</BadgeText>
+										</Badge>
+									)}
+								</HStack>
+								{wishlistCount > 0 && (
+									<HStack
+										space='xs'
 										style={{
-											fontWeight: "600",
+											alignItems: "center",
+											marginTop: 4,
+											opacity: 0.6,
+										}}>
+										<Bookmark
+											size={11}
+											color={
+												isDark ? "#9ca3af" : "#6b7280"
+											}
+										/>
+										<Text
+											size='xs'
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}>
+											{wishlistCount} candidat
+											{wishlistCount > 1 ? "s" : ""}{" "}
+											{wishlistCount > 1 ? "ont" : "a"}{" "}
+											sauvegardé cette offre
+										</Text>
+									</HStack>
+								)}
+							</VStack>
+						</Card>
+
+						{/* Card Description du poste */}
+						<Card
+							style={{
+								padding: 20,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}>
+							<VStack space='md'>
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Box
+										style={{
+											width: 48,
+											height: 48,
+											borderRadius: 24,
+											backgroundColor: "#dbeafe",
+											justifyContent: "center",
+											alignItems: "center",
+										}}>
+										<Icon
+											as={Briefcase}
+											size='xl'
+											style={{ color: "#2563eb" }}
+										/>
+									</Box>
+									<Heading
+										size='lg'
+										style={{
 											color: isDark
 												? "#f3f4f6"
 												: "#111827",
 										}}>
-										Missions principales :
-									</Text>
-									<VStack
-										space='xs'
-										style={{ paddingLeft: 8 }}>
-										{parseJsonField(job?.missions).map(
-											(mission, index) => (
-												<HStack
-													key={index}
-													space='sm'
-													style={{
-														alignItems:
-															"flex-start",
-													}}>
-													<Text
-														style={{
-															color: isDark
-																? "#9ca3af"
-																: "#6b7280",
-														}}>
-														•
-													</Text>
-													<Text
-														size='sm'
-														style={{
-															flex: 1,
-															color: isDark
-																? "#d1d5db"
-																: "#374151",
-														}}>
-														{mission}
-													</Text>
-												</HStack>
-											),
-										)}
-									</VStack>
-								</VStack>
-							)}
-						</VStack>
-					</Card>
+										Description du poste
+									</Heading>
+								</HStack>
 
-					{/* Card Profil recherché */}
-					<Card
-						style={{
-							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
-							borderRadius: 12,
-							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
-						}}>
-						<VStack space='md'>
-							<HStack space='sm' style={{ alignItems: "center" }}>
-								<Box
+								<Divider
 									style={{
-										width: 48,
-										height: 48,
-										borderRadius: 24,
-										backgroundColor: "#dcfce7",
-										justifyContent: "center",
-										alignItems: "center",
-									}}>
-									<Icon
-										as={Users}
-										size='xl'
-										style={{ color: "#16a34a" }}
-									/>
-								</Box>
-								<Heading
-									size='lg'
+										backgroundColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}
+								/>
+
+								<Text
+									size='md'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark ? "#d1d5db" : "#374151",
+										lineHeight: 22,
 									}}>
-									Profil recherché
-								</Heading>
-							</HStack>
+									{job?.description ||
+										"Aucune description disponible"}
+								</Text>
 
-							<Divider
-								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
-								}}
-							/>
+								{parseJsonField(job?.missions).length > 0 && (
+									<VStack space='sm'>
+										<Text
+											size='sm'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											Missions principales :
+										</Text>
+										<VStack
+											space='xs'
+											style={{ paddingLeft: 8 }}>
+											{parseJsonField(job?.missions).map(
+												(mission, index) => (
+													<HStack
+														key={index}
+														space='sm'
+														style={{
+															alignItems:
+																"flex-start",
+														}}>
+														<Text
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+															}}>
+															•
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																flex: 1,
+																color: isDark
+																	? "#d1d5db"
+																	: "#374151",
+															}}>
+															{mission}
+														</Text>
+													</HStack>
+												),
+											)}
+										</VStack>
+									</VStack>
+								)}
+							</VStack>
+						</Card>
 
-							<VStack space='sm'>
-								{parseJsonField(job?.searched_profile).length >
-									0 && (
-									<VStack space='sm'>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Profil recherché :
-										</Text>
-										<VStack
-											space='xs'
-											style={{ paddingLeft: 8 }}>
-											{parseJsonField(
-												job?.searched_profile,
-											).map((profile, index) => (
-												<HStack
-													key={index}
-													space='sm'
-													style={{
-														alignItems:
-															"flex-start",
-													}}>
-													<Text
+						{/* Card Profil recherché */}
+						<Card
+							style={{
+								padding: 20,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}>
+							<VStack space='md'>
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Box
+										style={{
+											width: 48,
+											height: 48,
+											borderRadius: 24,
+											backgroundColor: "#dcfce7",
+											justifyContent: "center",
+											alignItems: "center",
+										}}>
+										<Icon
+											as={Users}
+											size='xl'
+											style={{ color: "#16a34a" }}
+										/>
+									</Box>
+									<Heading
+										size='lg'
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										Profil recherché
+									</Heading>
+								</HStack>
+
+								<Divider
+									style={{
+										backgroundColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}
+								/>
+
+								<VStack space='sm'>
+									{parseJsonField(job?.searched_profile)
+										.length > 0 && (
+										<VStack space='sm'>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Profil recherché :
+											</Text>
+											<VStack
+												space='xs'
+												style={{ paddingLeft: 8 }}>
+												{parseJsonField(
+													job?.searched_profile,
+												).map((profile, index) => (
+													<HStack
+														key={index}
+														space='sm'
 														style={{
-															color: isDark
-																? "#9ca3af"
-																: "#6b7280",
+															alignItems:
+																"flex-start",
 														}}>
-														✓
-													</Text>
-													<Text
-														size='sm'
-														style={{
-															flex: 1,
-															color: isDark
-																? "#d1d5db"
-																: "#374151",
-														}}>
-														{profile}
-													</Text>
-												</HStack>
-											))}
+														<Text
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+															}}>
+															✓
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																flex: 1,
+																color: isDark
+																	? "#d1d5db"
+																	: "#374151",
+															}}>
+															{profile}
+														</Text>
+													</HStack>
+												))}
+											</VStack>
 										</VStack>
-									</VStack>
-								)}
-								{parseJsonField(job?.diplomas_required).length >
-									0 && (
-									<VStack space='sm'>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Diplômes requis :
-										</Text>
-										<VStack
-											space='xs'
-											style={{ paddingLeft: 8 }}>
-											{parseJsonField(
-												job?.diplomas_required,
-											).map((diploma, index) => (
-												<HStack
-													key={index}
-													space='sm'
-													style={{
-														alignItems:
-															"flex-start",
-													}}>
-													<Text
+									)}
+									{parseJsonField(job?.diplomas_required)
+										.length > 0 && (
+										<VStack space='sm'>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Diplômes requis :
+											</Text>
+											<VStack
+												space='xs'
+												style={{ paddingLeft: 8 }}>
+												{parseJsonField(
+													job?.diplomas_required,
+												).map((diploma, index) => (
+													<HStack
+														key={index}
+														space='sm'
 														style={{
-															color: isDark
-																? "#9ca3af"
-																: "#6b7280",
+															alignItems:
+																"flex-start",
 														}}>
-														✓
-													</Text>
-													<Text
-														size='sm'
-														style={{
-															flex: 1,
-															color: isDark
-																? "#d1d5db"
-																: "#374151",
-														}}>
-														{diploma}
-													</Text>
-												</HStack>
-											))}
+														<Text
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+															}}>
+															✓
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																flex: 1,
+																color: isDark
+																	? "#d1d5db"
+																	: "#374151",
+															}}>
+															{diploma}
+														</Text>
+													</HStack>
+												))}
+											</VStack>
 										</VStack>
-									</VStack>
-								)}
-								{parseJsonField(job?.driving_licenses).length >
-									0 && (
-									<VStack space='sm'>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Permis requis :
-										</Text>
-										<VStack
-											space='xs'
-											style={{ paddingLeft: 8 }}>
-											{parseJsonField(
-												job?.driving_licenses,
-											).map((license, index) => (
-												<HStack
-													key={index}
-													space='sm'
-													style={{
-														alignItems:
-															"flex-start",
-													}}>
-													<Text
+									)}
+									{parseJsonField(job?.driving_licenses)
+										.length > 0 && (
+										<VStack space='sm'>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Permis requis :
+											</Text>
+											<VStack
+												space='xs'
+												style={{ paddingLeft: 8 }}>
+												{parseJsonField(
+													job?.driving_licenses,
+												).map((license, index) => (
+													<HStack
+														key={index}
+														space='sm'
 														style={{
-															color: isDark
-																? "#9ca3af"
-																: "#6b7280",
+															alignItems:
+																"flex-start",
 														}}>
-														✓
-													</Text>
-													<Text
-														size='sm'
-														style={{
-															flex: 1,
-															color: isDark
-																? "#d1d5db"
-																: "#374151",
-														}}>
-														{license}
-													</Text>
-												</HStack>
-											))}
+														<Text
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+															}}>
+															✓
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																flex: 1,
+																color: isDark
+																	? "#d1d5db"
+																	: "#374151",
+															}}>
+															{license}
+														</Text>
+													</HStack>
+												))}
+											</VStack>
 										</VStack>
-									</VStack>
-								)}
-								{parseJsonField(job?.languages).length > 0 && (
-									<VStack space='sm'>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Langues requises :
-										</Text>
-										<VStack
-											space='xs'
-											style={{ paddingLeft: 8 }}>
-											{parseJsonField(job?.languages).map(
-												(language, index) => (
+									)}
+									{parseJsonField(job?.languages).length >
+										0 && (
+										<VStack space='sm'>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Langues requises :
+											</Text>
+											<VStack
+												space='xs'
+												style={{ paddingLeft: 8 }}>
+												{parseJsonField(
+													job?.languages,
+												).map((language, index) => (
 													<HStack
 														key={index}
 														space='sm'
@@ -895,397 +953,224 @@ const JobScreen = () => {
 															{language}
 														</Text>
 													</HStack>
-												),
-											)}
-										</VStack>
-									</VStack>
-								)}
-							</VStack>
-						</VStack>
-					</Card>
-
-					{/* Card Conditions */}
-					<Card
-						style={{
-							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
-							borderRadius: 12,
-							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
-						}}>
-						<VStack space='md'>
-							<HStack space='sm' style={{ alignItems: "center" }}>
-								<Box
-									style={{
-										width: 48,
-										height: 48,
-										borderRadius: 24,
-										backgroundColor: "#fef3c7",
-										justifyContent: "center",
-										alignItems: "center",
-									}}>
-									<Icon
-										as={Clock}
-										size='xl'
-										style={{ color: "#f59e0b" }}
-									/>
-								</Box>
-								<Heading
-									size='lg'
-									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}>
-									Conditions
-								</Heading>
-							</HStack>
-
-							<Divider
-								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
-								}}
-							/>
-
-							<VStack space='sm'>
-								<HStack
-									style={{
-										justifyContent: "space-between",
-										paddingVertical: 8,
-									}}>
-									<Text
-										size='sm'
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-										}}>
-										Type de contrat
-									</Text>
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "600",
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-										}}>
-										{mapContractType(job?.contract_type) ||
-											"Non spécifié"}
-									</Text>
-								</HStack>
-								<Divider
-									style={{
-										backgroundColor: isDark
-											? "#374151"
-											: "#f3f4f6",
-									}}
-								/>
-								<HStack
-									style={{
-										justifyContent: "space-between",
-										paddingVertical: 8,
-									}}>
-									<Text
-										size='sm'
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-										}}>
-										Temps de travail
-									</Text>
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "600",
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-										}}>
-										{mapWorkTime(job?.work_time) ||
-											"Non spécifié"}
-									</Text>
-								</HStack>
-								<Divider
-									style={{
-										backgroundColor: isDark
-											? "#374151"
-											: "#f3f4f6",
-									}}
-								/>
-								<HStack
-									style={{
-										justifyContent: "space-between",
-										paddingVertical: 8,
-									}}>
-									<Text
-										size='sm'
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-										}}>
-										Salaire
-									</Text>
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "600",
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-										}}>
-										{formatSalary(job)}
-									</Text>
-								</HStack>
-								<Divider
-									style={{
-										backgroundColor: isDark
-											? "#374151"
-											: "#f3f4f6",
-									}}
-								/>
-								<HStack
-									style={{
-										justifyContent: "space-between",
-										paddingVertical: 8,
-									}}>
-									<Text
-										size='sm'
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-										}}>
-										Horaires
-									</Text>
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "600",
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-										}}>
-										{mapWorkSchedule(job?.work_schedule) ||
-											"Non spécifié"}
-									</Text>
-								</HStack>
-								{/* Dates / Vacations */}
-								{job?.date_mode === "vacations" ? (
-									<>
-										<Divider
-											style={{
-												backgroundColor: isDark
-													? "#374151"
-													: "#f3f4f6",
-											}}
-										/>
-										<HStack
-											style={{
-												justifyContent: "space-between",
-												paddingVertical: 8,
-												alignItems: "flex-start",
-											}}>
-											<Text
-												size='sm'
-												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
-												}}>
-												Vacations
-											</Text>
-											<VStack
-												space='xs'
-												style={{
-													alignItems: "flex-end",
-												}}>
-												{parseVacations(
-													job?.vacations,
-												).map((v, i) => (
-													<Text
-														key={i}
-														size='sm'
-														style={{
-															fontWeight: "600",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														{formatVacationDate(
-															v.date,
-														)}
-														{v.start_time &&
-														v.end_time
-															? ` · ${v.start_time} - ${v.end_time}`
-															: ""}
-													</Text>
 												))}
 											</VStack>
-										</HStack>
-									</>
-								) : job?.start_date ||
-								  job?.start_date_asap ||
-								  job?.end_date ? (
-									<>
-										<Divider
-											style={{
-												backgroundColor: isDark
-													? "#374151"
-													: "#f3f4f6",
-											}}
+										</VStack>
+									)}
+								</VStack>
+							</VStack>
+						</Card>
+
+						{/* Card Conditions */}
+						<Card
+							style={{
+								padding: 20,
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}>
+							<VStack space='md'>
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Box
+										style={{
+											width: 48,
+											height: 48,
+											borderRadius: 24,
+											backgroundColor: "#fef3c7",
+											justifyContent: "center",
+											alignItems: "center",
+										}}>
+										<Icon
+											as={Clock}
+											size='xl'
+											style={{ color: "#f59e0b" }}
 										/>
-										<HStack
+									</Box>
+									<Heading
+										size='lg'
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										Conditions
+									</Heading>
+								</HStack>
+
+								<Divider
+									style={{
+										backgroundColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+									}}
+								/>
+
+								<VStack space='sm'>
+									<HStack
+										style={{
+											justifyContent: "space-between",
+											paddingVertical: 8,
+										}}>
+										<Text
+											size='sm'
 											style={{
-												justifyContent: "space-between",
-												paddingVertical: 8,
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
 											}}>
-											<Text
-												size='sm'
-												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
-												}}>
-												Dates
-											</Text>
-											<Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												{job?.start_date_asap
-													? "Dès que possible"
-													: job?.start_date &&
-														new Date(
-															job.start_date,
-														).toLocaleDateString(
-															"fr-FR",
-														)}
-												{!job?.start_date_asap &&
-													job?.start_date &&
-													job?.end_date &&
-													" - "}
-												{!job?.start_date_asap &&
-													job?.end_date &&
-													new Date(
-														job.end_date,
-													).toLocaleDateString(
-														"fr-FR",
-													)}
-											</Text>
-										</HStack>
-									</>
-								) : null}
-								{(job?.start_time || job?.end_time) && (
-									<>
-										<Divider
+											Type de contrat
+										</Text>
+										<Text
+											size='sm'
 											style={{
-												backgroundColor: isDark
-													? "#374151"
-													: "#f3f4f6",
-											}}
-										/>
-										<HStack
-											style={{
-												justifyContent: "space-between",
-												paddingVertical: 8,
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
 											}}>
-											<Text
-												size='sm'
-												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
-												}}>
-												Heures
-											</Text>
-											<Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												{job?.start_time &&
-													job.start_time.slice(0, 5)}
-												{job?.start_time &&
-													job?.end_time &&
-													" - "}
-												{job?.end_time &&
-													job.end_time.slice(0, 5)}
-											</Text>
-										</HStack>
-									</>
-								)}
-								{(job?.packed_lunch ||
-									job?.accommodations ||
-									parseJsonField(job?.reimbursements).length >
-										0) && (
-									<>
-										<Divider
+											{mapContractType(
+												job?.contract_type,
+											) || "Non spécifié"}
+										</Text>
+									</HStack>
+									<Divider
+										style={{
+											backgroundColor: isDark
+												? "#374151"
+												: "#f3f4f6",
+										}}
+									/>
+									<HStack
+										style={{
+											justifyContent: "space-between",
+											paddingVertical: 8,
+										}}>
+										<Text
+											size='sm'
 											style={{
-												backgroundColor: isDark
-													? "#374151"
-													: "#f3f4f6",
-											}}
-										/>
-										<HStack
-											style={{
-												justifyContent: "space-between",
-												paddingVertical: 8,
-												alignItems: "flex-start",
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
 											}}>
-											<Text
-												size='sm'
+											Temps de travail
+										</Text>
+										<Text
+											size='sm'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											{mapWorkTime(job?.work_time) ||
+												"Non spécifié"}
+										</Text>
+									</HStack>
+									<Divider
+										style={{
+											backgroundColor: isDark
+												? "#374151"
+												: "#f3f4f6",
+										}}
+									/>
+									<HStack
+										style={{
+											justifyContent: "space-between",
+											paddingVertical: 8,
+										}}>
+										<Text
+											size='sm'
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}>
+											Salaire
+										</Text>
+										<Text
+											size='sm'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											{formatSalary(job)}
+										</Text>
+									</HStack>
+									<Divider
+										style={{
+											backgroundColor: isDark
+												? "#374151"
+												: "#f3f4f6",
+										}}
+									/>
+									<HStack
+										style={{
+											justifyContent: "space-between",
+											paddingVertical: 8,
+										}}>
+										<Text
+											size='sm'
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}>
+											Horaires
+										</Text>
+										<Text
+											size='sm'
+											style={{
+												fontWeight: "600",
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											{mapWorkSchedule(
+												job?.work_schedule,
+											) || "Non spécifié"}
+										</Text>
+									</HStack>
+									{/* Dates / Vacations */}
+									{job?.date_mode === "vacations" ? (
+										<>
+											<Divider
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
-												}}>
-												Avantages
-											</Text>
-											<VStack
-												space='xs'
+													backgroundColor: isDark
+														? "#374151"
+														: "#f3f4f6",
+												}}
+											/>
+											<HStack
 												style={{
-													alignItems: "flex-end",
+													justifyContent:
+														"space-between",
+													paddingVertical: 8,
+													alignItems: "flex-start",
 												}}>
-												{job?.packed_lunch && (
-													<Text
-														size='sm'
-														style={{
-															fontWeight: "600",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														Panier repas
-													</Text>
-												)}
-												{job?.accommodations && (
-													<Text
-														size='sm'
-														style={{
-															fontWeight: "600",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														Hébergement
-													</Text>
-												)}
-												{parseJsonField(
-													job?.reimbursements,
-												).map(
-													(reimbursement, index) => (
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													Vacations
+												</Text>
+												<VStack
+													space='xs'
+													style={{
+														alignItems: "flex-end",
+													}}>
+													{parseVacations(
+														job?.vacations,
+													).map((v, i) => (
 														<Text
-															key={index}
+															key={i}
 															size='sm'
 															style={{
 																fontWeight:
@@ -1294,166 +1179,365 @@ const JobScreen = () => {
 																	? "#f3f4f6"
 																	: "#111827",
 															}}>
-															{reimbursement}
+															{formatVacationDate(
+																v.date,
+															)}
+															{v.start_time &&
+															v.end_time
+																? ` · ${v.start_time} - ${v.end_time}`
+																: ""}
 														</Text>
-													),
-												)}
-											</VStack>
-										</HStack>
-									</>
-								)}
-							</VStack>
-						</VStack>
-					</Card>
-
-					{/* Card Entreprise avec Accordion */}
-					{job?.companies &&
-						!(role === "pro" && user.id === company_id) && (
-							<Card
-								style={{
-									padding: 0,
-									backgroundColor: isDark
-										? "#374151"
-										: "#ffffff",
-									borderRadius: 12,
-									borderWidth: 1,
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
-									overflow: "hidden",
-								}}>
-								<Accordion type='single' variant='unfilled'>
-									<AccordionItem value='company'>
-										<AccordionHeader>
-											<AccordionTrigger
+													))}
+												</VStack>
+											</HStack>
+										</>
+									) : job?.start_date ||
+									  job?.start_date_asap ||
+									  job?.end_date ? (
+										<>
+											<Divider
 												style={{
-													padding: 20,
-													backgroundColor:
-														"transparent",
+													backgroundColor: isDark
+														? "#374151"
+														: "#f3f4f6",
 												}}
-												onPress={() => {
-													setTimeout(() => {
-														scrollViewRef.current?.scrollToEnd(
-															{
-																animated: true,
-															},
-														);
-													}, 300);
+											/>
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+													paddingVertical: 8,
 												}}>
-												{({ isExpanded }) => (
-													<>
-														<HStack
-															space='sm'
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													Dates
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													{job?.start_date_asap
+														? "Dès que possible"
+														: job?.start_date &&
+															new Date(
+																job.start_date,
+															).toLocaleDateString(
+																"fr-FR",
+															)}
+													{!job?.start_date_asap &&
+														job?.start_date &&
+														job?.end_date &&
+														" - "}
+													{!job?.start_date_asap &&
+														job?.end_date &&
+														new Date(
+															job.end_date,
+														).toLocaleDateString(
+															"fr-FR",
+														)}
+												</Text>
+											</HStack>
+										</>
+									) : null}
+									{(job?.start_time || job?.end_time) && (
+										<>
+											<Divider
+												style={{
+													backgroundColor: isDark
+														? "#374151"
+														: "#f3f4f6",
+												}}
+											/>
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+													paddingVertical: 8,
+												}}>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													Heures
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													{job?.start_time &&
+														job.start_time.slice(
+															0,
+															5,
+														)}
+													{job?.start_time &&
+														job?.end_time &&
+														" - "}
+													{job?.end_time &&
+														job.end_time.slice(
+															0,
+															5,
+														)}
+												</Text>
+											</HStack>
+										</>
+									)}
+									{(job?.packed_lunch ||
+										job?.accommodations ||
+										parseJsonField(job?.reimbursements)
+											.length > 0) && (
+										<>
+											<Divider
+												style={{
+													backgroundColor: isDark
+														? "#374151"
+														: "#f3f4f6",
+												}}
+											/>
+											<HStack
+												style={{
+													justifyContent:
+														"space-between",
+													paddingVertical: 8,
+													alignItems: "flex-start",
+												}}>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													Avantages
+												</Text>
+												<VStack
+													space='xs'
+													style={{
+														alignItems: "flex-end",
+													}}>
+													{job?.packed_lunch && (
+														<Text
+															size='sm'
 															style={{
-																alignItems:
-																	"center",
-																flex: 1,
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
 															}}>
-															<Avatar size='md'>
-																<AvatarFallbackText>
-																	{job
-																		?.companies
-																		?.name?.[0] ||
-																		"?"}
-																</AvatarFallbackText>
-																{job?.companies
-																	?.logo_url && (
-																	<AvatarImage
-																		source={{
-																			uri: job
-																				?.companies
-																				?.logo_url,
-																		}}
-																	/>
-																)}
-															</Avatar>
-															<VStack
+															Panier repas
+														</Text>
+													)}
+													{job?.accommodations && (
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															Hébergement
+														</Text>
+													)}
+													{parseJsonField(
+														job?.reimbursements,
+													).map(
+														(
+															reimbursement,
+															index,
+														) => (
+															<Text
+																key={index}
+																size='sm'
 																style={{
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																}}>
+																{reimbursement}
+															</Text>
+														),
+													)}
+												</VStack>
+											</HStack>
+										</>
+									)}
+								</VStack>
+							</VStack>
+						</Card>
+
+						{/* Card Entreprise avec Accordion */}
+						{job?.companies &&
+							!(role === "pro" && user.id === company_id) && (
+								<Card
+									style={{
+										padding: 0,
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#e5e7eb",
+										overflow: "hidden",
+									}}>
+									<Accordion type='single' variant='unfilled'>
+										<AccordionItem value='company'>
+											<AccordionHeader>
+												<AccordionTrigger
+													style={{
+														padding: 20,
+														backgroundColor:
+															"transparent",
+													}}
+													onPress={() => {
+														setTimeout(() => {
+															scrollViewRef.current?.scrollToEnd(
+																{
+																	animated: true,
+																},
+															);
+														}, 300);
+													}}>
+													{({ isExpanded }) => (
+														<>
+															<HStack
+																space='sm'
+																style={{
+																	alignItems:
+																		"center",
 																	flex: 1,
 																}}>
-																<Text
-																	size='xs'
+																<Avatar size='md'>
+																	<AvatarFallbackText>
+																		{job
+																			?.companies
+																			?.name?.[0] ||
+																			"?"}
+																	</AvatarFallbackText>
+																	{job
+																		?.companies
+																		?.logo_url && (
+																		<AvatarImage
+																			source={{
+																				uri: job
+																					?.companies
+																					?.logo_url,
+																			}}
+																		/>
+																	)}
+																</Avatar>
+																<VStack
+																	style={{
+																		flex: 1,
+																	}}>
+																	<Text
+																		size='xs'
+																		style={{
+																			color: isDark
+																				? "#9ca3af"
+																				: "#6b7280",
+																		}}>
+																		Entreprise
+																	</Text>
+																	<Text
+																		size='lg'
+																		style={{
+																			fontWeight:
+																				"600",
+																			color: isDark
+																				? "#f3f4f6"
+																				: "#111827",
+																		}}>
+																		{
+																			job
+																				.companies
+																				.name
+																		}
+																	</Text>
+																</VStack>
+																<Icon
+																	as={
+																		isExpanded
+																			? ChevronUp
+																			: ChevronDown
+																	}
+																	size='lg'
 																	style={{
 																		color: isDark
 																			? "#9ca3af"
 																			: "#6b7280",
-																	}}>
-																	Entreprise
-																</Text>
-																<Text
-																	size='lg'
-																	style={{
-																		fontWeight:
-																			"600",
-																		color: isDark
-																			? "#f3f4f6"
-																			: "#111827",
-																	}}>
-																	{
-																		job
-																			.companies
-																			.name
-																	}
-																</Text>
-															</VStack>
-															<Icon
-																as={
-																	isExpanded
-																		? ChevronUp
-																		: ChevronDown
-																}
-																size='lg'
-																style={{
-																	color: isDark
-																		? "#9ca3af"
-																		: "#6b7280",
-																}}
-															/>
-														</HStack>
-													</>
-												)}
-											</AccordionTrigger>
-										</AccordionHeader>
-										<AccordionContent
-											style={{
-												paddingHorizontal: 20,
-												paddingBottom: 20,
-											}}>
-											<VStack space='md'>
-												<Divider
-													style={{
-														backgroundColor: isDark
-															? "#4b5563"
-															: "#e5e7eb",
-													}}
-												/>
-
-												{/* Description */}
-												<VStack space='xs'>
-													<Text
-														size='sm'
+																	}}
+																/>
+															</HStack>
+														</>
+													)}
+												</AccordionTrigger>
+											</AccordionHeader>
+											<AccordionContent
+												style={{
+													paddingHorizontal: 20,
+													paddingBottom: 20,
+												}}>
+												<VStack space='md'>
+													<Divider
 														style={{
-															fontWeight: "600",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														À propos
-													</Text>
-													<Text
-														size='sm'
-														style={{
-															color: isDark
-																? "#d1d5db"
-																: "#374151",
-															lineHeight: 20,
-														}}>
-														{job.companies
-															.description ||
-															"Entreprise spécialisée dans les services de sécurité et de surveillance. Nous offrons des solutions professionnelles adaptées à tous types d'établissements."}
-													</Text>
-												</VStack>
+															backgroundColor:
+																isDark
+																	? "#4b5563"
+																	: "#e5e7eb",
+														}}
+													/>
 
-												{/* Localisation */}
-												{/* {job.city && (
+													{/* Description */}
+													<VStack space='xs'>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? "#f3f4f6"
+																	: "#111827",
+															}}>
+															À propos
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																color: isDark
+																	? "#d1d5db"
+																	: "#374151",
+																lineHeight: 20,
+															}}>
+															{job.companies
+																.description ||
+																"Entreprise spécialisée dans les services de sécurité et de surveillance. Nous offrons des solutions professionnelles adaptées à tous types d'établissements."}
+														</Text>
+													</VStack>
+
+													{/* Localisation */}
+													{/* {job.city && (
 													<HStack
 														space='sm'
 														style={{
@@ -1509,8 +1593,8 @@ const JobScreen = () => {
 													</HStack>
 												)} */}
 
-												{/* Email */}
-												{/* {job.companies.email && (
+													{/* Email */}
+													{/* {job.companies.email && (
 													<HStack
 														space='sm'
 														style={{
@@ -1566,8 +1650,8 @@ const JobScreen = () => {
 													</HStack>
 												)} */}
 
-												{/* Téléphone (exemple fictif) */}
-												{/* <HStack
+													{/* Téléphone (exemple fictif) */}
+													{/* <HStack
 													space='sm'
 													style={{
 														alignItems: "center",
@@ -1617,208 +1701,220 @@ const JobScreen = () => {
 														</Text>
 													</VStack>
 												</HStack> */}
-											</VStack>
-										</AccordionContent>
-									</AccordionItem>
-								</Accordion>
-							</Card>
+												</VStack>
+											</AccordionContent>
+										</AccordionItem>
+									</Accordion>
+								</Card>
+							)}
+
+						{/* Boutons d'action */}
+						{role === "pro" && user.id === company_id && (
+							<VStack space='sm'>
+								<Button
+									disabled={isArchived ? true : false}
+									action={
+										isArchived ? "secondary" : "negative"
+									}
+									variant={isArchived ? "outline" : "solid"}
+									size='lg'
+									onPress={handleArchive}
+									style={{ width: "100%" }}>
+									<ButtonText>
+										{isArchived
+											? "Job archivé"
+											: "Archiver"}
+									</ButtonText>
+								</Button>
+							</VStack>
 						)}
 
-					{/* Boutons d'action */}
-					{role === "pro" && user.id === company_id && (
-						<VStack space='sm'>
-							<Button
-								disabled={isArchived ? true : false}
-								action={isArchived ? "secondary" : "negative"}
-								variant={isArchived ? "outline" : "solid"}
-								size='lg'
-								onPress={handleArchive}
-								style={{ width: "100%" }}>
-								<ButtonText>
-									{isArchived ? "Job archivé" : "Archiver"}
-								</ButtonText>
-							</Button>
-						</VStack>
-					)}
+						{/* Card Candidats (pour pro) */}
+						{role === "pro" && user.id === company_id && (
+							<Card
+								style={{
+									padding: 20,
+									backgroundColor: isDark
+										? "#374151"
+										: "#ffffff",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								}}>
+								<VStack space='md'>
+									<HStack
+										space='sm'
+										style={{ alignItems: "center" }}>
+										<Box
+											style={{
+												width: 48,
+												height: 48,
+												borderRadius: 24,
+												backgroundColor: "#dcfce7",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={Users}
+												size='xl'
+												style={{ color: "#16a34a" }}
+											/>
+										</Box>
+										<Heading
+											size='lg'
+											style={{
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											Candidats
+										</Heading>
+									</HStack>
 
-					{/* Card Candidats (pour pro) */}
-					{role === "pro" && user.id === company_id && (
-						<Card
-							style={{
-								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
-								borderRadius: 12,
-								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
-							}}>
-							<VStack space='md'>
-								<HStack
-									space='sm'
-									style={{ alignItems: "center" }}>
-									<Box
+									<Divider
 										style={{
-											width: 48,
-											height: 48,
-											borderRadius: 24,
-											backgroundColor: "#dcfce7",
-											justifyContent: "center",
-											alignItems: "center",
-										}}>
-										<Icon
-											as={Users}
-											size='xl'
-											style={{ color: "#16a34a" }}
-										/>
-									</Box>
-									<Heading
-										size='lg'
-										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-										}}>
-										Candidats
-									</Heading>
-								</HStack>
+											backgroundColor: isDark
+												? "#4b5563"
+												: "#e5e7eb",
+										}}
+									/>
 
-								<Divider
-									style={{
-										backgroundColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}
-								/>
-
-								{job?.applications &&
-								job.applications.length > 0 ? (
-									<VStack space='sm'>
-										{job.applications.map(
-											(apply, index) => (
-												<React.Fragment key={apply.id}>
-													{index > 0 && (
-														<Divider
-															style={{
-																backgroundColor:
-																	isDark
-																		? "#374151"
-																		: "#f3f4f6",
-															}}
-														/>
-													)}
-													<HStack
-														style={{
-															justifyContent:
-																"space-between",
-															alignItems:
-																"center",
-															paddingVertical: 8,
-														}}>
-														<VStack
-															style={{ flex: 1 }}>
-															<Text
-																size='md'
+									{job?.applications &&
+									job.applications.length > 0 ? (
+										<VStack space='sm'>
+											{job.applications.map(
+												(apply, index) => (
+													<React.Fragment
+														key={apply.id}>
+														{index > 0 && (
+															<Divider
 																style={{
-																	fontWeight:
-																		"600",
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
+																	backgroundColor:
+																		isDark
+																			? "#374151"
+																			: "#f3f4f6",
+																}}
+															/>
+														)}
+														<HStack
+															style={{
+																justifyContent:
+																	"space-between",
+																alignItems:
+																	"center",
+																paddingVertical: 8,
+															}}>
+															<VStack
+																style={{
+																	flex: 1,
 																}}>
-																{
-																	apply
-																		.profiles
-																		.firstname
-																}{" "}
-																{
-																	apply
-																		.profiles
-																		.lastname
-																}
-															</Text>
-															{apply.current_status && (
-																<Badge
-																	size='sm'
-																	variant='solid'
-																	action={
-																		apply.current_status ===
-																		"rejected"
-																			? "error"
-																			: apply.current_status ===
-																				  "contract_signed_pro"
-																				? "success"
-																				: "info"
-																	}
+																<Text
+																	size='md'
 																	style={{
-																		marginTop: 4,
-																		alignSelf:
-																			"flex-start",
+																		fontWeight:
+																			"600",
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
 																	}}>
-																	<BadgeText>
-																		{apply.current_status ===
-																		"applied"
-																			? "Candidature envoyée"
-																			: apply.current_status ===
-																				  "selected"
-																				? "Sélectionné"
+																	{
+																		apply
+																			.profiles
+																			.firstname
+																	}{" "}
+																	{
+																		apply
+																			.profiles
+																			.lastname
+																	}
+																</Text>
+																{apply.current_status && (
+																	<Badge
+																		size='sm'
+																		variant='solid'
+																		action={
+																			apply.current_status ===
+																			"rejected"
+																				? "error"
 																				: apply.current_status ===
-																					  "contract_sent"
-																					? "Contrat envoyé"
+																					  "contract_signed_pro"
+																					? "success"
+																					: "info"
+																		}
+																		style={{
+																			marginTop: 4,
+																			alignSelf:
+																				"flex-start",
+																		}}>
+																		<BadgeText>
+																			{apply.current_status ===
+																			"applied"
+																				? "Candidature envoyée"
+																				: apply.current_status ===
+																					  "selected"
+																					? "Sélectionné"
 																					: apply.current_status ===
-																						  "contract_signed_candidate"
-																						? "Contrat signé (candidat)"
+																						  "contract_sent"
+																						? "Contrat envoyé"
 																						: apply.current_status ===
-																							  "contract_signed_pro"
-																							? "Contrat finalisé"
+																							  "contract_signed_candidate"
+																							? "Contrat signé (candidat)"
 																							: apply.current_status ===
-																								  "rejected"
-																								? "Refusé"
-																								: apply.current_status}
-																	</BadgeText>
-																</Badge>
-															)}
-														</VStack>
-														<Button
-															size='sm'
-															action='primary'
-															onPress={() =>
-																router.push({
-																	pathname:
-																		"/application",
-																	params: {
-																		id: job.id,
-																		company_id:
-																			job.company_id,
-																		apply_id:
-																			apply.id,
-																	},
-																})
-															}>
-															<ButtonText>
-																Voir
-															</ButtonText>
-														</Button>
-													</HStack>
-												</React.Fragment>
-											),
-										)}
-									</VStack>
-								) : (
-									<Text
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-											textAlign: "center",
-											paddingVertical: 16,
-										}}>
-										Aucun candidat pour cette offre.
-									</Text>
-								)}
-							</VStack>
-						</Card>
-					)}
-				</VStack>
-			</ScrollView>
+																								  "contract_signed_pro"
+																								? "Contrat finalisé"
+																								: apply.current_status ===
+																									  "rejected"
+																									? "Refusé"
+																									: apply.current_status}
+																		</BadgeText>
+																	</Badge>
+																)}
+															</VStack>
+															<Button
+																size='sm'
+																action='primary'
+																onPress={() =>
+																	router.push(
+																		{
+																			pathname:
+																				"/application",
+																			params: {
+																				id: job.id,
+																				company_id:
+																					job.company_id,
+																				apply_id:
+																					apply.id,
+																			},
+																		},
+																	)
+																}>
+																<ButtonText>
+																	Voir
+																</ButtonText>
+															</Button>
+														</HStack>
+													</React.Fragment>
+												),
+											)}
+										</VStack>
+									) : (
+										<Text
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+												textAlign: "center",
+												paddingVertical: 16,
+											}}>
+											Aucun candidat pour cette offre.
+										</Text>
+									)}
+								</VStack>
+							</Card>
+						)}
+					</VStack>
+				</ScrollView>
+			)}
 
 			{/* Bouton fixe en bas pour candidat */}
 			{role === "candidat" && (
