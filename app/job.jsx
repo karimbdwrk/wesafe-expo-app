@@ -342,7 +342,11 @@ const JobScreen = () => {
 				<ScrollView ref={scrollViewRef}>
 					<VStack
 						space='lg'
-						style={{ padding: 20, paddingBottom: 100 }}>
+						style={{
+							paddingHorizontal: 10,
+							paddingVertical: 15,
+							paddingBottom: 100,
+						}}>
 						{/* Card Principale - Informations du poste */}
 						<Card
 							style={{
