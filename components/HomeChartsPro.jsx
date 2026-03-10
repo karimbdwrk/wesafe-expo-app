@@ -604,7 +604,14 @@ const HomeChartsPro = () => {
 						value={kpis.jobsTotal}
 						sub='actives'
 						isDark={isDark}
-						onPress={() => router.push("/offers")}
+						onPress={() =>
+							router.push({
+								pathname: "/offers",
+								params: {
+									isLastMinute: false,
+								},
+							})
+						}
 					/>
 					<KpiCard
 						icon={Users}
@@ -1069,7 +1076,14 @@ const HomeChartsPro = () => {
 								value={lmKpis.active}
 								sub='actives'
 								isDark={isDark}
-								onPress={() => router.push("/lastminute")}
+								onPress={() =>
+									router.push({
+										pathname: "/offers",
+										params: {
+											isLastMinute: true,
+										},
+									})
+								}
 							/>
 							<KpiCard
 								icon={Users}
