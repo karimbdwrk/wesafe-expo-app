@@ -604,7 +604,7 @@ const HomeChartsPro = () => {
 						value={kpis.jobsTotal}
 						sub='actives'
 						isDark={isDark}
-						onPress={() => router.push("/tabs/(tabs)/tab2")}
+						onPress={() => router.push("/offers")}
 					/>
 					<KpiCard
 						icon={Users}
