@@ -624,7 +624,14 @@ const HomeChartsPro = () => {
 						label='Candidatures reçues'
 						value={kpis.applicationsTotal}
 						isDark={isDark}
-						onPress={() => router.push("/applicationspro")}
+						onPress={() =>
+							router.push({
+								pathname: "/applicationspro",
+								params: {
+									isLastMinute: false,
+								},
+							})
+						}
 					/>
 				</HStack>
 
@@ -1097,7 +1104,14 @@ const HomeChartsPro = () => {
 								value={lmKpis.apps}
 								sub='sur missions LM'
 								isDark={isDark}
-								onPress={() => router.push("/applicationspro")}
+								onPress={() =>
+									router.push({
+										pathname: "/applicationspro",
+										params: {
+											isLastMinute: true,
+										},
+									})
+								}
 							/>
 						</HStack>
 
