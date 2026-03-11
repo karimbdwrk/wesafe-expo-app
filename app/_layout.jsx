@@ -169,6 +169,13 @@ function RootLayoutNav() {
 								options={{ headerShown: false }}
 							/>
 							<Stack.Screen
+								name='analytics'
+								options={{
+									headerShown: true,
+									headerTitle: "Analytics",
+								}}
+							/>
+							<Stack.Screen
 								name='postjob'
 								options={{
 									headerShown: true,
