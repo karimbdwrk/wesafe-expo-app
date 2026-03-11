@@ -899,8 +899,15 @@ export default function Tab1() {
 						/>
 					</VStack> */}
 
+					<Button
+						onPress={() => router.push("/analytics")}
+						variant='outline'>
+						<ButtonText>Analytics</ButtonText>
+						<ButtonIcon as={ChevronRight} />
+					</Button>
+
 					{/* Recent Jobs */}
-					{recentJobs.length > 0 && (
+					{/* {recentJobs.length > 0 && (
 						<VStack space='md'>
 							<HStack
 								style={{
@@ -962,7 +969,7 @@ export default function Tab1() {
 								/>
 							))}
 						</VStack>
-					)}
+					)} */}
 				</VStack>
 			</ScrollView>
 		);
