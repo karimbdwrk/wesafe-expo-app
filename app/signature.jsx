@@ -21,7 +21,16 @@ import {
 	ActionsheetDragIndicatorWrapper,
 	ActionsheetDragIndicator,
 } from "@/components/ui/actionsheet";
-import { PenTool, FileSignature, Edit3, X } from "lucide-react-native";
+import {
+	PenTool,
+	FileSignature,
+	Edit3,
+	X,
+	Clock,
+	CheckCircle,
+	XCircle,
+	ShieldCheck,
+} from "lucide-react-native";
 import { TouchableOpacity } from "react-native";
 import SignatureCapture from "@/components/SignatureCapture";
 
@@ -43,25 +52,28 @@ const SignatureScreen = () => {
 	const { signatureUrl, isPro, type } = useLocalSearchParams();
 
 	const [signatureImg, setSignatureImg] = useState(null);
+	const [signatureStatus, setSignatureStatus] = useState(null);
 	const [showActionsheet, setShowActionsheet] = useState(false);
+
+	const canEdit = signatureStatus !== "accepted";
 
 	useFocusEffect(
 		useCallback(() => {
 			if (signatureUrl) {
 				setSignatureImg(signatureUrl);
 			} else {
-				// Fallback : charger depuis le profil si le param n'est pas passé
 				const url =
 					userProfile?.signature_url ??
 					userCompany?.signature_url ??
 					null;
 				setSignatureImg(url);
 			}
-		}, [
-			signatureUrl,
-			userProfile?.signature_url,
-			userCompany?.signature_url,
-		]),
+			const status =
+				userProfile?.signature_status ??
+				userCompany?.signature_status ??
+				null;
+			setSignatureStatus(status);
+		}, []),
 	);
 
 	const handleSaveSign = (signature) => {
@@ -115,7 +127,11 @@ const SignatureScreen = () => {
 
 			await update(table, user.id, {
 				signature_url: publicUrl,
+				signature_status: "pending",
 			});
+			// Mettre à jour l'aperçu immédiatement avec la nouvelle URL
+			setSignatureImg(publicUrl);
+			setSignatureStatus("pending");
 			trackActivity(
 				signatureImg ? "signature_updated" : "signature_created",
 			);
@@ -166,22 +182,129 @@ const SignatureScreen = () => {
 							borderColor: isDark ? "#4b5563" : "#e5e7eb",
 						}}>
 						<VStack space='lg'>
-							<VStack space='sm'>
-								<Icon
-									as={FileSignature}
-									size='lg'
-									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
-									}}
-								/>
-								<Heading
-									size='lg'
-									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}>
-									Aperçu de votre signature
-								</Heading>
-							</VStack>
+							<HStack
+								style={{
+									alignItems: "center",
+									justifyContent: "space-between",
+								}}>
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Icon
+										as={FileSignature}
+										size='lg'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}
+									/>
+									<Heading
+										size='lg'
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										Aperçu de votre signature
+									</Heading>
+								</HStack>
+
+								{/* Badge statut */}
+								{signatureStatus === "accepted" && (
+									<HStack
+										space='xs'
+										style={{
+											alignItems: "center",
+											backgroundColor: isDark
+												? "rgba(16,185,129,0.15)"
+												: "rgba(16,185,129,0.1)",
+											paddingHorizontal: 10,
+											paddingVertical: 4,
+											borderRadius: 20,
+											borderWidth: 1,
+											borderColor: isDark
+												? "rgba(16,185,129,0.4)"
+												: "rgba(16,185,129,0.3)",
+										}}>
+										<Icon
+											as={CheckCircle}
+											size='xs'
+											style={{ color: "#10b981" }}
+										/>
+										<Text
+											size='xs'
+											style={{
+												color: "#10b981",
+												fontWeight: "600",
+											}}>
+											Validée
+										</Text>
+									</HStack>
+								)}
+								{signatureStatus === "pending" && (
+									<HStack
+										space='xs'
+										style={{
+											alignItems: "center",
+											backgroundColor: isDark
+												? "rgba(245,158,11,0.15)"
+												: "rgba(245,158,11,0.1)",
+											paddingHorizontal: 10,
+											paddingVertical: 4,
+											borderRadius: 20,
+											borderWidth: 1,
+											borderColor: isDark
+												? "rgba(245,158,11,0.4)"
+												: "rgba(245,158,11,0.3)",
+										}}>
+										<Icon
+											as={Clock}
+											size='xs'
+											style={{ color: "#f59e0b" }}
+										/>
+										<Text
+											size='xs'
+											style={{
+												color: "#f59e0b",
+												fontWeight: "600",
+											}}>
+											En attente
+										</Text>
+									</HStack>
+								)}
+								{signatureStatus === "rejected" && (
+									<HStack
+										space='xs'
+										style={{
+											alignItems: "center",
+											backgroundColor: isDark
+												? "rgba(239,68,68,0.15)"
+												: "rgba(239,68,68,0.1)",
+											paddingHorizontal: 10,
+											paddingVertical: 4,
+											borderRadius: 20,
+											borderWidth: 1,
+											borderColor: isDark
+												? "rgba(239,68,68,0.4)"
+												: "rgba(239,68,68,0.3)",
+										}}>
+										<Icon
+											as={XCircle}
+											size='xs'
+											style={{ color: "#ef4444" }}
+										/>
+										<Text
+											size='xs'
+											style={{
+												color: "#ef4444",
+												fontWeight: "600",
+											}}>
+											Refusée
+										</Text>
+									</HStack>
+								)}
+							</HStack>
 
 							<Box
 								style={{
@@ -203,64 +326,110 @@ const SignatureScreen = () => {
 									resizeMode='contain'
 								/>
 							</Box>
+
+							{/* Message si acceptée */}
+							{signatureStatus === "accepted" && (
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Icon
+										as={ShieldCheck}
+										size='xs'
+										style={{ color: "#10b981" }}
+									/>
+									<Text
+										size='xs'
+										style={{
+											color: isDark
+												? "#6ee7b7"
+												: "#065f46",
+										}}>
+										Votre signature est validée et ne peut
+										plus être modifiée.
+									</Text>
+								</HStack>
+							)}
+							{signatureStatus === "rejected" && (
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Icon
+										as={XCircle}
+										size='xs'
+										style={{ color: "#ef4444" }}
+									/>
+									<Text
+										size='xs'
+										style={{
+											color: isDark
+												? "#fca5a5"
+												: "#991b1b",
+										}}>
+										Votre signature a été refusée. Vous
+										pouvez en soumettre une nouvelle.
+									</Text>
+								</HStack>
+							)}
 						</VStack>
 					</Card>
 				)}
 
-				{/* Signature Action Card */}
-				<Card
-					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
-						borderRadius: 12,
-						padding: 24,
-						borderWidth: 1,
-						borderColor: isDark ? "#4b5563" : "#e5e7eb",
-					}}>
-					<VStack space='lg'>
-						<VStack space='sm'>
-							<Icon
-								as={PenTool}
-								size='lg'
-								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
-								}}
-							/>
-							<Heading
-								size='lg'
-								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
-								}}>
-								{signatureImg
-									? "Modifier la signature"
-									: "Créer une signature"}
-							</Heading>
-							<Text
-								size='sm'
-								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
-								}}>
-								Ouvrez l'outil de signature pour dessiner avec
-								votre doigt
-							</Text>
-						</VStack>
+				{/* Signature Action Card — masquée si acceptée */}
+				{canEdit && (
+					<Card
+						style={{
+							backgroundColor: isDark ? "#374151" : "#ffffff",
+							borderRadius: 12,
+							padding: 24,
+							borderWidth: 1,
+							borderColor: isDark ? "#4b5563" : "#e5e7eb",
+						}}>
+						<VStack space='lg'>
+							<VStack space='sm'>
+								<Icon
+									as={PenTool}
+									size='lg'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}
+								/>
+								<Heading
+									size='lg'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									{signatureImg
+										? "Modifier la signature"
+										: "Créer une signature"}
+								</Heading>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}>
+									Ouvrez l'outil de signature pour dessiner
+									avec votre doigt
+								</Text>
+							</VStack>
 
-						<Button
-							size='lg'
-							action='primary'
-							onPress={() => setShowActionsheet(true)}
-							style={{
-								backgroundColor: "#3b82f6",
-								borderRadius: 8,
-							}}>
-							<ButtonIcon as={Edit3} />
-							<ButtonText>
-								{signatureImg
-									? "Modifier"
-									: "Créer ma signature"}
-							</ButtonText>
-						</Button>
-					</VStack>
-				</Card>
+							<Button
+								size='lg'
+								action='primary'
+								onPress={() => setShowActionsheet(true)}
+								style={{
+									backgroundColor: "#3b82f6",
+									borderRadius: 8,
+								}}>
+								<ButtonIcon as={Edit3} />
+								<ButtonText>
+									{signatureImg
+										? "Modifier"
+										: "Créer ma signature"}
+								</ButtonText>
+							</Button>
+						</VStack>
+					</Card>
+				)}
 
 				{/* Info Card */}
 				<Card
