@@ -301,28 +301,78 @@ export default function TabLayout({ theme = "light" }) {
 								</Pressable>
 							</VStack>
 							{role === "candidat" && (
-								<Pressable
-									onPress={() => router.push("/account")}
-									style={{ marginRight: 15 }}>
-									{({ pressed }) => (
-										<Avatar
-											size='sm'
+								<VStack>
+									<Pressable
+										onPress={() => router.push("/account")}
+										style={{ marginRight: 15 }}>
+										{({ pressed }) => (
+											<Avatar
+												size='sm'
+												style={{
+													opacity: pressed ? 0.7 : 1,
+												}}>
+												<AvatarFallbackText>
+													{userProfile?.firstname +
+														" " +
+														userProfile?.lastname}
+												</AvatarFallbackText>
+												<AvatarImage
+													source={{
+														uri: userProfile?.avatar_url,
+													}}
+												/>
+											</Avatar>
+										)}
+									</Pressable>
+									{userProfile &&
+									userProfile?.profile_status ===
+										"pending" ? (
+										<Badge
+											className='z-10 h-[16px] w-[16px] bg-yellow-500 rounded-full'
 											style={{
-												opacity: pressed ? 0.7 : 1,
-											}}>
-											<AvatarFallbackText>
-												{userProfile?.firstname +
-													" " +
-													userProfile?.lastname}
-											</AvatarFallbackText>
-											<AvatarImage
-												source={{
-													uri: userProfile?.avatar_url,
-												}}
-											/>
-										</Avatar>
-									)}
-								</Pressable>
+												display: "flex",
+												justifyContent: "center",
+												alignItems: "center",
+												position: "absolute",
+												left: -5,
+												top: -5,
+												padding: 0,
+											}}
+											variant='solid'>
+											<BadgeText
+												className='text-white font-semibold'
+												style={{
+													position: "absolute",
+													top: 1,
+												}}>
+												!
+											</BadgeText>
+										</Badge>
+									) : userProfile?.profile_status ===
+									  "suspended" ? (
+										<Badge
+											className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
+											style={{
+												display: "flex",
+												justifyContent: "center",
+												alignItems: "center",
+												position: "absolute",
+												left: -5,
+												top: -5,
+												padding: 0,
+											}}
+											variant='solid'>
+											<BadgeText
+												className='text-white font-semibold'
+												style={{
+													position: "absolute",
+													top: 1,
+												}}>
+												!
+											</BadgeText>
+										</Badge>
+									) : null}
+								</VStack>
 							)}
 							{role === "pro" && (
 								<VStack>
