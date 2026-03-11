@@ -374,13 +374,7 @@ function RootLayoutNav() {
 								name='contract'
 								options={{ headerShown: true }}
 							/>
-							<Stack.Screen
-								name='camera'
-								options={{
-									headerShown: true,
-									headerTitle: "Prendre une photo",
-								}}
-							/>
+							<Stack.Screen name='camera' />
 							{/* <Slot /> */}
 						</Stack>
 						{pathname === "/" && (
