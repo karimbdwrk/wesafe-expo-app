@@ -229,7 +229,7 @@ const STEPS = [
 const PostJob = () => {
 	const { user, accessToken, userCompany } = useAuth();
 	const { isDark } = useTheme();
-	const { create, getAll } = useDataContext();
+	const { create, getAll, update } = useDataContext();
 	const router = useRouter();
 	const toast = useToast();
 
@@ -1228,6 +1228,30 @@ const PostJob = () => {
 				setJobCount((prev) => (prev ?? 0) + 1);
 			}
 
+			// Décrémenter les crédits Last Minute si utilisés
+			if (
+				formData.isLastMinute &&
+				(userCompany?.last_minute_credits ?? 0) > 0
+			) {
+				const newCredits = userCompany.last_minute_credits - 1;
+				await update("companies", userCompany.id, {
+					last_minute_credits: newCredits,
+				});
+				// Enregistrer la transaction de déduction
+				await create("transactions", {
+					company_id: userCompany.id,
+					amount: 0,
+					currency: "TOKEN",
+					transaction_type: "credit_usage",
+					credits_added: 0,
+					credits_deducted: 1,
+					description: `Déduction d'1 crédit Last Minute pour l'annonce "${formData.title}"`,
+					event_type: "last_minute_credit_used",
+				});
+				// Mise à jour locale immédiate
+				userCompany.last_minute_credits = newCredits;
+			}
+
 			// Réinitialiser le formulaire
 			setFormData({
 				title: "",
@@ -1667,6 +1691,148 @@ const PostJob = () => {
 														}}
 													/>
 												</HStack>
+
+												{/* Avertissement crédits LM */}
+												{formData.isLastMinute && (
+													<Card
+														style={{
+															padding: 12,
+															borderRadius: 10,
+															borderWidth: 1,
+															borderColor:
+																(userCompany?.last_minute_credits ??
+																	0) > 0
+																	? "#d97706"
+																	: "#ef4444",
+															backgroundColor:
+																(userCompany?.last_minute_credits ??
+																	0) > 0
+																	? isDark
+																		? "#451a03"
+																		: "#fffbeb"
+																	: isDark
+																		? "#450a0a"
+																		: "#fef2f2",
+														}}>
+														{(userCompany?.last_minute_credits ??
+															0) > 0 ? (
+															<HStack
+																space='sm'
+																style={{
+																	alignItems:
+																		"flex-start",
+																}}>
+																<Icon
+																	as={Zap}
+																	size='xs'
+																	style={{
+																		color: "#d97706",
+																		marginTop: 2,
+																	}}
+																/>
+																<Text
+																	size='xs'
+																	style={{
+																		color: isDark
+																			? "#fcd34d"
+																			: "#92400e",
+																		flex: 1,
+																	}}>
+																	1 crédit
+																	Last Minute
+																	sera débité
+																	(
+																	{
+																		userCompany.last_minute_credits
+																	}{" "}
+																	disponible
+																	{userCompany.last_minute_credits >
+																	1
+																		? "s"
+																		: ""}
+																	).
+																</Text>
+															</HStack>
+														) : (
+															<VStack space='xs'>
+																<HStack
+																	space='sm'
+																	style={{
+																		alignItems:
+																			"flex-start",
+																	}}>
+																	<Icon
+																		as={Zap}
+																		size='xs'
+																		style={{
+																			color: "#ef4444",
+																			marginTop: 2,
+																		}}
+																	/>
+																	<Text
+																		size='xs'
+																		style={{
+																			color: isDark
+																				? "#fca5a5"
+																				: "#991b1b",
+																			flex: 1,
+																		}}>
+																		Aucun
+																		crédit
+																		disponible.
+																		Cette
+																		annonce
+																		sera
+																		facturée{" "}
+																		<Text
+																			size='xs'
+																			style={{
+																				fontWeight:
+																					"700",
+																				color: isDark
+																					? "#fca5a5"
+																					: "#991b1b",
+																			}}>
+																			5 €
+																		</Text>{" "}
+																		avant
+																		publication.
+																	</Text>
+																</HStack>
+																<TouchableOpacity
+																	onPress={() =>
+																		router.push(
+																			"/buycredits",
+																		)
+																	}
+																	style={{
+																		alignSelf:
+																			"flex-start",
+																		marginTop: 4,
+																	}}>
+																	<Text
+																		size='xs'
+																		style={{
+																			color: "#3b82f6",
+																			fontWeight:
+																				"600",
+																			textDecorationLine:
+																				"underline",
+																		}}>
+																		Acheter
+																		des
+																		crédits
+																		— 10
+																		crédits
+																		pour 30
+																		€ (3
+																		€/crédit)
+																	</Text>
+																</TouchableOpacity>
+															</VStack>
+														)}
+													</Card>
+												)}
 
 												{/* Titre */}
 												<VStack space='xs'>
@@ -2742,6 +2908,143 @@ const PostJob = () => {
 													}}
 												/>
 											</HStack>
+
+											{/* Avertissement crédits LM */}
+											{formData.isLastMinute && (
+												<Card
+													style={{
+														marginTop: 10,
+														padding: 12,
+														borderRadius: 10,
+														borderWidth: 1,
+														borderColor:
+															(userCompany?.last_minute_credits ??
+																0) > 0
+																? "#d97706"
+																: "#ef4444",
+														backgroundColor:
+															(userCompany?.last_minute_credits ??
+																0) > 0
+																? isDark
+																	? "#451a03"
+																	: "#fffbeb"
+																: isDark
+																	? "#450a0a"
+																	: "#fef2f2",
+													}}>
+													{(userCompany?.last_minute_credits ??
+														0) > 0 ? (
+														<HStack
+															space='sm'
+															style={{
+																alignItems:
+																	"flex-start",
+															}}>
+															<Icon
+																as={Zap}
+																size='xs'
+																style={{
+																	color: "#d97706",
+																	marginTop: 2,
+																}}
+															/>
+															<Text
+																size='xs'
+																style={{
+																	color: isDark
+																		? "#fcd34d"
+																		: "#92400e",
+																	flex: 1,
+																}}>
+																1 crédit Last
+																Minute sera
+																débité (
+																{
+																	userCompany.last_minute_credits
+																}{" "}
+																disponible
+																{userCompany.last_minute_credits >
+																1
+																	? "s"
+																	: ""}
+																).
+															</Text>
+														</HStack>
+													) : (
+														<VStack space='xs'>
+															<HStack
+																space='sm'
+																style={{
+																	alignItems:
+																		"flex-start",
+																}}>
+																<Icon
+																	as={Zap}
+																	size='xs'
+																	style={{
+																		color: "#ef4444",
+																		marginTop: 2,
+																	}}
+																/>
+																<Text
+																	size='xs'
+																	style={{
+																		color: isDark
+																			? "#fca5a5"
+																			: "#991b1b",
+																		flex: 1,
+																	}}>
+																	Aucun crédit
+																	disponible.
+																	Cette
+																	annonce sera
+																	facturée{" "}
+																	<Text
+																		size='xs'
+																		style={{
+																			fontWeight:
+																				"700",
+																			color: isDark
+																				? "#fca5a5"
+																				: "#991b1b",
+																		}}>
+																		5 €
+																	</Text>{" "}
+																	avant
+																	publication.
+																</Text>
+															</HStack>
+															<TouchableOpacity
+																onPress={() =>
+																	router.push(
+																		"/buycredits",
+																	)
+																}
+																style={{
+																	alignSelf:
+																		"flex-start",
+																	marginTop: 4,
+																}}>
+																<Text
+																	size='xs'
+																	style={{
+																		color: "#3b82f6",
+																		fontWeight:
+																			"600",
+																		textDecorationLine:
+																			"underline",
+																	}}>
+																	Acheter des
+																	crédits — 10
+																	crédits pour
+																	30 € (3
+																	€/crédit)
+																</Text>
+															</TouchableOpacity>
+														</VStack>
+													)}
+												</Card>
+											)}
 										</Card>
 
 										{/* Type de contrat */}
