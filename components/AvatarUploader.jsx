@@ -125,7 +125,7 @@ const AvatarUploader = ({ image, onUpload }) => {
 			setAvatarUrl(publicUrl);
 			await loadUserData(user.id, accessToken);
 			setImage(null);
-			onUpload();
+			if (typeof onUpload === "function") onUpload();
 		} catch (error) {
 			console.error("Error upload:", error);
 		}
