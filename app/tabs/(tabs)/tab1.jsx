@@ -62,7 +62,7 @@ import HomeChartsPro from "../../../components/HomeChartsPro";
 
 export default function Tab1() {
 	const router = useRouter();
-	const { user, role, userCompany } = useAuth();
+	const { user, role, userCompany, userProfile } = useAuth();
 	const { getAll } = useDataContext();
 	const { isDark } = useTheme();
 	const { unreadCount } = useNotifications();
@@ -303,8 +303,12 @@ export default function Tab1() {
 		// Heures approximatives de coucher du soleil en France métropolitaine
 		const sunsets = [17, 18, 19, 20, 21, 22, 21, 21, 20, 19, 17, 16];
 		const sunset = sunsets[month];
-		if (hour >= 5 && hour < sunset) return "Bonjour 👋";
-		return "Bonsoir 🌙";
+		const firstname =
+			role === "candidat" && userProfile?.firstname
+				? ` ${userProfile.firstname}`
+				: "";
+		if (hour >= 5 && hour < sunset) return `Bonjour${firstname} 👋`;
+		return `Bonsoir${firstname} 🌙`;
 	};
 
 	const ActionCard = ({ icon, title, subtitle, onPress, badge }) => (
