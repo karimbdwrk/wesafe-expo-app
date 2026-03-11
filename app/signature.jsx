@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
 import { Icon } from "@/components/ui/icon";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import {
@@ -20,7 +21,8 @@ import {
 	ActionsheetDragIndicatorWrapper,
 	ActionsheetDragIndicator,
 } from "@/components/ui/actionsheet";
-import { PenTool, FileSignature, Edit3 } from "lucide-react-native";
+import { PenTool, FileSignature, Edit3, X } from "lucide-react-native";
+import { TouchableOpacity } from "react-native";
 import SignatureCapture from "@/components/SignatureCapture";
 
 import { useAuth } from "@/context/AuthContext";
@@ -301,33 +303,114 @@ const SignatureScreen = () => {
 			<Actionsheet
 				isOpen={showActionsheet}
 				onClose={() => setShowActionsheet(false)}
-				snapPoints={[50]}>
+				snapPoints={[55]}>
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+						paddingHorizontal: 0,
+						paddingBottom: 0,
+						borderTopLeftRadius: 20,
+						borderTopRightRadius: 20,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
+						<ActionsheetDragIndicator
+							style={{
+								backgroundColor: isDark ? "#4b5563" : "#d1d5db",
+							}}
+						/>
 					</ActionsheetDragIndicatorWrapper>
 
-					<VStack
-						style={{
-							width: "100%",
-							height: "100%",
-						}}>
-						<Heading
-							size='xl'
+					<VStack style={{ width: "100%", flex: 1 }}>
+						{/* Header */}
+						<HStack
 							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
-								marginBottom: 10,
+								alignItems: "center",
+								justifyContent: "space-between",
 								paddingHorizontal: 20,
+								paddingVertical: 16,
+								borderBottomWidth: 1,
+								borderBottomColor: isDark
+									? "#374151"
+									: "#e5e7eb",
 							}}>
-							{signatureImg ? "Modifier" : "Créer"} votre
-							signature
-						</Heading>
+							<HStack
+								space='md'
+								style={{ alignItems: "center", flex: 1 }}>
+								<Box
+									style={{
+										width: 40,
+										height: 40,
+										borderRadius: 10,
+										backgroundColor: isDark
+											? "rgba(59, 130, 246, 0.2)"
+											: "rgba(59, 130, 246, 0.1)",
+										justifyContent: "center",
+										alignItems: "center",
+									}}>
+									<Icon
+										as={signatureImg ? Edit3 : PenTool}
+										size='sm'
+										style={{ color: "#3b82f6" }}
+									/>
+								</Box>
+								<VStack space='xs'>
+									<Heading
+										size='lg'
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										{signatureImg ? "Modifier" : "Créer"}{" "}
+										votre signature
+									</Heading>
+									<Text
+										size='xs'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}>
+										Dessinez avec votre doigt dans la zone
+										ci-dessous
+									</Text>
+								</VStack>
+							</HStack>
+							<TouchableOpacity
+								onPress={() => setShowActionsheet(false)}
+								style={{
+									width: 32,
+									height: 32,
+									borderRadius: 16,
+									backgroundColor: isDark
+										? "#374151"
+										: "#f3f4f6",
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Icon
+									as={X}
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}
+								/>
+							</TouchableOpacity>
+						</HStack>
 
-						<Box style={{ flex: 1, height: 600 }}>
+						{/* Canvas paysage */}
+						<Box
+							style={{
+								marginHorizontal: 16,
+								marginTop: 12,
+								marginBottom: 4,
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								backgroundColor: isDark ? "#374151" : "#ffffff",
+								overflow: "hidden",
+							}}>
 							<SignatureCapture
 								onSave={(sig) => {
 									handleSaveSign(sig);
