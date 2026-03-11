@@ -592,11 +592,11 @@ const HomeChartsPro = () => {
 		<VStack space='lg'>
 			{/* KPIs */}
 			<VStack space='sm'>
-				<Heading
+				{/* <Heading
 					size='sm'
 					style={{ color: textPrimary, marginBottom: 4 }}>
 					Tableau de bord
-				</Heading>
+				</Heading> */}
 
 				{/* Row 1 */}
 				<HStack space='sm'>
