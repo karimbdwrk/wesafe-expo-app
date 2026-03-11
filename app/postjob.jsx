@@ -1469,7 +1469,112 @@ const PostJob = () => {
 				</Box>
 
 				{/* Steps Container - Conditional Rendering pour fix scroll Android */}
-				<Box style={{ flex: 1 }}>
+				{/* Overlay quota épuisé — plan standard */}
+				{userCompany?.subscription_status === "standard" &&
+					jobCount !== null &&
+					jobCount >= 3 && (
+						<Box
+							style={{
+								position: "absolute",
+								top: 0,
+								left: 0,
+								right: 0,
+								bottom: 0,
+								zIndex: 10,
+								justifyContent: "center",
+								alignItems: "center",
+								paddingHorizontal: 24,
+								backgroundColor: isDark
+									? "rgba(17,24,39,0.6)"
+									: "rgba(249,250,251,0.6)",
+							}}>
+							<Card
+								style={{
+									padding: 24,
+									borderRadius: 16,
+									backgroundColor: isDark
+										? "#1f2937"
+										: "#ffffff",
+									borderWidth: 1,
+									borderColor: isDark ? "#374151" : "#e5e7eb",
+									width: "100%",
+									alignItems: "center",
+									gap: 12,
+								}}>
+								<Icon
+									as={FileText}
+									size='xl'
+									style={{ color: "#ef4444" }}
+								/>
+								<Heading
+									size='md'
+									style={{
+										color: isDark ? "#f9fafb" : "#111827",
+										textAlign: "center",
+									}}>
+									Quota atteint
+								</Heading>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+										textAlign: "center",
+									}}>
+									Vous avez utilisé vos 3 annonces gratuites
+									sur les 30 derniers jours. Passez à{" "}
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "700",
+											color: "#3b82f6",
+										}}>
+										Standard+
+									</Text>{" "}
+									ou{" "}
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "700",
+											color: "#8b5cf6",
+										}}>
+										Premium
+									</Text>{" "}
+									pour publier sans limite.
+								</Text>
+								<Button
+									style={{
+										backgroundColor: "#3b82f6",
+										borderRadius: 12,
+										marginTop: 4,
+										width: "100%",
+									}}
+									onPress={() =>
+										router.push("/subscription")
+									}>
+									<ButtonText style={{ color: "#ffffff" }}>
+										Voir les abonnements
+									</ButtonText>
+								</Button>
+							</Card>
+						</Box>
+					)}
+				<Box
+					style={{
+						flex: 1,
+						opacity:
+							userCompany?.subscription_status === "standard" &&
+							jobCount !== null &&
+							jobCount >= 3
+								? 0.3
+								: 1,
+					}}
+					pointerEvents={
+						userCompany?.subscription_status === "standard" &&
+						jobCount !== null &&
+						jobCount >= 3
+							? "none"
+							: "auto"
+					}>
 					{/* Étape 1: Informations principales */}
 					{currentStep === 1 && (
 						<Box style={{ width: SCREEN_WIDTH, flex: 1 }}>
