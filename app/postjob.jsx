@@ -1223,6 +1223,11 @@ const PostJob = () => {
 				),
 			});
 
+			// Incrémenter le compteur d'annonces (plan standard)
+			if (userCompany?.subscription_status === "standard") {
+				setJobCount((prev) => (prev ?? 0) + 1);
+			}
+
 			// Réinitialiser le formulaire
 			setFormData({
 				title: "",
