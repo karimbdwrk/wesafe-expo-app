@@ -11,6 +11,7 @@ import {
 	AlertCircle,
 	Users,
 	Clock,
+	Zap,
 } from "lucide-react-native";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
@@ -27,15 +28,19 @@ const HomePro = () => {
 	const router = useRouter();
 	const { isDark } = useTheme();
 	const { user } = useAuth();
-	const { getAll } = useDataContext();
+	const { getAll, getById } = useDataContext();
 
 	const [todayJobs, setTodayJobs] = useState([]);
 	const [todayApps, setTodayApps] = useState({});
 	const [pendingApps, setPendingApps] = useState([]);
+	const [lmCredits, setLmCredits] = useState(null);
 
 	useEffect(() => {
 		if (!user?.id) return;
 		fetchTodayMissions();
+		getById("companies", user.id, "last_minute_credits").then((data) => {
+			if (data) setLmCredits(data.last_minute_credits ?? 0);
+		});
 	}, [user?.id]);
 
 	const fetchTodayMissions = async () => {
@@ -45,32 +50,33 @@ const HomePro = () => {
 				.toISOString()
 				.slice(0, 10);
 
-			const [{ data: jobs }, { data: apps }, { data: toProcess }] = await Promise.all([
-				getAll(
-					"jobs",
-					"id,title,category,city,postcode,isLastMinute,start_date",
-					`&company_id=eq.${user.id}&is_archived=eq.false&start_date=gte.${todayStr}&start_date=lt.${tomorrowStr}`,
-					1,
-					50,
-					"start_date.asc",
-				),
-				getAll(
-					"applications",
-					"job_id,current_status",
-					`&company_id=eq.${user.id}`,
-					1,
-					1000,
-					"created_at.desc",
-				),
-				getAll(
-					"applications",
-					"id,job_id,current_status,created_at,profiles(firstname,lastname,avatar_url),jobs(title,isLastMinute)",
-					`&company_id=eq.${user.id}&current_status=in.(applied,selected)`,
-					1,
-					50,
-					"created_at.desc",
-				),
-			]);
+			const [{ data: jobs }, { data: apps }, { data: toProcess }] =
+				await Promise.all([
+					getAll(
+						"jobs",
+						"id,title,category,city,postcode,isLastMinute,start_date",
+						`&company_id=eq.${user.id}&is_archived=eq.false&start_date=gte.${todayStr}&start_date=lt.${tomorrowStr}`,
+						1,
+						50,
+						"start_date.asc",
+					),
+					getAll(
+						"applications",
+						"job_id,current_status",
+						`&company_id=eq.${user.id}`,
+						1,
+						1000,
+						"created_at.desc",
+					),
+					getAll(
+						"applications",
+						"id,job_id,current_status,created_at,profiles(firstname,lastname,avatar_url),jobs(title,isLastMinute)",
+						`&company_id=eq.${user.id}&current_status=in.(applied,selected)`,
+						1,
+						50,
+						"created_at.desc",
+					),
+				]);
 
 			const safeJobs = jobs ?? [];
 			const safeApps = apps ?? [];
@@ -457,8 +463,7 @@ const HomePro = () => {
 												? "#d1d5db"
 												: "#374151",
 										}}>
-										<Text
-											style={{ fontWeight: "700" }}>
+										<Text style={{ fontWeight: "700" }}>
 											{appliedCount}
 										</Text>{" "}
 										nouvelle
@@ -478,8 +483,7 @@ const HomePro = () => {
 												? "#d1d5db"
 												: "#374151",
 										}}>
-										<Text
-											style={{ fontWeight: "700" }}>
+										<Text style={{ fontWeight: "700" }}>
 											{selectedCount}
 										</Text>{" "}
 										en attente de réponse
@@ -511,9 +515,7 @@ const HomePro = () => {
 							onPress={() => router.push("/applicationspro")}
 							activeOpacity={0.75}
 							style={{
-								backgroundColor: isDark
-									? "#2e1065"
-									: "#f5f3ff",
+								backgroundColor: isDark ? "#2e1065" : "#f5f3ff",
 								borderRadius: 10,
 								paddingVertical: 11,
 								alignItems: "center",
@@ -536,6 +538,87 @@ const HomePro = () => {
 					</Box>
 				);
 			})()}
+
+			{/* Crédits Last Minute */}
+			<Box
+				style={{
+					backgroundColor: isDark ? "#1f2937" : "#ffffff",
+					borderRadius: 14,
+					borderWidth: 1,
+					borderColor: isDark ? "#374151" : "#e5e7eb",
+					marginBottom: 16,
+					padding: 16,
+				}}>
+				<HStack
+					space='sm'
+					style={{
+						alignItems: "center",
+						marginBottom: 10,
+					}}>
+					<Box
+						style={{
+							width: 32,
+							height: 32,
+							borderRadius: 9,
+							backgroundColor: isDark ? "#422006" : "#fff7ed",
+							justifyContent: "center",
+							alignItems: "center",
+						}}>
+						<Zap size={16} color='#f97316' />
+					</Box>
+					<Text
+						style={{
+							fontWeight: "700",
+							fontSize: 15,
+							color: isDark ? "#f3f4f6" : "#111827",
+						}}>
+						Crédits last minute
+					</Text>
+				</HStack>
+
+				<Text
+					style={{
+						fontSize: 28,
+						fontWeight: "800",
+						color: "#f97316",
+						marginBottom: 14,
+						lineHeight: 32,
+					}}>
+					{lmCredits === null ? "—" : lmCredits}{" "}
+					<Text
+						style={{
+							fontSize: 14,
+							fontWeight: "500",
+							color: isDark ? "#9ca3af" : "#6b7280",
+						}}>
+						crédit{lmCredits !== 1 ? "s" : ""} restant
+						{lmCredits !== 1 ? "s" : ""}
+					</Text>
+				</Text>
+
+				<TouchableOpacity
+					onPress={() => router.push("/buycredits")}
+					activeOpacity={0.75}
+					style={{
+						backgroundColor: "#f97316",
+						borderRadius: 10,
+						paddingVertical: 11,
+						alignItems: "center",
+						flexDirection: "row",
+						justifyContent: "center",
+						gap: 6,
+					}}>
+					<Zap size={15} color='#ffffff' />
+					<Text
+						style={{
+							fontWeight: "700",
+							fontSize: 14,
+							color: "#ffffff",
+						}}>
+						Acheter
+					</Text>
+				</TouchableOpacity>
+			</Box>
 
 			<HomeChartsProMini />
 		</Box>
