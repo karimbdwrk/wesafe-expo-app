@@ -107,8 +107,12 @@ export default function MyHeader({ title, headerRight, showBack }) {
 				)}
 			</View>
 
-			{/* CENTER */}
-			<MarqueeTitle title={title} style={styles.titleContainer} />
+			{/* CENTER — position absolute pour être vraiment centré indépendamment des côtés */}
+			<View
+				style={[styles.titleWrapper, { top: insets.top }]}
+				pointerEvents='none'>
+				<MarqueeTitle title={title} style={styles.titleContainer} />
+			</View>
 
 			{/* RIGHT */}
 			<View style={styles.right}>
@@ -120,7 +124,7 @@ export default function MyHeader({ title, headerRight, showBack }) {
 
 const styles = StyleSheet.create({
 	container: {
-		height: 90,
+		height: 100,
 		paddingHorizontal: 16,
 		// paddingBottom: 10,
 		flexDirection: "row",
@@ -129,13 +133,27 @@ const styles = StyleSheet.create({
 	},
 	left: {
 		width: 60,
+		zIndex: 1,
 	},
 	right: {
-		width: 60,
-		alignItems: "flex-end",
+		flexShrink: 0,
+		flexDirection: "row",
+		alignItems: "center",
+		zIndex: 1,
+		marginLeft: "auto",
+	},
+	titleWrapper: {
+		position: "absolute",
+		top: 0,
+		bottom: 0,
+		left: 0,
+		right: 0,
+		alignItems: "center",
+		justifyContent: "center",
+		paddingHorizontal: 70,
 	},
 	titleContainer: {
-		flex: 1,
+		width: "100%",
 		alignItems: "center",
 	},
 	title: {
