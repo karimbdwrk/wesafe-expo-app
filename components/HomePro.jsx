@@ -9,6 +9,8 @@ import {
 	Briefcase,
 	CheckCircle,
 	AlertCircle,
+	Users,
+	Clock,
 } from "lucide-react-native";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
@@ -29,6 +31,7 @@ const HomePro = () => {
 
 	const [todayJobs, setTodayJobs] = useState([]);
 	const [todayApps, setTodayApps] = useState({});
+	const [pendingApps, setPendingApps] = useState([]);
 
 	useEffect(() => {
 		if (!user?.id) return;
@@ -42,7 +45,7 @@ const HomePro = () => {
 				.toISOString()
 				.slice(0, 10);
 
-			const [{ data: jobs }, { data: apps }] = await Promise.all([
+			const [{ data: jobs }, { data: apps }, { data: toProcess }] = await Promise.all([
 				getAll(
 					"jobs",
 					"id,title,category,city,postcode,isLastMinute,start_date",
@@ -57,6 +60,14 @@ const HomePro = () => {
 					`&company_id=eq.${user.id}`,
 					1,
 					1000,
+					"created_at.desc",
+				),
+				getAll(
+					"applications",
+					"id,job_id,current_status,created_at,profiles(firstname,lastname,avatar_url),jobs(title,isLastMinute)",
+					`&company_id=eq.${user.id}&current_status=in.(applied,selected)`,
+					1,
+					50,
 					"created_at.desc",
 				),
 			]);
@@ -76,6 +87,7 @@ const HomePro = () => {
 
 			setTodayJobs(safeJobs);
 			setTodayApps(appMap);
+			setPendingApps(toProcess ?? []);
 		} catch (e) {
 			console.error("HomePro fetchTodayMissions:", e?.message);
 		}
@@ -383,6 +395,147 @@ const HomePro = () => {
 					})
 				)}
 			</Box>
+
+			{/* Candidatures à traiter */}
+			{(() => {
+				const appliedCount = pendingApps.filter(
+					(a) => a.current_status === "applied",
+				).length;
+				const selectedCount = pendingApps.filter(
+					(a) => a.current_status === "selected",
+				).length;
+				return (
+					<Box
+						style={{
+							backgroundColor: isDark ? "#1f2937" : "#ffffff",
+							borderRadius: 14,
+							borderWidth: 1,
+							borderColor: isDark ? "#374151" : "#e5e7eb",
+							marginBottom: 16,
+							padding: 16,
+						}}>
+						<HStack
+							space='sm'
+							style={{
+								alignItems: "center",
+								marginBottom: 12,
+							}}>
+							<Box
+								style={{
+									width: 32,
+									height: 32,
+									borderRadius: 9,
+									backgroundColor: isDark
+										? "#2e1065"
+										: "#f5f3ff",
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Users size={16} color='#7c3aed' />
+							</Box>
+							<Text
+								style={{
+									fontWeight: "700",
+									fontSize: 18,
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								{pendingApps.length} candidature
+								{pendingApps.length !== 1 ? "s" : ""} à traiter
+							</Text>
+						</HStack>
+
+						<VStack space='xs' style={{ marginBottom: 16 }}>
+							{appliedCount > 0 && (
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Clock size={14} color='#7c3aed' />
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#d1d5db"
+												: "#374151",
+										}}>
+										<Text
+											style={{ fontWeight: "700" }}>
+											{appliedCount}
+										</Text>{" "}
+										nouvelle
+										{appliedCount !== 1 ? "s" : ""}
+									</Text>
+								</HStack>
+							)}
+							{selectedCount > 0 && (
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<CheckCircle size={14} color='#2563eb' />
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#d1d5db"
+												: "#374151",
+										}}>
+										<Text
+											style={{ fontWeight: "700" }}>
+											{selectedCount}
+										</Text>{" "}
+										en attente de réponse
+									</Text>
+								</HStack>
+							)}
+							{pendingApps.length === 0 && (
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<AlertCircle
+										size={14}
+										color={isDark ? "#4b5563" : "#d1d5db"}
+									/>
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#6b7280"
+												: "#9ca3af",
+										}}>
+										Aucune candidature en attente
+									</Text>
+								</HStack>
+							)}
+						</VStack>
+
+						<TouchableOpacity
+							onPress={() => router.push("/applicationspro")}
+							activeOpacity={0.75}
+							style={{
+								backgroundColor: isDark
+									? "#2e1065"
+									: "#f5f3ff",
+								borderRadius: 10,
+								paddingVertical: 11,
+								alignItems: "center",
+								borderWidth: 1,
+								borderColor: isDark ? "#5b21b6" : "#ddd6fe",
+								flexDirection: "row",
+								justifyContent: "center",
+								gap: 6,
+							}}>
+							<Text
+								style={{
+									fontWeight: "700",
+									fontSize: 14,
+									color: "#7c3aed",
+								}}>
+								Voir candidatures
+							</Text>
+							<ChevronRight size={16} color='#7c3aed' />
+						</TouchableOpacity>
+					</Box>
+				);
+			})()}
 
 			<HomeChartsProMini />
 		</Box>
