@@ -41,10 +41,14 @@ const ApplicationsProScreen = () => {
 	}, []);
 
 	const loadDataApplications = async () => {
+		const lastMinuteFilter =
+			isLastMinute !== undefined && isLastMinute !== "undefined"
+				? `&jobs.isLastMinute=eq.${isLastMinute}`
+				: "";
 		const { data, totalCount } = await getAll(
 			"applications",
 			"*,jobs(*), profiles(*), companies(*)",
-			`&jobs.is_archived=eq.FALSE&jobs=not.is.null&company_id=eq.${user.id}&jobs.isLastMinute=eq.${isLastMinute}`,
+			`&jobs.is_archived=eq.FALSE&jobs=not.is.null&company_id=eq.${user.id}${lastMinuteFilter}`,
 			page,
 			ITEMS_PER_PAGE,
 			"updated_at.desc.nullslast,created_at.desc",
