@@ -236,7 +236,7 @@ export default function TabLayout({ theme = "light" }) {
 					headerShown: true,
 					header: ({ options }) => (
 						<MyHeader
-							title={options.title ?? ""}
+							logo={<LogoTitle colorScheme={colorScheme} />}
 							headerRight={() => (
 								<>
 									{!accessToken && (
