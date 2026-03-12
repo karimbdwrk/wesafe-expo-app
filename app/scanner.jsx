@@ -1,22 +1,23 @@
 import { useState, useRef, useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Camera as CameraIcon } from "lucide-react-native";
-
-import { Heading } from "@/components/ui/heading";
 import { Box } from "@/components/ui/box";
-import { Button, ButtonText } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
+import { Heading } from "@/components/ui/heading";
 import { VStack } from "@/components/ui/vstack";
-import { Center } from "@/components/ui/center";
+import { HStack } from "@/components/ui/hstack";
+import { Icon } from "@/components/ui/icon";
+import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { X, ShieldAlert, Camera, QrCode } from "lucide-react-native";
 
 import ScannerAnimation from "@/components/ScannerAnimation";
 
 const ScannerScreen = () => {
 	const router = useRouter();
-	const cameraRef = useRef(null);
-
 	const [permission, requestPermission] = useCameraPermissions();
 	const [scanned, setScanned] = useState(false);
 
@@ -25,40 +26,97 @@ const ScannerScreen = () => {
 		if (!permission.granted) requestPermission();
 	}, [permission]);
 
+	/* ── Permission non encore chargée ── */
 	if (!permission) {
-		return (
-			<Center flex={1} bg='$backgroundLight50'>
-				<Text>Loading camera permissions...</Text>
-			</Center>
-		);
+		return <Box style={{ flex: 1, backgroundColor: "#000" }} />;
 	}
 
+	/* ── Permission refusée ── */
 	if (!permission.granted) {
 		return (
-			<Center flex={1} bg='$backgroundLight50' p='$5'>
-				<VStack space='lg' alignItems='center'>
-					<CameraIcon size={80} color='#666' />
-					<Heading size='xl' textAlign='center'>
-						Camera Access Required
-					</Heading>
-					<Text color='$textLight600' textAlign='center' size='md'>
-						We need access to your camera to scan a QR code.
-					</Text>
-					<Button
-						size='lg'
-						onPress={requestPermission}
-						bg='$blue600'
-						borderRadius='$full'>
-						<ButtonText>Grant Permission</ButtonText>
-					</Button>
-				</VStack>
-			</Center>
+			<Box
+				style={{
+					flex: 1,
+					backgroundColor: "#111827",
+					padding: 20,
+					justifyContent: "center",
+				}}>
+				<Card
+					style={{
+						backgroundColor: "#1f2937",
+						borderRadius: 16,
+						padding: 32,
+						borderWidth: 1,
+						borderColor: "#374151",
+						alignItems: "center",
+					}}>
+					<VStack space='xl' style={{ alignItems: "center" }}>
+						<Box
+							style={{
+								width: 80,
+								height: 80,
+								borderRadius: 40,
+								backgroundColor: "rgba(239,68,68,0.15)",
+								justifyContent: "center",
+								alignItems: "center",
+							}}>
+							<Icon
+								as={ShieldAlert}
+								size='xl'
+								style={{ color: "#ef4444" }}
+							/>
+						</Box>
+						<VStack space='sm' style={{ alignItems: "center" }}>
+							<Heading
+								size='xl'
+								style={{
+									color: "#f3f4f6",
+									textAlign: "center",
+								}}>
+								Accès caméra requis
+							</Heading>
+							<Text
+								size='sm'
+								style={{
+									color: "#9ca3af",
+									textAlign: "center",
+									lineHeight: 20,
+								}}>
+								Pour scanner un QR code, nous avons besoin
+								d'accéder à votre caméra.
+							</Text>
+						</VStack>
+						<Button
+							size='lg'
+							onPress={requestPermission}
+							style={{
+								backgroundColor: "#2563eb",
+								borderRadius: 12,
+								width: "100%",
+							}}>
+							<ButtonIcon as={Camera} style={{ color: "#fff" }} />
+							<ButtonText style={{ color: "#fff" }}>
+								Autoriser l'accès
+							</ButtonText>
+						</Button>
+						<TouchableOpacity onPress={() => router.back()}>
+							<Text
+								size='sm'
+								style={{
+									color: "#9ca3af",
+									textDecorationLine: "underline",
+								}}>
+								Annuler
+							</Text>
+						</TouchableOpacity>
+					</VStack>
+				</Card>
+			</Box>
 		);
 	}
 
 	const handleBarCodeScanned = ({ data }) => {
 		if (scanned) return;
-		console.log("data scan :", data);
 		setScanned(true);
 
 		if (data.startsWith("supabaseapp://profile/")) {
@@ -73,37 +131,141 @@ const ScannerScreen = () => {
 		}
 	};
 
+	/* ── Scanner ── */
 	return (
-		<Box flex={1} bg='$black'>
+		<Box style={{ flex: 1, backgroundColor: "#000" }}>
 			<CameraView
-				ref={cameraRef}
-				style={StyleSheet.absoluteFillObject}
-				facing={"back"}
+				style={StyleSheet.absoluteFill}
+				facing='back'
 				barCodeScannerSettings={{ barCodeTypes: ["qr"] }}
-				onBarcodeScanned={handleBarCodeScanned}
+				onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
 			/>
-			{scanned && (
-				<Center position='absolute' bottom={20} width='100%'>
-					<Button
-						bg='$blue600'
-						onPress={() => setScanned(false)}
-						borderRadius='$full'>
-						<ButtonText>Scanner à nouveau</ButtonText>
-					</Button>
-				</Center>
-			)}
-			<VStack
-				style={{
-					height: "100%",
-					width: "100%",
-					// backgroundColor: "#FF000066",
-					justifyContent: "center",
-					alignItems: "center",
-				}}>
-				<ScannerAnimation />
-			</VStack>
+
+			{/* Overlay sombre sur les bords */}
+			<Box style={StyleSheet.absoluteFill} pointerEvents='none'>
+				{/* Top */}
+				<Box style={styles.overlayTop} />
+				{/* Middle row */}
+				<View style={styles.overlayMiddle}>
+					<Box style={styles.overlaySide} />
+					<Box style={{ width: 260, height: 260 }} />
+					<Box style={styles.overlaySide} />
+				</View>
+				{/* Bottom */}
+				<Box style={styles.overlayBottom} />
+			</Box>
+
+			<SafeAreaView style={{ flex: 1 }}>
+				<VStack style={{ flex: 1, justifyContent: "space-between" }}>
+					{/* Top bar */}
+					<HStack
+						style={{
+							paddingHorizontal: 20,
+							paddingTop: 8,
+							justifyContent: "space-between",
+							alignItems: "center",
+						}}>
+						<TouchableOpacity
+							onPress={() => router.back()}
+							style={{
+								width: 40,
+								height: 40,
+								borderRadius: 20,
+								backgroundColor: "rgba(0,0,0,0.5)",
+								justifyContent: "center",
+								alignItems: "center",
+							}}>
+							<X size={20} color='#ffffff' />
+						</TouchableOpacity>
+
+						<Text
+							size='md'
+							style={{
+								color: "#ffffff",
+								fontWeight: "600",
+								opacity: 0.9,
+							}}>
+							Scanner un QR code
+						</Text>
+
+						{/* Spacer symétrique */}
+						<Box style={{ width: 40 }} />
+					</HStack>
+
+					{/* Zone de scan */}
+					<Box style={{ alignItems: "center" }}>
+						<ScannerAnimation />
+						<Text
+							size='sm'
+							style={{
+								color: "rgba(255,255,255,0.65)",
+								marginTop: 20,
+								textAlign: "center",
+							}}>
+							Placez le QR code dans le cadre
+						</Text>
+					</Box>
+
+					{/* Bottom */}
+					<Box style={{ alignItems: "center", paddingBottom: 28 }}>
+						{scanned ? (
+							<TouchableOpacity
+								onPress={() => setScanned(false)}
+								style={{
+									height: 48,
+									paddingHorizontal: 28,
+									borderRadius: 12,
+									backgroundColor: "#2563eb",
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Text
+									style={{
+										color: "#ffffff",
+										fontWeight: "700",
+										fontSize: 15,
+									}}>
+									Scanner à nouveau
+								</Text>
+							</TouchableOpacity>
+						) : (
+							<HStack
+								space='xs'
+								style={{ alignItems: "center", opacity: 0.5 }}>
+								<QrCode size={14} color='#ffffff' />
+								<Text size='xs' style={{ color: "#ffffff" }}>
+									Scan automatique
+								</Text>
+							</HStack>
+						)}
+					</Box>
+				</VStack>
+			</SafeAreaView>
 		</Box>
 	);
 };
+
+const OVERLAY_COLOR = "rgba(0,0,0,0.62)";
+
+const styles = StyleSheet.create({
+	overlayTop: {
+		width: "100%",
+		flex: 1,
+		backgroundColor: OVERLAY_COLOR,
+		maxHeight: undefined,
+	},
+	overlayMiddle: {
+		flexDirection: "row",
+		height: 260,
+	},
+	overlaySide: {
+		flex: 1,
+		backgroundColor: OVERLAY_COLOR,
+	},
+	overlayBottom: {
+		flex: 1,
+		backgroundColor: OVERLAY_COLOR,
+	},
+});
 
 export default ScannerScreen;
