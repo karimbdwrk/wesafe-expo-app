@@ -593,12 +593,6 @@ const HomeChartsPro = () => {
 		<VStack space='lg'>
 			{/* KPIs */}
 			<VStack space='sm'>
-				{/* <Heading
-					size='sm'
-					style={{ color: textPrimary, marginBottom: 4 }}>
-					Tableau de bord
-				</Heading> */}
-
 				{/* Row 1 */}
 				<HStack space='sm'>
 					<KpiCard
