@@ -45,8 +45,14 @@ const STORAGE_URL = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}`;
 
 const SignatureScreen = () => {
 	const { setSignature, signature } = useImage();
-	const { user, accessToken, loadUserData, userProfile, userCompany } =
-		useAuth();
+	const {
+		user,
+		accessToken,
+		loadUserData,
+		userProfile,
+		userCompany,
+		refreshUser,
+	} = useAuth();
 	const { update, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const { signatureUrl, isPro, type } = useLocalSearchParams();
@@ -57,22 +63,28 @@ const SignatureScreen = () => {
 
 	const canEdit = signatureStatus !== "accepted";
 
+	// Lire les nouvelles valeurs après chaque refresh du contexte
+	useEffect(() => {
+		if (signatureUrl) {
+			setSignatureImg(signatureUrl);
+		} else {
+			setSignatureImg(
+				userProfile?.signature_url ??
+					userCompany?.signature_url ??
+					null,
+			);
+		}
+		setSignatureStatus(
+			userProfile?.signature_status ??
+				userCompany?.signature_status ??
+				null,
+		);
+	}, [userProfile, userCompany, signatureUrl]);
+
+	// Recharger depuis Supabase à chaque fois qu'on arrive sur le screen
 	useFocusEffect(
 		useCallback(() => {
-			if (signatureUrl) {
-				setSignatureImg(signatureUrl);
-			} else {
-				const url =
-					userProfile?.signature_url ??
-					userCompany?.signature_url ??
-					null;
-				setSignatureImg(url);
-			}
-			const status =
-				userProfile?.signature_status ??
-				userCompany?.signature_status ??
-				null;
-			setSignatureStatus(status);
+			refreshUser();
 		}, []),
 	);
 
@@ -190,7 +202,7 @@ const SignatureScreen = () => {
 								<HStack
 									space='sm'
 									style={{ alignItems: "center" }}>
-									<Icon
+									{/* <Icon
 										as={FileSignature}
 										size='lg'
 										style={{
@@ -198,9 +210,9 @@ const SignatureScreen = () => {
 												? "#9ca3af"
 												: "#6b7280",
 										}}
-									/>
+									/> */}
 									<Heading
-										size='lg'
+										size='md'
 										style={{
 											color: isDark
 												? "#f3f4f6"
@@ -308,9 +320,7 @@ const SignatureScreen = () => {
 
 							<Box
 								style={{
-									backgroundColor: isDark
-										? "#1f2937"
-										: "#f9fafb",
+									backgroundColor: "#ffffff",
 									borderRadius: 8,
 									borderWidth: 2,
 									borderStyle: "dashed",
@@ -346,6 +356,33 @@ const SignatureScreen = () => {
 										}}>
 										Votre signature est validée et ne peut
 										plus être modifiée.
+									</Text>
+								</HStack>
+							)}
+							{/* Message préventif si pas encore validée */}
+							{signatureStatus !== "accepted" && (
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Icon
+										as={ShieldCheck}
+										size='xs'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}
+									/>
+									<Text
+										size='xs'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+											flex: 1,
+										}}>
+										Une fois validée, votre signature ne
+										pourra plus être modifiée.
 									</Text>
 								</HStack>
 							)}
