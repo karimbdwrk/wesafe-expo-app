@@ -216,9 +216,6 @@ const DashboardScreen = () => {
 		<>
 			<Stack.Screen
 				options={{
-					headerStyle: {
-						backgroundColor: "white",
-					},
 					headerRight: () => (
 						<TouchableOpacity
 							style={{
@@ -542,12 +539,30 @@ const DashboardScreen = () => {
 								badgeText={
 									!company?.signature_url
 										? "manquante"
-										: undefined
+										: company?.signature_status ===
+											  "pending"
+											? "En attente"
+											: company?.signature_status ===
+												  "accepted"
+												? "Validée"
+												: company?.signature_status ===
+													  "rejected"
+													? "Rejetée"
+													: null
 								}
 								badgeColor={
 									!company?.signature_url
 										? "error"
-										: undefined
+										: company?.signature_status ===
+											  "pending"
+											? "warning"
+											: company?.signature_status ===
+												  "accepted"
+												? "success"
+												: company?.signature_status ===
+													  "rejected"
+													? "error"
+													: null
 								}
 							/>
 
@@ -564,10 +579,30 @@ const DashboardScreen = () => {
 									});
 								}}
 								badgeText={
-									!company?.stamp_url ? "manquant" : undefined
+									!company?.stamp_url
+										? "manquant"
+										: company?.stamp_status === "pending"
+											? "En attente"
+											: company?.stamp_status ===
+												  "accepted"
+												? "Validé"
+												: company?.stamp_status ===
+													  "rejected"
+													? "Rejeté"
+													: null
 								}
 								badgeColor={
-									!company?.stamp_url ? "error" : undefined
+									!company?.stamp_url
+										? "error"
+										: company?.stamp_status === "pending"
+											? "warning"
+											: company?.stamp_status ===
+												  "accepted"
+												? "success"
+												: company?.stamp_status ===
+													  "rejected"
+													? "error"
+													: null
 								}
 							/>
 
