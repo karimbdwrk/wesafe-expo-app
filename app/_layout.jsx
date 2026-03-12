@@ -235,10 +235,7 @@ function RootLayoutNav() {
 								name='updatestamp'
 								options={{ headerShown: true }}
 							/>
-							<Stack.Screen
-								name='scanner'
-								options={{ headerShown: true }}
-							/>
+							<Stack.Screen name='scanner' />
 							<Stack.Screen
 								name='buycredits'
 								options={{ headerShown: true }}
