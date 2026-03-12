@@ -1,7 +1,13 @@
+import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
+import HomeChartsProMini from "./HomeChartsProMini";
 
 const HomePro = () => {
-	return <Text>Home Pro</Text>;
+	return (
+		<Box>
+			<HomeChartsProMini />
+		</Box>
+	);
 };
 
 export default HomePro;
