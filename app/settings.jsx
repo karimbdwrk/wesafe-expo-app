@@ -454,7 +454,9 @@ const Settings = () => {
 							icon={Globe}
 							title='Langue'
 							subtitle='Français'
-							onPress={() => {}}
+							onPress={() => {
+								router.push("/languages");
+							}}
 						/>
 					</VStack>
 				</Card>
