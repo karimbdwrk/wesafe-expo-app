@@ -37,6 +37,10 @@ import {
 	Camera,
 	Image as ImageIcon,
 	FileUp,
+	Clock,
+	CheckCircle,
+	XCircle,
+	ShieldCheck,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -56,6 +60,8 @@ const StampScreen = () => {
 	const [showActionsheet, setShowActionsheet] = useState(false);
 	const [uploading, setUploading] = useState(false);
 	const [processing, setProcessing] = useState(false);
+	const [stampStatus, setStampStatus] = useState(null);
+	const canEdit = stampStatus !== "accepted";
 
 	// useEffect(() => {
 	// 	console.log("userCompany stamp url:", userCompany?.stamp_url);
@@ -63,16 +69,13 @@ const StampScreen = () => {
 
 	useFocusEffect(
 		useCallback(() => {
-			console.log("refreshing user in StampScreen");
 			refreshUser();
-			if (userCompany) {
-				console.log(
-					"userCompany Stamp in StampScreen:",
-					userCompany?.stamp_url,
-				);
-			}
 		}, []),
 	);
+
+	useEffect(() => {
+		setStampStatus(userCompany?.stamp_status ?? null);
+	}, [userCompany]);
 
 	const handleCloseActionsheet = () => setShowActionsheet(false);
 
@@ -152,7 +155,9 @@ const StampScreen = () => {
 			const publicUrl = `${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${filename}`;
 			await update("companies", user.id, {
 				stamp_url: publicUrl,
+				stamp_status: "pending",
 			});
+			setStampStatus("pending");
 
 			await refreshUser();
 			Alert.alert("Succès", "Le tampon a été mis à jour avec succès !");
@@ -274,23 +279,114 @@ const StampScreen = () => {
 						borderColor: isDark ? "#4b5563" : "#e5e7eb",
 					}}>
 					<VStack space='lg'>
-						<VStack space='sm'>
-							<Icon
-								as={FileSignature}
-								size='lg'
-								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
-								}}
-							/>
+						<HStack
+							style={{
+								alignItems: "center",
+								justifyContent: "space-between",
+							}}>
 							<Heading
-								size='lg'
+								size='md'
 								style={{
 									color: isDark ? "#f3f4f6" : "#111827",
 								}}>
 								Aperçu du tampon
 							</Heading>
-						</VStack>
 
+							{/* Badge statut */}
+							{stampStatus === "accepted" && (
+								<HStack
+									space='xs'
+									style={{
+										alignItems: "center",
+										backgroundColor: isDark
+											? "rgba(16,185,129,0.15)"
+											: "rgba(16,185,129,0.1)",
+										paddingHorizontal: 10,
+										paddingVertical: 4,
+										borderRadius: 20,
+										borderWidth: 1,
+										borderColor: isDark
+											? "rgba(16,185,129,0.4)"
+											: "rgba(16,185,129,0.3)",
+									}}>
+									<Icon
+										as={CheckCircle}
+										size='xs'
+										style={{ color: "#10b981" }}
+									/>
+									<Text
+										size='xs'
+										style={{
+											color: "#10b981",
+											fontWeight: "600",
+										}}>
+										Validé
+									</Text>
+								</HStack>
+							)}
+							{stampStatus === "pending" && (
+								<HStack
+									space='xs'
+									style={{
+										alignItems: "center",
+										backgroundColor: isDark
+											? "rgba(245,158,11,0.15)"
+											: "rgba(245,158,11,0.1)",
+										paddingHorizontal: 10,
+										paddingVertical: 4,
+										borderRadius: 20,
+										borderWidth: 1,
+										borderColor: isDark
+											? "rgba(245,158,11,0.4)"
+											: "rgba(245,158,11,0.3)",
+									}}>
+									<Icon
+										as={Clock}
+										size='xs'
+										style={{ color: "#f59e0b" }}
+									/>
+									<Text
+										size='xs'
+										style={{
+											color: "#f59e0b",
+											fontWeight: "600",
+										}}>
+										En attente
+									</Text>
+								</HStack>
+							)}
+							{stampStatus === "rejected" && (
+								<HStack
+									space='xs'
+									style={{
+										alignItems: "center",
+										backgroundColor: isDark
+											? "rgba(239,68,68,0.15)"
+											: "rgba(239,68,68,0.1)",
+										paddingHorizontal: 10,
+										paddingVertical: 4,
+										borderRadius: 20,
+										borderWidth: 1,
+										borderColor: isDark
+											? "rgba(239,68,68,0.4)"
+											: "rgba(239,68,68,0.3)",
+									}}>
+									<Icon
+										as={XCircle}
+										size='xs'
+										style={{ color: "#ef4444" }}
+									/>
+									<Text
+										size='xs'
+										style={{
+											color: "#ef4444",
+											fontWeight: "600",
+										}}>
+										Refusé
+									</Text>
+								</HStack>
+							)}
+						</HStack>
 						<Box
 							style={{
 								minHeight: 300,
@@ -346,27 +442,88 @@ const StampScreen = () => {
 							)}
 						</Box>
 
-						<Button
-							size='lg'
-							action='primary'
-							onPress={() => setShowActionsheet(true)}
-							isDisabled={uploading || processing}
-							style={{
-								backgroundColor: "#3b82f6",
-								borderRadius: 8,
-							}}>
-							{(uploading || processing) && <ButtonSpinner />}
-							<ButtonIcon as={Edit3} />
-							<ButtonText>
-								{processing
-									? "Traitement..."
-									: uploading
-										? "Envoi..."
-										: userCompany?.stamp_url
-											? "Modifier le tampon"
-											: "Ajouter un tampon"}
-							</ButtonText>
-						</Button>
+						{/* Message si validé */}
+						{stampStatus === "accepted" && (
+							<HStack space='sm' style={{ alignItems: "center" }}>
+								<Icon
+									as={ShieldCheck}
+									size='xs'
+									style={{ color: "#10b981" }}
+								/>
+								<Text
+									size='xs'
+									style={{
+										color: isDark ? "#6ee7b7" : "#065f46",
+									}}>
+									Votre tampon est validé et ne peut plus être
+									modifié.
+								</Text>
+							</HStack>
+						)}
+						{/* Message préventif si pas encore validé */}
+						{stampStatus !== "accepted" && (
+							<HStack space='sm' style={{ alignItems: "center" }}>
+								<Icon
+									as={ShieldCheck}
+									size='xs'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}
+								/>
+								<Text
+									size='xs'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+										flex: 1,
+									}}>
+									Une fois validé, votre tampon ne pourra plus
+									être modifié.
+								</Text>
+							</HStack>
+						)}
+						{/* Message si refusé */}
+						{stampStatus === "rejected" && (
+							<HStack space='sm' style={{ alignItems: "center" }}>
+								<Icon
+									as={XCircle}
+									size='xs'
+									style={{ color: "#ef4444" }}
+								/>
+								<Text
+									size='xs'
+									style={{
+										color: isDark ? "#fca5a5" : "#991b1b",
+									}}>
+									Votre tampon a été refusé. Vous pouvez en
+									soumettre un nouveau.
+								</Text>
+							</HStack>
+						)}
+
+						{/* Bouton masqué si validé */}
+						{canEdit && (
+							<Button
+								size='lg'
+								action='primary'
+								onPress={() => setShowActionsheet(true)}
+								isDisabled={uploading || processing}
+								style={{
+									backgroundColor: "#3b82f6",
+									borderRadius: 8,
+								}}>
+								{(uploading || processing) && <ButtonSpinner />}
+								<ButtonIcon as={Edit3} />
+								<ButtonText>
+									{processing
+										? "Traitement..."
+										: uploading
+											? "Envoi..."
+											: userCompany?.stamp_url
+												? "Modifier le tampon"
+												: "Ajouter un tampon"}
+								</ButtonText>
+							</Button>
+						)}
 					</VStack>
 				</Card>
 
