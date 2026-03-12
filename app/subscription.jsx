@@ -34,6 +34,8 @@ const PLANS = [
 		bgLight: "#eff6ff",
 		bgDark: "#1e3a5f",
 		borderActive: "#3b82f6",
+		priceMonthly: null,
+		priceYearly: null,
 		features: [
 			"Publication d'offres d'emploi",
 			"Gestion des candidatures",
@@ -51,6 +53,8 @@ const PLANS = [
 		bgLight: "#f5f3ff",
 		bgDark: "#2e1065",
 		borderActive: "#7c3aed",
+		priceMonthly: 19,
+		priceYearly: 199,
 		features: [
 			"Tout Standard inclus",
 			"Annonces Last Minute",
@@ -68,6 +72,8 @@ const PLANS = [
 		bgLight: "#fffbeb",
 		bgDark: "#422006",
 		borderActive: "#d97706",
+		priceMonthly: 25,
+		priceYearly: 259,
 		features: [
 			"Tout Standard+ inclus",
 			"Support prioritaire 7j/7",
@@ -417,6 +423,107 @@ const SubscriptionScreen = () => {
 											)}
 										</HStack>
 									</HStack>
+								</Box>
+
+								{/* Pricing */}
+								<Box
+									style={{
+										paddingHorizontal: 16,
+										paddingVertical: 14,
+										borderBottomWidth: 1,
+										borderBottomColor: isDark
+											? "#374151"
+											: "#f3f4f6",
+									}}>
+									{plan.priceMonthly === null ? (
+										<Text
+											style={{
+												fontWeight: "800",
+												fontSize: 22,
+												color: plan.color,
+											}}>
+											Gratuit
+										</Text>
+									) : (
+										<VStack space='xs'>
+											<HStack
+												space='xs'
+												style={{
+													alignItems: "flex-end",
+												}}>
+												<Text
+													style={{
+														fontWeight: "800",
+														fontSize: 26,
+														color: plan.color,
+														lineHeight: 28,
+													}}>
+													{plan.priceMonthly}€
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														marginBottom: 2,
+													}}>
+													/ mois
+												</Text>
+											</HStack>
+											<HStack
+												space='xs'
+												style={{
+													alignItems: "center",
+												}}>
+												<Text
+													size='xs'
+													style={{
+														color: isDark
+															? "#d1d5db"
+															: "#374151",
+													}}>
+													ou{" "}
+													<Text
+														size='xs'
+														style={{
+															fontWeight: "700",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														{plan.priceYearly}€
+													</Text>{" "}
+													/ an
+												</Text>
+												<Box
+													style={{
+														backgroundColor:
+															"#dcfce7",
+														borderRadius: 6,
+														paddingHorizontal: 6,
+														paddingVertical: 2,
+													}}>
+													<Text
+														size='xs'
+														style={{
+															fontWeight: "700",
+															color: "#16a34a",
+														}}>
+														-
+														{Math.round(
+															(1 -
+																plan.priceYearly /
+																	(plan.priceMonthly *
+																		12)) *
+																100,
+														)}
+														%
+													</Text>
+												</Box>
+											</HStack>
+										</VStack>
+									)}
 								</Box>
 
 								{/* Features */}
