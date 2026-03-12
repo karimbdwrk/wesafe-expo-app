@@ -265,7 +265,11 @@ const JobScreen = () => {
 			},
 		);
 
-		setIsApplied(isNowApplied);
+		setIsApplied(
+			Array.isArray(isNowApplied)
+				? isNowApplied.length > 0
+				: Boolean(isNowApplied),
+		);
 		setShowApplyModal(false);
 		toast.success(`Vous avez postulé à l'offre d'emploi avec succés!`, {
 			// style: { backgroundColor: "blue" },
@@ -301,7 +305,9 @@ const JobScreen = () => {
 
 	const checkApplication = async () => {
 		const applied = await isJobApplied(user.id, id);
-		setIsApplied(applied);
+		setIsApplied(
+			Array.isArray(applied) ? applied.length > 0 : Boolean(applied),
+		);
 	};
 
 	const checkArchive = async () => {
@@ -1935,13 +1941,30 @@ const JobScreen = () => {
 						borderTopColor: isDark ? "#374151" : "#e5e7eb",
 					}}>
 					<Button
-						disabled={isApplied ? true : false}
-						action={isApplied ? "secondary" : "primary"}
-						variant={isApplied ? "outline" : "solid"}
-						size='lg'
+						disabled={isApplied}
 						onPress={handleApply}
-						style={{ width: "100%" }}>
-						<ButtonText>
+						style={{
+							width: "100%",
+							height: 52,
+							borderRadius: 12,
+							backgroundColor: isApplied
+								? isDark
+									? "#374151"
+									: "#e5e7eb"
+								: "#2563eb",
+							borderWidth: isApplied ? 1 : 0,
+							borderColor: isDark ? "#4b5563" : "#d1d5db",
+						}}>
+						<ButtonText
+							style={{
+								color: isApplied
+									? isDark
+										? "#9ca3af"
+										: "#6b7280"
+									: "#ffffff",
+								fontWeight: "700",
+								fontSize: 16,
+							}}>
 							{isApplied ? "Vous avez déjà postulé" : "Postuler"}
 						</ButtonText>
 					</Button>
