@@ -1223,8 +1223,9 @@ const PostJob = () => {
 				),
 			});
 
-			// Incrémenter le compteur d'annonces (plan standard)
-			if (userCompany?.subscription_status === "standard") {
+			// Incrémenter le compteur d'annonces (plans standard et standard_plus)
+			const _status = userCompany?.subscription_status;
+			if (_status === "standard" || _status === "standard_plus") {
 				setJobCount((prev) => (prev ?? 0) + 1);
 			}
 
@@ -1323,10 +1324,11 @@ const PostJob = () => {
 		}
 	};
 
-	// Comptage des annonces (plan standard uniquement)
+	// Comptage des annonces (plans standard et standard_plus)
 	useEffect(() => {
+		const status = userCompany?.subscription_status;
 		if (
-			userCompany?.subscription_status !== "standard" ||
+			(status !== "standard" && status !== "standard_plus") ||
 			!user ||
 			!userCompany
 		)
@@ -1498,10 +1500,14 @@ const PostJob = () => {
 				</Box>
 
 				{/* Steps Container - Conditional Rendering pour fix scroll Android */}
-				{/* Overlay quota épuisé — plan standard */}
-				{userCompany?.subscription_status === "standard" &&
+				{/* Overlay quota épuisé — plans standard et standard_plus */}
+				{(userCompany?.subscription_status === "standard" ||
+					userCompany?.subscription_status === "standard_plus") &&
 					jobCount !== null &&
-					jobCount >= 3 && (
+					jobCount >=
+						(userCompany?.subscription_status === "standard_plus"
+							? 10
+							: 3) && (
 						<Box
 							style={{
 								position: "absolute",
@@ -1549,26 +1555,49 @@ const PostJob = () => {
 										color: isDark ? "#9ca3af" : "#6b7280",
 										textAlign: "center",
 									}}>
-									Vous avez utilisé vos 3 annonces gratuites
-									sur les 30 derniers jours. Passez à{" "}
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "700",
-											color: "#3b82f6",
-										}}>
-										Standard+
-									</Text>{" "}
-									ou{" "}
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "700",
-											color: "#8b5cf6",
-										}}>
-										Premium
-									</Text>{" "}
-									pour publier sans limite.
+									Vous avez utilisé vos{" "}
+									{userCompany?.subscription_status ===
+									"standard_plus"
+										? 10
+										: 3}{" "}
+									annonces sur les 30 derniers jours.{" "}
+									{userCompany?.subscription_status ===
+									"standard_plus" ? (
+										<>
+											Passez à{" "}
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "700",
+													color: "#8b5cf6",
+												}}>
+												Premium
+											</Text>{" "}
+											pour publier sans limite.
+										</>
+									) : (
+										<>
+											Passez à{" "}
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "700",
+													color: "#7c3aed",
+												}}>
+												Standard+
+											</Text>{" "}
+											(10/mois) ou{" "}
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "700",
+													color: "#8b5cf6",
+												}}>
+												Premium
+											</Text>{" "}
+											pour plus d'annonces.
+										</>
+									)}
 								</Text>
 								<Button
 									style={{
@@ -1590,20 +1619,26 @@ const PostJob = () => {
 				<Box
 					style={{
 						flex: 1,
-						opacity:
-							userCompany?.subscription_status === "standard" &&
-							jobCount !== null &&
-							jobCount >= 3
+						opacity: (() => {
+							const _s = userCompany?.subscription_status;
+							const _max = _s === "standard_plus" ? 10 : 3;
+							return (_s === "standard" ||
+								_s === "standard_plus") &&
+								jobCount !== null &&
+								jobCount >= _max
 								? 0.3
-								: 1,
+								: 1;
+						})(),
 					}}
-					pointerEvents={
-						userCompany?.subscription_status === "standard" &&
-						jobCount !== null &&
-						jobCount >= 3
+					pointerEvents={(() => {
+						const _s = userCompany?.subscription_status;
+						const _max = _s === "standard_plus" ? 10 : 3;
+						return (_s === "standard" || _s === "standard_plus") &&
+							jobCount !== null &&
+							jobCount >= _max
 							? "none"
-							: "auto"
-					}>
+							: "auto";
+					})()}>
 					{/* Étape 1: Informations principales */}
 					{currentStep === 1 && (
 						<Box style={{ width: SCREEN_WIDTH, flex: 1 }}>
