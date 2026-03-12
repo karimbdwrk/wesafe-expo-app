@@ -1,7 +1,96 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+	View,
+	Text,
+	ScrollView,
+	TouchableOpacity,
+	StyleSheet,
+	Animated,
+	Easing,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useRef, useState, useEffect } from "react";
+
+function MarqueeTitle({ title, style }) {
+	const translateX = useRef(new Animated.Value(0)).current;
+	const [containerWidth, setContainerWidth] = useState(0);
+	const [textWidth, setTextWidth] = useState(0);
+	const animationRef = useRef(null);
+
+	const needsScroll = textWidth > containerWidth && containerWidth > 0;
+
+	useEffect(() => {
+		if (animationRef.current) {
+			animationRef.current.stop();
+			animationRef.current = null;
+		}
+		translateX.setValue(0);
+
+		if (needsScroll) {
+			const offset = textWidth - containerWidth;
+			animationRef.current = Animated.loop(
+				Animated.sequence([
+					Animated.delay(800),
+					Animated.timing(translateX, {
+						toValue: -offset,
+						duration: Math.max(4500, offset * 8),
+						easing: Easing.inOut(Easing.ease),
+						useNativeDriver: true,
+					}),
+					Animated.delay(800),
+					Animated.timing(translateX, {
+						toValue: 0,
+						duration: Math.max(4500, offset * 8),
+						easing: Easing.inOut(Easing.ease),
+						useNativeDriver: true,
+					}),
+				]),
+			);
+			animationRef.current.start();
+		}
+
+		return () => {
+			if (animationRef.current) {
+				animationRef.current.stop();
+				animationRef.current = null;
+			}
+		};
+	}, [textWidth, containerWidth]);
+
+	return (
+		<View
+			style={style}
+			onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}>
+			{/* ScrollView horizontal pour mesurer la largeur naturelle du texte —
+			    onContentSizeChange retourne la taille du CONTENU (non contrainte par le flex parent) */}
+			<ScrollView
+				horizontal
+				scrollEnabled={false}
+				pointerEvents='none'
+				style={{ position: "absolute", opacity: 0 }}
+				onContentSizeChange={(w) => setTextWidth(w)}>
+				<Text style={styles.title}>{title}</Text>
+			</ScrollView>
+			{/* Conteneur de clip */}
+			<View style={{ width: "100%", overflow: "hidden" }}>
+				<Animated.Text
+					style={[
+						styles.title,
+						needsScroll
+							? {
+									transform: [{ translateX }],
+									alignSelf: "flex-start",
+									width: textWidth,
+								}
+							: { textAlign: "center" },
+					]}>
+					{title}
+				</Animated.Text>
+			</View>
+		</View>
+	);
+}
 
 export default function MyHeader({ title, headerRight, showBack }) {
 	const insets = useSafeAreaInsets();
@@ -13,13 +102,13 @@ export default function MyHeader({ title, headerRight, showBack }) {
 			<View style={styles.left}>
 				{showBack && (
 					<TouchableOpacity onPress={() => router.back()}>
-						<Ionicons name='chevron-back' size={26} color='black' />
+						<Ionicons name='chevron-back' size={18} color='black' />
 					</TouchableOpacity>
 				)}
 			</View>
 
 			{/* CENTER */}
-			<Text style={styles.title}>{title}</Text>
+			<MarqueeTitle title={title} style={styles.titleContainer} />
 
 			{/* RIGHT */}
 			<View style={styles.right}>
@@ -33,6 +122,7 @@ const styles = StyleSheet.create({
 	container: {
 		height: 90,
 		paddingHorizontal: 16,
+		// paddingBottom: 10,
 		flexDirection: "row",
 		alignItems: "center",
 		backgroundColor: "#FFF",
@@ -44,11 +134,14 @@ const styles = StyleSheet.create({
 		width: 60,
 		alignItems: "flex-end",
 	},
-	title: {
+	titleContainer: {
 		flex: 1,
+		alignItems: "center",
+	},
+	title: {
 		textAlign: "center",
 		color: "black",
-		fontSize: 18,
+		fontSize: 16,
 		fontWeight: "600",
 	},
 });
