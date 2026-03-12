@@ -26,34 +26,35 @@ import { width } from "dom-helpers";
 
 // Animation de points pour l'indicateur de saisie
 const TypingAnimation = () => {
-	const dot1Opacity = useRef(new Animated.Value(0)).current;
-	const dot2Opacity = useRef(new Animated.Value(0)).current;
-	const dot3Opacity = useRef(new Animated.Value(0)).current;
+	const dot1Y = useRef(new Animated.Value(0)).current;
+	const dot2Y = useRef(new Animated.Value(0)).current;
+	const dot3Y = useRef(new Animated.Value(0)).current;
 
 	useEffect(() => {
-		const animateDot = (dotOpacity, delay) => {
+		const animateDot = (dotY, delay) => {
 			return Animated.sequence([
 				Animated.delay(delay),
-				Animated.timing(dotOpacity, {
-					toValue: 1,
-					duration: 300,
-					easing: Easing.ease,
+				Animated.timing(dotY, {
+					toValue: -6,
+					duration: 250,
+					easing: Easing.out(Easing.quad),
 					useNativeDriver: true,
 				}),
-				Animated.timing(dotOpacity, {
+				Animated.timing(dotY, {
 					toValue: 0,
-					duration: 300,
-					easing: Easing.ease,
+					duration: 350,
+					easing: Easing.bounce,
 					useNativeDriver: true,
 				}),
+				Animated.delay(300),
 			]);
 		};
 
 		const animation = Animated.loop(
 			Animated.parallel([
-				animateDot(dot1Opacity, 0),
-				animateDot(dot2Opacity, 200),
-				animateDot(dot3Opacity, 400),
+				animateDot(dot1Y, 0),
+				animateDot(dot2Y, 150),
+				animateDot(dot3Y, 300),
 			]),
 		);
 
@@ -63,37 +64,21 @@ const TypingAnimation = () => {
 	}, []);
 
 	return (
-		<View style={{ flexDirection: "row", alignItems: "center" }}>
-			<Animated.View
-				style={{
-					width: 6,
-					height: 6,
-					borderRadius: 3,
-					backgroundColor: "#667eea",
-					marginHorizontal: 2,
-					opacity: dot1Opacity,
-				}}
-			/>
-			<Animated.View
-				style={{
-					width: 6,
-					height: 6,
-					borderRadius: 3,
-					backgroundColor: "#667eea",
-					marginHorizontal: 2,
-					opacity: dot2Opacity,
-				}}
-			/>
-			<Animated.View
-				style={{
-					width: 6,
-					height: 6,
-					borderRadius: 3,
-					backgroundColor: "#667eea",
-					marginHorizontal: 2,
-					opacity: dot3Opacity,
-				}}
-			/>
+		<View
+			style={{ flexDirection: "row", alignItems: "center", height: 20 }}>
+			{[dot1Y, dot2Y, dot3Y].map((dotY, i) => (
+				<Animated.View
+					key={i}
+					style={{
+						width: 7,
+						height: 7,
+						borderRadius: 3.5,
+						backgroundColor: "#667eea",
+						marginHorizontal: 2,
+						transform: [{ translateY: dotY }],
+					}}
+				/>
+			))}
 		</View>
 	);
 };
@@ -613,9 +598,18 @@ const MessageThread = ({
 		}
 	};
 
+	// Capitalise la première lettre et celle après chaque point
+	const autoCapitalize = (text) => {
+		if (!text) return text;
+		return text.replace(
+			/(^|[.!?]\s+)([a-zàâäéèêëîïôöùûüç])/g,
+			(_, sep, char) => sep + char.toUpperCase(),
+		);
+	};
+
 	// Signaler qu'on est en train d'écrire
 	const handleTyping = (text) => {
-		setNewMessage(text);
+		setNewMessage(autoCapitalize(text));
 
 		if (isReadOnly) {
 			console.log("⚠️ [TYPING] Mode lecture seule - pas de tracking");
@@ -1022,16 +1016,19 @@ const MessageThread = ({
 								borderColor: isDark ? "#4b5563" : "#e5e7eb",
 							}}>
 							<HStack space='xs' style={{ alignItems: "center" }}>
-								<Text
-									size='md'
-									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}>
-									{transitionMessage
-										? transitionMessage.content
-										: "en train d'écrire"}
-								</Text>
-								{!transitionMessage && <TypingAnimation />}
+								{transitionMessage ? (
+									<Text
+										size='md'
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										{transitionMessage.content}
+									</Text>
+								) : (
+									<TypingAnimation />
+								)}
 							</HStack>
 						</Card>
 						{transitionMessage && showTransitionTime && (
