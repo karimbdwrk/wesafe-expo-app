@@ -928,7 +928,7 @@ const HomeChartsProMini = () => {
 				</>
 			)}
 			<Button
-				size='lg'
+				size='xl'
 				action='primary'
 				variant='outline'
 				style={{
