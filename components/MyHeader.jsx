@@ -11,8 +11,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useRef, useState, useEffect } from "react";
+import { useTheme } from "@/context/ThemeContext";
 
-function MarqueeTitle({ title, style }) {
+function MarqueeTitle({ title, style, isDark }) {
 	const translateX = useRef(new Animated.Value(0)).current;
 	const [containerWidth, setContainerWidth] = useState(0);
 	const [textWidth, setTextWidth] = useState(0);
@@ -70,13 +71,20 @@ function MarqueeTitle({ title, style }) {
 				pointerEvents='none'
 				style={{ position: "absolute", opacity: 0 }}
 				onContentSizeChange={(w) => setTextWidth(w)}>
-				<Text style={styles.title}>{title}</Text>
+				<Text
+					style={[
+						styles.title,
+						{ color: isDark ? "#f3f4f6" : "#111827" },
+					]}>
+					{title}
+				</Text>
 			</ScrollView>
 			{/* Conteneur de clip */}
 			<View style={{ width: "100%", overflow: "hidden" }}>
 				<Animated.Text
 					style={[
 						styles.title,
+						{ color: isDark ? "#f3f4f6" : "#111827" },
 						needsScroll
 							? {
 									transform: [{ translateX }],
@@ -95,14 +103,26 @@ function MarqueeTitle({ title, style }) {
 export default function MyHeader({ title, logo, headerRight, showBack }) {
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
+	const { isDark } = useTheme();
 
 	return (
-		<View style={[styles.container, { paddingTop: insets.top }]}>
+		<View
+			style={[
+				styles.container,
+				{
+					paddingTop: insets.top,
+					backgroundColor: isDark ? "#111827" : "#ffffff",
+				},
+			]}>
 			{/* LEFT */}
 			<View style={styles.left}>
 				{showBack && (
 					<TouchableOpacity onPress={() => router.back()}>
-						<Ionicons name='chevron-back' size={18} color='black' />
+						<Ionicons
+							name='chevron-back'
+							size={18}
+							color={isDark ? "#f3f4f6" : "#111827"}
+						/>
 					</TouchableOpacity>
 				)}
 			</View>
@@ -114,7 +134,11 @@ export default function MyHeader({ title, logo, headerRight, showBack }) {
 				{logo ? (
 					logo
 				) : (
-					<MarqueeTitle title={title} style={styles.titleContainer} />
+					<MarqueeTitle
+						title={title}
+						style={styles.titleContainer}
+						isDark={isDark}
+					/>
 				)}
 			</View>
 
@@ -162,7 +186,6 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		textAlign: "center",
-		color: "black",
 		fontSize: 16,
 		fontWeight: "600",
 	},
