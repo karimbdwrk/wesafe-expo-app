@@ -687,7 +687,7 @@ const HomeChartsProMini = () => {
 					<Heading size='sm' style={{ color: textPrimary }}>
 						Missions publiées
 					</Heading>
-					<Text>30 derniers jours</Text>
+					<Text size='sm'>30 derniers jours</Text>
 				</HStack>
 				<Box
 					style={{
@@ -948,7 +948,7 @@ const HomeChartsProMini = () => {
 					style={{
 						color: "#3b82f6",
 					}}>
-					Analytics
+					Voir toutes les statistiques
 				</ButtonText>
 			</Button>
 		</VStack>
