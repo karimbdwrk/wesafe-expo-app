@@ -14,6 +14,8 @@ import { Slot, Stack, usePathname, router } from "expo-router";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { MoonIcon, SunIcon } from "@/components/ui/icon";
 
+import MyHeader from "@/components/MyHeader";
+
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Toaster } from "sonner-native";
 import { StripeProvider } from "@stripe/stripe-react-native"; // Commenté temporairement - nécessite dev build
@@ -156,9 +158,23 @@ function RootLayoutNav() {
 						value={colorMode === "dark" ? DarkTheme : DefaultTheme}>
 						<Stack
 							screenOptions={{
+								header: (props) => (
+									<MyHeader
+										title={
+											props.options.headerTitle ??
+											props.route.name
+										}
+										headerRight={props.options.headerRight}
+										showBack={props.back}
+									/>
+								),
 								headerShown: false,
 								headerBackTitleStyle: { fontSize: 0 },
 								headerBackTitle: "Retour",
+								headerRightContainerStyle: {
+									backgroundColor: "transparent",
+								},
+								headerBlurEffect: "regular",
 							}}>
 							<Stack.Screen
 								name='index'
@@ -380,6 +396,13 @@ function RootLayoutNav() {
 							<Stack.Screen
 								name='contract'
 								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
+								name='languages'
+								options={{
+									headerShown: true,
+									headerTitle: "Choisir la langue",
+								}}
 							/>
 							<Stack.Screen name='camera' />
 							{/* <Slot /> */}
