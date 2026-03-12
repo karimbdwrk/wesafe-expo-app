@@ -69,6 +69,7 @@ import { useDataContext } from "@/context/DataContext";
 import { useNotifications } from "@/context/NotificationsContext";
 
 import LoggedInAppInitializer from "@/context/LoggedInAppInitializer";
+import MyHeader from "@/components/MyHeader";
 import { toast } from "sonner-native";
 
 // import {
@@ -233,222 +234,240 @@ export default function TabLayout({ theme = "light" }) {
 				screenOptions={{
 					tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
 					headerShown: true,
-					headerBackTitle: "",
-					headerTitle: (props) => (
-						<LogoTitle {...props} colorScheme={colorScheme} />
-					),
-					headerRight: () => (
-						<>
-							{!accessToken && (
-								<Link href='/signin' asChild>
-									<Pressable>
-										{({ pressed }) => (
-											<FontAwesome
-												name='info-circle'
-												size={25}
-												color={
-													Colors[
-														colorScheme ?? "light"
-													].text
-												}
-												style={{
-													marginRight: 15,
-													opacity: pressed ? 0.5 : 1,
-												}}
-											/>
-										)}
-									</Pressable>
-								</Link>
-							)}
-							<VStack>
-								{contextUnreadCount > 0 && (
-									<Badge
-										className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full left-0 top-1'
-										variant='solid'>
-										<BadgeText
-											className='text-white absolute right-1'
-											style={{ fontSize: 10 }}>
-											{contextUnreadCount > 9
-												? "9+"
-												: contextUnreadCount}
-										</BadgeText>
-									</Badge>
-								)}
-								<Pressable
-									// variant='link'
-									style={{
-										marginRight: 15,
-										// backgroundColor: "pink",
-										paddingHorizontal: 5,
-										paddingVertical: 10,
-									}}
-									onPress={() =>
-										router.push("/notifications")
-									}>
-									{({ pressed }) => (
-										<Bell
-											color={
-												colorScheme === "dark"
-													? "#f3f4f6"
-													: "#111827"
-											}
-											size={22}
-											style={{
-												opacity: pressed ? 0.7 : 1,
-											}}
-										/>
+					header: ({ options }) => (
+						<MyHeader
+							title={options.title ?? ""}
+							headerRight={() => (
+								<>
+									{!accessToken && (
+										<Link href='/signin' asChild>
+											<Pressable>
+												{({ pressed }) => (
+													<FontAwesome
+														name='info-circle'
+														size={25}
+														color={
+															Colors[
+																colorScheme ??
+																	"light"
+															].text
+														}
+														style={{
+															marginRight: 15,
+															opacity: pressed
+																? 0.5
+																: 1,
+														}}
+													/>
+												)}
+											</Pressable>
+										</Link>
 									)}
-								</Pressable>
-							</VStack>
-							{role === "candidat" && (
-								<VStack>
-									<Pressable
-										onPress={() => router.push("/account")}
-										style={{ marginRight: 15 }}>
-										{({ pressed }) => (
-											<Avatar
-												size='sm'
-												style={{
-													opacity: pressed ? 0.7 : 1,
-												}}>
-												<AvatarFallbackText>
-													{userProfile?.firstname +
-														" " +
-														userProfile?.lastname}
-												</AvatarFallbackText>
-												<AvatarImage
-													source={{
-														uri: userProfile?.avatar_url,
+									<VStack>
+										{contextUnreadCount > 0 && (
+											<Badge
+												className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full left-0 top-1'
+												variant='solid'>
+												<BadgeText
+													className='text-white absolute right-1'
+													style={{ fontSize: 10 }}>
+													{contextUnreadCount > 9
+														? "9+"
+														: contextUnreadCount}
+												</BadgeText>
+											</Badge>
+										)}
+										<Pressable
+											// variant='link'
+											style={{
+												marginRight: 10,
+												// backgroundColor: "pink",
+												paddingHorizontal: 5,
+												paddingVertical: 10,
+											}}
+											onPress={() =>
+												router.push("/notifications")
+											}>
+											{({ pressed }) => (
+												<Bell
+													color={
+														colorScheme === "dark"
+															? "#f3f4f6"
+															: "#111827"
+													}
+													size={20}
+													style={{
+														opacity: pressed
+															? 0.7
+															: 1,
 													}}
 												/>
-											</Avatar>
-										)}
-									</Pressable>
-									{userProfile &&
-									userProfile?.profile_status ===
-										"pending" ? (
-										<Badge
-											className='z-10 h-[16px] w-[16px] bg-yellow-500 rounded-full'
-											style={{
-												display: "flex",
-												justifyContent: "center",
-												alignItems: "center",
-												position: "absolute",
-												left: -5,
-												top: -5,
-												padding: 0,
-											}}
-											variant='solid'>
-											<BadgeText
-												className='text-white font-semibold'
-												style={{
-													position: "absolute",
-													top: 1,
-												}}>
-												!
-											</BadgeText>
-										</Badge>
-									) : userProfile?.profile_status ===
-									  "suspended" ? (
-										<Badge
-											className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
-											style={{
-												display: "flex",
-												justifyContent: "center",
-												alignItems: "center",
-												position: "absolute",
-												left: -5,
-												top: -5,
-												padding: 0,
-											}}
-											variant='solid'>
-											<BadgeText
-												className='text-white font-semibold'
-												style={{
-													position: "absolute",
-													top: 1,
-												}}>
-												!
-											</BadgeText>
-										</Badge>
-									) : null}
-								</VStack>
-							)}
-							{role === "pro" && (
-								<VStack>
-									<Pressable
-										onPress={() =>
-											router.push("/dashboard")
-										}
-										style={{ marginRight: 15 }}>
-										{({ pressed }) => (
-											<Avatar
-												size='sm'
-												style={{
-													opacity: pressed ? 0.7 : 1,
-												}}>
-												<AvatarFallbackText>
-													{userCompany?.name}
-												</AvatarFallbackText>
-												<AvatarImage
-													source={{
-														uri: userCompany?.logo_url,
+											)}
+										</Pressable>
+									</VStack>
+									{role === "candidat" && (
+										<VStack>
+											<Pressable
+												onPress={() =>
+													router.push("/account")
+												}>
+												{({ pressed }) => (
+													<Avatar
+														size='sm'
+														style={{
+															opacity: pressed
+																? 0.7
+																: 1,
+														}}>
+														<AvatarFallbackText>
+															{userProfile?.firstname +
+																" " +
+																userProfile?.lastname}
+														</AvatarFallbackText>
+														<AvatarImage
+															source={{
+																uri: userProfile?.avatar_url,
+															}}
+														/>
+													</Avatar>
+												)}
+											</Pressable>
+											{userProfile &&
+											userProfile?.profile_status ===
+												"pending" ? (
+												<Badge
+													className='z-10 h-[16px] w-[16px] bg-yellow-500 rounded-full'
+													style={{
+														display: "flex",
+														justifyContent:
+															"center",
+														alignItems: "center",
+														position: "absolute",
+														left: -5,
+														top: -5,
+														padding: 0,
 													}}
-												/>
-											</Avatar>
-										)}
-									</Pressable>
-									{userCompany &&
-									userCompany?.company_status ===
-										"pending" ? (
-										<Badge
-											className='z-10 h-[16px] w-[16px] bg-yellow-500 rounded-full'
-											style={{
-												display: "flex",
-												justifyContent: "center",
-												alignItems: "center",
-												position: "absolute",
-												left: -5,
-												top: -5,
-												padding: 0,
-											}}
-											variant='solid'>
-											<BadgeText
-												className='text-white font-semibold'
-												style={{
-													position: "absolute",
-													top: 1,
-												}}>
-												!
-											</BadgeText>
-										</Badge>
-									) : userCompany?.company_status ===
-									  "suspended" ? (
-										<Badge
-											className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
-											style={{
-												display: "flex",
-												justifyContent: "center",
-												alignItems: "center",
-												position: "absolute",
-												left: -5,
-												top: -5,
-												padding: 0,
-											}}
-											variant='solid'>
-											<BadgeText
-												className='text-white font-semibold'
-												style={{
-													position: "absolute",
-													top: 1,
-												}}>
-												!
-											</BadgeText>
-										</Badge>
-									) : null}
-								</VStack>
+													variant='solid'>
+													<BadgeText
+														className='text-white font-semibold'
+														style={{
+															position:
+																"absolute",
+															top: 1,
+														}}>
+														!
+													</BadgeText>
+												</Badge>
+											) : userProfile?.profile_status ===
+											  "suspended" ? (
+												<Badge
+													className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
+													style={{
+														display: "flex",
+														justifyContent:
+															"center",
+														alignItems: "center",
+														position: "absolute",
+														left: -5,
+														top: -5,
+														padding: 0,
+													}}
+													variant='solid'>
+													<BadgeText
+														className='text-white font-semibold'
+														style={{
+															position:
+																"absolute",
+															top: 1,
+														}}>
+														!
+													</BadgeText>
+												</Badge>
+											) : null}
+										</VStack>
+									)}
+									{role === "pro" && (
+										<VStack>
+											<Pressable
+												onPress={() =>
+													router.push("/dashboard")
+												}>
+												{({ pressed }) => (
+													<Avatar
+														size='sm'
+														style={{
+															opacity: pressed
+																? 0.7
+																: 1,
+														}}>
+														<AvatarFallbackText>
+															{userCompany?.name}
+														</AvatarFallbackText>
+														<AvatarImage
+															source={{
+																uri: userCompany?.logo_url,
+															}}
+														/>
+													</Avatar>
+												)}
+											</Pressable>
+											{userCompany &&
+											userCompany?.company_status ===
+												"pending" ? (
+												<Badge
+													className='z-10 h-[16px] w-[16px] bg-yellow-500 rounded-full'
+													style={{
+														display: "flex",
+														justifyContent:
+															"center",
+														alignItems: "center",
+														position: "absolute",
+														left: -5,
+														top: -5,
+														padding: 0,
+													}}
+													variant='solid'>
+													<BadgeText
+														className='text-white font-semibold'
+														style={{
+															position:
+																"absolute",
+															top: 1,
+														}}>
+														!
+													</BadgeText>
+												</Badge>
+											) : userCompany?.company_status ===
+											  "suspended" ? (
+												<Badge
+													className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
+													style={{
+														display: "flex",
+														justifyContent:
+															"center",
+														alignItems: "center",
+														position: "absolute",
+														left: -5,
+														top: -5,
+														padding: 0,
+													}}
+													variant='solid'>
+													<BadgeText
+														className='text-white font-semibold'
+														style={{
+															position:
+																"absolute",
+															top: 1,
+														}}>
+														!
+													</BadgeText>
+												</Badge>
+											) : null}
+										</VStack>
+									)}
+								</>
 							)}
-						</>
+						/>
 					),
 				}}>
 				<Tabs.Screen
