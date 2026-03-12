@@ -42,6 +42,14 @@ import {
 	IdCard,
 	MessageSquare,
 	MessageCircle,
+	Shield,
+	ShieldCheck,
+	GraduationCap,
+	Clock,
+	XCircle,
+	Globe,
+	Car,
+	Dumbbell,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -58,11 +66,49 @@ const ProfileScreen = () => {
 	const [isAdded, setIsAdded] = useState(false);
 	const [listUUID, setListUUID] = useState(null);
 	const [showContactSheet, setShowContactSheet] = useState(false);
+	const [certifications, setCertifications] = useState([]);
+	const [cnapsCards, setCnapsCards] = useState([]);
+	const [diplomas, setDiplomas] = useState([]);
 
 	const loadData = async () => {
 		const data = await getById("profiles", profile_id, `*`);
 		console.log("data profile :", data);
 		setProfile(data);
+
+		const [certsResult, cnapsResult, diplomasResult] = await Promise.all([
+			getAll(
+				"user_certifications",
+				"*",
+				`&user_id=eq.${profile_id}`,
+				1,
+				100,
+				"created_at.desc",
+			),
+			getAll(
+				"user_cnaps_cards",
+				"*",
+				`&user_id=eq.${profile_id}`,
+				1,
+				100,
+				"created_at.desc",
+			),
+			getAll(
+				"user_diplomas",
+				"*",
+				`&user_id=eq.${profile_id}`,
+				1,
+				100,
+				"created_at.desc",
+			),
+		]);
+
+		console.log("certifications :", certsResult.data);
+		console.log("cnaps cards :", cnapsResult.data);
+		console.log("diplomas :", diplomasResult.data);
+
+		setCertifications(certsResult.data ?? []);
+		setCnapsCards(cnapsResult.data ?? []);
+		setDiplomas(diplomasResult.data ?? []);
 	};
 
 	const loadList = async () => {
@@ -132,481 +178,564 @@ const ProfileScreen = () => {
 		}
 	};
 
+	// ── Style tokens
+	const sT = isDark ? "#f3f4f6" : "#111827";
+	const mT = isDark ? "#9ca3af" : "#6b7280";
+	const cardBg = isDark ? "#1f2937" : "#ffffff";
+	const cardBorder = isDark ? "#374151" : "#e5e7eb";
+
+	// ── Helpers
+	const formatDate = (d) =>
+		d ? new Date(d).toLocaleDateString("fr-FR") : null;
+	const calcAge = (b) => {
+		if (!b) return null;
+		const today = new Date(),
+			born = new Date(b);
+		let age = today.getFullYear() - born.getFullYear();
+		const m = today.getMonth() - born.getMonth();
+		if (m < 0 || (m === 0 && today.getDate() < born.getDate())) age--;
+		return age;
+	};
+	const isExpired = (d) => (d ? new Date(d) < new Date() : false);
+
+	const CNAPS_LABELS = {
+		SURVEILLANCE_HUMAINE: "Surveillance Humaine",
+		PROTECTION_RAPPROCHEE: "Protection Rapprochée",
+		CYNOPHILE: "Cynophile",
+		SURVEILLANCE_ELECTRONIQUE: "Surveillance Électronique",
+		TRANSPORT_FONDS: "Transport de Fonds",
+	};
+	const DIPLOMA_LABELS = {
+		TFP_APS: "TFP APS",
+		TFP_APR: "TFP APR",
+		BTS_MSE: "BTS Métiers de la Sécurité",
+		CQP_APS: "CQP APS",
+	};
+	const CERT_LABELS = {
+		SST: "Sauveteur Secouriste du Travail (SST)",
+		PSC1: "PSC1",
+		HABILITATION_ELECTRIQUE: "Habilitation Électrique",
+		CACES: "CACES",
+	};
+
+	// ── Mini composants (closures sur isDark/sT/mT/cardBorder)
+	const SectionHeader = ({ icon: IC, title, iconColor, iconBg }) => (
+		<HStack space='sm' style={{ alignItems: "center", marginBottom: 14 }}>
+			<Box
+				style={{
+					width: 36,
+					height: 36,
+					borderRadius: 18,
+					backgroundColor: iconBg,
+					justifyContent: "center",
+					alignItems: "center",
+				}}>
+				<Icon as={IC} size='sm' style={{ color: iconColor }} />
+			</Box>
+			<Text style={{ fontSize: 15, fontWeight: "700", color: sT }}>
+				{title}
+			</Text>
+		</HStack>
+	);
+
+	const InfoRow = ({ icon: IC, label, value }) => {
+		if (!value) return null;
+		return (
+			<HStack
+				space='sm'
+				style={{ alignItems: "center", paddingVertical: 6 }}>
+				<Box
+					style={{
+						width: 32,
+						height: 32,
+						borderRadius: 16,
+						backgroundColor: isDark ? "#374151" : "#f3f4f6",
+						justifyContent: "center",
+						alignItems: "center",
+					}}>
+					<Icon as={IC} size='xs' style={{ color: mT }} />
+				</Box>
+				<VStack style={{ flex: 1 }}>
+					<Text size='xs' style={{ color: mT }}>
+						{label}
+					</Text>
+					<Text size='sm' style={{ color: sT, fontWeight: "500" }}>
+						{value}
+					</Text>
+				</VStack>
+			</HStack>
+		);
+	};
+
+	const DocStatusBadge = ({ status, expiresAt }) => {
+		const expired = isExpired(expiresAt);
+		if (expired)
+			return (
+				<Badge size='sm' variant='solid' action='error'>
+					<BadgeIcon as={XCircle} />
+					<BadgeText className='ml-1'>Expiré</BadgeText>
+				</Badge>
+			);
+		if (status === "verified")
+			return (
+				<Badge size='sm' variant='solid' action='success'>
+					<BadgeIcon as={CheckCircle} />
+					<BadgeText className='ml-1'>Vérifié</BadgeText>
+				</Badge>
+			);
+		if (status === "pending")
+			return (
+				<Badge size='sm' variant='outline' action='warning'>
+					<BadgeIcon as={Clock} />
+					<BadgeText className='ml-1'>En attente</BadgeText>
+				</Badge>
+			);
+		if (status === "rejected")
+			return (
+				<Badge size='sm' variant='solid' action='error'>
+					<BadgeIcon as={XCircle} />
+					<BadgeText className='ml-1'>Rejeté</BadgeText>
+				</Badge>
+			);
+		return null;
+	};
+
+	const DocCard = ({ title, subtitle, expiresAt, status }) => (
+		<Box
+			style={{
+				paddingVertical: 10,
+				borderTopWidth: 1,
+				borderTopColor: cardBorder,
+			}}>
+			<HStack
+				style={{
+					justifyContent: "space-between",
+					alignItems: "flex-start",
+				}}>
+				<VStack style={{ flex: 1, marginRight: 8 }}>
+					<Text size='sm' style={{ color: sT, fontWeight: "600" }}>
+						{title}
+					</Text>
+					{subtitle ? (
+						<Text size='xs' style={{ color: mT, marginTop: 2 }}>
+							{subtitle}
+						</Text>
+					) : null}
+					{expiresAt ? (
+						<Text
+							size='xs'
+							style={{
+								color: isExpired(expiresAt) ? "#ef4444" : mT,
+								marginTop: 2,
+							}}>
+							Exp. {formatDate(expiresAt)}
+						</Text>
+					) : null}
+				</VStack>
+				<DocStatusBadge status={status} expiresAt={expiresAt} />
+			</HStack>
+		</Box>
+	);
+
 	return (
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				backgroundColor: isDark ? "#111827" : "#f3f4f6",
 			}}>
 			<ScrollView style={{ flex: 1 }}>
 				<VStack space='lg' style={{ padding: 20, paddingBottom: 90 }}>
-					{/* Header Card avec Avatar et Info */}
+					{/* Hero Card */}
 					<Card
 						style={{
-							padding: 24,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
-							borderRadius: 12,
+							padding: 20,
+							backgroundColor: cardBg,
+							borderRadius: 16,
 							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							borderColor: cardBorder,
 							alignItems: "center",
 						}}>
-						<VStack
-							space='lg'
-							style={{ alignItems: "center", width: "100%" }}>
-							{/* Avatar */}
-							<Avatar size='2xl'>
-								{profile?.avatar_url && (
-									<AvatarImage
-										source={{ uri: profile.avatar_url }}
-									/>
-								)}
-								<AvatarFallbackText>
+						{/* Photo carrée */}
+						{profile?.avatar_url ? (
+							<Box
+								style={{
+									width: 96,
+									height: 96,
+									borderRadius: 14,
+									marginBottom: 14,
+									overflow: "hidden",
+								}}>
+								<Image
+									source={{ uri: profile.avatar_url }}
+									alt='avatar'
+									style={{ width: 96, height: 96 }}
+								/>
+							</Box>
+						) : (
+							<Box
+								style={{
+									width: 96,
+									height: 96,
+									borderRadius: 14,
+									marginBottom: 14,
+									backgroundColor: isDark
+										? "#374151"
+										: "#e5e7eb",
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Text
+									style={{
+										fontSize: 30,
+										fontWeight: "700",
+										color: isDark ? "#d1d5db" : "#6b7280",
+									}}>
 									{profile?.firstname?.[0]}
 									{profile?.lastname?.[0]}
-								</AvatarFallbackText>
-							</Avatar>
+								</Text>
+							</Box>
+						)}
 
-							{/* Nom et Prénom */}
-							<VStack space='xs' style={{ alignItems: "center" }}>
-								<Heading
-									size='2xl'
-									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
-										textAlign: "center",
-									}}>
-									{profile?.firstname} {profile?.lastname}
-								</Heading>
-								{profile?.category && (
-									<Text
-										size='md'
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-											textAlign: "center",
-										}}>
-										{profile?.category}
-									</Text>
-								)}
-							</VStack>
+						{/* Nom */}
+						<Text
+							style={{
+								fontSize: 20,
+								fontWeight: "700",
+								color: sT,
+								textAlign: "center",
+								marginBottom: 2,
+							}}>
+							{profile?.firstname} {profile?.lastname}
+						</Text>
 
-							{/* Badges */}
-							<HStack
-								space='sm'
+						{/* Métier */}
+						{profile?.category && (
+							<Text
 								style={{
-									flexWrap: "wrap",
-									justifyContent: "center",
+									fontSize: 13,
+									color: mT,
+									textAlign: "center",
+									marginBottom: 12,
 								}}>
-								<Badge size='md' variant='solid' action='info'>
-									<BadgeIcon as={IdCard} />
-									<BadgeText className='ml-1'>
-										Carte Pro
-									</BadgeText>
-								</Badge>
+								{profile.category}
+							</Text>
+						)}
+
+						{/* Badge statut */}
+						{profile?.profile_status === "verified" && (
+							<Box style={{ marginBottom: 16 }}>
 								<Badge
 									size='md'
 									variant='solid'
 									action='success'>
 									<BadgeIcon as={CheckCircle} />
 									<BadgeText className='ml-1'>
-										Vérifié
+										Profil vérifié
 									</BadgeText>
 								</Badge>
-							</HStack>
+							</Box>
+						)}
+						{profile?.profile_status === "pending" && (
+							<Box style={{ marginBottom: 16 }}>
+								<Badge
+									size='md'
+									variant='outline'
+									action='warning'>
+									<BadgeIcon as={Clock} />
+									<BadgeText className='ml-1'>
+										En cours de vérification
+									</BadgeText>
+								</Badge>
+							</Box>
+						)}
 
-							{/* Bouton Favoris */}
-							<Button
+						{/* Boutons */}
+						<HStack space='sm' style={{ width: "100%" }}>
+							<TouchableOpacity
 								onPress={handleToggle}
-								action={isAdded ? "secondary" : "positive"}
-								variant={isAdded ? "outline" : "solid"}
-								style={{ width: "100%" }}>
-								<ButtonIcon as={isAdded ? StarOff : Star} />
-								<ButtonText>
-									{isAdded
-										? "Retirer des favoris"
-										: "Ajouter aux favoris"}
-								</ButtonText>
-							</Button>
+								activeOpacity={0.7}
+								style={{
+									flex: 1,
+									height: 44,
+									borderRadius: 10,
+									borderWidth: 1.5,
+									borderColor: isAdded
+										? "#ef4444"
+										: isDark
+											? "#4b5563"
+											: "#d1d5db",
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									columnGap: 6,
+								}}>
+								<Icon
+									as={isAdded ? StarOff : Star}
+									size='sm'
+									style={{
+										color: isAdded ? "#ef4444" : mT,
+									}}
+								/>
+								<Text
+									style={{
+										fontSize: 13,
+										fontWeight: "600",
+										color: isAdded ? "#ef4444" : mT,
+									}}>
+									{isAdded ? "Retirer" : "Favoris"}
+								</Text>
+							</TouchableOpacity>
 
-							{/* Bouton Contacter */}
-							<Button
+							<TouchableOpacity
 								onPress={() => setShowContactSheet(true)}
-								action='primary'
-								variant='solid'
-								style={{ width: "100%" }}>
-								<ButtonIcon as={MessageCircle} />
-								<ButtonText>Contacter</ButtonText>
-							</Button>
-							{/* <Heading
-								size='lg'
+								activeOpacity={0.7}
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									flex: 1,
+									height: 44,
+									borderRadius: 10,
+									backgroundColor: "#2563eb",
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									columnGap: 6,
 								}}>
-								Coordonnées
-							</Heading> */}
-							<Divider
-								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
-								}}
+								<Icon
+									as={MessageCircle}
+									size='sm'
+									style={{ color: "#ffffff" }}
+								/>
+								<Text
+									style={{
+										fontSize: 13,
+										fontWeight: "600",
+										color: "#ffffff",
+									}}>
+									Contacter
+								</Text>
+							</TouchableOpacity>
+						</HStack>
+					</Card>
+
+					{/* ── Informations personnelles ── */}
+					<Card
+						style={{
+							backgroundColor: cardBg,
+							borderRadius: 12,
+							borderWidth: 1,
+							borderColor: cardBorder,
+							padding: 16,
+						}}>
+						<SectionHeader
+							icon={User}
+							title='Informations personnelles'
+							iconColor='#2563eb'
+							iconBg='#dbeafe'
+						/>
+						<VStack space='xs'>
+							{profile?.birthday ? (
+								<InfoRow
+									icon={Calendar}
+									label='Date de naissance'
+									value={`${formatDate(profile.birthday)} · ${calcAge(profile.birthday)} ans`}
+								/>
+							) : null}
+							{profile?.gender ? (
+								<InfoRow
+									icon={User}
+									label='Genre'
+									value={
+										profile.gender === "male"
+											? "Homme"
+											: profile.gender === "female"
+												? "Femme"
+												: profile.gender
+									}
+								/>
+							) : null}
+							{profile?.height || profile?.weight ? (
+								<InfoRow
+									icon={Dumbbell}
+									label='Morphologie'
+									value={[
+										profile?.height &&
+											`${profile.height} cm`,
+										profile?.weight &&
+											`${profile.weight} kg`,
+									]
+										.filter(Boolean)
+										.join(" · ")}
+								/>
+							) : null}
+							{profile?.languages ? (
+								<InfoRow
+									icon={Globe}
+									label='Langues'
+									value={profile.languages}
+								/>
+							) : null}
+							{profile?.driving_licenses ? (
+								<InfoRow
+									icon={Car}
+									label='Permis de conduire'
+									value={profile.driving_licenses}
+								/>
+							) : null}
+							{profile?.former_soldier === true ? (
+								<InfoRow
+									icon={Shield}
+									label='Ancien militaire'
+									value='Oui'
+								/>
+							) : null}
+						</VStack>
+					</Card>
+
+					{/* ── Vérifications ── */}
+					<Card
+						style={{
+							backgroundColor: cardBg,
+							borderRadius: 12,
+							borderWidth: 1,
+							borderColor: cardBorder,
+							padding: 16,
+						}}>
+						<SectionHeader
+							icon={ShieldCheck}
+							title='Vérifications'
+							iconColor='#2563eb'
+							iconBg='#dbeafe'
+						/>
+						<HStack
+							style={{
+								justifyContent: "space-between",
+								alignItems: "center",
+								paddingVertical: 8,
+								borderTopWidth: 1,
+								borderTopColor: cardBorder,
+							}}>
+							<HStack space='sm' style={{ alignItems: "center" }}>
+								<Icon
+									as={IdCard}
+									size='sm'
+									style={{ color: mT }}
+								/>
+								<Text size='sm' style={{ color: sT }}>
+									Pièce d'identité
+								</Text>
+							</HStack>
+							<DocStatusBadge
+								status={profile?.id_verification_status}
 							/>
-
-							{profile?.email && (
-								<HStack
-									space='md'
-									style={{ alignItems: "center" }}>
-									<Box
-										style={{
-											width: 40,
-											height: 40,
-											borderRadius: 20,
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#f3f4f6",
-											justifyContent: "center",
-											alignItems: "center",
-										}}>
-										<Icon
-											as={Mail}
-											size='lg'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}
-										/>
-									</Box>
-									<VStack style={{ flex: 1 }}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											Email
-										</Text>
-										<Text
-											size='md'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											{profile.email}
-										</Text>
-									</VStack>
-								</HStack>
-							)}
-
-							{profile?.phone && (
-								<HStack
-									space='md'
-									style={{ alignItems: "center" }}>
-									<Box
-										style={{
-											width: 40,
-											height: 40,
-											borderRadius: 20,
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#f3f4f6",
-											justifyContent: "center",
-											alignItems: "center",
-										}}>
-										<Icon
-											as={Phone}
-											size='lg'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}
-										/>
-									</Box>
-									<VStack style={{ flex: 1 }}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											Téléphone
-										</Text>
-										<Text
-											size='md'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											{profile.phone}
-										</Text>
-									</VStack>
-								</HStack>
-							)}
-
-							{profile?.city && (
-								<HStack
-									space='md'
-									style={{ alignItems: "center" }}>
-									<Box
-										style={{
-											width: 40,
-											height: 40,
-											borderRadius: 20,
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#f3f4f6",
-											justifyContent: "center",
-											alignItems: "center",
-										}}>
-										<Icon
-											as={MapPin}
-											size='lg'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}
-										/>
-									</Box>
-									<VStack style={{ flex: 1 }}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											Localisation
-										</Text>
-										<Text
-											size='md'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											{profile.city}
-										</Text>
-									</VStack>
-								</HStack>
-							)}
-
-							{profile?.birthdate && (
-								<HStack
-									space='md'
-									style={{ alignItems: "center" }}>
-									<Box
-										style={{
-											width: 40,
-											height: 40,
-											borderRadius: 20,
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#f3f4f6",
-											justifyContent: "center",
-											alignItems: "center",
-										}}>
-										<Icon
-											as={Calendar}
-											size='lg'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}
-										/>
-									</Box>
-									<VStack style={{ flex: 1 }}>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											Date de naissance
-										</Text>
-										<Text
-											size='md'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											{new Date(
-												profile.birthdate,
-											).toLocaleDateString("fr-FR")}
-										</Text>
-									</VStack>
-								</HStack>
-							)}
-						</VStack>
-					</Card>
-
-					{/* Expériences */}
-					<Card
-						style={{
-							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
-							borderRadius: 12,
-							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
-						}}>
-						<VStack space='md'>
-							<HStack space='md' style={{ alignItems: "center" }}>
-								<Box
-									style={{
-										width: 48,
-										height: 48,
-										borderRadius: 24,
-										backgroundColor: "#dbeafe",
-										justifyContent: "center",
-										alignItems: "center",
-									}}>
-									<Icon
-										as={Briefcase}
-										size='xl'
-										style={{ color: "#2563eb" }}
-									/>
-								</Box>
-								<Heading
-									size='lg'
-									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
-										flex: 1,
-									}}>
-									Expériences professionnelles
-								</Heading>
+						</HStack>
+						<HStack
+							style={{
+								justifyContent: "space-between",
+								alignItems: "center",
+								paddingVertical: 8,
+								borderTopWidth: 1,
+								borderTopColor: cardBorder,
+							}}>
+							<HStack space='sm' style={{ alignItems: "center" }}>
+								<Icon
+									as={FileText}
+									size='sm'
+									style={{ color: mT }}
+								/>
+								<Text size='sm' style={{ color: sT }}>
+									Sécurité sociale
+								</Text>
 							</HStack>
-							<Text
-								size='md'
-								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
-								}}>
-								Les expériences professionnelles du candidat
-								seront affichées ici.
-							</Text>
-						</VStack>
+							<DocStatusBadge
+								status={
+									profile?.social_security_verification_status
+								}
+							/>
+						</HStack>
 					</Card>
 
-					{/* Certifications */}
-					<Card
-						style={{
-							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
-							borderRadius: 12,
-							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
-						}}>
-						<VStack space='md'>
-							<HStack space='md' style={{ alignItems: "center" }}>
-								<Box
-									style={{
-										width: 48,
-										height: 48,
-										borderRadius: 24,
-										backgroundColor: "#dcfce7",
-										justifyContent: "center",
-										alignItems: "center",
-									}}>
-									<Icon
-										as={Award}
-										size='xl'
-										style={{ color: "#16a34a" }}
-									/>
-								</Box>
-								<Heading
-									size='lg'
-									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
-										flex: 1,
-									}}>
-									Certifications & Diplômes
-								</Heading>
-							</HStack>
-							<VStack space='sm'>
-								{profile?.ssiap1_document_url && (
-									<HStack
-										space='sm'
-										style={{ alignItems: "center" }}>
-										<Icon
-											as={CheckCircle}
-											size='md'
-											style={{ color: "#16a34a" }}
-										/>
-										<Text
-											size='md'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											SSIAP 1
-										</Text>
-									</HStack>
-								)}
-								{profile?.ssiap2_document_url && (
-									<HStack
-										space='sm'
-										style={{ alignItems: "center" }}>
-										<Icon
-											as={CheckCircle}
-											size='md'
-											style={{ color: "#16a34a" }}
-										/>
-										<Text
-											size='md'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											SSIAP 2
-										</Text>
-									</HStack>
-								)}
-								{profile?.ssiap3_document_url && (
-									<HStack
-										space='sm'
-										style={{ alignItems: "center" }}>
-										<Icon
-											as={CheckCircle}
-											size='md'
-											style={{ color: "#16a34a" }}
-										/>
-										<Text
-											size='md'
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											SSIAP 3
-										</Text>
-									</HStack>
-								)}
-								{!profile?.ssiap1_document_url &&
-									!profile?.ssiap2_document_url &&
-									!profile?.ssiap3_document_url && (
-										<Text
-											size='md'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											Aucune certification SSIAP
-											enregistrée
-										</Text>
-									)}
-							</VStack>
-						</VStack>
-					</Card>
+					{/* ── Cartes CNAPS ── */}
+					{cnapsCards.length > 0 && (
+						<Card
+							style={{
+								backgroundColor: cardBg,
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: cardBorder,
+								padding: 16,
+							}}>
+							<SectionHeader
+								icon={Shield}
+								title='Cartes CNAPS'
+								iconColor='#7c3aed'
+								iconBg='#ede9fe'
+							/>
+							{cnapsCards.map((card) => (
+								<DocCard
+									key={card.id}
+									title={CNAPS_LABELS[card.type] ?? card.type}
+									subtitle={
+										card.number ? `N° ${card.number}` : null
+									}
+									expiresAt={card.expires_at}
+									status={card.status}
+								/>
+							))}
+						</Card>
+					)}
+
+					{/* ── Diplômes ── */}
+					{diplomas.length > 0 && (
+						<Card
+							style={{
+								backgroundColor: cardBg,
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: cardBorder,
+								padding: 16,
+							}}>
+							<SectionHeader
+								icon={GraduationCap}
+								title='Diplômes'
+								iconColor='#0891b2'
+								iconBg='#cffafe'
+							/>
+							{diplomas.map((d) => (
+								<DocCard
+									key={d.id}
+									title={DIPLOMA_LABELS[d.type] ?? d.type}
+									expiresAt={d.expires_at}
+									status={d.status}
+								/>
+							))}
+						</Card>
+					)}
+
+					{/* ── Certifications ── */}
+					{certifications.length > 0 && (
+						<Card
+							style={{
+								backgroundColor: cardBg,
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: cardBorder,
+								padding: 16,
+							}}>
+							<SectionHeader
+								icon={Award}
+								title='Certifications'
+								iconColor='#16a34a'
+								iconBg='#dcfce7'
+							/>
+							{certifications.map((c) => (
+								<DocCard
+									key={c.id}
+									title={CERT_LABELS[c.type] ?? c.type}
+									expiresAt={c.expires_at}
+									status={c.status}
+								/>
+							))}
+						</Card>
+					)}
 				</VStack>
 			</ScrollView>
 
@@ -617,261 +746,281 @@ const ProfileScreen = () => {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: isDark ? "#111827" : "#f3f4f6",
+						borderTopLeftRadius: 20,
+						borderTopRightRadius: 20,
+						paddingBottom: 32,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
-					</ActionsheetDragIndicatorWrapper>
-					<VStack space='md' style={{ width: "100%", padding: 20 }}>
-						<Heading
-							size='lg'
+						<ActionsheetDragIndicator
 							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
-								marginBottom: 8,
+								backgroundColor: isDark ? "#4b5563" : "#d1d5db",
+							}}
+						/>
+					</ActionsheetDragIndicatorWrapper>
+
+					{/* Label titre */}
+					<Box
+						style={{
+							paddingHorizontal: 20,
+							paddingTop: 4,
+							paddingBottom: 14,
+							width: "100%",
+						}}>
+						<Text
+							style={{
+								fontSize: 11,
+								fontWeight: "600",
+								color: mT,
+								textTransform: "uppercase",
+								letterSpacing: 0.8,
 							}}>
 							Contacter {profile?.firstname}
-						</Heading>
+						</Text>
+					</Box>
 
-						{/* Bouton Appel */}
+					{/* Liste d'actions groupées */}
+					<Box
+						style={{
+							marginHorizontal: 16,
+							borderRadius: 14,
+							overflow: "hidden",
+							borderWidth: 1,
+							borderColor: cardBorder,
+							width: "100%",
+							alignSelf: "center",
+						}}>
+						{/* Appeler */}
 						<TouchableOpacity
-							onPress={() => {
-								setShowContactSheet(false);
-								// Linking.openURL(`tel:${profile?.phone}`);
-							}}
-							activeOpacity={0.7}>
-							<Card
+							activeOpacity={0.6}
+							onPress={() => setShowContactSheet(false)}>
+							<HStack
 								style={{
-									padding: 16,
-									backgroundColor: isDark
-										? "#1f2937"
-										: "#f9fafb",
-									borderRadius: 12,
-									borderWidth: 1,
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									alignItems: "center",
+									padding: 14,
+									backgroundColor: cardBg,
 								}}>
-								<HStack
-									space='md'
-									style={{ alignItems: "center" }}>
-									<Box
+								<Box
+									style={{
+										width: 34,
+										height: 34,
+										borderRadius: 9,
+										backgroundColor: "#dcfce7",
+										justifyContent: "center",
+										alignItems: "center",
+										marginRight: 12,
+									}}>
+									<Icon
+										as={Phone}
+										size='sm'
+										style={{ color: "#16a34a" }}
+									/>
+								</Box>
+								<VStack style={{ flex: 1 }}>
+									<Text
 										style={{
-											width: 48,
-											height: 48,
-											borderRadius: 24,
-											backgroundColor: "#dcfce7",
-											justifyContent: "center",
-											alignItems: "center",
+											fontSize: 15,
+											fontWeight: "600",
+											color: sT,
 										}}>
-										<Icon
-											as={Phone}
-											size='xl'
-											style={{ color: "#16a34a" }}
-										/>
-									</Box>
-									<VStack style={{ flex: 1 }}>
+										Appeler
+									</Text>
+									{profile?.phone ? (
 										<Text
-											size='lg'
 											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+												fontSize: 12,
+												color: mT,
 											}}>
-											Appeler
+											{profile.phone}
 										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											Lancer un appel téléphonique
-										</Text>
-									</VStack>
-								</HStack>
-							</Card>
+									) : null}
+								</VStack>
+							</HStack>
 						</TouchableOpacity>
 
-						{/* Bouton SMS */}
+						<Box
+							style={{ height: 1, backgroundColor: cardBorder }}
+						/>
+
+						{/* SMS */}
 						<TouchableOpacity
-							onPress={() => {
-								setShowContactSheet(false);
-								// Linking.openURL(`sms:${profile?.phone}`);
-							}}
-							activeOpacity={0.7}>
-							<Card
+							activeOpacity={0.6}
+							onPress={() => setShowContactSheet(false)}>
+							<HStack
 								style={{
-									padding: 16,
-									backgroundColor: isDark
-										? "#1f2937"
-										: "#f9fafb",
-									borderRadius: 12,
-									borderWidth: 1,
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									alignItems: "center",
+									padding: 14,
+									backgroundColor: cardBg,
 								}}>
-								<HStack
-									space='md'
-									style={{ alignItems: "center" }}>
-									<Box
+								<Box
+									style={{
+										width: 34,
+										height: 34,
+										borderRadius: 9,
+										backgroundColor: "#dbeafe",
+										justifyContent: "center",
+										alignItems: "center",
+										marginRight: 12,
+									}}>
+									<Icon
+										as={MessageSquare}
+										size='sm'
+										style={{ color: "#2563eb" }}
+									/>
+								</Box>
+								<VStack style={{ flex: 1 }}>
+									<Text
 										style={{
-											width: 48,
-											height: 48,
-											borderRadius: 24,
-											backgroundColor: "#dbeafe",
-											justifyContent: "center",
-											alignItems: "center",
+											fontSize: 15,
+											fontWeight: "600",
+											color: sT,
 										}}>
-										<Icon
-											as={MessageSquare}
-											size='xl'
-											style={{ color: "#2563eb" }}
-										/>
-									</Box>
-									<VStack style={{ flex: 1 }}>
+										Envoyer un SMS
+									</Text>
+									{profile?.phone ? (
 										<Text
-											size='lg'
 											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+												fontSize: 12,
+												color: mT,
 											}}>
-											Envoyer un SMS
+											{profile.phone}
 										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											Ouvrir l'application SMS
-										</Text>
-									</VStack>
-								</HStack>
-							</Card>
+									) : null}
+								</VStack>
+							</HStack>
 						</TouchableOpacity>
 
-						{/* Bouton WhatsApp */}
+						<Box
+							style={{ height: 1, backgroundColor: cardBorder }}
+						/>
+
+						{/* WhatsApp */}
 						<TouchableOpacity
-							onPress={() => {
-								setShowContactSheet(false);
-								// Linking.openURL(`whatsapp://send?phone=${profile?.phone}`);
-							}}
-							activeOpacity={0.7}>
-							<Card
+							activeOpacity={0.6}
+							onPress={() => setShowContactSheet(false)}>
+							<HStack
 								style={{
-									padding: 16,
-									backgroundColor: isDark
-										? "#1f2937"
-										: "#f9fafb",
-									borderRadius: 12,
-									borderWidth: 1,
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									alignItems: "center",
+									padding: 14,
+									backgroundColor: cardBg,
 								}}>
-								<HStack
-									space='md'
-									style={{ alignItems: "center" }}>
-									<Box
+								<Box
+									style={{
+										width: 34,
+										height: 34,
+										borderRadius: 9,
+										backgroundColor: "#dcfce7",
+										justifyContent: "center",
+										alignItems: "center",
+										marginRight: 12,
+									}}>
+									<Icon
+										as={MessageCircle}
+										size='sm'
+										style={{ color: "#25D366" }}
+									/>
+								</Box>
+								<VStack style={{ flex: 1 }}>
+									<Text
 										style={{
-											width: 48,
-											height: 48,
-											borderRadius: 24,
-											backgroundColor: "#dcfce7",
-											justifyContent: "center",
-											alignItems: "center",
+											fontSize: 15,
+											fontWeight: "600",
+											color: sT,
 										}}>
-										<Icon
-											as={MessageCircle}
-											size='xl'
-											style={{ color: "#25D366" }}
-										/>
-									</Box>
-									<VStack style={{ flex: 1 }}>
+										WhatsApp
+									</Text>
+									{profile?.phone ? (
 										<Text
-											size='lg'
 											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+												fontSize: 12,
+												color: mT,
 											}}>
-											Contacter sur WhatsApp
+											{profile.phone}
 										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											Ouvrir WhatsApp
-										</Text>
-									</VStack>
-								</HStack>
-							</Card>
+									) : null}
+								</VStack>
+							</HStack>
 						</TouchableOpacity>
 
-						{/* Bouton Email */}
+						<Box
+							style={{ height: 1, backgroundColor: cardBorder }}
+						/>
+
+						{/* Email */}
 						<TouchableOpacity
-							onPress={() => {
-								setShowContactSheet(false);
-								// Linking.openURL(`mailto:${profile?.email}`);
-							}}
-							activeOpacity={0.7}>
-							<Card
+							activeOpacity={0.6}
+							onPress={() => setShowContactSheet(false)}>
+							<HStack
 								style={{
-									padding: 16,
-									backgroundColor: isDark
-										? "#1f2937"
-										: "#f9fafb",
-									borderRadius: 12,
-									borderWidth: 1,
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									alignItems: "center",
+									padding: 14,
+									backgroundColor: cardBg,
 								}}>
-								<HStack
-									space='md'
-									style={{ alignItems: "center" }}>
-									<Box
+								<Box
+									style={{
+										width: 34,
+										height: 34,
+										borderRadius: 9,
+										backgroundColor: "#fef3c7",
+										justifyContent: "center",
+										alignItems: "center",
+										marginRight: 12,
+									}}>
+									<Icon
+										as={Mail}
+										size='sm'
+										style={{ color: "#f59e0b" }}
+									/>
+								</Box>
+								<VStack style={{ flex: 1 }}>
+									<Text
 										style={{
-											width: 48,
-											height: 48,
-											borderRadius: 24,
-											backgroundColor: "#fef3c7",
-											justifyContent: "center",
-											alignItems: "center",
+											fontSize: 15,
+											fontWeight: "600",
+											color: sT,
 										}}>
-										<Icon
-											as={Mail}
-											size='xl'
-											style={{ color: "#f59e0b" }}
-										/>
-									</Box>
-									<VStack style={{ flex: 1 }}>
+										Email
+									</Text>
+									{profile?.email ? (
 										<Text
-											size='lg'
 											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+												fontSize: 12,
+												color: mT,
 											}}>
-											Envoyer un email
+											{profile.email}
 										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											Ouvrir l'application email
-										</Text>
-									</VStack>
-								</HStack>
-							</Card>
+									) : null}
+								</VStack>
+							</HStack>
 						</TouchableOpacity>
-					</VStack>
+					</Box>
+
+					{/* Bouton Annuler */}
+					<TouchableOpacity
+						onPress={() => setShowContactSheet(false)}
+						activeOpacity={0.7}
+						style={{
+							marginHorizontal: 16,
+							marginTop: 10,
+							height: 48,
+							borderRadius: 14,
+							backgroundColor: isDark ? "#374151" : "#ffffff",
+							borderWidth: 1,
+							borderColor: cardBorder,
+							alignItems: "center",
+							justifyContent: "center",
+							width: "100%",
+							alignSelf: "center",
+						}}>
+						<Text
+							style={{
+								fontSize: 15,
+								fontWeight: "600",
+								color: isDark ? "#d1d5db" : "#374151",
+							}}>
+							Annuler
+						</Text>
+					</TouchableOpacity>
 				</ActionsheetContent>
 			</Actionsheet>
 		</Box>
