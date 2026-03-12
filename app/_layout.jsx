@@ -160,10 +160,7 @@ function RootLayoutNav() {
 							screenOptions={{
 								header: (props) => (
 									<MyHeader
-										title={
-											props.options.headerTitle ??
-											props.route.name
-										}
+										title={props.options.headerTitle}
 										headerRight={props.options.headerRight}
 										showBack={props.back}
 									/>
