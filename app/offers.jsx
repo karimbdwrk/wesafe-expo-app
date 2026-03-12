@@ -45,7 +45,11 @@ const OffersScreen = () => {
 
 	const loadDataOffers = async () => {
 		setIsLoading(true);
-		let filters = `&company_id=eq.${user.id}&isLastMinute=eq.${isLastMinute}`;
+		const lastMinuteFilter =
+			isLastMinute !== undefined && isLastMinute !== "undefined"
+				? `&isLastMinute=eq.${isLastMinute}`
+				: "";
+		let filters = `&company_id=eq.${user.id}${lastMinuteFilter}`;
 		const { data, totalCount } = await getAll(
 			"jobs",
 			"*, companies(name, logo_url)",
