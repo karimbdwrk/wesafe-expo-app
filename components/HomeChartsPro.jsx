@@ -28,6 +28,7 @@ import {
 	Timer,
 	Target,
 	ChevronRight,
+	Plus,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
