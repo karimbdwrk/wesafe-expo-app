@@ -92,7 +92,7 @@ function MarqueeTitle({ title, style }) {
 	);
 }
 
-export default function MyHeader({ title, headerRight, showBack }) {
+export default function MyHeader({ title, logo, headerRight, showBack }) {
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
 
@@ -111,7 +111,11 @@ export default function MyHeader({ title, headerRight, showBack }) {
 			<View
 				style={[styles.titleWrapper, { top: insets.top }]}
 				pointerEvents='none'>
-				<MarqueeTitle title={title} style={styles.titleContainer} />
+				{logo ? (
+					logo
+				) : (
+					<MarqueeTitle title={title} style={styles.titleContainer} />
+				)}
 			</View>
 
 			{/* RIGHT */}
