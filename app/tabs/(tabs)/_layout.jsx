@@ -70,6 +70,7 @@ import { useNotifications } from "@/context/NotificationsContext";
 
 import LoggedInAppInitializer from "@/context/LoggedInAppInitializer";
 import MyHeader from "@/components/MyHeader";
+import { useTheme } from "@/context/ThemeContext";
 import { toast } from "sonner-native";
 
 // import {
@@ -114,6 +115,7 @@ function LogoTitle({ colorScheme }) {
 
 export default function TabLayout({ theme = "light" }) {
 	const colorScheme = useColorScheme();
+	const { isDark } = useTheme();
 	const {
 		accessToken,
 		role,
@@ -236,7 +238,11 @@ export default function TabLayout({ theme = "light" }) {
 					headerShown: true,
 					header: ({ options }) => (
 						<MyHeader
-							logo={<LogoTitle colorScheme={colorScheme} />}
+							logo={
+								<LogoTitle
+									colorScheme={isDark ? "dark" : "light"}
+								/>
+							}
 							headerRight={() => (
 								<>
 									{!accessToken && (
