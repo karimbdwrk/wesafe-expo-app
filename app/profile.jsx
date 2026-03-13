@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useLocalSearchParams, useFocusEffect } from "expo-router";
+import { useLocalSearchParams, useFocusEffect, Stack } from "expo-router";
 import { ScrollView, TouchableOpacity, Image as RNImage } from "react-native";
 
 import { Box } from "@/components/ui/box";
@@ -343,247 +343,282 @@ const ProfileScreen = () => {
 				flex: 1,
 				backgroundColor: isDark ? "#111827" : "#f3f4f6",
 			}}>
-			<ScrollView style={{ flex: 1 }}>
-				<VStack space='lg' style={{ padding: 20, paddingBottom: 90 }}>
-					{/* Hero Card */}
-					<Card
-						style={{
-							padding: 20,
-							backgroundColor: cardBg,
-							borderRadius: 16,
-							borderWidth: 1,
-							borderColor: cardBorder,
-							alignItems: "center",
-						}}>
-						{/* Photo carrée */}
-						{profile?.avatar_url ? (
-							<RNImage
-								source={{ uri: profile.avatar_url }}
-								style={{
-									width: 96,
-									height: 96,
-									borderRadius: 14,
-									marginBottom: 14,
-								}}
-								resizeMode='cover'
-							/>
-						) : (
-							<Box
-								style={{
-									width: 96,
-									height: 96,
-									borderRadius: 14,
-									marginBottom: 14,
-									backgroundColor: isDark
-										? "#374151"
-										: "#e5e7eb",
-									justifyContent: "center",
-									alignItems: "center",
-								}}>
-								<Text
-									style={{
-										fontSize: 30,
-										fontWeight: "700",
-										color: isDark ? "#d1d5db" : "#6b7280",
-									}}>
-									{profile?.firstname?.[0]}
-									{profile?.lastname?.[0]}
-								</Text>
-							</Box>
-						)}
-
-						{/* Nom */}
-						<Text
-							style={{
-								fontSize: 20,
-								fontWeight: "700",
-								color: sT,
-								textAlign: "center",
-								marginBottom: 2,
-							}}>
-							{profile?.firstname} {profile?.lastname}
-						</Text>
-
-						{/* Métier */}
-						{profile?.category && (
-							<Text
-								style={{
-									fontSize: 13,
-									color: mT,
-									textAlign: "center",
-									marginBottom: 12,
-								}}>
-								{profile.category}
-							</Text>
-						)}
-
-						{/* Badge statut */}
-						{profile?.profile_status === "verified" && (
-							<Box style={{ marginBottom: 16 }}>
+			<Stack.Screen
+				options={{
+					headerShown: true,
+					headerTitle: profile
+						? `${profile.firstname} ${profile.lastname}`
+						: "",
+					headerRight: () => (
+						<HStack
+							space='sm'
+							style={{ alignItems: "center", marginRight: 0 }}>
+							{profile?.profile_status === "verified" && (
 								<Badge
-									size='md'
+									size='sm'
 									variant='solid'
 									action='success'>
 									<BadgeIcon as={CheckCircle} />
 									<BadgeText className='ml-1'>
-										Profil vérifié
+										Vérifié
 									</BadgeText>
 								</Badge>
-							</Box>
-						)}
-						{profile?.profile_status === "pending" && (
-							<Box style={{ marginBottom: 16 }}>
-								<Badge
-									size='md'
-									variant='outline'
-									action='warning'>
-									<BadgeIcon as={Clock} />
-									<BadgeText className='ml-1'>
-										En cours de vérification
-									</BadgeText>
-								</Badge>
-							</Box>
-						)}
-
-						{/* Boutons */}
-						<HStack space='sm' style={{ width: "100%" }}>
-							<TouchableOpacity
-								onPress={handleToggle}
-								activeOpacity={0.7}
-								style={{
-									flex: 1,
-									height: 44,
-									borderRadius: 10,
-									borderWidth: 1.5,
-									borderColor: isAdded
-										? "#ef4444"
-										: isDark
-											? "#4b5563"
-											: "#d1d5db",
-									flexDirection: "row",
-									alignItems: "center",
-									justifyContent: "center",
-									columnGap: 6,
-								}}>
-								<Icon
-									as={isAdded ? StarOff : Star}
-									size='sm'
-									style={{
-										color: isAdded ? "#ef4444" : mT,
-									}}
-								/>
-								<Text
-									style={{
-										fontSize: 13,
-										fontWeight: "600",
-										color: isAdded ? "#ef4444" : mT,
-									}}>
-									{isAdded ? "Retirer" : "Favoris"}
-								</Text>
-							</TouchableOpacity>
-
-							<TouchableOpacity
-								onPress={() => setShowContactSheet(true)}
-								activeOpacity={0.7}
-								style={{
-									flex: 1,
-									height: 44,
-									borderRadius: 10,
-									backgroundColor: "#2563eb",
-									flexDirection: "row",
-									alignItems: "center",
-									justifyContent: "center",
-									columnGap: 6,
-								}}>
-								<Icon
-									as={MessageCircle}
-									size='sm'
-									style={{ color: "#ffffff" }}
-								/>
-								<Text
-									style={{
-										fontSize: 13,
-										fontWeight: "600",
-										color: "#ffffff",
-									}}>
-									Contacter
-								</Text>
-							</TouchableOpacity>
+							)}
 						</HStack>
-					</Card>
+					),
+				}}
+			/>
+			<ScrollView style={{ flex: 1 }}>
+				<VStack space='lg' style={{ padding: 20, paddingBottom: 90 }}>
+					<TouchableOpacity
+						onPress={handleToggle}
+						activeOpacity={0.7}
+						style={{
+							position: "absolute",
+							top: 20,
+							right: 20,
+							zIndex: 10,
+						}}
+						hitSlop={{
+							top: 8,
+							bottom: 8,
+							left: 8,
+							right: 8,
+						}}>
+						<Icon
+							as={isAdded ? Star : StarOff}
+							size='md'
+							style={{
+								color: isAdded
+									? "#f59e0b"
+									: isDark
+										? "#6b7280"
+										: "#9ca3af",
+							}}
+						/>
+					</TouchableOpacity>
 
 					{/* ── Informations personnelles ── */}
 					<Card
 						style={{
 							backgroundColor: cardBg,
-							borderRadius: 12,
+							borderRadius: 16,
 							borderWidth: 1,
 							borderColor: cardBorder,
 							padding: 16,
 						}}>
-						<SectionHeader
-							icon={User}
-							title='Informations personnelles'
-							iconColor='#2563eb'
-							iconBg='#dbeafe'
-						/>
-						<VStack space='xs'>
-							{profile?.birthday ? (
-								<InfoRow
-									icon={Calendar}
-									label='Date de naissance'
-									value={`${formatDate(profile.birthday)} · ${calcAge(profile.birthday)} ans`}
+						{/* Photo + infos côte à côte */}
+						<HStack space='md' style={{ alignItems: "flex-start" }}>
+							{/* Photo */}
+							{profile?.avatar_url ? (
+								<RNImage
+									source={{ uri: profile.avatar_url }}
+									style={{
+										width: 90,
+										height: 90,
+										borderRadius: 14,
+									}}
+									resizeMode='cover'
 								/>
-							) : null}
-							{profile?.gender ? (
-								<InfoRow
-									icon={User}
-									label='Genre'
-									value={
-										profile.gender === "male"
-											? "Homme"
-											: profile.gender === "female"
-												? "Femme"
-												: profile.gender
-									}
+							) : (
+								<Box
+									style={{
+										width: 90,
+										height: 90,
+										borderRadius: 14,
+										backgroundColor: isDark
+											? "#374151"
+											: "#e5e7eb",
+										justifyContent: "center",
+										alignItems: "center",
+									}}>
+									<Text
+										style={{
+											fontSize: 26,
+											fontWeight: "700",
+											color: isDark
+												? "#d1d5db"
+												: "#6b7280",
+										}}>
+										{profile?.firstname?.[0]}
+										{profile?.lastname?.[0]}
+									</Text>
+								</Box>
+							)}
+
+							{/* Nom + catégorie + pills */}
+							<VStack style={{ flex: 1 }}>
+								<Text
+									style={{
+										fontSize: 16,
+										fontWeight: "700",
+										color: sT,
+										marginBottom: 5,
+									}}>
+									{profile?.firstname} {profile?.lastname}
+								</Text>
+								{profile?.category ? (
+									<Text
+										style={{
+											fontSize: 12,
+											color: mT,
+											marginBottom: 8,
+										}}>
+										{profile.category}
+									</Text>
+								) : null}
+
+								{/* Pills compactes */}
+								<HStack style={{ flexWrap: "wrap", gap: 6 }}>
+									{profile?.birthday ? (
+										<HStack
+											style={{
+												alignItems: "center",
+												gap: 4,
+												backgroundColor: isDark
+													? "#374151"
+													: "#f3f4f6",
+												borderRadius: 8,
+												paddingHorizontal: 8,
+												paddingVertical: 4,
+											}}>
+											<Icon
+												as={Calendar}
+												size='xs'
+												style={{ color: mT }}
+											/>
+											<Text
+												style={{
+													fontSize: 11,
+													color: mT,
+												}}>
+												{calcAge(profile.birthday)} ans
+											</Text>
+										</HStack>
+									) : null}
+									{profile?.gender ? (
+										<HStack
+											style={{
+												alignItems: "center",
+												gap: 4,
+												backgroundColor: isDark
+													? "#374151"
+													: "#f3f4f6",
+												borderRadius: 8,
+												paddingHorizontal: 8,
+												paddingVertical: 4,
+											}}>
+											<Icon
+												as={User}
+												size='xs'
+												style={{ color: mT }}
+											/>
+											<Text
+												style={{
+													fontSize: 11,
+													color: mT,
+												}}>
+												{profile.gender === "male"
+													? "Homme"
+													: profile.gender ===
+														  "female"
+														? "Femme"
+														: profile.gender}
+											</Text>
+										</HStack>
+									) : null}
+									{profile?.height || profile?.weight ? (
+										<HStack
+											style={{
+												alignItems: "center",
+												gap: 4,
+												backgroundColor: isDark
+													? "#374151"
+													: "#f3f4f6",
+												borderRadius: 8,
+												paddingHorizontal: 8,
+												paddingVertical: 4,
+											}}>
+											<Icon
+												as={Dumbbell}
+												size='xs'
+												style={{ color: mT }}
+											/>
+											<Text
+												style={{
+													fontSize: 11,
+													color: mT,
+												}}>
+												{[
+													profile?.height &&
+														`${profile.height} cm`,
+													profile?.weight &&
+														`${profile.weight} kg`,
+												]
+													.filter(Boolean)
+													.join(" · ")}
+											</Text>
+										</HStack>
+									) : null}
+									{profile?.former_soldier === true ? (
+										<HStack
+											style={{
+												alignItems: "center",
+												gap: 4,
+												backgroundColor: isDark
+													? "#1c3a2e"
+													: "#dcfce7",
+												borderRadius: 8,
+												paddingHorizontal: 8,
+												paddingVertical: 4,
+											}}>
+											<Icon
+												as={Shield}
+												size='xs'
+												style={{ color: "#16a34a" }}
+											/>
+											<Text
+												style={{
+													fontSize: 11,
+													color: "#16a34a",
+												}}>
+												Ancien militaire
+											</Text>
+										</HStack>
+									) : null}
+								</HStack>
+							</VStack>
+						</HStack>
+
+						{/* Séparateur + infos supplémentaires */}
+						{profile?.languages || profile?.driving_licenses ? (
+							<>
+								<Box
+									style={{
+										height: 1,
+										backgroundColor: cardBorder,
+										marginTop: 14,
+										marginBottom: 8,
+									}}
 								/>
-							) : null}
-							{profile?.height || profile?.weight ? (
-								<InfoRow
-									icon={Dumbbell}
-									label='Morphologie'
-									value={[
-										profile?.height &&
-											`${profile.height} cm`,
-										profile?.weight &&
-											`${profile.weight} kg`,
-									]
-										.filter(Boolean)
-										.join(" · ")}
-								/>
-							) : null}
-							{profile?.languages ? (
-								<InfoRow
-									icon={Globe}
-									label='Langues'
-									value={profile.languages}
-								/>
-							) : null}
-							{profile?.driving_licenses ? (
-								<InfoRow
-									icon={Car}
-									label='Permis de conduire'
-									value={profile.driving_licenses}
-								/>
-							) : null}
-							{profile?.former_soldier === true ? (
-								<InfoRow
-									icon={Shield}
-									label='Ancien militaire'
-									value='Oui'
-								/>
-							) : null}
-						</VStack>
+								<VStack space='xs'>
+									{profile?.languages ? (
+										<InfoRow
+											icon={Globe}
+											label='Langues'
+											value={profile.languages}
+										/>
+									) : null}
+									{profile?.driving_licenses ? (
+										<InfoRow
+											icon={Car}
+											label='Permis de conduire'
+											value={profile.driving_licenses}
+										/>
+									) : null}
+								</VStack>
+							</>
+						) : null}
 					</Card>
 
 					{/* ── Vérifications ── */}
@@ -741,6 +776,44 @@ const ProfileScreen = () => {
 					)}
 				</VStack>
 			</ScrollView>
+
+			{/* Bouton Contacter fixe en bas */}
+			<Box
+				style={{
+					paddingHorizontal: 20,
+					paddingVertical: 14,
+					paddingBottom: 28,
+					backgroundColor: isDark ? "#111827" : "#f3f4f6",
+					borderTopWidth: 1,
+					borderTopColor: cardBorder,
+				}}>
+				<TouchableOpacity
+					onPress={() => setShowContactSheet(true)}
+					activeOpacity={0.8}
+					style={{
+						height: 52,
+						borderRadius: 14,
+						backgroundColor: "#2563eb",
+						flexDirection: "row",
+						alignItems: "center",
+						justifyContent: "center",
+						columnGap: 8,
+					}}>
+					<Icon
+						as={MessageCircle}
+						size='sm'
+						style={{ color: "#ffffff" }}
+					/>
+					<Text
+						style={{
+							fontSize: 15,
+							fontWeight: "700",
+							color: "#ffffff",
+						}}>
+						Contacter
+					</Text>
+				</TouchableOpacity>
+			</Box>
 
 			{/* ActionSheet Contact */}
 			<Actionsheet
