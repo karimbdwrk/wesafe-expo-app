@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocalSearchParams, useFocusEffect } from "expo-router";
-import { ScrollView, TouchableOpacity } from "react-native";
+import { ScrollView, TouchableOpacity, Image as RNImage } from "react-native";
 
 import { Box } from "@/components/ui/box";
 import { VStack } from "@/components/ui/vstack";
@@ -357,20 +357,16 @@ const ProfileScreen = () => {
 						}}>
 						{/* Photo carrée */}
 						{profile?.avatar_url ? (
-							<Box
+							<RNImage
+								source={{ uri: profile.avatar_url }}
 								style={{
 									width: 96,
 									height: 96,
 									borderRadius: 14,
 									marginBottom: 14,
-									overflow: "hidden",
-								}}>
-								<Image
-									source={{ uri: profile.avatar_url }}
-									alt='avatar'
-									style={{ width: 96, height: 96 }}
-								/>
-							</Box>
+								}}
+								resizeMode='cover'
+							/>
 						) : (
 							<Box
 								style={{
@@ -654,7 +650,8 @@ const ProfileScreen = () => {
 					</Card>
 
 					{/* ── Cartes CNAPS ── */}
-					{cnapsCards.length > 0 && (
+					{cnapsCards.filter((c) => !isExpired(c.expires_at)).length >
+						0 && (
 						<Card
 							style={{
 								backgroundColor: cardBg,
@@ -669,17 +666,23 @@ const ProfileScreen = () => {
 								iconColor='#7c3aed'
 								iconBg='#ede9fe'
 							/>
-							{cnapsCards.map((card) => (
-								<DocCard
-									key={card.id}
-									title={CNAPS_LABELS[card.type] ?? card.type}
-									subtitle={
-										card.number ? `N° ${card.number}` : null
-									}
-									expiresAt={card.expires_at}
-									status={card.status}
-								/>
-							))}
+							{cnapsCards
+								.filter((c) => !isExpired(c.expires_at))
+								.map((card) => (
+									<DocCard
+										key={card.id}
+										title={
+											CNAPS_LABELS[card.type] ?? card.type
+										}
+										subtitle={
+											card.number
+												? `N° ${card.number}`
+												: null
+										}
+										expiresAt={card.expires_at}
+										status={card.status}
+									/>
+								))}
 						</Card>
 					)}
 
@@ -763,7 +766,7 @@ const ProfileScreen = () => {
 					<Box
 						style={{
 							paddingHorizontal: 20,
-							paddingTop: 4,
+							paddingTop: 12,
 							paddingBottom: 14,
 							width: "100%",
 						}}>
@@ -775,7 +778,8 @@ const ProfileScreen = () => {
 								textTransform: "uppercase",
 								letterSpacing: 0.8,
 							}}>
-							Contacter {profile?.firstname}
+							Contacter{" "}
+							{profile?.firstname + " " + profile?.lastname}
 						</Text>
 					</Box>
 
