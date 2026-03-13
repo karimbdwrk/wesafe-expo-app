@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ScrollView, TouchableOpacity } from "react-native";
+import { ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -55,7 +55,7 @@ import { Icon } from "@/components/ui/icon";
 const UpdateProfile = () => {
 	const router = useRouter();
 	const { user } = useAuth();
-	const { update, getById, trackActivity } = useDataContext();
+	const { update, getById, getAll, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const toast = useToast();
 
@@ -77,6 +77,9 @@ const UpdateProfile = () => {
 	const [languages, setLanguages] = useState("");
 	const [height, setHeight] = useState("");
 	const [weight, setWeight] = useState("");
+	const [phone, setPhone] = useState("");
+	const [phoneChecking, setPhoneChecking] = useState(false);
+	const [phoneStatus, setPhoneStatus] = useState(null); // null | 'available' | 'taken'
 	const [cities, setCities] = useState([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [loading, setLoading] = useState(true);
@@ -108,6 +111,12 @@ const UpdateProfile = () => {
 				setLanguages(profile.languages || "");
 				setHeight(profile.height?.toString() || "");
 				setWeight(profile.weight?.toString() || "");
+				// Afficher le numéro formaté XX XX XX XX XX
+				const raw = profile.phone || "";
+				const digits = raw.startsWith("+33")
+					? "0" + raw.slice(3)
+					: raw.replace(/\D/g, "");
+				setPhone(digits.replace(/(\d{2})(?=\d)/g, "$1 ").trim());
 			}
 		} catch (error) {
 			console.error("Error loading profile:", error);
@@ -186,6 +195,9 @@ const UpdateProfile = () => {
 				languages,
 				height: height ? parseFloat(height) : null,
 				weight: weight ? parseFloat(weight) : null,
+				phone: phone
+					? `+33${phone.replace(/\s/g, "").replace(/^0/, "")}`
+					: null,
 			});
 
 			toast.show({
@@ -235,6 +247,50 @@ const UpdateProfile = () => {
 
 	const handleCancelDate = () => {
 		setShowDatePicker(false);
+	};
+
+	const handlePhoneChange = (text) => {
+		// Garder seulement les chiffres
+		let digits = text.replace(/\D/g, "");
+		// Auto-préfixer 0 si premier chiffre est 6 ou 7
+		if (digits.length === 1 && (digits[0] === "6" || digits[0] === "7")) {
+			digits = "0" + digits;
+		}
+		// Limiter à 10 chiffres
+		digits = digits.slice(0, 10);
+		// Formater XX XX XX XX XX
+		const formatted = digits.replace(/(\d{2})(?=\d)/g, "$1 ").trim();
+		setPhone(formatted);
+		// Reset status si le numéro change
+		setPhoneStatus(null);
+		setPhoneChecking(false);
+
+		// Vérification unicité dès que 10 chiffres valides
+		if (digits.length === 10 && /^0[67]\d{8}$/.test(digits)) {
+			const e164 = `+33${digits.slice(1)}`;
+			const encoded = encodeURIComponent(e164);
+			setPhoneChecking(true);
+			getAll(
+				"profiles",
+				"id",
+				`&phone=eq.${encoded}&id=neq.${user.id}`,
+				1,
+				1,
+			).then(({ data }) => {
+				console.warn("[phone check] query pour", e164, "→ résultat brut :", data);
+				if (data?.length > 0) {
+					console.warn(`[phone check] ❌ Numéro ${e164} déjà utilisé par profil id=${data[0].id}`);
+					setPhoneStatus("taken");
+				} else {
+					console.warn(`[phone check] ✅ Numéro ${e164} disponible`);
+					setPhoneStatus("available");
+				}
+			}).catch((err) => {
+				console.warn("[phone check] erreur requête :", err?.message || err);
+			}).finally(() => {
+				setPhoneChecking(false);
+			});
+		}
 	};
 
 	if (loading) {
@@ -383,6 +439,111 @@ const UpdateProfile = () => {
 									}}
 								/>
 							</Input>
+						</VStack>
+
+						<Divider
+							style={{
+								backgroundColor: isDark ? "#4b5563" : "#e5e7eb",
+							}}
+						/>
+
+						{/* Téléphone */}
+						<VStack space='sm'>
+							<Text
+								size='sm'
+								style={{
+									color: isDark ? "#f3f4f6" : "#111827",
+									fontWeight: "600",
+								}}>
+								Téléphone
+							</Text>
+							<HStack space='sm'>
+								{/* Indicateur pays — bloqué +33 */}
+								<Box
+									style={{
+										height: 36,
+										paddingHorizontal: 14,
+										borderRadius: 8,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#d1d5db",
+										backgroundColor: isDark
+											? "#374151"
+											: "#f3f4f6",
+										flexDirection: "row",
+										alignItems: "center",
+										gap: 6,
+									}}>
+									<Text
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+											fontWeight: "600",
+											fontSize: 14,
+										}}>
+										+33
+									</Text>
+								</Box>
+								{/* Numéro */}
+								<Input
+									style={{
+										flex: 1,
+										backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+										borderColor: (() => {
+											const digits = phone.replace(/\s/g, "");
+											if (!digits) return isDark ? "#4b5563" : "#d1d5db";
+											if (phoneStatus === "taken") return "#ef4444";
+											if (phoneStatus === "available") return "#16a34a";
+											const startsOk = /^0[67]/.test(digits);
+											if (!startsOk && digits.length >= 2) return "#ef4444";
+											return isDark ? "#4b5563" : "#d1d5db";
+										})(),
+										borderWidth: (() => {
+											const digits = phone.replace(/\s/g, "");
+											if (phoneStatus === "taken" || phoneStatus === "available") return 1.5;
+											const startsOk = /^0[67]/.test(digits);
+											if (!startsOk && digits.length >= 2) return 1.5;
+											return 1;
+										})(),
+									}}>
+									<InputField
+										keyboardType='phone-pad'
+										placeholder='06 12 34 56 78'
+										value={phone}
+										onChangeText={handlePhoneChange}
+										maxLength={14}
+										style={{ color: isDark ? "#f3f4f6" : "#111827" }}
+									/>
+									{phoneChecking && (
+										<InputSlot style={{ paddingRight: 12 }}>
+											<ActivityIndicator size='small' color={isDark ? "#9ca3af" : "#6b7280"} />
+										</InputSlot>
+									)}
+								</Input>
+							</HStack>
+							{phoneChecking ? null : phoneStatus === "available" ? (
+								<Text style={{ fontSize: 12, color: "#16a34a", marginTop: 4 }}>
+									✓ Numéro disponible
+								</Text>
+							) : phoneStatus === "taken" ? (
+								<Text style={{ fontSize: 12, color: "#ef4444", marginTop: 4 }}>
+									✕ Ce numéro est déjà utilisé
+								</Text>
+							) : (() => {
+								const digits = phone.replace(/\s/g, "");
+								if (!digits) return null;
+								if (/^0[67]/.test(digits)) return null;
+								if (digits.length >= 2) {
+									return (
+										<Text style={{ fontSize: 12, color: "#ef4444", marginTop: 4 }}>
+											Le numéro doit commencer par 06 ou 07
+										</Text>
+									);
+								}
+								return null;
+							})()}
 						</VStack>
 
 						<Divider
