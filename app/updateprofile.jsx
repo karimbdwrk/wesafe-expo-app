@@ -51,6 +51,7 @@ import {
 	ToastDescription,
 } from "@/components/ui/toast";
 import { Icon } from "@/components/ui/icon";
+import { sendPhoneOtp, verifyPhoneOtp } from "@/services/twilioApi";
 
 const UpdateProfile = () => {
 	const router = useRouter();
@@ -80,6 +81,11 @@ const UpdateProfile = () => {
 	const [phone, setPhone] = useState("");
 	const [phoneChecking, setPhoneChecking] = useState(false);
 	const [phoneStatus, setPhoneStatus] = useState(null); // null | 'available' | 'taken'
+	const [otpSending, setOtpSending] = useState(false);
+	const [otpSent, setOtpSent] = useState(false);
+	const [otpInput, setOtpInput] = useState("");
+	const [otpVerifying, setOtpVerifying] = useState(false);
+	const [phoneVerified, setPhoneVerified] = useState(false);
 	const [cities, setCities] = useState([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [loading, setLoading] = useState(true);
@@ -198,6 +204,9 @@ const UpdateProfile = () => {
 				phone: phone
 					? `+33${phone.replace(/\s/g, "").replace(/^0/, "")}`
 					: null,
+				phone_status: phone
+					? (phoneVerified ? "verified" : "pending")
+					: null,
 			});
 
 			toast.show({
@@ -240,6 +249,44 @@ const UpdateProfile = () => {
 		}
 	};
 
+	const handleSendOtp = async () => {
+		const digits = phone.replace(/\s/g, "");
+		if (!/^0[67]\d{8}$/.test(digits)) return;
+		const e164 = `+33${digits.slice(1)}`;
+		setOtpSending(true);
+		try {
+			const res = await sendPhoneOtp(e164);
+			if (res?.success) {
+				setOtpSent(true);
+				setOtpInput("");
+			}
+		} catch (err) {
+			console.warn("[send-otp] erreur :", err?.message || err);
+		} finally {
+			setOtpSending(false);
+		}
+	};
+
+	const handleVerifyOtp = async () => {
+		const digits = phone.replace(/\s/g, "");
+		if (!/^0[67]\d{8}$/.test(digits) || otpInput.length < 4) return;
+		const e164 = `+33${digits.slice(1)}`;
+		setOtpVerifying(true);
+		try {
+			const res = await verifyPhoneOtp(e164, otpInput.trim());
+			if (res?.success) {
+				setPhoneVerified(true);
+				setOtpSent(false);
+			} else {
+				console.warn("[verify-otp] code incorrect :", res?.status);
+			}
+		} catch (err) {
+			console.warn("[verify-otp] erreur :", err?.message || err);
+		} finally {
+			setOtpVerifying(false);
+		}
+	};
+
 	const handleConfirmDate = (selectedDate) => {
 		setShowDatePicker(false);
 		setBirthday(selectedDate);
@@ -264,6 +311,9 @@ const UpdateProfile = () => {
 		// Reset status si le numéro change
 		setPhoneStatus(null);
 		setPhoneChecking(false);
+		setOtpSent(false);
+		setOtpInput("");
+		setPhoneVerified(false);
 
 		// Vérification unicité dès que 10 chiffres valides
 		if (digits.length === 10 && /^0[67]\d{8}$/.test(digits)) {
@@ -523,10 +573,87 @@ const UpdateProfile = () => {
 									)}
 								</Input>
 							</HStack>
-							{phoneChecking ? null : phoneStatus === "available" ? (
-								<Text style={{ fontSize: 12, color: "#16a34a", marginTop: 4 }}>
-									✓ Numéro disponible
-								</Text>
+							{phoneChecking ? null : phoneVerified ? (
+								<HStack space='xs' style={{ alignItems: "center", marginTop: 6 }}>
+									<Icon as={CheckCircle} size='sm' style={{ color: "#16a34a" }} />
+									<Text style={{ fontSize: 12, color: "#16a34a" }}>Numéro vérifié</Text>
+								</HStack>
+							) : phoneStatus === "available" ? (
+								<VStack space='sm' style={{ marginTop: 6 }}>
+									{!otpSent ? (
+										<>
+											<Text style={{ fontSize: 12, color: "#16a34a" }}>✓ Numéro disponible</Text>
+											<TouchableOpacity
+												onPress={handleSendOtp}
+												disabled={otpSending}
+												style={{
+													alignSelf: "flex-start",
+													paddingHorizontal: 16,
+													paddingVertical: 8,
+													borderRadius: 8,
+													backgroundColor: isDark ? "#2563eb" : "#3b82f6",
+													opacity: otpSending ? 0.6 : 1,
+													flexDirection: "row",
+													alignItems: "center",
+													gap: 6,
+												}}>
+												{otpSending ? (
+													<ActivityIndicator size='small' color='#fff' />
+												) : null}
+												<Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>
+													{otpSending ? "Envoi en cours…" : "Valider par SMS"}
+												</Text>
+											</TouchableOpacity>
+										</>
+									) : (
+										<>
+											<Text style={{ fontSize: 12, color: isDark ? "#9ca3af" : "#6b7280" }}>
+												Code envoyé par SMS — saisissez-le ci-dessous
+											</Text>
+											<HStack space='sm' style={{ alignItems: "center" }}>
+												<Input style={{
+													flex: 1,
+													backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+													borderColor: isDark ? "#4b5563" : "#d1d5db",
+												}}>
+													<InputField
+														keyboardType='number-pad'
+														placeholder='Code OTP'
+														value={otpInput}
+														onChangeText={setOtpInput}
+														maxLength={6}
+														style={{ color: isDark ? "#f3f4f6" : "#111827", letterSpacing: 4 }}
+													/>
+												</Input>
+												<TouchableOpacity
+													onPress={handleVerifyOtp}
+													disabled={otpVerifying || otpInput.length < 4}
+													style={{
+														paddingHorizontal: 16,
+														paddingVertical: 10,
+														borderRadius: 8,
+														backgroundColor: isDark ? "#2563eb" : "#3b82f6",
+														opacity: (otpVerifying || otpInput.length < 4) ? 0.5 : 1,
+														flexDirection: "row",
+														alignItems: "center",
+														gap: 6,
+													}}>
+													{otpVerifying ? (
+														<ActivityIndicator size='small' color='#fff' />
+													) : null}
+													<Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>
+														Vérifier
+													</Text>
+												</TouchableOpacity>
+											</HStack>
+											<TouchableOpacity onPress={handleSendOtp} disabled={otpSending}>
+												<Text style={{ fontSize: 11, color: isDark ? "#6b7280" : "#9ca3af", marginTop: 2 }}>
+													Renvoyer le code
+												</Text>
+											</TouchableOpacity>
+										</>
+									)}
+								</VStack>
 							) : phoneStatus === "taken" ? (
 								<Text style={{ fontSize: 12, color: "#ef4444", marginTop: 4 }}>
 									✕ Ce numéro est déjà utilisé
