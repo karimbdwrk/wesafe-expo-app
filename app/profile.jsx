@@ -37,8 +37,8 @@ import {
 	Award,
 	FileText,
 	CheckCircle,
-	Star,
-	StarOff,
+	UserPlus,
+	UserMinus,
 	IdCard,
 	MessageSquare,
 	MessageCircle,
@@ -370,34 +370,6 @@ const ProfileScreen = () => {
 			/>
 			<ScrollView style={{ flex: 1 }}>
 				<VStack space='lg' style={{ padding: 20, paddingBottom: 90 }}>
-					<TouchableOpacity
-						onPress={handleToggle}
-						activeOpacity={0.7}
-						style={{
-							position: "absolute",
-							top: 20,
-							right: 20,
-							zIndex: 10,
-						}}
-						hitSlop={{
-							top: 8,
-							bottom: 8,
-							left: 8,
-							right: 8,
-						}}>
-						<Icon
-							as={isAdded ? Star : StarOff}
-							size='md'
-							style={{
-								color: isAdded
-									? "#f59e0b"
-									: isDark
-										? "#6b7280"
-										: "#9ca3af",
-							}}
-						/>
-					</TouchableOpacity>
-
 					{/* ── Informations personnelles ── */}
 					<Card
 						style={{
@@ -407,6 +379,48 @@ const ProfileScreen = () => {
 							borderColor: cardBorder,
 							padding: 16,
 						}}>
+						<TouchableOpacity
+							onPress={handleToggle}
+							activeOpacity={0.7}
+							style={{
+								position: "absolute",
+								bottom: 16,
+								right: 16,
+								zIndex: 10,
+								flexDirection: "row",
+								alignItems: "center",
+								gap: 4,
+								paddingHorizontal: 10,
+								paddingVertical: 5,
+								borderRadius: 20,
+								borderWidth: 1,
+								borderColor: isAdded
+									? "#ef4444"
+									: isDark
+										? "#4b5563"
+										: "#d1d5db",
+								backgroundColor: isAdded
+									? isDark
+										? "#3b0f0f"
+										: "#fef2f2"
+									: isDark
+										? "#1f2937"
+										: "#ffffff",
+							}}>
+							<Icon
+								as={isAdded ? UserMinus : UserPlus}
+								size='xs'
+								style={{ color: isAdded ? "#ef4444" : mT }}
+							/>
+							<Text
+								style={{
+									fontSize: 11,
+									fontWeight: "600",
+									color: isAdded ? "#ef4444" : mT,
+								}}>
+								{isAdded ? "Retirer" : "Répertoire"}
+							</Text>
+						</TouchableOpacity>
 						{/* Photo + infos côte à côte */}
 						<HStack space='md' style={{ alignItems: "flex-start" }}>
 							{/* Photo */}
