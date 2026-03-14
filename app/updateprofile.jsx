@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
@@ -86,6 +86,9 @@ const UpdateProfile = () => {
 	const [otpInput, setOtpInput] = useState("");
 	const [otpVerifying, setOtpVerifying] = useState(false);
 	const [phoneVerified, setPhoneVerified] = useState(false);
+	const [otpError, setOtpError] = useState(null); // null | 'wrong_code' | 'expired' | 'server'
+	const [resendCooldown, setResendCooldown] = useState(0); // secondes restantes avant de pouvoir renvoyer
+	const resendTimerRef = useRef(null);
 	const [cities, setCities] = useState([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [loading, setLoading] = useState(true);
@@ -254,14 +257,32 @@ const UpdateProfile = () => {
 		if (!/^0[67]\d{8}$/.test(digits)) return;
 		const e164 = `+33${digits.slice(1)}`;
 		setOtpSending(true);
+		setOtpError(null);
 		try {
-			const res = await sendPhoneOtp(e164);
+			const res = await sendPhoneOtp(e164, user.id);
 			if (res?.success) {
 				setOtpSent(true);
 				setOtpInput("");
+				setOtpError(null);
+				// Démarrer le cooldown 60s
+				setResendCooldown(60);
+				if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+				resendTimerRef.current = setInterval(() => {
+					setResendCooldown((prev) => {
+						if (prev <= 1) {
+							clearInterval(resendTimerRef.current);
+							return 0;
+						}
+						return prev - 1;
+					});
+				}, 1000);
+			} else {
+				console.warn("[send-otp] erreur serveur :", res?.error, res?.detail);
+				setOtpError("server");
 			}
 		} catch (err) {
-			console.warn("[send-otp] erreur :", err?.message || err);
+			console.warn("[send-otp] exception :", err?.message || err);
+			setOtpError("server");
 		} finally {
 			setOtpSending(false);
 		}
@@ -272,16 +293,24 @@ const UpdateProfile = () => {
 		if (!/^0[67]\d{8}$/.test(digits) || otpInput.length < 4) return;
 		const e164 = `+33${digits.slice(1)}`;
 		setOtpVerifying(true);
+		setOtpError(null);
 		try {
-			const res = await verifyPhoneOtp(e164, otpInput.trim());
+			const res = await verifyPhoneOtp(e164, otpInput.trim(), user.id);
 			if (res?.success) {
 				setPhoneVerified(true);
 				setOtpSent(false);
+				setOtpError(null);
+			} else if (res?.expired) {
+				setOtpError("expired");
+				setOtpInput("");
 			} else {
-				console.warn("[verify-otp] code incorrect :", res?.status);
+				// code incorrect
+				setOtpError("wrong_code");
+				console.warn("[verify-otp] échec :", res?.error, res?.detail, "status:", res?.status);
 			}
 		} catch (err) {
-			console.warn("[verify-otp] erreur :", err?.message || err);
+			console.warn("[verify-otp] exception :", err?.message || err);
+			setOtpError("server");
 		} finally {
 			setOtpVerifying(false);
 		}
@@ -314,6 +343,7 @@ const UpdateProfile = () => {
 		setOtpSent(false);
 		setOtpInput("");
 		setPhoneVerified(false);
+		setOtpError(null);
 
 		// Vérification unicité dès que 10 chiffres valides
 		if (digits.length === 10 && /^0[67]\d{8}$/.test(digits)) {
@@ -620,7 +650,7 @@ const UpdateProfile = () => {
 														keyboardType='number-pad'
 														placeholder='Code OTP'
 														value={otpInput}
-														onChangeText={setOtpInput}
+														onChangeText={(v) => { setOtpInput(v); setOtpError(null); }}
 														maxLength={6}
 														style={{ color: isDark ? "#f3f4f6" : "#111827", letterSpacing: 4 }}
 													/>
@@ -646,9 +676,28 @@ const UpdateProfile = () => {
 													</Text>
 												</TouchableOpacity>
 											</HStack>
-											<TouchableOpacity onPress={handleSendOtp} disabled={otpSending}>
+											{otpError === "wrong_code" && (
+												<Text style={{ fontSize: 12, color: "#ef4444", marginTop: 4 }}>
+													Code incorrect, vérifiez votre SMS
+												</Text>
+											)}
+											{otpError === "expired" && (
+												<Text style={{ fontSize: 12, color: "#f59e0b", marginTop: 4 }}>
+													Code expiré — cliquez sur "Renvoyer le code"
+												</Text>
+											)}
+											{otpError === "server" && (
+												<Text style={{ fontSize: 12, color: "#ef4444", marginTop: 4 }}>
+													Erreur serveur, réessayez
+												</Text>
+											)}
+											<TouchableOpacity
+												onPress={handleSendOtp}
+												disabled={otpSending || resendCooldown > 0}>
 												<Text style={{ fontSize: 11, color: isDark ? "#6b7280" : "#9ca3af", marginTop: 2 }}>
-													Renvoyer le code
+													{resendCooldown > 0
+														? `Renvoyer dans ${resendCooldown}s`
+														: "Renvoyer le code"}
 												</Text>
 											</TouchableOpacity>
 										</>
