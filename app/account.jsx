@@ -54,6 +54,8 @@ import { useImage } from "@/context/ImageContext";
 import { createSupabaseClient } from "@/lib/supabase";
 import { width } from "dom-helpers";
 
+import Logo from "@/components/Logo";
+
 const AccountScreen = () => {
 	const { user, signOut, accessToken } = useAuth();
 	const { getById, getAll } = useDataContext();
@@ -353,7 +355,7 @@ const AccountScreen = () => {
 								<SvgQRCode
 									value={qrUrl}
 									size={200}
-									logo={require("@/assets/images/logo-wesafe-v2.png")}
+									logo={() => <Logo />}
 									logoSize={40}
 									logoBackgroundColor='#ffffff'
 									logoBorderRadius={8}
@@ -432,6 +434,27 @@ const AccountScreen = () => {
 														: "#6b7280",
 												}}>
 												{profile.email}
+											</Text>
+										)}
+										{profile?.phone && (
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												{profile.phone.startsWith(
+													"+33",
+												) && profile.phone.length === 12
+													? "+33 " +
+														profile.phone
+															.slice(3)
+															.replace(
+																/(\d)(\d{2})(\d{2})(\d{2})(\d{2})/,
+																"$1 $2 $3 $4 $5",
+															)
+													: profile.phone}
 											</Text>
 										)}
 										{(verifiedDocs.cnaps.length > 0 ||
