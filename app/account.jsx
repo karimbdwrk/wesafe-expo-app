@@ -1,5 +1,17 @@
 import React, { useState, useCallback, useLayoutEffect } from "react";
-import { View, ScrollView, TouchableOpacity, Image, Modal } from "react-native";
+import { View, ScrollView, TouchableOpacity, Image } from "react-native";
+import {
+	Actionsheet,
+	ActionsheetBackdrop,
+	ActionsheetContent,
+	ActionsheetDragIndicatorWrapper,
+	ActionsheetDragIndicator,
+} from "@/components/ui/actionsheet";
+import {
+	Avatar,
+	AvatarFallbackText,
+	AvatarImage,
+} from "@/components/ui/avatar";
 import { useRouter, useFocusEffect, Stack } from "expo-router";
 import SvgQRCode from "react-native-qrcode-svg";
 
@@ -295,85 +307,139 @@ const AccountScreen = () => {
 					),
 				}}
 			/>
-			<Modal
-				visible={showQRModal}
-				transparent={true}
-				animationType='fade'
-				onRequestClose={() => setShowQRModal(false)}>
-				<TouchableOpacity
+			<Actionsheet
+				isOpen={showQRModal}
+				onClose={() => setShowQRModal(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
 					style={{
-						flex: 1,
-						backgroundColor: "rgba(0, 0, 0, 0.75)",
-						justifyContent: "center",
-						alignItems: "center",
-					}}
-					activeOpacity={1}
-					onPress={() => setShowQRModal(false)}>
-					<TouchableOpacity
+						backgroundColor: isDark ? "#111827" : "#ffffff",
+						paddingBottom: 90,
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+
+					{/* Header titre + bouton fermer */}
+					<HStack
 						style={{
-							backgroundColor: isDark ? "#374151" : "#ffffff",
-							borderRadius: 20,
-							padding: 30,
+							width: "100%",
 							alignItems: "center",
-							width: "85%",
-							maxWidth: 400,
-						}}
-						activeOpacity={1}>
+							justifyContent: "space-between",
+							paddingHorizontal: 24,
+							paddingTop: 12,
+							paddingBottom: 4,
+						}}>
+						<Heading
+							size='md'
+							style={{
+								color: isDark ? "#f9fafb" : "#111827",
+							}}>
+							Mon QR Code
+						</Heading>
 						<TouchableOpacity
 							onPress={() => setShowQRModal(false)}
 							activeOpacity={0.7}
 							style={{
-								position: "absolute",
-								top: 15,
-								right: 15,
-								zIndex: 10,
+								backgroundColor: isDark ? "#1f2937" : "#f3f4f6",
+								borderRadius: 999,
+								padding: 8,
 							}}>
 							<Icon
 								as={X}
-								size='xl'
+								size='sm'
 								style={{
 									color: isDark ? "#9ca3af" : "#6b7280",
 								}}
 							/>
 						</TouchableOpacity>
-						<Text
-							size='xl'
-							style={{
-								fontWeight: "700",
-								color: isDark ? "#f3f4f6" : "#111827",
-								marginBottom: 20,
-							}}>
-							Mon QR Code
-						</Text>
+					</HStack>
+
+					{/* Avatar + nom + prénom */}
+					<HStack
+						space='md'
+						style={{
+							alignItems: "center",
+							width: "100%",
+							marginTop: 20,
+							marginBottom: 28,
+							paddingHorizontal: 24,
+						}}>
+						<Avatar size='lg'>
+							<AvatarFallbackText>
+								{profile?.first_name} {profile?.last_name}
+							</AvatarFallbackText>
+							{profile?.avatar_url && (
+								<AvatarImage
+									source={{ uri: profile.avatar_url }}
+								/>
+							)}
+						</Avatar>
+						<VStack>
+							<Heading
+								size='sm'
+								style={{
+									color: isDark ? "#f9fafb" : "#111827",
+								}}>
+								{profile?.first_name} {profile?.last_name}
+							</Heading>
+							{profile?.job_title ? (
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#6b7280" : "#9ca3af",
+									}}>
+									{profile.job_title}
+								</Text>
+							) : null}
+						</VStack>
+					</HStack>
+
+					{/* QR Code */}
+					<View
+						style={{
+							alignItems: "center",
+							width: "100%",
+							paddingHorizontal: 24,
+						}}>
 						<View
 							style={{
 								backgroundColor: "#ffffff",
+								borderRadius: 24,
 								padding: 20,
-								borderRadius: 15,
+								shadowColor: "#000",
+								shadowOpacity: 0.1,
+								shadowRadius: 16,
+								shadowOffset: { width: 0, height: 4 },
+								elevation: 6,
 							}}>
 							{qrUrl && (
 								<SvgQRCode
 									value={qrUrl}
 									size={200}
-									logo={() => <Logo />}
+									color='#111827'
+									backgroundColor='#ffffff'
 									logoSize={40}
 									logoBackgroundColor='#ffffff'
 									logoBorderRadius={8}
 								/>
 							)}
 						</View>
-						<Text
-							size='sm'
-							style={{
-								color: isDark ? "#9ca3af" : "#6b7280",
-								marginTop: 20,
-								textAlign: "center",
-							}}>
-							Partagez ce code pour afficher votre profil
-						</Text>
-					</TouchableOpacity>
-				</TouchableOpacity>
-			</Modal>
+					</View>
+
+					{/* Hint */}
+					<Text
+						style={{
+							color: isDark ? "#6b7280" : "#9ca3af",
+							fontSize: 12,
+							marginTop: 20,
+							textAlign: "center",
+							paddingHorizontal: 32,
+						}}>
+						Faites scanner ce code pour afficher votre profil WeSafe
+					</Text>
+				</ActionsheetContent>
+			</Actionsheet>
 			<Box
 				style={{
 					flex: 1,
