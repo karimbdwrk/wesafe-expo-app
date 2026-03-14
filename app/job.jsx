@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Constants from "expo-constants";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import {
+	useLocalSearchParams,
+	useFocusEffect,
+	Stack,
+	useNavigation,
+	useRouter,
+} from "expo-router";
 import { toast } from "sonner-native";
 import { ScrollView, TouchableOpacity } from "react-native";
 
@@ -39,8 +45,6 @@ import {
 	ModalFooter,
 } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
-
-import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
@@ -334,6 +338,20 @@ const JobScreen = () => {
 				flex: 1,
 				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
 			}}>
+			<Stack.Screen
+				options={{
+					headerShown: true,
+					headerRight: () => (
+						<HStack
+							space='sm'
+							style={{ alignItems: "center", marginRight: 0 }}>
+							{job?.isLastMinute === true && (
+								<Zap size={18} color='orange' />
+							)}
+						</HStack>
+					),
+				}}
+			/>
 			{isLoading ? (
 				<Box
 					style={{
@@ -351,7 +369,7 @@ const JobScreen = () => {
 						style={{
 							paddingHorizontal: 10,
 							paddingVertical: 15,
-							paddingBottom: 100,
+							paddingBottom: 120,
 						}}>
 						{/* Card Principale - Informations du poste */}
 						<Card
@@ -384,7 +402,7 @@ const JobScreen = () => {
 														paddingTop: 5,
 													}}>
 													<Zap
-														size={16}
+														size={18}
 														color='orange'
 													/>
 												</VStack>
