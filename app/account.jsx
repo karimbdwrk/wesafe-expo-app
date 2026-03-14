@@ -326,7 +326,7 @@ const AccountScreen = () => {
 							width: "100%",
 							alignItems: "center",
 							justifyContent: "space-between",
-							paddingHorizontal: 24,
+							paddingHorizontal: 10,
 							paddingTop: 12,
 							paddingBottom: 4,
 						}}>
@@ -363,11 +363,11 @@ const AccountScreen = () => {
 							width: "100%",
 							marginTop: 20,
 							marginBottom: 28,
-							paddingHorizontal: 24,
+							paddingHorizontal: 12,
 						}}>
 						<Avatar size='lg'>
 							<AvatarFallbackText>
-								{profile?.first_name} {profile?.last_name}
+								{profile?.firstname} {profile?.lastname}
 							</AvatarFallbackText>
 							{profile?.avatar_url && (
 								<AvatarImage
@@ -381,7 +381,7 @@ const AccountScreen = () => {
 								style={{
 									color: isDark ? "#f9fafb" : "#111827",
 								}}>
-								{profile?.first_name} {profile?.last_name}
+								{profile?.firstname} {profile?.lastname}
 							</Heading>
 							{profile?.job_title ? (
 								<Text
@@ -400,7 +400,7 @@ const AccountScreen = () => {
 						style={{
 							alignItems: "center",
 							width: "100%",
-							paddingHorizontal: 24,
+							paddingHorizontal: 12,
 						}}>
 						<View
 							style={{
@@ -434,7 +434,7 @@ const AccountScreen = () => {
 							fontSize: 12,
 							marginTop: 20,
 							textAlign: "center",
-							paddingHorizontal: 32,
+							paddingHorizontal: 12,
 						}}>
 						Faites scanner ce code pour afficher votre profil WeSafe
 					</Text>
