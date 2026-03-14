@@ -158,9 +158,10 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		backgroundColor: "#FFF",
+		gap: 5,
 	},
 	left: {
-		width: 60,
+		width: 50,
 		zIndex: 1,
 	},
 	right: {
