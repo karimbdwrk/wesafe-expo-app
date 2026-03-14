@@ -12,26 +12,40 @@ const headers = {
 
 /**
  * Envoyer un SMS OTP via Twilio Verify au numéro E.164 donné (+33XXXXXXXXX).
- * @returns {{ success: boolean, error?: string }}
+ * @returns {{ success: boolean, error?: string, detail?: string }}
  */
-export const sendPhoneOtp = async (phoneE164) => {
+export const sendPhoneOtp = async (phoneE164, profileId) => {
 	const res = await axios.post(
 		`${SUPABASE_URL}/functions/v1/send-phone-otp`,
-		{ phone: phoneE164 },
-		{ headers },
+		{ phone: phoneE164, profile_id: profileId },
+		{ headers, validateStatus: () => true },
 	);
+	if (!res.data?.success) {
+		console.warn(
+			"[send-phone-otp] échec :",
+			res.status,
+			JSON.stringify(res.data),
+		);
+	}
 	return res.data;
 };
 
 /**
  * Vérifier le code OTP reçu par SMS.
- * @returns {{ success: boolean, status: string, error?: string }}
+ * @returns {{ success: boolean, error?: string }}
  */
-export const verifyPhoneOtp = async (phoneE164, code) => {
+export const verifyPhoneOtp = async (phoneE164, code, profileId) => {
 	const res = await axios.post(
 		`${SUPABASE_URL}/functions/v1/verify-phone-otp`,
-		{ phone: phoneE164, code },
-		{ headers },
+		{ phone: phoneE164, code, profile_id: profileId },
+		{ headers, validateStatus: () => true },
 	);
+	if (!res.data?.success) {
+		console.warn(
+			"[verify-phone-otp] échec :",
+			res.status,
+			JSON.stringify(res.data),
+		);
+	}
 	return res.data;
 };
