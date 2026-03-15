@@ -177,7 +177,6 @@ const ScannerScreen = () => {
 							style={{
 								backgroundColor: "#2563eb",
 								borderRadius: 12,
-								width: "100%",
 							}}>
 							<ButtonIcon as={Camera} style={{ color: "#fff" }} />
 							<ButtonText style={{ color: "#fff" }}>
