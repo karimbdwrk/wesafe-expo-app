@@ -1,5 +1,17 @@
-import React, { useState, useCallback, useLayoutEffect } from "react";
-import { View, ScrollView, TouchableOpacity, Image } from "react-native";
+import React, {
+	useState,
+	useCallback,
+	useLayoutEffect,
+	useEffect,
+	useRef,
+} from "react";
+import {
+	View,
+	ScrollView,
+	TouchableOpacity,
+	Image,
+	Animated,
+} from "react-native";
 import {
 	Actionsheet,
 	ActionsheetBackdrop,
@@ -58,6 +70,8 @@ import {
 	BookmarkCheck,
 } from "lucide-react-native";
 
+import { supabase } from "@/lib/supabase";
+
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -86,6 +100,54 @@ const AccountScreen = () => {
 		diplomas: [],
 		certifications: [],
 	});
+
+	const [qrToken, setQrToken] = useState(null);
+	const [qrProgress, setQrProgress] = useState(1); // 1 = plein, 0 = vide
+	const progressAnim = useRef(new Animated.Value(1)).current;
+	const qrIntervalRef = useRef(null);
+	const qrProgressRef = useRef(null);
+
+	const generateQrToken = useCallback(async () => {
+		if (!accessToken) return;
+		try {
+			const supabaseClient = createSupabaseClient(accessToken);
+			const { data, error } =
+				await supabaseClient.functions.invoke("generate-qr-token");
+			if (error || !data?.success) {
+				console.warn("[QR] erreur génération token:", error, data);
+				return;
+			}
+			setQrToken(data.token);
+			// Relancer la progress bar
+			if (qrProgressRef.current) clearInterval(qrProgressRef.current);
+			progressAnim.setValue(1);
+			Animated.timing(progressAnim, {
+				toValue: 0,
+				duration: 30000,
+				useNativeDriver: false,
+			}).start();
+		} catch (e) {
+			console.warn("[QR] exception:", e);
+		}
+	}, [accessToken]);
+
+	// Lancer/arrêter le renouvellement automatique selon l'état du modal
+	useEffect(() => {
+		if (showQRModal) {
+			generateQrToken();
+			qrIntervalRef.current = setInterval(generateQrToken, 30000);
+		} else {
+			if (qrIntervalRef.current) clearInterval(qrIntervalRef.current);
+			if (qrProgressRef.current) clearInterval(qrProgressRef.current);
+			progressAnim.stopAnimation();
+			progressAnim.setValue(1);
+			setQrToken(null);
+		}
+		return () => {
+			if (qrIntervalRef.current) clearInterval(qrIntervalRef.current);
+			if (qrProgressRef.current) clearInterval(qrProgressRef.current);
+		};
+	}, [showQRModal]);
 
 	const fetchNotifCount = useCallback(async () => {
 		if (!user?.id || !accessToken) return;
@@ -280,7 +342,7 @@ const AccountScreen = () => {
 		</TouchableOpacity>
 	);
 
-	const qrUrl = user?.id ? `supabaseapp://profile/${user.id}` : "";
+	const qrUrl = qrToken ? `wesafe://profile?token=${qrToken}` : "";
 
 	return (
 		<>
@@ -400,7 +462,7 @@ const AccountScreen = () => {
 						style={{
 							alignItems: "center",
 							width: "100%",
-							paddingHorizontal: 12,
+							paddingHorizontal: 24,
 						}}>
 						<View
 							style={{
@@ -413,17 +475,53 @@ const AccountScreen = () => {
 								shadowOffset: { width: 0, height: 4 },
 								elevation: 6,
 							}}>
-							{qrUrl && (
+							{qrUrl ? (
 								<SvgQRCode
 									value={qrUrl}
 									size={200}
 									color='#111827'
 									backgroundColor='#ffffff'
-									logoSize={40}
-									logoBackgroundColor='#ffffff'
-									logoBorderRadius={8}
 								/>
+							) : (
+								<View
+									style={{
+										width: 200,
+										height: 200,
+										justifyContent: "center",
+										alignItems: "center",
+									}}>
+									<Text
+										style={{
+											color: "#9ca3af",
+											fontSize: 12,
+										}}>
+										Chargement...
+									</Text>
+								</View>
 							)}
+						</View>
+
+						{/* Progress bar 30s */}
+						<View
+							style={{
+								width: 240,
+								height: 4,
+								backgroundColor: isDark ? "#374151" : "#e5e7eb",
+								borderRadius: 2,
+								marginTop: 16,
+								overflow: "hidden",
+							}}>
+							<Animated.View
+								style={{
+									height: 4,
+									borderRadius: 2,
+									backgroundColor: "#2563eb",
+									width: progressAnim.interpolate({
+										inputRange: [0, 1],
+										outputRange: ["0%", "100%"],
+									}),
+								}}
+							/>
 						</View>
 					</View>
 
@@ -432,11 +530,12 @@ const AccountScreen = () => {
 						style={{
 							color: isDark ? "#6b7280" : "#9ca3af",
 							fontSize: 12,
-							marginTop: 20,
+							marginTop: 12,
+							marginBottom: 8,
 							textAlign: "center",
-							paddingHorizontal: 12,
+							paddingHorizontal: 24,
 						}}>
-						Faites scanner ce code pour afficher votre profil WeSafe
+						Code valable 30 secondes • Se renouvelle automatiquement
 					</Text>
 				</ActionsheetContent>
 			</Actionsheet>
