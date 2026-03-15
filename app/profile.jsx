@@ -185,6 +185,22 @@ const ProfileScreen = () => {
 
 	const cleanPhone = (phone) => (phone || "").replace(/[\s\-().]/g, "");
 
+	const formatPhone = (phone) => {
+		if (!phone) return "";
+		const digits = phone.trim().replace(/\D/g, "");
+		let local;
+		if (digits.startsWith("330") && digits.length === 12)
+			local = digits.slice(3); // +33(0)6...
+		else if (digits.startsWith("33") && digits.length === 11)
+			local = digits.slice(2); // +336...
+		else if (digits.startsWith("0") && digits.length === 10)
+			local = digits.slice(1); // 06...
+		else if (digits.length === 9)
+			local = digits; // 6... (déjà sans 0)
+		else return phone.trim();
+		return `+33 ${local[0]} ${local.slice(1, 3)} ${local.slice(3, 5)} ${local.slice(5, 7)} ${local.slice(7, 9)}`;
+	};
+
 	const handleCall = () => {
 		if (!profile?.phone) return;
 		Linking.openURL(`tel:${cleanPhone(profile.phone)}`);
@@ -953,7 +969,7 @@ const ProfileScreen = () => {
 												fontSize: 12,
 												color: mT,
 											}}>
-											{profile.phone}
+											{formatPhone(profile.phone)}
 										</Text>
 									) : null}
 								</VStack>
@@ -1006,7 +1022,7 @@ const ProfileScreen = () => {
 												fontSize: 12,
 												color: mT,
 											}}>
-											{profile.phone}
+											{formatPhone(profile.phone)}
 										</Text>
 									) : null}
 								</VStack>
@@ -1059,7 +1075,7 @@ const ProfileScreen = () => {
 												fontSize: 12,
 												color: mT,
 											}}>
-											{profile.phone}
+											{formatPhone(profile.phone)}
 										</Text>
 									) : null}
 								</VStack>
