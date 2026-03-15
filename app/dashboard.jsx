@@ -40,6 +40,7 @@ import {
 	LogOut,
 	ScanLine,
 	Users,
+	BookUser,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -634,6 +635,17 @@ const DashboardScreen = () => {
 								badgeColor={
 									notifCount > 0 ? "error" : undefined
 								}
+							/>
+
+							<ActionCard
+								icon={BookUser}
+								title='Mes contacts'
+								subtitle='Gérer vos contacts'
+								onPress={() => {
+									router.push({
+										pathname: "/profilelist",
+									});
+								}}
 							/>
 
 							<Divider style={{ marginVertical: 16 }} />
