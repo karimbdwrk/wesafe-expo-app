@@ -1,229 +1,369 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { ScrollView, StyleSheet, View, RefreshControl } from "react-native";
+import React, { useState, useCallback, useRef, useMemo } from "react";
+import {
+	SectionList,
+	TouchableOpacity,
+	TouchableHighlight,
+	RefreshControl,
+	ActivityIndicator,
+	View,
+	Text as RNText,
+} from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { parseDate, today } from "@internationalized/date";
+import { today } from "@internationalized/date";
 
-import { Card } from "@/components/ui/card";
-import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
-import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
+import { Badge, BadgeText } from "@/components/ui/badge";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
-
-import ApplyCard from "@/components/ApplyCard";
-
+import { Box } from "@/components/ui/box";
 import {
-	ChevronLeft,
-	ChevronRight,
-	Info,
-	Plus,
-	QrCode,
-} from "lucide-react-native";
+	Avatar,
+	AvatarFallbackText,
+	AvatarImage,
+} from "@/components/ui/avatar";
+
+import { ChevronRight, Info, QrCode } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { useTheme } from "@/context/ThemeContext";
 
-const ITEMS_PER_PAGE = 5;
+// Charge tout d'un coup pour pouvoir trier/grouper côté client
+const ITEMS_PER_PAGE = 500;
+
+// Normalise une lettre (enlève accents) pour le classement
+const normalize = (str) =>
+	(str || "")
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "")
+		.toUpperCase();
 
 const ProfileListScreen = () => {
-	const scrollRef = useRef(null);
+	const sectionListRef = useRef(null);
 	const router = useRouter();
-	const { accessToken, user, signOut } = useAuth();
-	const { getAll, isLoading } = useDataContext();
+	const { user } = useAuth();
+	const { getAll } = useDataContext();
+	const { isDark } = useTheme();
 
 	const [refreshing, setRefreshing] = useState(false);
-
-	const [page, setPage] = useState(1);
+	const [isLoading, setIsLoading] = useState(false);
 	const [profileList, setProfileList] = useState([]);
 
-	const [totalCount, setTotalCount] = useState(0);
-	const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
-
-	const checkDateValidity = (dateString) => {
-		const inputDate = parseDate(dateString); // Ex: 2027-05-24
-		const currentDate = today("UTC"); // You can also use 'en-US', 'fr-FR', etc.
-
-		if (inputDate.compare(currentDate) >= 0) {
-			console.log("✅ Date is still valid (today or future)");
-			return true;
-		} else {
-			console.log("❌ Date is in the past (invalid)");
-			return false;
+	const loadData = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			const { data } = await getAll(
+				"profilelist",
+				"*, profiles(*, procards(*))",
+				`&company_id=eq.${user.id}&profiles.procards.status=eq.verified&profiles.procards.validity_date=gte.${today("UTC").toString()}`,
+				1,
+				ITEMS_PER_PAGE,
+				"created_at.desc",
+			);
+			setProfileList(data || []);
+		} finally {
+			setIsLoading(false);
 		}
-	};
+	}, [user.id]);
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
 		await loadData();
 		setRefreshing(false);
-	}, []);
-
-	const loadData = async () => {
-		const { data, totalCount } = await getAll(
-			"profilelist",
-			"*, profiles(*, procards(*))",
-			`&company_id=eq.${
-				user.id
-			}&profiles.procards.status=eq.verified&profiles.procards.validity_date=gte.${today(
-				"UTC",
-			).toString()}`,
-			page,
-			ITEMS_PER_PAGE,
-			"created_at.desc",
-		);
-		console.log("data profile list :", data, data.length);
-		setProfileList(data);
-		setTotalCount(totalCount);
-	};
+	}, [loadData]);
 
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
-		}, [page]),
+		}, [loadData]),
 	);
 
-	const handleNext = () => {
-		setPage((prev) => prev + 1);
-		scrollRef.current?.scrollTo({ y: 0, animated: true });
-	};
-	const handlePrev = () => {
-		setPage((prev) => Math.max(prev - 1, 1));
-		scrollRef.current?.scrollTo({ y: 0, animated: true });
-	};
+	// Tri + groupement par première lettre du lastname
+	const { sections, letters } = useMemo(() => {
+		const sorted = [...profileList].sort((a, b) => {
+			const la = normalize(a.profiles?.lastname);
+			const lb = normalize(b.profiles?.lastname);
+			if (la < lb) return -1;
+			if (la > lb) return 1;
+			return normalize(a.profiles?.firstname) <
+				normalize(b.profiles?.firstname)
+				? -1
+				: 1;
+		});
 
-	return (
-		<View style={{ flex: 1, backgroundColor: "white" }}>
-			<ScrollView
-				ref={scrollRef}
-				style={styles.scrollView}
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={onRefresh}
-					/>
+		const grouped = {};
+		sorted.forEach((pro) => {
+			const letter = normalize(pro.profiles?.lastname)?.[0] || "#";
+			if (!grouped[letter]) grouped[letter] = [];
+			grouped[letter].push(pro);
+		});
+
+		const letters = Object.keys(grouped).sort();
+		const sections = letters.map((letter) => ({
+			title: letter,
+			data: grouped[letter],
+		}));
+
+		return { sections, letters };
+	}, [profileList]);
+
+	// Styles couleurs
+	const bg = isDark ? "#111827" : "#f2f2f7";
+	const cardBg = isDark ? "#1f2937" : "#ffffff";
+	const borderColor = isDark ? "#374151" : "#e5e7eb";
+	const textPrimary = isDark ? "#f9fafb" : "#111827";
+	const textMuted = isDark ? "#9ca3af" : "#6b7280";
+	const sectionBg = isDark ? "#111827" : "#f2f2f7";
+	const sectionText = isDark ? "#9ca3af" : "#6b7280";
+	const indexText = isDark ? "#60a5fa" : "#2563eb";
+
+	const renderItem = ({ item: pro, index, section }) => {
+		const isLast = index === section.data.length - 1;
+		const firstname = pro.profiles?.firstname || "";
+		const lastname = pro.profiles?.lastname || "";
+		const initials = [firstname[0], lastname[0]]
+			.filter(Boolean)
+			.join("")
+			.toUpperCase();
+		const procards = pro.profiles?.procards || [];
+
+		return (
+			<TouchableHighlight
+				underlayColor={isDark ? "#374151" : "#f3f4f6"}
+				onPress={() =>
+					router.push({
+						pathname: "/profile",
+						params: { profile_id: pro.candidate_id },
+					})
 				}>
-				<View style={styles.jobList}>
-					{!profileList.length && (
-						<HStack
-							justifyContent='center'
-							style={{ paddingVertical: 90 }}>
-							<Badge size='md' variant='solid' action='warning'>
-								<BadgeIcon as={Info} className='mr-2' />
-								<BadgeText>Aucun résultat</BadgeText>
-							</Badge>
-						</HStack>
-					)}
-					{profileList.map((pro) => (
-						<Card key={pro.id} variant='filled'>
-							<Heading>
-								{pro.profiles.lastname +
-									" " +
-									pro.profiles.firstname}
-							</Heading>
-							<Text size='xs'>{pro.candidate_id}</Text>
-							<HStack style={{ paddingVertical: 5, gap: 10 }}>
-								{pro.profiles.procards.map((card) => (
+				<View
+					style={{
+						backgroundColor: cardBg,
+						paddingHorizontal: 16,
+						paddingVertical: 11,
+						flexDirection: "row",
+						alignItems: "center",
+						gap: 12,
+					}}>
+					<Avatar size='md'>
+						{pro.profiles?.avatar_url ? (
+							<AvatarImage
+								source={{ uri: pro.profiles.avatar_url }}
+							/>
+						) : null}
+						<AvatarFallbackText>{initials}</AvatarFallbackText>
+					</Avatar>
+
+					<VStack style={{ flex: 1, gap: 2 }}>
+						<Text
+							style={{
+								fontSize: 16,
+								fontWeight: "500",
+								color: textPrimary,
+							}}>
+							{lastname
+								? lastname + (firstname ? " " + firstname : "")
+								: "—"}
+						</Text>
+						{procards.length > 0 ? (
+							<HStack style={{ flexWrap: "wrap", gap: 5 }}>
+								{procards.map((card) => (
 									<Badge
 										key={card.id}
-										size='md'
+										size='sm'
 										variant='solid'
 										action='info'>
 										<BadgeText>{card.category}</BadgeText>
 									</Badge>
 								))}
-								{pro.profiles.procards.length === 0 && (
-									<Badge
-										size='md'
-										variant='solid'
-										action='warning'>
-										<BadgeText>
-											Aucune carte pro valide
-										</BadgeText>
-									</Badge>
-								)}
 							</HStack>
-							<Button
-								onPress={() =>
-									router.push({
-										pathname: "/profile",
-										params: {
-											profile_id: pro.candidate_id,
-										},
-									})
-								}>
-								<ButtonText>Voir profil</ButtonText>
-							</Button>
-						</Card>
-					))}
-					{totalPages > 1 && (
-						<HStack
-							justifyContent='space-between'
-							alignItems='center'
-							style={{ paddingBottom: 30 }}>
-							<Button
-								isDisabled={page === 1}
-								onPress={handlePrev}
-								variant='outline'>
-								<ButtonIcon as={ChevronLeft} />
-							</Button>
-							<Text>Page {page + "/" + totalPages}</Text>
-							<Button
-								isDisabled={page >= totalPages}
-								onPress={handleNext}
-								variant='outline'>
-								<ButtonIcon as={ChevronRight} />
-							</Button>
-						</HStack>
+						) : (
+							<Text style={{ fontSize: 12, color: "#f59e0b" }}>
+								Aucune carte valide
+							</Text>
+						)}
+					</VStack>
+
+					<ChevronRight size={16} color={textMuted} />
+
+					{/* Séparateur interne (sauf dernier) */}
+					{!isLast && (
+						<View
+							style={{
+								position: "absolute",
+								bottom: 0,
+								left: 74,
+								right: 0,
+								height: 0.5,
+								backgroundColor: borderColor,
+							}}
+						/>
 					)}
 				</View>
-			</ScrollView>
-			<VStack
+			</TouchableHighlight>
+		);
+	};
+
+	const renderSectionHeader = ({ section }) => (
+		<View
+			style={{
+				backgroundColor: sectionBg,
+				paddingHorizontal: 16,
+				paddingVertical: 4,
+			}}>
+			<RNText
 				style={{
-					position: "fixed",
-					paddingBotttom: 90,
-					bottom: 30,
-					padding: 15,
-					backgroundColor: "white",
+					fontSize: 13,
+					fontWeight: "700",
+					color: sectionText,
+					letterSpacing: 0.5,
 				}}>
-				<Button onPress={() => router.push("/scanner")}>
-					<ButtonIcon as={QrCode} />
-					<ButtonText>Scanner un nouveau profil</ButtonText>
-				</Button>
-			</VStack>
+				{section.title}
+			</RNText>
+		</View>
+	);
+
+	return (
+		<View style={{ flex: 1, backgroundColor: bg }}>
+			{isLoading && !refreshing ? (
+				<View
+					style={{
+						flex: 1,
+						alignItems: "center",
+						justifyContent: "center",
+					}}>
+					<ActivityIndicator
+						size='large'
+						color={isDark ? "#3b82f6" : "#2563eb"}
+					/>
+				</View>
+			) : !profileList.length ? (
+				<View
+					style={{
+						flex: 1,
+						alignItems: "center",
+						justifyContent: "center",
+					}}>
+					<Info size={40} color={textMuted} />
+					<Text
+						style={{
+							marginTop: 12,
+							color: textMuted,
+							fontSize: 15,
+						}}>
+						Aucun profil scanné
+					</Text>
+					<Button
+						style={{ marginTop: 20, borderRadius: 12 }}
+						onPress={() => router.push("/scanner")}>
+						<ButtonIcon as={QrCode} />
+						<ButtonText style={{ marginLeft: 8 }}>
+							Scanner un profil
+						</ButtonText>
+					</Button>
+				</View>
+			) : (
+				<View style={{ flex: 1 }}>
+					<SectionList
+						ref={sectionListRef}
+						sections={sections}
+						keyExtractor={(item) => item.id}
+						renderItem={renderItem}
+						renderSectionHeader={renderSectionHeader}
+						stickySectionHeadersEnabled
+						refreshControl={
+							<RefreshControl
+								refreshing={refreshing}
+								onRefresh={onRefresh}
+							/>
+						}
+						contentContainerStyle={{ paddingBottom: 100 }}
+						// Séparateur entre sections (ligne complète)
+						SectionSeparatorComponent={() => (
+							<View
+								style={{
+									height: 0.5,
+									backgroundColor: borderColor,
+								}}
+							/>
+						)}
+					/>
+
+					{/* Index alphabétique latéral */}
+					<View
+						style={{
+							position: "absolute",
+							right: 4,
+							top: 0,
+							bottom: 80,
+							justifyContent: "center",
+							alignItems: "center",
+							gap: 1,
+						}}>
+						{letters.map((letter, i) => (
+							<TouchableOpacity
+								key={letter}
+								hitSlop={{
+									top: 4,
+									bottom: 4,
+									left: 8,
+									right: 8,
+								}}
+								onPress={() => {
+									sectionListRef.current?.scrollToLocation({
+										sectionIndex: i,
+										itemIndex: 0,
+										animated: true,
+										viewOffset: 0,
+									});
+								}}>
+								<RNText
+									style={{
+										fontSize: 11,
+										fontWeight: "600",
+										color: indexText,
+										lineHeight: 14,
+									}}>
+									{letter}
+								</RNText>
+							</TouchableOpacity>
+						))}
+					</View>
+				</View>
+			)}
+
+			{/* FAB Scanner */}
+			{!!profileList.length && (
+				<Box
+					style={{
+						position: "absolute",
+						bottom: 24,
+						right: 24,
+					}}>
+					<Button
+						size='lg'
+						onPress={() => router.push("/scanner")}
+						style={{
+							borderRadius: 50,
+							paddingHorizontal: 20,
+							paddingVertical: 0,
+							shadowColor: "#2563eb",
+							shadowOffset: { width: 0, height: 4 },
+							shadowOpacity: 0.35,
+							shadowRadius: 8,
+							elevation: 6,
+						}}>
+						<ButtonIcon as={QrCode} />
+						<ButtonText style={{ marginLeft: 8, fontSize: 16 }}>
+							Scanner
+						</ButtonText>
+					</Button>
+				</Box>
+			)}
 		</View>
 	);
 };
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-		width: "100%",
-	},
-	scrollView: {
-		flex: 1,
-		width: "100%",
-		paddingHorizontal: 15,
-		backgroundColor: "white",
-	},
-	jobList: {
-		flex: 1,
-		gap: 15,
-		width: "100%",
-		marginVertical: 15,
-	},
-	title: {
-		fontSize: 20,
-		fontWeight: "bold",
-	},
-	separator: {
-		marginVertical: 30,
-		height: 1,
-		width: "80%",
-	},
-});
 
 export default ProfileListScreen;
