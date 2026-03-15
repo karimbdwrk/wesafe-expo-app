@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocalSearchParams, useFocusEffect, Stack } from "expo-router";
-import { ScrollView, TouchableOpacity, Image as RNImage } from "react-native";
+import {
+	ScrollView,
+	TouchableOpacity,
+	Image as RNImage,
+	Linking,
+} from "react-native";
 
 import { Box } from "@/components/ui/box";
 import { VStack } from "@/components/ui/vstack";
@@ -176,6 +181,31 @@ const ProfileScreen = () => {
 				err.response?.data || err.message,
 			);
 		}
+	};
+
+	const cleanPhone = (phone) => (phone || "").replace(/[\s\-().]/g, "");
+
+	const handleCall = () => {
+		if (!profile?.phone) return;
+		Linking.openURL(`tel:${cleanPhone(profile.phone)}`);
+		setShowContactSheet(false);
+	};
+	const handleSMS = () => {
+		if (!profile?.phone) return;
+		Linking.openURL(`sms:${cleanPhone(profile.phone)}`);
+		setShowContactSheet(false);
+	};
+	const handleWhatsApp = () => {
+		if (!profile?.phone) return;
+		// wa.me attend un numéro international sans le +
+		const num = cleanPhone(profile.phone).replace(/^\+/, "");
+		Linking.openURL(`https://wa.me/${num}`);
+		setShowContactSheet(false);
+	};
+	const handleEmail = () => {
+		if (!profile?.email) return;
+		Linking.openURL(`mailto:${profile.email}`);
+		setShowContactSheet(false);
 	};
 
 	// ── Style tokens
@@ -884,7 +914,8 @@ const ProfileScreen = () => {
 						{/* Appeler */}
 						<TouchableOpacity
 							activeOpacity={0.6}
-							onPress={() => setShowContactSheet(false)}>
+							disabled={!profile?.phone}
+							onPress={handleCall}>
 							<HStack
 								style={{
 									alignItems: "center",
@@ -936,7 +967,8 @@ const ProfileScreen = () => {
 						{/* SMS */}
 						<TouchableOpacity
 							activeOpacity={0.6}
-							onPress={() => setShowContactSheet(false)}>
+							disabled={!profile?.phone}
+							onPress={handleSMS}>
 							<HStack
 								style={{
 									alignItems: "center",
@@ -988,7 +1020,8 @@ const ProfileScreen = () => {
 						{/* WhatsApp */}
 						<TouchableOpacity
 							activeOpacity={0.6}
-							onPress={() => setShowContactSheet(false)}>
+							disabled={!profile?.phone}
+							onPress={handleWhatsApp}>
 							<HStack
 								style={{
 									alignItems: "center",
@@ -1040,7 +1073,8 @@ const ProfileScreen = () => {
 						{/* Email */}
 						<TouchableOpacity
 							activeOpacity={0.6}
-							onPress={() => setShowContactSheet(false)}>
+							disabled={!profile?.email}
+							onPress={handleEmail}>
 							<HStack
 								style={{
 									alignItems: "center",
