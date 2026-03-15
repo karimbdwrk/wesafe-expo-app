@@ -61,7 +61,7 @@ const SignatureScreen = () => {
 	const [signatureStatus, setSignatureStatus] = useState(null);
 	const [showActionsheet, setShowActionsheet] = useState(false);
 
-	const canEdit = signatureStatus !== "accepted";
+	const canEdit = signatureStatus !== "verified";
 
 	// Lire les nouvelles valeurs après chaque refresh du contexte
 	useEffect(() => {
@@ -223,7 +223,7 @@ const SignatureScreen = () => {
 								</HStack>
 
 								{/* Badge statut */}
-								{signatureStatus === "accepted" && (
+								{signatureStatus === "verified" && (
 									<HStack
 										space='xs'
 										style={{
@@ -337,8 +337,8 @@ const SignatureScreen = () => {
 								/>
 							</Box>
 
-							{/* Message si acceptée */}
-							{signatureStatus === "accepted" && (
+							{/* Message si vérifiée */}
+							{signatureStatus === "verified" && (
 								<HStack
 									space='sm'
 									style={{ alignItems: "center" }}>
@@ -360,7 +360,7 @@ const SignatureScreen = () => {
 								</HStack>
 							)}
 							{/* Message préventif si pas encore validée */}
-							{signatureStatus !== "accepted" && (
+							{signatureStatus !== "verified" && (
 								<HStack
 									space='sm'
 									style={{ alignItems: "center" }}>
