@@ -61,7 +61,7 @@ const StampScreen = () => {
 	const [uploading, setUploading] = useState(false);
 	const [processing, setProcessing] = useState(false);
 	const [stampStatus, setStampStatus] = useState(null);
-	const canEdit = stampStatus !== "accepted";
+	const canEdit = stampStatus !== "verified";
 
 	// useEffect(() => {
 	// 	console.log("userCompany stamp url:", userCompany?.stamp_url);
@@ -293,7 +293,7 @@ const StampScreen = () => {
 							</Heading>
 
 							{/* Badge statut */}
-							{stampStatus === "accepted" && (
+							{stampStatus === "verified" && (
 								<HStack
 									space='xs'
 									style={{
@@ -443,7 +443,7 @@ const StampScreen = () => {
 						</Box>
 
 						{/* Message si validé */}
-						{stampStatus === "accepted" && (
+						{stampStatus === "verified" && (
 							<HStack space='sm' style={{ alignItems: "center" }}>
 								<Icon
 									as={ShieldCheck}
@@ -461,7 +461,7 @@ const StampScreen = () => {
 							</HStack>
 						)}
 						{/* Message préventif si pas encore validé */}
-						{stampStatus !== "accepted" && (
+						{stampStatus !== "verified" && (
 							<HStack space='sm' style={{ alignItems: "center" }}>
 								<Icon
 									as={ShieldCheck}
