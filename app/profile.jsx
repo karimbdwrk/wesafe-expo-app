@@ -74,10 +74,12 @@ const ProfileScreen = () => {
 	const [certifications, setCertifications] = useState([]);
 	const [cnapsCards, setCnapsCards] = useState([]);
 	const [diplomas, setDiplomas] = useState([]);
+	const [avatarError, setAvatarError] = useState(false);
 
 	const loadData = async () => {
 		const data = await getById("profiles", profile_id, `*`);
 		console.log("data profile :", data);
+		setAvatarError(false);
 		setProfile(data);
 
 		const [certsResult, cnapsResult, diplomasResult] = await Promise.all([
@@ -470,15 +472,25 @@ const ProfileScreen = () => {
 						{/* Photo + infos côte à côte */}
 						<HStack space='md' style={{ alignItems: "flex-start" }}>
 							{/* Photo */}
-							{profile?.avatar_url ? (
+							{profile?.avatar_url && !avatarError ? (
 								<RNImage
-									source={{ uri: profile.avatar_url }}
+									source={{
+										uri: profile.avatar_url,
+										cache: "reload",
+									}}
 									style={{
 										width: 90,
 										height: 90,
 										borderRadius: 14,
 									}}
 									resizeMode='cover'
+									onError={() => {
+										console.warn(
+											"Avatar load error:",
+											profile.avatar_url,
+										);
+										setAvatarError(true);
+									}}
 								/>
 							) : (
 								<Box
