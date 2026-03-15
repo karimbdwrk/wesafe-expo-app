@@ -1,8 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import {
+	View,
+	TouchableOpacity,
+	StyleSheet,
+	useWindowDimensions,
+} from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
@@ -13,18 +18,98 @@ import { Icon } from "@/components/ui/icon";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { X, ShieldAlert, Camera, QrCode } from "lucide-react-native";
+import {
+	AlertDialog,
+	AlertDialogBackdrop,
+	AlertDialogContent,
+	AlertDialogHeader,
+	AlertDialogBody,
+	AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
 
 import ScannerAnimation from "@/components/ScannerAnimation";
+import { createSupabaseClient } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 
 const ScannerScreen = () => {
 	const router = useRouter();
+	const { accessToken } = useAuth();
+	const { top: topInset, bottom: bottomInset } = useSafeAreaInsets();
+	const { height: screenHeight } = useWindowDimensions();
 	const [permission, requestPermission] = useCameraPermissions();
 	const [scanned, setScanned] = useState(false);
+	const [errorMsg, setErrorMsg] = useState(null);
+
+	const FRAME = 260;
+	// Position verticale exacte du trou dans l'overlay
+	const holeTop = (screenHeight - FRAME) / 2;
 
 	useEffect(() => {
 		if (!permission) return;
 		if (!permission.granted) requestPermission();
 	}, [permission]);
+
+	useEffect(() => {
+		setScanned(false);
+	}, []);
+
+	const handleBarCodeScanned = async ({ data }) => {
+		if (scanned) return;
+		setScanned(true);
+
+		console.log("[Scanner] QR data scannée :", data);
+
+		if (data.startsWith("wesafe://profile?token=")) {
+			const token = data.split("wesafe://profile?token=")[1];
+			console.log("[Scanner] Token extrait :", token);
+
+			try {
+				const supabaseClient = createSupabaseClient(accessToken);
+				const { data: result, error } =
+					await supabaseClient.functions.invoke("verify-qr-token", {
+						body: { token },
+					});
+
+				if (error) {
+					console.warn("[Scanner] Erreur edge function :", error);
+					setErrorMsg("Une erreur est survenue. Veuillez réessayer.");
+					setTimeout(() => setScanned(false), 1500);
+					return;
+				}
+
+				if (result?.success) {
+					console.log("[Scanner] Profile ID :", result.profile?.id);
+					router.replace({
+						pathname: "/profile",
+						params: { profile_id: result.profile?.id },
+					});
+				} else if (result?.expired) {
+					setErrorMsg(
+						"Ce QR code a expiré. Demandez un nouveau code.",
+					);
+					setTimeout(() => setScanned(false), 1500);
+				} else {
+					setErrorMsg("QR code invalide.");
+					setTimeout(() => setScanned(false), 1500);
+				}
+			} catch (err) {
+				console.warn("[Scanner] Exception verify-qr-token :", err);
+				setErrorMsg("Une erreur est survenue. Veuillez réessayer.");
+				setTimeout(() => setScanned(false), 1500);
+			}
+		} else if (data.startsWith("supabaseapp://profile/")) {
+			const id = data.split("supabaseapp://profile/")[1];
+			console.log("[Scanner] Ancien format — profile_id :", id);
+			router.replace({
+				pathname: `/profile`,
+				params: { profile_id: id },
+			});
+		} else {
+			console.warn("[Scanner] QR non reconnu :", data);
+			setErrorMsg("QR code non reconnu.");
+			setTimeout(() => setScanned(false), 1500);
+		}
+	};
 
 	/* ── Permission non encore chargée ── */
 	if (!permission) {
@@ -115,154 +200,152 @@ const ScannerScreen = () => {
 		);
 	}
 
-	const handleBarCodeScanned = ({ data }) => {
-		if (scanned) return;
-		setScanned(true);
-
-		if (data.startsWith("supabaseapp://profile/")) {
-			const id = data.split("supabaseapp://profile/")[1];
-			router.replace({
-				pathname: `/profile`,
-				params: { profile_id: id },
-			});
-		} else {
-			alert("QR Code invalide ou non reconnu");
-			setTimeout(() => setScanned(false), 1500);
-		}
-	};
-
 	/* ── Scanner ── */
 	return (
-		<Box style={{ flex: 1, backgroundColor: "#000" }}>
-			<CameraView
-				style={StyleSheet.absoluteFill}
-				facing='back'
-				barCodeScannerSettings={{ barCodeTypes: ["qr"] }}
-				onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-			/>
+		<>
+			<Box style={{ flex: 1, backgroundColor: "#000" }}>
+				<CameraView
+					style={StyleSheet.absoluteFill}
+					facing='back'
+					barCodeScannerSettings={{ barCodeTypes: ["qr"] }}
+					onBarcodeScanned={
+						scanned ? undefined : handleBarCodeScanned
+					}
+				/>
 
-			{/* Overlay sombre sur les bords */}
-			<Box style={StyleSheet.absoluteFill} pointerEvents='none'>
-				{/* Top */}
-				<Box style={styles.overlayTop} />
-				{/* Middle row */}
-				<View style={styles.overlayMiddle}>
-					<Box style={styles.overlaySide} />
-					<Box style={{ width: 260, height: 260 }} />
-					<Box style={styles.overlaySide} />
-				</View>
-				{/* Bottom */}
-				<Box style={styles.overlayBottom} />
-			</Box>
+				{/* Overlay sombre sur les bords */}
+				<Box style={StyleSheet.absoluteFill} pointerEvents='none'>
+					{/* Top */}
+					<Box style={[styles.overlayColor, { height: holeTop }]} />
+					{/* Middle row */}
+					<View style={{ flexDirection: "row", height: FRAME }}>
+						<Box style={styles.overlaySide} />
+						<Box style={{ width: FRAME, height: FRAME }} />
+						<Box style={styles.overlaySide} />
+					</View>
+					{/* Bottom */}
+					<Box style={[styles.overlayColor, { flex: 1 }]} />
+				</Box>
 
-			<SafeAreaView style={{ flex: 1 }}>
-				<VStack style={{ flex: 1, justifyContent: "space-between" }}>
-					{/* Top bar */}
-					<HStack
+				{/* Top bar avec inset safe area */}
+				<HStack
+					style={{
+						position: "absolute",
+						top: topInset + 8,
+						left: 0,
+						right: 0,
+						paddingHorizontal: 20,
+						justifyContent: "space-between",
+						alignItems: "center",
+						zIndex: 10,
+					}}>
+					<TouchableOpacity
+						onPress={() => router.back()}
 						style={{
-							paddingHorizontal: 20,
-							paddingTop: 8,
-							justifyContent: "space-between",
+							width: 40,
+							height: 40,
+							borderRadius: 20,
+							backgroundColor: "rgba(0,0,0,0.5)",
+							justifyContent: "center",
 							alignItems: "center",
 						}}>
-						<TouchableOpacity
-							onPress={() => router.back()}
-							style={{
-								width: 40,
-								height: 40,
-								borderRadius: 20,
-								backgroundColor: "rgba(0,0,0,0.5)",
-								justifyContent: "center",
-								alignItems: "center",
-							}}>
-							<X size={20} color='#ffffff' />
-						</TouchableOpacity>
+						<X size={20} color='#ffffff' />
+					</TouchableOpacity>
 
-						<Text
-							size='md'
-							style={{
-								color: "#ffffff",
-								fontWeight: "600",
-								opacity: 0.9,
-							}}>
-							Scanner un QR code
-						</Text>
+					<Text
+						size='md'
+						style={{
+							color: "#ffffff",
+							fontWeight: "600",
+							opacity: 0.9,
+						}}>
+						Scanner un QR code
+					</Text>
 
-						{/* Spacer symétrique */}
-						<Box style={{ width: 40 }} />
-					</HStack>
+					<Box style={{ width: 40 }} />
+				</HStack>
 
-					{/* Zone de scan */}
-					<Box style={{ alignItems: "center" }}>
-						<ScannerAnimation />
-						<Text
-							size='sm'
-							style={{
-								color: "rgba(255,255,255,0.65)",
-								marginTop: 20,
-								textAlign: "center",
-							}}>
-							Placez le QR code dans le cadre
-						</Text>
-					</Box>
+				{/* ScannerAnimation centrée exactement sur le trou */}
+				<Box
+					style={{
+						position: "absolute",
+						top: holeTop,
+						left: 0,
+						right: 0,
+						height: FRAME,
+						justifyContent: "center",
+						alignItems: "center",
+					}}>
+					<ScannerAnimation />
+				</Box>
 
-					{/* Bottom */}
-					<Box style={{ alignItems: "center", paddingBottom: 28 }}>
-						{scanned ? (
-							<TouchableOpacity
-								onPress={() => setScanned(false)}
-								style={{
-									height: 48,
-									paddingHorizontal: 28,
-									borderRadius: 12,
-									backgroundColor: "#2563eb",
-									justifyContent: "center",
-									alignItems: "center",
-								}}>
-								<Text
-									style={{
-										color: "#ffffff",
-										fontWeight: "700",
-										fontSize: 15,
-									}}>
-									Scanner à nouveau
-								</Text>
-							</TouchableOpacity>
-						) : (
-							<HStack
-								space='xs'
-								style={{ alignItems: "center", opacity: 0.5 }}>
-								<QrCode size={14} color='#ffffff' />
-								<Text size='xs' style={{ color: "#ffffff" }}>
-									Scan automatique
-								</Text>
-							</HStack>
-						)}
-					</Box>
-				</VStack>
-			</SafeAreaView>
-		</Box>
+				{/* Hint bas */}
+				<Box
+					style={{
+						position: "absolute",
+						top: holeTop + FRAME + 20,
+						left: 0,
+						right: 0,
+						alignItems: "center",
+					}}>
+					<Text
+						size='sm'
+						style={{
+							color: "rgba(255,255,255,0.65)",
+							textAlign: "center",
+						}}>
+						Placez le QR code dans le cadre
+					</Text>
+				</Box>
+
+				{/* Hint bas scan auto */}
+				<HStack
+					space='xs'
+					style={{
+						position: "absolute",
+						bottom: bottomInset + 28,
+						left: 0,
+						right: 0,
+						justifyContent: "center",
+						alignItems: "center",
+						opacity: 0.5,
+					}}>
+					<QrCode size={14} color='#ffffff' />
+					<Text size='xs' style={{ color: "#ffffff" }}>
+						Scan automatique
+					</Text>
+				</HStack>
+			</Box>
+
+			{/* AlertDialog erreur */}
+			<AlertDialog isOpen={!!errorMsg} onClose={() => setErrorMsg(null)}>
+				<AlertDialogBackdrop />
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<Heading size='md'>QR Code invalide</Heading>
+					</AlertDialogHeader>
+					<AlertDialogBody>
+						<Text size='sm'>{errorMsg}</Text>
+					</AlertDialogBody>
+					<AlertDialogFooter>
+						<Button size='sm' onPress={() => setErrorMsg(null)}>
+							<ButtonText>OK</ButtonText>
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
 	);
 };
 
 const OVERLAY_COLOR = "rgba(0,0,0,0.62)";
 
 const styles = StyleSheet.create({
-	overlayTop: {
+	overlayColor: {
 		width: "100%",
-		flex: 1,
 		backgroundColor: OVERLAY_COLOR,
-		maxHeight: undefined,
-	},
-	overlayMiddle: {
-		flexDirection: "row",
-		height: 260,
 	},
 	overlaySide: {
-		flex: 1,
-		backgroundColor: OVERLAY_COLOR,
-	},
-	overlayBottom: {
 		flex: 1,
 		backgroundColor: OVERLAY_COLOR,
 	},
