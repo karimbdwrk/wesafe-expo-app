@@ -376,7 +376,7 @@ const AccountScreen = () => {
 				<ActionsheetContent
 					style={{
 						backgroundColor: isDark ? "#111827" : "#ffffff",
-						paddingBottom: 90,
+						paddingBottom: 60,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
@@ -387,10 +387,10 @@ const AccountScreen = () => {
 						style={{
 							width: "100%",
 							alignItems: "center",
-							justifyContent: "space-between",
+							justifyContent: "center",
 							paddingHorizontal: 10,
-							paddingTop: 12,
-							paddingBottom: 4,
+							paddingTop: 24,
+							paddingBottom: 24,
 						}}>
 						<Heading
 							size='md'
@@ -399,7 +399,7 @@ const AccountScreen = () => {
 							}}>
 							Mon QR Code
 						</Heading>
-						<TouchableOpacity
+						{/* <TouchableOpacity
 							onPress={() => setShowQRModal(false)}
 							activeOpacity={0.7}
 							style={{
@@ -414,11 +414,11 @@ const AccountScreen = () => {
 									color: isDark ? "#9ca3af" : "#6b7280",
 								}}
 							/>
-						</TouchableOpacity>
+						</TouchableOpacity> */}
 					</HStack>
 
 					{/* Avatar + nom + prénom */}
-					<HStack
+					{/* <HStack
 						space='md'
 						style={{
 							alignItems: "center",
@@ -455,7 +455,7 @@ const AccountScreen = () => {
 								</Text>
 							) : null}
 						</VStack>
-					</HStack>
+					</HStack> */}
 
 					{/* QR Code */}
 					<View
