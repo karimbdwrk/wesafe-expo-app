@@ -32,13 +32,6 @@ import {
 	ActionsheetBackdrop,
 	ActionsheetScrollView,
 } from "@/components/ui/actionsheet";
-import {
-	Checkbox,
-	CheckboxIndicator,
-	CheckboxLabel,
-	CheckboxIcon,
-	CheckboxGroup,
-} from "@/components/ui/checkbox";
 import { Center } from "@/components/ui/center";
 import {
 	Slider,
@@ -56,17 +49,19 @@ import {
 	ChevronRight,
 	Info,
 	SlidersHorizontal,
-	Check,
 	Search,
 	X,
 	MapPin,
 	Ticket,
 	IdCard,
+	FileText,
 } from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { CATEGORY } from "@/constants/categories";
+import { Pressable } from "@/components/ui/pressable";
 
 const ITEMS_PER_PAGE = 100;
 
@@ -114,6 +109,8 @@ export default function JobsList({
 
 	// filters & UI state
 	const [values, setValues] = useState([]);
+	const [contractTypes, setContractTypes] = useState([]);
+	const [workingTimes, setWorkingTimes] = useState([]);
 	const [filters, setFilters] = useState("");
 	const [keywords, setKeywords] = useState("");
 
@@ -267,6 +264,14 @@ export default function JobsList({
 				const formatted = values.map((c) => `"${c}"`).join(",");
 				filterString += `&category=in.(${formatted})`;
 			}
+			if (contractTypes.length > 0) {
+				const formatted = contractTypes.map((c) => `"${c}"`).join(",");
+				filterString += `&contract_type=in.(${formatted})`;
+			}
+			if (workingTimes.length > 0) {
+				const formatted = workingTimes.map((c) => `"${c}"`).join(",");
+				filterString += `&work_time=in.(${formatted})`;
+			}
 			if (userLat != null && userLon != null && distanceKm > 0) {
 				const bbox = getBoundingBox(userLat, userLon, distanceKm);
 				if (bbox.minLat !== undefined) {
@@ -277,7 +282,16 @@ export default function JobsList({
 			setFilters(filterString);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [keywords, values, distanceKm, userLat, userLon, userCity]);
+	}, [
+		keywords,
+		values,
+		contractTypes,
+		workingTimes,
+		distanceKm,
+		userLat,
+		userLon,
+		userCity,
+	]);
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
@@ -288,6 +302,8 @@ export default function JobsList({
 	const handleResetKeywords = () => {
 		setKeywords("");
 		setValues([]);
+		setContractTypes([]);
+		setWorkingTimes([]);
 		setDistanceKm(0);
 		setUserCity("");
 		setUserCitySelected(false);
@@ -296,6 +312,10 @@ export default function JobsList({
 	};
 	const handleRemoveValue = (value) =>
 		setValues((prev) => prev.filter((v) => v !== value));
+	const handleRemoveContractType = (ct) =>
+		setContractTypes((prev) => prev.filter((v) => v !== ct));
+	const handleRemoveWorkingTime = (wt) =>
+		setWorkingTimes((prev) => prev.filter((v) => v !== wt));
 
 	const handleNext = () => {
 		setPage((p) => Math.min(p + 1, totalPages));
@@ -448,36 +468,192 @@ export default function JobsList({
 									</Center>
 								</VStack>
 								<VStack style={{ marginTop: 10 }}>
-									<CheckboxGroup
-										value={values}
-										onChange={(keys) => setValues(keys)}>
-										<VStack space='xl'>
-											<Checkbox value='SSIAP1'>
-												<CheckboxIndicator>
-													<CheckboxIcon as={Check} />
-												</CheckboxIndicator>
-												<CheckboxLabel>
-													SSIAP1
-												</CheckboxLabel>
-											</Checkbox>
-											<Checkbox value='APS'>
-												<CheckboxIndicator>
-													<CheckboxIcon as={Check} />
-												</CheckboxIndicator>
-												<CheckboxLabel>
-													APS
-												</CheckboxLabel>
-											</Checkbox>
-											<Checkbox value='APR'>
-												<CheckboxIndicator>
-													<CheckboxIcon as={Check} />
-												</CheckboxIndicator>
-												<CheckboxLabel>
-													APR
-												</CheckboxLabel>
-											</Checkbox>
-										</VStack>
-									</CheckboxGroup>
+									<Heading>Type de contrat</Heading>
+									<HStack
+										style={{
+											flexWrap: "wrap",
+											gap: 8,
+											marginTop: 8,
+										}}>
+										{["CDI", "CDD"].map((ct) => {
+											const selected =
+												contractTypes.includes(ct);
+											return (
+												<Pressable
+													key={ct}
+													onPress={() =>
+														setContractTypes(
+															(prev) =>
+																prev.includes(
+																	ct,
+																)
+																	? []
+																	: [ct],
+														)
+													}
+													style={{
+														paddingHorizontal: 14,
+														paddingVertical: 7,
+														borderRadius: 20,
+														borderWidth: 1.5,
+														borderColor: selected
+															? "#2563eb"
+															: "#d1d5db",
+														backgroundColor:
+															selected
+																? "#2563eb"
+																: "transparent",
+													}}>
+													<Text
+														style={{
+															color: selected
+																? "#fff"
+																: isDark
+																	? "#f3f4f6"
+																	: "#374151",
+															fontWeight: selected
+																? "700"
+																: "400",
+															fontSize: 13,
+														}}>
+														{ct}
+													</Text>
+												</Pressable>
+											);
+										})}
+									</HStack>
+								</VStack>
+								<VStack style={{ marginTop: 15 }}>
+									<Heading>Temps de travail</Heading>
+									<HStack
+										style={{
+											flexWrap: "wrap",
+											gap: 8,
+											marginTop: 8,
+										}}>
+										{[
+											{
+												label: "TEMPS PARTIEL",
+												value: "parttime",
+											},
+											{
+												label: "TEMPS PLEIN",
+												value: "fulltime",
+											},
+										].map((opt) => {
+											const selected =
+												workingTimes.includes(
+													opt.value,
+												);
+											return (
+												<Pressable
+													key={opt.value}
+													onPress={() =>
+														setWorkingTimes(
+															(prev) =>
+																prev.includes(
+																	opt.value,
+																)
+																	? []
+																	: [
+																			opt.value,
+																		],
+														)
+													}
+													style={{
+														paddingHorizontal: 14,
+														paddingVertical: 7,
+														borderRadius: 20,
+														borderWidth: 1.5,
+														borderColor: selected
+															? "#2563eb"
+															: "#d1d5db",
+														backgroundColor:
+															selected
+																? "#2563eb"
+																: "transparent",
+													}}>
+													<Text
+														style={{
+															color: selected
+																? "#fff"
+																: isDark
+																	? "#f3f4f6"
+																	: "#374151",
+															fontWeight: selected
+																? "700"
+																: "400",
+															fontSize: 13,
+														}}>
+														{opt.label}
+													</Text>
+												</Pressable>
+											);
+										})}
+									</HStack>
+								</VStack>
+								<VStack style={{ marginTop: 15 }}>
+									<Heading>Catégories</Heading>
+									<HStack
+										style={{
+											flexWrap: "wrap",
+											gap: 8,
+											marginTop: 8,
+										}}>
+										{CATEGORY.map((cat) => {
+											const selected = values.includes(
+												cat.id,
+											);
+											return (
+												<Pressable
+													key={cat.id}
+													onPress={() =>
+														setValues((prev) =>
+															prev.includes(
+																cat.id,
+															)
+																? prev.filter(
+																		(v) =>
+																			v !==
+																			cat.id,
+																	)
+																: [
+																		...prev,
+																		cat.id,
+																	],
+														)
+													}
+													style={{
+														paddingHorizontal: 14,
+														paddingVertical: 7,
+														borderRadius: 20,
+														borderWidth: 1.5,
+														borderColor: selected
+															? "#2563eb"
+															: "#d1d5db",
+														backgroundColor:
+															selected
+																? "#2563eb"
+																: "transparent",
+													}}>
+													<Text
+														style={{
+															color: selected
+																? "#fff"
+																: isDark
+																	? "#f3f4f6"
+																	: "#374151",
+															fontWeight: selected
+																? "700"
+																: "400",
+															fontSize: 13,
+														}}>
+														{cat.acronym}
+													</Text>
+												</Pressable>
+											);
+										})}
+									</HStack>
 								</VStack>
 							</VStack>
 						</ActionsheetScrollView>
@@ -563,6 +739,8 @@ export default function JobsList({
 					</Button>
 				</HStack>
 				{(values.length > 0 ||
+					contractTypes.length > 0 ||
+					workingTimes.length > 0 ||
 					keywords ||
 					(selectedCityName && distanceKm > 0)) && (
 					<VStack style={styles.filtersRow}>
@@ -579,6 +757,43 @@ export default function JobsList({
 										as={X}
 										className='ml-2'
 										onPress={() => handleRemoveValue(value)}
+									/>
+								</Badge>
+							))}
+							{contractTypes.map((ct) => (
+								<Badge
+									key={ct}
+									size='md'
+									variant='solid'
+									action='muted'>
+									<BadgeIcon as={FileText} className='mr-2' />
+									<BadgeText>{ct}</BadgeText>
+									<BadgeIcon
+										as={X}
+										className='ml-2'
+										onPress={() =>
+											handleRemoveContractType(ct)
+										}
+									/>
+								</Badge>
+							))}
+							{workingTimes.map((wt) => (
+								<Badge
+									key={wt}
+									size='md'
+									variant='solid'
+									action='muted'>
+									<BadgeText>
+										{wt === "fulltime"
+											? "Temps plein"
+											: "Temps partiel"}
+									</BadgeText>
+									<BadgeIcon
+										as={X}
+										className='ml-2'
+										onPress={() =>
+											handleRemoveWorkingTime(wt)
+										}
 									/>
 								</Badge>
 							))}
