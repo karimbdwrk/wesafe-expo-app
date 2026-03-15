@@ -8,7 +8,7 @@ import {
 	Platform,
 	Keyboard,
 	KeyboardAvoidingView,
-	Pressable,
+	TouchableOpacity,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -18,6 +18,7 @@ import { createSupabaseClient } from "@/lib/supabase";
 
 import { Box } from "@/components/ui/box";
 import { Card } from "@/components/ui/card";
+import { Pressable } from "@/components/ui/pressable";
 import { Heading } from "@/components/ui/heading";
 import {
 	Avatar,
@@ -934,7 +935,7 @@ const ApplicationScreen = () => {
 			<ScrollView style={{ flex: 1 }}>
 				<VStack space='lg' style={{ padding: 20, paddingBottom: 90 }}>
 					{/* Job Card */}
-					<Pressable
+					<TouchableOpacity
 						onPress={() =>
 							router.push({
 								pathname: "/job",
@@ -1104,47 +1105,45 @@ const ApplicationScreen = () => {
 								/>
 							</HStack>
 						</Card>
-					</Pressable>
+					</TouchableOpacity>
 
 					{/* Candidat Card (si pro) */}
 					{role === "pro" && application?.profiles && (
-						<Card
-							style={{
-								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
-								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
-							}}>
-							<Button
-								variant='link'
-								style={{ padding: 0 }}
-								onPress={() =>
-									router.push({
-										pathname: "/profile",
-										params: {
-											profile_id:
-												application.candidate_id,
-										},
-									})
-								}>
+						<TouchableOpacity
+							onPress={() =>
+								router.push({
+									pathname: "/profile",
+									params: {
+										profile_id: application.candidate_id,
+									},
+								})
+							}
+							style={{ borderRadius: 12 }}>
+							<Card
+								style={{
+									padding: 16,
+									backgroundColor: isDark
+										? "#374151"
+										: "#ffffff",
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									borderRadius: 12,
+								}}>
 								<HStack
 									style={{
 										justifyContent: "space-between",
 										alignItems: "center",
-										width: "100%",
 									}}>
 									<HStack
 										space='md'
-										style={{
-											alignItems: "center",
-										}}>
+										style={{ alignItems: "center" }}>
 										<Avatar size='md'>
 											<AvatarFallbackText>
-												{application?.profiles
-													?.lastname +
+												{(application?.profiles
+													?.lastname || "") +
 													" " +
-													application?.profiles
-														?.firstname}
+													(application?.profiles
+														?.firstname || "")}
 											</AvatarFallbackText>
 											<AvatarImage
 												source={{
@@ -1161,13 +1160,19 @@ const ApplicationScreen = () => {
 														? "#f3f4f6"
 														: "#111827",
 												}}>
-												{application?.profiles
-													?.lastname +
+												{(application?.profiles
+													?.lastname || "") +
 													" " +
-													application?.profiles
-														?.firstname}
+													(application?.profiles
+														?.firstname || "")}
 											</Heading>
-											<Text size='sm'>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
 												Voir le profil du candidat
 											</Text>
 										</VStack>
@@ -1182,8 +1187,8 @@ const ApplicationScreen = () => {
 										}}
 									/>
 								</HStack>
-							</Button>
-						</Card>
+							</Card>
+						</TouchableOpacity>
 					)}
 
 					{/* Timeline Card */}
