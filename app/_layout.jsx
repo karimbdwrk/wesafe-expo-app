@@ -256,7 +256,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='profilelist'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Mes contacts",
+								}}
 							/>
 							<Stack.Screen
 								name='profile'
