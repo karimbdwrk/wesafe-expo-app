@@ -544,7 +544,7 @@ const DashboardScreen = () => {
 											  "pending"
 											? "En attente"
 											: company?.signature_status ===
-												  "accepted"
+												  "verified"
 												? "Validée"
 												: company?.signature_status ===
 													  "rejected"
@@ -558,7 +558,7 @@ const DashboardScreen = () => {
 											  "pending"
 											? "warning"
 											: company?.signature_status ===
-												  "accepted"
+												  "verified"
 												? "success"
 												: company?.signature_status ===
 													  "rejected"
@@ -585,7 +585,7 @@ const DashboardScreen = () => {
 										: company?.stamp_status === "pending"
 											? "En attente"
 											: company?.stamp_status ===
-												  "accepted"
+												  "verified"
 												? "Validé"
 												: company?.stamp_status ===
 													  "rejected"
@@ -598,7 +598,7 @@ const DashboardScreen = () => {
 										: company?.stamp_status === "pending"
 											? "warning"
 											: company?.stamp_status ===
-												  "accepted"
+												  "verified"
 												? "success"
 												: company?.stamp_status ===
 													  "rejected"
