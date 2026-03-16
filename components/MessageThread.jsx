@@ -1283,7 +1283,7 @@ const MessageThread = ({
 										}}>
 										{formatTime(message.created_at)}
 									</Text>
-									{isMyMessage && (
+									{isMyMessage && !receiverId && (
 										<MessageChecks
 											messageId={message.id}
 											isRead={message.is_read}
