@@ -929,9 +929,30 @@ const MessageThread = ({
 
 				if (error || !data) return;
 
+				// Marquer en base les messages reçus non lus
+				const unread = data.filter(
+					(msg) => msg.sender_id !== user.id && !msg.is_read,
+				);
+				if (unread.length > 0) {
+					supabase
+						.from("support_messages")
+						.update({ is_read: true })
+						.in(
+							"id",
+							unread.map((m) => m.id),
+						)
+						.then(() => {})
+						.catch(() => {});
+				}
+
+				// Construire la liste finale avec is_read forcé à true pour les messages reçus
+				const normalized = data.map((msg) =>
+					msg.sender_id !== user.id ? { ...msg, is_read: true } : msg,
+				);
+
 				setMessages((prev) => {
 					// Ne mettre à jour que s'il y a de nouveaux messages
-					if (data.length <= prev.length) return prev;
+					if (normalized.length <= prev.length) return prev;
 					setTimeout(
 						() =>
 							scrollViewRef.current?.scrollToEnd({
@@ -939,7 +960,7 @@ const MessageThread = ({
 							}),
 						50,
 					);
-					return data;
+					return normalized;
 				});
 			} catch (_) {}
 		}, 5000);
