@@ -399,6 +399,15 @@ const ApplicationScreen = () => {
 					clearInterval(presenceIntervalRef.current);
 				}
 				supabase.removeChannel(channel);
+
+				// Supprimer la présence immédiatement à la sortie
+				const sup = createSupabaseClient(accessToken);
+				sup.from("user_presence")
+					.delete()
+					.eq("user_id", user?.id)
+					.eq("apply_id", apply_id)
+					.then(() => {})
+					.catch(() => {});
 			};
 		}, [openMessaging, apply_id]),
 	);
