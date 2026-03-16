@@ -140,6 +140,8 @@ const MessageThread = ({
 	isReadOnly = false,
 	otherPartyName,
 	onTypingChange,
+	receiverId = null, // Pour chats support directs (sans application)
+	handleOwnKeyboard = false, // true quand utilisé dans un Actionsheet/Modal
 }) => {
 	const { user, accessToken, role } = useAuth();
 	const { trackActivity } = useDataContext();
@@ -153,27 +155,40 @@ const MessageThread = ({
 	const [transitionMessage, setTransitionMessage] = useState(null);
 	const [showTransitionTime, setShowTransitionTime] = useState(false);
 	const [textareaHeight, setTextareaHeight] = useState(40);
+	const [keyboardHeight, setKeyboardHeight] = useState(0);
 	const scrollViewRef = useRef(null);
 	const typingTimeoutRef = useRef(null);
 	const presenceChannelRef = useRef(null);
 	const presenceIntervalRef = useRef(null);
 	const typingIndicatorAnim = useRef(new Animated.Value(0)).current;
 
-	// Scroller automatiquement quand le clavier s'ouvre
+	// Scroller automatiquement quand le clavier s'ouvre + gérer hauteur si handleOwnKeyboard
 	useEffect(() => {
-		const keyboardDidShowListener = Keyboard.addListener(
-			"keyboardDidShow",
-			() => {
-				setTimeout(() => {
-					scrollViewRef.current?.scrollToEnd({ animated: true });
-				}, 100);
-			},
-		);
+		const showEvent =
+			Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+		const hideEvent =
+			Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+		const showListener = Keyboard.addListener(showEvent, (e) => {
+			if (handleOwnKeyboard) {
+				setKeyboardHeight(e.endCoordinates.height);
+			}
+			setTimeout(() => {
+				scrollViewRef.current?.scrollToEnd({ animated: true });
+			}, 100);
+		});
+
+		const hideListener = Keyboard.addListener(hideEvent, () => {
+			if (handleOwnKeyboard) {
+				setKeyboardHeight(0);
+			}
+		});
 
 		return () => {
-			keyboardDidShowListener.remove();
+			showListener.remove();
+			hideListener.remove();
 		};
-	}, []);
+	}, [handleOwnKeyboard]);
 
 	// Mettre à jour la présence régulièrement
 	useEffect(() => {
@@ -229,26 +244,26 @@ const MessageThread = ({
 		}
 	}, [isTyping, onTypingChange, typingIndicatorAnim]);
 
-	// Calculer le nombre de messages consécutifs du candidat
+	// Calculer le nombre de messages consécutifs de l'utilisateur courant
 	useEffect(() => {
-		if (messages.length === 0 || role !== "candidat") {
+		// Pour le support : compter pour tous les rôles ; pour les conversations normales : candidat seulement
+		if (messages.length === 0 || (role !== "candidat" && !receiverId)) {
 			setConsecutiveCandidateMessages(0);
 			return;
 		}
 
-		// Compter les messages consécutifs du candidat depuis le dernier message du pro
+		// Compter les messages consécutifs de l'utilisateur depuis le dernier message de l'autre partie
 		let count = 0;
 		for (let i = messages.length - 1; i >= 0; i--) {
 			if (messages[i].sender_id === user.id) {
 				count++;
 			} else {
-				// Dès qu'on trouve un message du pro, on arrête
 				break;
 			}
 		}
 		setConsecutiveCandidateMessages(count);
-		console.log("📊 Messages consécutifs du candidat:", count);
-	}, [messages, user.id, role]);
+		console.log("📊 Messages consécutifs:", count);
+	}, [messages, user.id, role, receiverId]);
 
 	// Charger les messages
 	const loadMessages = async () => {
@@ -264,11 +279,17 @@ const MessageThread = ({
 				last_seen: new Date().toISOString(),
 			});
 
-			const { data, error } = await supabase
-				.from("messages")
-				.select("*")
-				.eq("apply_id", applyId)
-				.order("created_at", { ascending: true });
+			const { data, error } = receiverId
+				? await supabase
+						.from("support_messages")
+						.select("*")
+						.eq("conversation_id", applyId)
+						.order("created_at", { ascending: true })
+				: await supabase
+						.from("messages")
+						.select("*")
+						.eq("apply_id", applyId)
+						.order("created_at", { ascending: true });
 
 			if (error) {
 				console.error("Erreur chargement messages:", error);
@@ -308,7 +329,7 @@ const MessageThread = ({
 			);
 			if (unreadMessages && unreadMessages.length > 0) {
 				await supabase
-					.from("messages")
+					.from(receiverId ? "support_messages" : "messages")
 					.update({ is_read: true })
 					.in(
 						"id",
@@ -350,8 +371,8 @@ const MessageThread = ({
 	const sendMessage = async () => {
 		if (!newMessage.trim() || loading || isReadOnly) return;
 
-		// Vérifier les restrictions pour les candidats
-		if (role === "candidat") {
+		// Vérifier les restrictions pour les candidats (conversations normales)
+		if (role === "candidat" && !receiverId) {
 			// Si aucun message, le candidat ne peut pas initier la conversation
 			if (messages.length === 0) {
 				console.log(
@@ -364,6 +385,12 @@ const MessageThread = ({
 				console.log("⚠️ Limite de 3 messages consécutifs atteinte");
 				return;
 			}
+		}
+
+		// Support chat : limite 3 messages consécutifs sans réponse du support (tous rôles)
+		if (receiverId && consecutiveCandidateMessages >= 3) {
+			console.log("⚠️ Limite de 3 messages consécutifs support atteinte");
+			return;
 		}
 
 		setLoading(true);
@@ -387,12 +414,20 @@ const MessageThread = ({
 			}
 
 			const { data: insertedMessage, error } = await supabase
-				.from("messages")
-				.insert({
-					apply_id: applyId,
-					sender_id: user.id,
-					content: newMessage.trim(),
-				})
+				.from(receiverId ? "support_messages" : "messages")
+				.insert(
+					receiverId
+						? {
+								conversation_id: applyId,
+								sender_id: user.id,
+								content: newMessage.trim(),
+							}
+						: {
+								apply_id: applyId,
+								sender_id: user.id,
+								content: newMessage.trim(),
+							},
+				)
 				.select()
 				.single();
 
@@ -401,7 +436,51 @@ const MessageThread = ({
 				return;
 			}
 			trackActivity("send_message");
+			// Vider l'input immédiatement après l'envoi réussi
+			setNewMessage("");
+			// Ajouter le message localement sans attendre Realtime
+			if (insertedMessage) {
+				setMessages((prev) => [...prev, insertedMessage]);
+				setTimeout(
+					() =>
+						scrollViewRef.current?.scrollToEnd({ animated: true }),
+					50,
+				);
+			}
 
+			// ── Support chat (receiverId fourni directement) ──────────────
+			if (receiverId) {
+				// Pas de lookup applications, pas de màj notification sur apply
+				try {
+					const { data: presenceData } = await supabase
+						.from("user_presence")
+						.select("apply_id")
+						.eq("user_id", receiverId)
+						.eq("apply_id", applyId)
+						.gte(
+							"last_seen",
+							new Date(Date.now() - 5000).toISOString(),
+						)
+						.single();
+
+					if (!presenceData) {
+						await supabase.from("notifications").insert({
+							recipient_id: receiverId,
+							type: "message",
+							title: "Support WeSafe",
+							entity_type: "message",
+							entity_id: applyId,
+							body: "Nouveau message",
+							is_read: false,
+						});
+					}
+				} catch (notifError) {
+					console.warn("⚠️ Notif support:", notifError);
+				}
+				return;
+			}
+
+			// ── Conversation normale (lookup applications) ─────────────────
 			// Récupérer l'apply pour trouver le destinataire et vérifier sa présence
 			const { data: applyData, error: applyError } = await supabase
 				.from("applications")
@@ -409,14 +488,15 @@ const MessageThread = ({
 					"candidate_id, job:jobs(company_id, title), candidate:profiles!candidate_id(firstname, lastname)",
 				)
 				.eq("id", applyId)
-				.single();
+				.maybeSingle();
 
 			if (applyError || !applyData) {
-				console.error("❌ Erreur récupération apply:", applyError);
+				if (applyError)
+					console.error("❌ Erreur récupération apply:", applyError);
 				return;
 			}
 
-			const receiverId =
+			const notifReceiverId =
 				user.id === applyData.candidate_id
 					? applyData.job.company_id
 					: applyData.candidate_id;
@@ -425,7 +505,7 @@ const MessageThread = ({
 			const { data: presenceData } = await supabase
 				.from("user_presence")
 				.select("apply_id")
-				.eq("user_id", receiverId)
+				.eq("user_id", notifReceiverId)
 				.eq("apply_id", applyId)
 				.gte("last_seen", new Date(Date.now() - 5000).toISOString())
 				.single();
@@ -433,7 +513,7 @@ const MessageThread = ({
 			const isReceiverPresent = !!presenceData;
 			console.log(
 				"👁️ Check présence destinataire:",
-				receiverId,
+				notifReceiverId,
 				"sur apply:",
 				applyId,
 				"présent:",
@@ -488,7 +568,6 @@ const MessageThread = ({
 
 			// Vider l'input immédiatement après l'envoi réussi
 			// Ne déclenche pas handleTyping car on a déjà envoyé typing=false
-			setNewMessage("");
 
 			const jobTitle = applyData?.job?.title || "Offre d'emploi";
 			const candidateName = applyData?.candidate
@@ -497,7 +576,7 @@ const MessageThread = ({
 
 			// Titre différent selon le destinataire
 			const notificationTitle =
-				receiverId === applyData.candidate_id
+				notifReceiverId === applyData.candidate_id
 					? jobTitle // Pour le candidat : titre du poste
 					: `${candidateName} - ${jobTitle}`; // Pour le pro : nom du candidat - titre du poste
 
@@ -507,7 +586,7 @@ const MessageThread = ({
 				const { data: presenceData } = await supabase
 					.from("user_presence")
 					.select("apply_id")
-					.eq("user_id", receiverId)
+					.eq("user_id", notifReceiverId)
 					.eq("apply_id", applyId)
 					.gte("last_seen", new Date(Date.now() - 5000).toISOString()) // Actif dans les 5 dernières secondes
 					.single();
@@ -525,7 +604,7 @@ const MessageThread = ({
 				const { error: deleteAllError } = await supabase.rpc(
 					"delete_conversation_notifications",
 					{
-						p_recipient_id: receiverId,
+						p_recipient_id: notifReceiverId,
 						p_apply_id: applyId,
 					},
 				);
@@ -563,7 +642,7 @@ const MessageThread = ({
 				const { data: newNotif, error: insertError } = await supabase
 					.from("notifications")
 					.insert({
-						recipient_id: receiverId,
+						recipient_id: notifReceiverId,
 						type: "message",
 						title: notificationTitle,
 						entity_type: "message",
@@ -676,16 +755,21 @@ const MessageThread = ({
 
 		loadMessages();
 
+		const msgTable = receiverId ? "support_messages" : "messages";
+		const msgFilter = receiverId
+			? `conversation_id=eq.${applyId}`
+			: `apply_id=eq.${applyId}`;
+
 		const supabase = createSupabaseClient(accessToken);
 		const channel = supabase
-			.channel(`messages:${applyId}`)
+			.channel(`${msgTable}:${applyId}`)
 			.on(
 				"postgres_changes",
 				{
 					event: "INSERT",
 					schema: "public",
-					table: "messages",
-					filter: `apply_id=eq.${applyId}`,
+					table: msgTable,
+					filter: msgFilter,
 				},
 				async (payload) => {
 					console.log("Nouveau message reçu:", payload);
@@ -703,21 +787,26 @@ const MessageThread = ({
 					// Si le message n'est pas de moi et n'est pas déjà lu, le marquer comme lu
 					if (newMsg.sender_id !== user.id && !newMsg.is_read) {
 						await supabase
-							.from("messages")
+							.from(msgTable)
 							.update({ is_read: true })
 							.eq("id", newMsg.id);
 
-						// Ajouter le message avec is_read = true
-						setMessages((prevMessages) => [
-							...prevMessages,
-							{ ...newMsg, is_read: true },
-						]);
+						// Ajouter le message avec is_read = true (dédoublonnage par id)
+						setMessages((prevMessages) => {
+							if (prevMessages.some((m) => m.id === newMsg.id))
+								return prevMessages;
+							return [
+								...prevMessages,
+								{ ...newMsg, is_read: true },
+							];
+						});
 					} else {
-						// Ajouter le nouveau message directement au state
-						setMessages((prevMessages) => [
-							...prevMessages,
-							newMsg,
-						]);
+						// Ajouter le nouveau message directement au state (dédoublonnage par id)
+						setMessages((prevMessages) => {
+							if (prevMessages.some((m) => m.id === newMsg.id))
+								return prevMessages;
+							return [...prevMessages, newMsg];
+						});
 					}
 				},
 			)
@@ -726,8 +815,8 @@ const MessageThread = ({
 				{
 					event: "UPDATE",
 					schema: "public",
-					table: "messages",
-					filter: `apply_id=eq.${applyId}`,
+					table: msgTable,
+					filter: msgFilter,
 				},
 				(payload) => {
 					console.log("Message mis à jour:", payload);
@@ -744,7 +833,7 @@ const MessageThread = ({
 		return () => {
 			supabase.removeChannel(channel);
 		};
-	}, [applyId, accessToken, user.id]);
+	}, [applyId, accessToken, user.id, receiverId]);
 
 	// Écouter l'indicateur de saisie
 	useEffect(() => {
@@ -849,7 +938,7 @@ const MessageThread = ({
 	};
 
 	return (
-		<VStack style={{ flex: 1 }}>
+		<VStack style={{ flex: 1, paddingBottom: keyboardHeight }}>
 			{/* Liste des messages */}
 			<ScrollView
 				ref={scrollViewRef}
@@ -1062,8 +1151,50 @@ const MessageThread = ({
 			{/* Zone de saisie */}
 			{!isReadOnly &&
 				(() => {
-					// Candidat sans messages : attendre que le pro initie
-					if (role === "candidat" && messages.length === 0) {
+					// Support chat : limite 3 messages consécutifs sans réponse du support (tous rôles)
+					if (receiverId && consecutiveCandidateMessages >= 3) {
+						return (
+							<Card
+								style={{
+									padding: 16,
+									margin: 16,
+									backgroundColor: isDark
+										? "#374151"
+										: "#fef3c7",
+									borderWidth: 1,
+									borderColor: isDark ? "#4b5563" : "#fbbf24",
+									borderRadius: 12,
+								}}>
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Icon
+										as={AlertCircle}
+										size={20}
+										color={isDark ? "#fbbf24" : "#d97706"}
+									/>
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#fbbf24"
+												: "#d97706",
+											flex: 1,
+										}}>
+										Vous avez envoyé 3 messages. Veuillez
+										attendre la réponse du support WeSafe.
+									</Text>
+								</HStack>
+							</Card>
+						);
+					}
+
+					// Candidat sans messages : attendre que le pro initie (hors support)
+					if (
+						role === "candidat" &&
+						messages.length === 0 &&
+						!receiverId
+					) {
 						return (
 							<Card
 								style={{
@@ -1100,10 +1231,11 @@ const MessageThread = ({
 						);
 					}
 
-					// Candidat ayant atteint la limite de 3 messages
+					// Candidat ayant atteint la limite de 3 messages (hors support)
 					if (
 						role === "candidat" &&
-						consecutiveCandidateMessages >= 3
+						consecutiveCandidateMessages >= 3 &&
+						!receiverId
 					) {
 						return (
 							<Card
