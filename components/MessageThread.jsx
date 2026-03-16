@@ -6,6 +6,7 @@ import {
 	Animated,
 	Easing,
 	Keyboard,
+	AppState,
 } from "react-native";
 import { createSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -22,7 +23,6 @@ import { Textarea, TextareaInput } from "@/components/ui/textarea";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Send, Check, MessageCircle, AlertCircle } from "lucide-react-native";
-import { width } from "dom-helpers";
 
 // Animation de points pour l'indicateur de saisie
 const TypingAnimation = () => {
@@ -150,6 +150,7 @@ const MessageThread = ({
 	const [newMessage, setNewMessage] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [isTyping, setIsTyping] = useState(false);
+	const [isOtherPartyOnline, setIsOtherPartyOnline] = useState(false);
 	const [consecutiveCandidateMessages, setConsecutiveCandidateMessages] =
 		useState(0);
 	const [transitionMessage, setTransitionMessage] = useState(null);
@@ -160,6 +161,8 @@ const MessageThread = ({
 	const typingTimeoutRef = useRef(null);
 	const presenceChannelRef = useRef(null);
 	const presenceIntervalRef = useRef(null);
+	const broadcastChannelRef = useRef(null);
+	const typingStopTimeoutRef = useRef(null);
 	const typingIndicatorAnim = useRef(new Animated.Value(0)).current;
 
 	// Scroller automatiquement quand le clavier s'ouvre + gérer hauteur si handleOwnKeyboard
@@ -190,30 +193,79 @@ const MessageThread = ({
 		};
 	}, [handleOwnKeyboard]);
 
-	// Mettre à jour la présence régulièrement
+	// Mettre à jour la présence régulièrement + supprimer à la sortie
 	useEffect(() => {
 		if (!applyId || !accessToken || !user?.id) return;
 
-		const updatePresence = async () => {
-			const supabase = createSupabaseClient(accessToken);
-			await supabase.from("user_presence").upsert({
+		const supabase = createSupabaseClient(accessToken);
+
+		const upsertPresence = () =>
+			supabase.from("user_presence").upsert({
 				user_id: user.id,
 				apply_id: applyId,
 				last_seen: new Date().toISOString(),
 			});
-		};
 
-		// Mettre à jour immédiatement
-		updatePresence();
+		const deletePresence = () =>
+			supabase
+				.from("user_presence")
+				.delete()
+				.eq("user_id", user.id)
+				.eq("apply_id", applyId)
+				.then(() => {})
+				.catch(() => {});
 
-		// Puis mettre à jour toutes les 3 secondes
-		presenceIntervalRef.current = setInterval(updatePresence, 3000);
+		upsertPresence();
+		presenceIntervalRef.current = setInterval(upsertPresence, 3000);
 
 		return () => {
-			if (presenceIntervalRef.current) {
+			if (presenceIntervalRef.current)
 				clearInterval(presenceIntervalRef.current);
+			deletePresence();
+		};
+	}, [applyId, accessToken, user?.id]);
+
+	// Gérer l'AppState (background / inactive) pour marquer hors ligne
+	useEffect(() => {
+		if (!applyId || !accessToken || !user?.id) return;
+
+		const handleAppStateChange = (nextState) => {
+			if (nextState === "background" || nextState === "inactive") {
+				// Supprimer la présence immédiatement
+				const supabase = createSupabaseClient(accessToken);
+				supabase
+					.from("user_presence")
+					.delete()
+					.eq("user_id", user.id)
+					.eq("apply_id", applyId)
+					.then(() => {})
+					.catch(() => {});
+				broadcastChannelRef.current?.send({
+					type: "broadcast",
+					event: "offline",
+					payload: { sender_id: user.id },
+				});
+			} else if (nextState === "active") {
+				// Restaurer la présence
+				const supabase = createSupabaseClient(accessToken);
+				supabase.from("user_presence").upsert({
+					user_id: user.id,
+					apply_id: applyId,
+					last_seen: new Date().toISOString(),
+				});
+				broadcastChannelRef.current?.send({
+					type: "broadcast",
+					event: "online",
+					payload: { sender_id: user.id },
+				});
 			}
 		};
+
+		const subscription = AppState.addEventListener(
+			"change",
+			handleAppStateChange,
+		);
+		return () => subscription.remove();
 	}, [applyId, accessToken, user?.id]);
 
 	// Log les changements de isTyping
@@ -412,6 +464,11 @@ const MessageThread = ({
 			} else {
 				console.log("⚠️ [SEND] Pas de channel Presence disponible");
 			}
+			broadcastChannelRef.current?.send({
+				type: "broadcast",
+				event: "typing_stop",
+				payload: { sender_id: user.id },
+			});
 
 			const { data: insertedMessage, error } = await supabase
 				.from(receiverId ? "support_messages" : "messages")
@@ -450,6 +507,13 @@ const MessageThread = ({
 
 			// ── Support chat (receiverId fourni directement) ──────────────
 			if (receiverId) {
+				// Broadcaster le nouveau message pour l'interlocuteur en temps réel
+				broadcastChannelRef.current?.send({
+					type: "broadcast",
+					event: "new_message",
+					payload: { message: insertedMessage },
+				});
+
 				// Pas de lookup applications, pas de màj notification sur apply
 				try {
 					const { data: presenceData } = await supabase
@@ -711,13 +775,18 @@ const MessageThread = ({
 		if (text.length > 0) {
 			console.log("⌨️ [TYPING] Envoi typing=true, user_id:", user.id);
 			presenceChannelRef.current
-				.track({
+				?.track({
 					typing: true,
 					user_id: user.id,
 				})
 				.catch((err) =>
 					console.error("❌ [TYPING] Erreur track:", err),
 				);
+			broadcastChannelRef.current?.send({
+				type: "broadcast",
+				event: "typing",
+				payload: { sender_id: user.id },
+			});
 
 			// Arrêter l'indicateur après 3 secondes d'inactivité
 			if (typingTimeoutRef.current) {
@@ -731,6 +800,11 @@ const MessageThread = ({
 						user_id: user.id,
 					});
 				}
+				broadcastChannelRef.current?.send({
+					type: "broadcast",
+					event: "typing_stop",
+					payload: { sender_id: user.id },
+				});
 				typingTimeoutRef.current = null;
 			}, 3000);
 		} else {
@@ -742,9 +816,14 @@ const MessageThread = ({
 				clearTimeout(typingTimeoutRef.current);
 				typingTimeoutRef.current = null;
 			}
-			presenceChannelRef.current.track({
+			presenceChannelRef.current?.track({
 				typing: false,
 				user_id: user.id,
+			});
+			broadcastChannelRef.current?.send({
+				type: "broadcast",
+				event: "typing_stop",
+				payload: { sender_id: user.id },
 			});
 		}
 	};
@@ -835,7 +914,120 @@ const MessageThread = ({
 		};
 	}, [applyId, accessToken, user.id, receiverId]);
 
-	// Écouter l'indicateur de saisie
+	// Polling de secours pour le chat support (au cas où le realtime ne reçoit pas les messages de l'admin)
+	useEffect(() => {
+		if (!receiverId || !applyId || !accessToken) return;
+
+		const pollingInterval = setInterval(async () => {
+			try {
+				const supabase = createSupabaseClient(accessToken);
+				const { data, error } = await supabase
+					.from("support_messages")
+					.select("*")
+					.eq("conversation_id", applyId)
+					.order("created_at", { ascending: true });
+
+				if (error || !data) return;
+
+				setMessages((prev) => {
+					// Ne mettre à jour que s'il y a de nouveaux messages
+					if (data.length <= prev.length) return prev;
+					setTimeout(
+						() =>
+							scrollViewRef.current?.scrollToEnd({
+								animated: true,
+							}),
+						50,
+					);
+					return data;
+				});
+			} catch (_) {}
+		}, 5000);
+
+		return () => clearInterval(pollingInterval);
+	}, [receiverId, applyId, accessToken]);
+
+	// Channel broadcast pour les typing events + online/offline + new_message
+	useEffect(() => {
+		if (!applyId || !accessToken || !user?.id) return;
+
+		const supabase = createSupabaseClient(accessToken);
+		const broadcastChannel = supabase
+			.channel(`conv-${applyId}`)
+			.on("broadcast", { event: "typing" }, (payload) => {
+				if (payload.payload?.sender_id === user.id) return;
+				setIsTyping(true);
+				if (typingStopTimeoutRef.current)
+					clearTimeout(typingStopTimeoutRef.current);
+				typingStopTimeoutRef.current = setTimeout(() => {
+					setIsTyping(false);
+				}, 3500);
+			})
+			.on("broadcast", { event: "typing_stop" }, (payload) => {
+				if (payload.payload?.sender_id === user.id) return;
+				if (typingStopTimeoutRef.current)
+					clearTimeout(typingStopTimeoutRef.current);
+				setIsTyping(false);
+			})
+			.on("broadcast", { event: "online" }, (payload) => {
+				if (payload.payload?.sender_id === user.id) return;
+				setIsOtherPartyOnline(true);
+			})
+			.on("broadcast", { event: "offline" }, (payload) => {
+				if (payload.payload?.sender_id === user.id) return;
+				setIsOtherPartyOnline(false);
+			})
+			.on("broadcast", { event: "new_message" }, (payload) => {
+				if (payload.payload?.message?.sender_id === user.id) return;
+				const newMsg = payload.payload?.message;
+				if (!newMsg) return;
+				setIsTyping(false);
+				if (typingStopTimeoutRef.current)
+					clearTimeout(typingStopTimeoutRef.current);
+				setMessages((prev) => {
+					if (prev.some((m) => m.id === newMsg.id)) return prev;
+					return [...prev, { ...newMsg, is_read: true }];
+				});
+				setTimeout(
+					() =>
+						scrollViewRef.current?.scrollToEnd({ animated: true }),
+					50,
+				);
+				// Marquer comme lu
+				const sup = createSupabaseClient(accessToken);
+				sup.from(receiverId ? "support_messages" : "messages")
+					.update({ is_read: true })
+					.eq("id", newMsg.id)
+					.then(() => {})
+					.catch(() => {});
+			})
+			.subscribe((status) => {
+				if (status === "SUBSCRIBED") {
+					broadcastChannelRef.current = broadcastChannel;
+					// Annoncer qu'on est en ligne dès la connexion
+					broadcastChannel.send({
+						type: "broadcast",
+						event: "online",
+						payload: { sender_id: user.id },
+					});
+				}
+			});
+
+		return () => {
+			// Annoncer qu'on quitte avant de fermer le channel
+			broadcastChannelRef.current?.send({
+				type: "broadcast",
+				event: "offline",
+				payload: { sender_id: user.id },
+			});
+			broadcastChannelRef.current = null;
+			if (typingStopTimeoutRef.current)
+				clearTimeout(typingStopTimeoutRef.current);
+			supabase.removeChannel(broadcastChannel);
+		};
+	}, [applyId, accessToken, user?.id]);
+
+	// Écouter l'indicateur de saisie (Presence - conversations normales)
 	useEffect(() => {
 		if (!applyId || !accessToken) {
 			console.log("⚠️ [PRESENCE] Manque applyId ou accessToken");
@@ -939,6 +1131,33 @@ const MessageThread = ({
 
 	return (
 		<VStack style={{ flex: 1, paddingBottom: keyboardHeight }}>
+			{/* Indicateur en ligne */}
+			{isOtherPartyOnline && (
+				<HStack
+					space='xs'
+					style={{
+						alignItems: "center",
+						paddingHorizontal: 16,
+						paddingVertical: 4,
+						backgroundColor: isDark ? "#1f2937" : "#f0fdf4",
+						borderBottomWidth: 1,
+						borderBottomColor: isDark ? "#374151" : "#bbf7d0",
+					}}>
+					<View
+						style={{
+							width: 7,
+							height: 7,
+							borderRadius: 4,
+							backgroundColor: "#22c55e",
+						}}
+					/>
+					<Text
+						size='xs'
+						style={{ color: isDark ? "#86efac" : "#16a34a" }}>
+						En ligne
+					</Text>
+				</HStack>
+			)}
 			{/* Liste des messages */}
 			<ScrollView
 				ref={scrollViewRef}
