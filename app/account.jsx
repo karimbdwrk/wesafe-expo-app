@@ -26,7 +26,12 @@ import {
 	AvatarFallbackText,
 	AvatarImage,
 } from "@/components/ui/avatar";
-import { useRouter, useFocusEffect, Stack } from "expo-router";
+import {
+	useRouter,
+	useFocusEffect,
+	Stack,
+	useLocalSearchParams,
+} from "expo-router";
 import SvgQRCode from "react-native-qrcode-svg";
 
 import { Box } from "@/components/ui/box";
@@ -96,6 +101,7 @@ const AccountScreen = () => {
 	const { unreadCount } = useNotifications();
 	const { image } = useImage();
 	const router = useRouter();
+	const { openSupport } = useLocalSearchParams();
 
 	const [profile, setProfile] = useState(null);
 	const [procards, setProcards] = useState([]);
@@ -104,6 +110,12 @@ const AccountScreen = () => {
 	const [notifCount, setNotifCount] = useState(0);
 	const [showSupportSheet, setShowSupportSheet] = useState(false);
 	const [supportConvId, setSupportConvId] = useState(null);
+
+	useEffect(() => {
+		if (openSupport === "true") {
+			openSupportSheet();
+		}
+	}, [openSupport]);
 
 	const openSupportSheet = async () => {
 		if (!user?.id || !accessToken) return;
