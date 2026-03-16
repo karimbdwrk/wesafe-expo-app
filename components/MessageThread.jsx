@@ -530,9 +530,9 @@ const MessageThread = ({
 					if (!presenceData) {
 						await supabase.from("notifications").insert({
 							recipient_id: receiverId,
-							type: "message",
+							type: "support_message",
 							title: "Support WeSafe",
-							entity_type: "message",
+							entity_type: "support_message",
 							entity_id: applyId,
 							body: "Nouveau message",
 							is_read: false,
