@@ -32,7 +32,7 @@ import { createClient } from "@supabase/supabase-js";
 import Constants from "expo-constants";
 
 const Notifications = () => {
-	const { user, accessToken } = useAuth();
+	const { user, accessToken, role } = useAuth();
 	const { getAll, update } = useDataContext();
 	const { isDark } = useTheme();
 	const {
@@ -193,6 +193,12 @@ const Notifications = () => {
 			router.replace({
 				pathname: "/job",
 				params: { id: notification.entity_id },
+			});
+		} else if (notification.type === "support_message") {
+			const target = role === "candidat" ? "/account" : "/dashboard";
+			router.replace({
+				pathname: target,
+				params: { openSupport: "true" },
 			});
 		} else if (notification.type === "document_status_update") {
 			router.push({ pathname: "/prodocs" });
