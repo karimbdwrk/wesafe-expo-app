@@ -683,14 +683,14 @@ const DashboardScreen = () => {
 								}}
 							/>
 
+							<Divider style={{ marginVertical: 16 }} />
+
 							<ActionCard
 								icon={MessageSquare}
 								title='Messages'
 								subtitle='Contacter le support WeSafe'
 								onPress={openSupportSheet}
 							/>
-
-							<Divider style={{ marginVertical: 16 }} />
 
 							<ActionCard
 								icon={Settings}
