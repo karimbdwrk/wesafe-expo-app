@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter, useFocusEffect, Stack } from "expo-router";
-// import { useLocalSearchParams } from "expo-router";
+import {
+	useRouter,
+	useFocusEffect,
+	Stack,
+	useLocalSearchParams,
+} from "expo-router";
 import {
 	ScrollView,
 	TouchableOpacity,
@@ -91,12 +95,19 @@ const DashboardScreen = () => {
 	const { isDark } = useTheme();
 
 	const router = useRouter();
+	const { openSupport } = useLocalSearchParams();
 
 	const [company, setCompany] = useState(null);
 	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 	const [notifCount, setNotifCount] = useState(0);
 	const [showSupportSheet, setShowSupportSheet] = useState(false);
 	const [supportConvId, setSupportConvId] = useState(null);
+
+	useEffect(() => {
+		if (openSupport === "true") {
+			openSupportSheet();
+		}
+	}, [openSupport]);
 
 	const openSupportSheet = async () => {
 		if (!user?.id || !accessToken) return;
