@@ -11,7 +11,9 @@ import {
 	TouchableOpacity,
 	Image,
 	Animated,
+	Dimensions,
 } from "react-native";
+import Constants from "expo-constants";
 import {
 	Actionsheet,
 	ActionsheetBackdrop,
@@ -68,6 +70,7 @@ import {
 	Settings,
 	LogOut,
 	BookmarkCheck,
+	MessageSquare,
 } from "lucide-react-native";
 
 import { supabase } from "@/lib/supabase";
@@ -78,7 +81,11 @@ import { useTheme } from "@/context/ThemeContext";
 import { useNotifications } from "@/context/NotificationsContext";
 import { useImage } from "@/context/ImageContext";
 import { createSupabaseClient } from "@/lib/supabase";
+import MessageThread from "@/components/MessageThread";
 import { width } from "dom-helpers";
+
+const SCREEN_HEIGHT = Dimensions.get("window").height;
+const { SUPERADMIN_ID } = Constants.expoConfig.extra;
 
 import Logo from "@/components/Logo";
 
@@ -95,6 +102,24 @@ const AccountScreen = () => {
 	const [showQRModal, setShowQRModal] = useState(false);
 	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 	const [notifCount, setNotifCount] = useState(0);
+	const [showSupportSheet, setShowSupportSheet] = useState(false);
+	const [supportConvId, setSupportConvId] = useState(null);
+
+	const openSupportSheet = async () => {
+		if (!user?.id || !accessToken) return;
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			const { data, error } = await supabase
+				.from("support_conversations")
+				.upsert({ user_id: user.id }, { onConflict: "user_id" })
+				.select("id")
+				.single();
+			if (!error && data?.id) setSupportConvId(data.id);
+		} catch (e) {
+			console.error("Erreur support conv:", e);
+		}
+		setShowSupportSheet(true);
+	};
 	const [verifiedDocs, setVerifiedDocs] = useState({
 		cnaps: [],
 		diplomas: [],
@@ -1142,6 +1167,13 @@ const AccountScreen = () => {
 							<Divider style={{ marginVertical: 16 }} />
 
 							<ActionCard
+								icon={MessageSquare}
+								title='Messages'
+								subtitle='Contacter le support WeSafe'
+								onPress={openSupportSheet}
+							/>
+
+							<ActionCard
 								icon={Settings}
 								title='Paramètres'
 								subtitle="Paramètres de l'application"
@@ -1211,6 +1243,89 @@ const AccountScreen = () => {
 					</AlertDialogContent>
 				</AlertDialog>
 			</Box>
+			{/* ActionSheet Support Messages */}
+			<Actionsheet
+				isOpen={showSupportSheet}
+				onClose={() => setShowSupportSheet(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent style={{ padding: 0 }}>
+					<Box
+						style={{ height: SCREEN_HEIGHT * 0.85, width: "100%" }}>
+						<ActionsheetDragIndicatorWrapper>
+							<ActionsheetDragIndicator
+								style={{
+									backgroundColor: isDark
+										? "#4b5563"
+										: "#d1d5db",
+								}}
+							/>
+						</ActionsheetDragIndicatorWrapper>
+						<Box
+							style={{
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "space-between",
+								paddingHorizontal: 20,
+								paddingVertical: 10,
+								borderBottomWidth: 1,
+								borderBottomColor: isDark
+									? "#374151"
+									: "#e5e7eb",
+							}}>
+							<VStack space='xs'>
+								<Text
+									style={{
+										fontSize: 16,
+										fontWeight: "700",
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									Support WeSafe
+								</Text>
+								<Text
+									style={{
+										fontSize: 11,
+										color: isDark ? "#6b7280" : "#9ca3af",
+										fontStyle: "italic",
+										letterSpacing: 0.2,
+									}}>
+									Réponse généralement sous quelques heures
+								</Text>
+							</VStack>
+							<TouchableOpacity
+								onPress={() => setShowSupportSheet(false)}
+								activeOpacity={0.7}
+								style={{
+									width: 32,
+									height: 32,
+									borderRadius: 16,
+									backgroundColor: isDark
+										? "#4b5563"
+										: "#e5e7eb",
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Text
+									style={{
+										fontSize: 16,
+										fontWeight: "700",
+										color: isDark ? "#f3f4f6" : "#374151",
+										lineHeight: 18,
+									}}>
+									✕
+								</Text>
+							</TouchableOpacity>
+						</Box>
+						{showSupportSheet && supportConvId && SUPERADMIN_ID && (
+							<MessageThread
+								applyId={supportConvId}
+								receiverId={SUPERADMIN_ID}
+								otherPartyName='Support WeSafe'
+								handleOwnKeyboard={true}
+							/>
+						)}
+					</Box>
+				</ActionsheetContent>
+			</Actionsheet>
 		</>
 	);
 };
