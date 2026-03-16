@@ -87,7 +87,6 @@ import { useNotifications } from "@/context/NotificationsContext";
 import { useImage } from "@/context/ImageContext";
 import { createSupabaseClient } from "@/lib/supabase";
 import MessageThread from "@/components/MessageThread";
-import { width } from "dom-helpers";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const { SUPERADMIN_ID } = Constants.expoConfig.extra;
@@ -110,6 +109,29 @@ const AccountScreen = () => {
 	const [notifCount, setNotifCount] = useState(0);
 	const [showSupportSheet, setShowSupportSheet] = useState(false);
 	const [supportConvId, setSupportConvId] = useState(null);
+	const [supportUnreadCount, setSupportUnreadCount] = useState(0);
+
+	const fetchSupportUnreadCount = useCallback(async () => {
+		if (!user?.id || !accessToken) return;
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			const { data: conv } = await supabase
+				.from("support_conversations")
+				.select("id")
+				.eq("user_id", user.id)
+				.single();
+			if (!conv?.id) return;
+			const { count } = await supabase
+				.from("support_messages")
+				.select("id", { count: "exact", head: true })
+				.eq("conversation_id", conv.id)
+				.neq("sender_id", user.id)
+				.or("is_read.is.false,is_read.is.null");
+			setSupportUnreadCount(count ?? 0);
+		} catch (e) {
+			setSupportUnreadCount(0);
+		}
+	}, [user?.id, accessToken]);
 
 	useEffect(() => {
 		if (openSupport === "true") {
@@ -119,6 +141,7 @@ const AccountScreen = () => {
 
 	const openSupportSheet = async () => {
 		if (!user?.id || !accessToken) return;
+		setSupportUnreadCount(0);
 		try {
 			const supabase = createSupabaseClient(accessToken);
 			const { data, error } = await supabase
@@ -269,6 +292,7 @@ const AccountScreen = () => {
 			loadProcards();
 			loadDiplomas();
 			fetchNotifCount();
+			fetchSupportUnreadCount();
 
 			const supabase = createSupabaseClient(accessToken);
 			const channel = supabase
@@ -1183,6 +1207,14 @@ const AccountScreen = () => {
 								title='Messages'
 								subtitle='Contacter le support WeSafe'
 								onPress={openSupportSheet}
+								badgeText={
+									supportUnreadCount > 0
+										? supportUnreadCount.toString()
+										: null
+								}
+								badgeColor={
+									supportUnreadCount > 0 ? "error" : undefined
+								}
 							/>
 
 							<ActionCard
