@@ -609,6 +609,44 @@ const AccountScreen = () => {
 					style={{ flex: 1 }}
 					contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
 					<VStack space='2xl'>
+						{/* Bannière rejet */}
+						{profile?.profile_status === "rejected" && (
+							<Card
+								style={{
+									padding: 16,
+									backgroundColor: isDark
+										? "#450a0a"
+										: "#fef2f2",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#7f1d1d" : "#fecaca",
+								}}>
+								<VStack space='xs'>
+									<Text
+										style={{
+											fontWeight: "700",
+											color: isDark
+												? "#fca5a5"
+												: "#b91c1c",
+											fontSize: 14,
+										}}>
+										Votre profil a été refusé
+									</Text>
+									{profile?.reject_message ? (
+										<Text
+											style={{
+												color: isDark
+													? "#fca5a5"
+													: "#dc2626",
+												fontSize: 13,
+											}}>
+											{profile.reject_message}
+										</Text>
+									) : null}
+								</VStack>
+							</Card>
+						)}
+
 						{/* Profile Header Card */}
 						<Card
 							style={{
@@ -640,17 +678,72 @@ const AccountScreen = () => {
 										justifyContent: "space-between",
 									}}>
 									<VStack style={{ flex: 1 }} space='xs'>
-										<Text
-											size='lg'
+										<HStack
+											space='sm'
 											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+												justifyContent: "space-between",
+												alignItems: "center",
 											}}>
-											{profile?.firstname}{" "}
-											{profile?.lastname}
-										</Text>
+											<Text
+												size='lg'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												{profile?.firstname}{" "}
+												{profile?.lastname}
+											</Text>
+											{profile?.profile_status ===
+												"pending" && (
+												<Badge
+													size='sm'
+													variant='solid'
+													action='warning'>
+													<BadgeText>
+														En attente
+													</BadgeText>
+												</Badge>
+											)}
+											{profile?.profile_status ===
+												"verified" && (
+												<Badge
+													size='sm'
+													variant='solid'
+													action='success'>
+													<BadgeIcon
+														as={IdCard}
+														className='mr-1'
+													/>
+													<BadgeText>
+														Vérifié
+													</BadgeText>
+												</Badge>
+											)}
+											{profile?.profile_status ===
+												"rejected" && (
+												<Badge
+													size='sm'
+													variant='solid'
+													action='error'>
+													<BadgeText>
+														Refusé
+													</BadgeText>
+												</Badge>
+											)}
+											{profile?.profile_status ===
+												"suspended" && (
+												<Badge
+													size='sm'
+													variant='solid'
+													action='muted'>
+													<BadgeText>
+														Suspendu
+													</BadgeText>
+												</Badge>
+											)}
+										</HStack>
 										{profile?.email && (
 											<Text
 												size='sm'
