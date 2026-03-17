@@ -365,6 +365,31 @@ export default function TabLayout({ theme = "light" }) {
 													</BadgeText>
 												</Badge>
 											) : userProfile?.profile_status ===
+											  "rejected" ? (
+												<Badge
+													className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
+													style={{
+														display: "flex",
+														justifyContent:
+															"center",
+														alignItems: "center",
+														position: "absolute",
+														left: -5,
+														top: -5,
+														padding: 0,
+													}}
+													variant='solid'>
+													<BadgeText
+														className='text-white font-semibold'
+														style={{
+															position:
+																"absolute",
+															top: 1,
+														}}>
+														!
+													</BadgeText>
+												</Badge>
+											) : userProfile?.profile_status ===
 											  "suspended" ? (
 												<Badge
 													className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
@@ -422,6 +447,31 @@ export default function TabLayout({ theme = "light" }) {
 												"pending" ? (
 												<Badge
 													className='z-10 h-[16px] w-[16px] bg-yellow-500 rounded-full'
+													style={{
+														display: "flex",
+														justifyContent:
+															"center",
+														alignItems: "center",
+														position: "absolute",
+														left: -5,
+														top: -5,
+														padding: 0,
+													}}
+													variant='solid'>
+													<BadgeText
+														className='text-white font-semibold'
+														style={{
+															position:
+																"absolute",
+															top: 1,
+														}}>
+														!
+													</BadgeText>
+												</Badge>
+											) : userCompany?.company_status ===
+											  "rejected" ? (
+												<Badge
+													className='z-10 h-[16px] w-[16px] bg-red-600 rounded-full'
 													style={{
 														display: "flex",
 														justifyContent:
