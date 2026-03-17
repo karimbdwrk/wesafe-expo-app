@@ -352,6 +352,55 @@ const DashboardScreen = () => {
 							</Card>
 						)}
 
+						{/* Bannière suspension */}
+						{company?.company_status === "suspended" && (
+							<Card
+								style={{
+									padding: 16,
+									backgroundColor: isDark
+										? "#1c1917"
+										: "#f9fafb",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#44403c" : "#d1d5db",
+								}}>
+								<VStack space='xs'>
+									<Text
+										style={{
+											fontWeight: "700",
+											color: isDark
+												? "#d1d5db"
+												: "#374151",
+											fontSize: 14,
+										}}>
+										Votre compte a été suspendu
+									</Text>
+									{company?.suspend_message ? (
+										<Text
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+												fontSize: 13,
+											}}>
+											{company.suspend_message}
+										</Text>
+									) : (
+										<Text
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+												fontSize: 13,
+											}}>
+											Contactez le support pour plus
+											d'informations : support@wesafe.fr
+										</Text>
+									)}
+								</VStack>
+							</Card>
+						)}
+
 						{/* Company Info Card */}
 						<Card
 							style={{
