@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { TouchableOpacity, ScrollView } from "react-native";
+import {
+	TouchableOpacity,
+	ScrollView,
+	View,
+	Text as RNText,
+} from "react-native";
 import { useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import { Box } from "@/components/ui/box";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
@@ -256,9 +262,42 @@ const Notifications = () => {
 				flex: 1,
 				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
 			}}>
+			<Stack.Screen
+				options={{
+					titleBadge: unreadCount,
+					headerRight:
+						unreadCount > 0
+							? () => (
+									<TouchableOpacity
+										onPress={handleMarkAllAsRead}
+										style={{
+											flexDirection: "row",
+											alignItems: "center",
+											gap: 4,
+											paddingHorizontal: 10,
+											paddingVertical: 6,
+											borderRadius: 8,
+											backgroundColor: isDark
+												? "#1f2937"
+												: "#f3f4f6",
+										}}>
+										<CheckCheck size={14} color='#2563eb' />
+										<RNText
+											style={{
+												color: "#2563eb",
+												fontSize: 12,
+												fontWeight: "600",
+											}}>
+											Tout lire
+										</RNText>
+									</TouchableOpacity>
+								)
+							: undefined,
+				}}
+			/>
 			<VStack space='lg' style={{ padding: 20 }}>
 				{/* Header Card */}
-				<Card
+				{/* <Card
 					style={{
 						backgroundColor: isDark ? "#374151" : "#ffffff",
 						borderRadius: 12,
@@ -336,7 +375,7 @@ const Notifications = () => {
 							</TouchableOpacity>
 						)}
 					</HStack>
-				</Card>
+				</Card> */}
 
 				{/* Notifications List */}
 				{notifications.length > 0 ? (
