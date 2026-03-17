@@ -49,6 +49,8 @@ import {
 	BookmarkCheck,
 	IdCard,
 	Bell,
+	XCircle,
+	Ban,
 } from "lucide-react-native";
 
 import JobCard from "@/components/JobCard";
@@ -506,7 +508,102 @@ export default function Tab1() {
 					</HStack>
 
 					{/* Statut du compte */}
-					{userCompany?.company_status !== "active" ? (
+					{userCompany?.company_status === "rejected" ? (
+						<Card
+							style={{
+								padding: 24,
+								backgroundColor: isDark ? "#1f2937" : "#fef2f2",
+								borderRadius: 16,
+								borderWidth: 1,
+								borderColor: isDark ? "#991b1b" : "#fecaca",
+							}}>
+							<VStack space='md' style={{ alignItems: "center" }}>
+								<Icon
+									as={XCircle}
+									size='xl'
+									style={{
+										color: isDark ? "#f87171" : "#dc2626",
+									}}
+								/>
+								<Text
+									style={{
+										fontSize: 18,
+										fontWeight: "700",
+										color: isDark ? "#fca5a5" : "#991b1b",
+										textAlign: "center",
+									}}>
+									Compte refusé
+								</Text>
+								<Text
+									style={{
+										fontSize: 14,
+										color: isDark ? "#fca5a5" : "#b91c1c",
+										textAlign: "center",
+										lineHeight: 22,
+									}}>
+									{userCompany?.reject_message ||
+										"Votre dossier n'a pas été validé par notre équipe."}
+								</Text>
+								<Text
+									style={{
+										fontSize: 13,
+										color: isDark ? "#9ca3af" : "#6b7280",
+										textAlign: "center",
+										fontStyle: "italic",
+									}}>
+									Contactez-nous : support@wesafe.fr
+								</Text>
+							</VStack>
+						</Card>
+					) : userCompany?.company_status === "suspended" ? (
+						<Card
+							style={{
+								padding: 24,
+								backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+								borderRadius: 16,
+								borderWidth: 1,
+								borderColor: isDark ? "#374151" : "#d1d5db",
+							}}>
+							<VStack space='md' style={{ alignItems: "center" }}>
+								<Icon
+									as={Ban}
+									size='xl'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}
+								/>
+								<Text
+									style={{
+										fontSize: 18,
+										fontWeight: "700",
+										color: isDark ? "#d1d5db" : "#374151",
+										textAlign: "center",
+									}}>
+									Compte suspendu
+								</Text>
+								<Text
+									style={{
+										fontSize: 14,
+										color: isDark ? "#9ca3af" : "#6b7280",
+										textAlign: "center",
+										lineHeight: 22,
+									}}>
+									Votre compte a été suspendu temporairement.
+									Contactez le support pour plus
+									d'informations.
+								</Text>
+								<Text
+									style={{
+										fontSize: 13,
+										color: isDark ? "#9ca3af" : "#6b7280",
+										textAlign: "center",
+										fontStyle: "italic",
+									}}>
+									support@wesafe.fr
+								</Text>
+							</VStack>
+						</Card>
+					) : userCompany?.company_status !== "active" ? (
 						<Card
 							style={{
 								padding: 24,
@@ -670,6 +767,134 @@ export default function Tab1() {
 						padding: 16,
 						paddingBottom: 40,
 					}}>
+					{/* Statut du profil */}
+					{userProfile?.profile_status === "rejected" ? (
+						<Card
+							style={{
+								padding: 12,
+								backgroundColor: isDark ? "#1f2937" : "#fef2f2",
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#991b1b" : "#fecaca",
+							}}>
+							<HStack space='sm' style={{ alignItems: "center" }}>
+								<Icon
+									as={XCircle}
+									size='sm'
+									style={{
+										color: isDark ? "#f87171" : "#dc2626",
+									}}
+								/>
+								<VStack style={{ flex: 1 }}>
+									<Text
+										style={{
+											fontSize: 13,
+											fontWeight: "700",
+											color: isDark
+												? "#fca5a5"
+												: "#991b1b",
+										}}>
+										Profil refusé
+									</Text>
+									<Text
+										style={{
+											fontSize: 12,
+											color: isDark
+												? "#fca5a5"
+												: "#b91c1c",
+											lineHeight: 18,
+										}}>
+										{userProfile?.reject_message ||
+											"Votre dossier n'a pas été validé. Contactez support@wesafe.fr"}
+									</Text>
+								</VStack>
+							</HStack>
+						</Card>
+					) : userProfile?.profile_status === "suspended" ? (
+						<Card
+							style={{
+								padding: 12,
+								backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#374151" : "#d1d5db",
+							}}>
+							<HStack space='sm' style={{ alignItems: "center" }}>
+								<Icon
+									as={Ban}
+									size='sm'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}
+								/>
+								<VStack style={{ flex: 1 }}>
+									<Text
+										style={{
+											fontSize: 13,
+											fontWeight: "700",
+											color: isDark
+												? "#d1d5db"
+												: "#374151",
+										}}>
+										Compte suspendu
+									</Text>
+									<Text
+										style={{
+											fontSize: 12,
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+											lineHeight: 18,
+										}}>
+										Votre compte est suspendu. Contactez
+										support@wesafe.fr
+									</Text>
+								</VStack>
+							</HStack>
+						</Card>
+					) : userProfile?.profile_status === "pending" ? (
+						<Card
+							style={{
+								padding: 12,
+								backgroundColor: isDark ? "#1f2937" : "#fff7ed",
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: isDark ? "#92400e" : "#fed7aa",
+							}}>
+							<HStack space='sm' style={{ alignItems: "center" }}>
+								<Icon
+									as={Clock}
+									size='sm'
+									style={{
+										color: isDark ? "#fbbf24" : "#f59e0b",
+									}}
+								/>
+								<VStack style={{ flex: 1 }}>
+									<Text
+										style={{
+											fontSize: 13,
+											fontWeight: "700",
+											color: isDark
+												? "#fde68a"
+												: "#92400e",
+										}}>
+										Profil en cours de vérification
+									</Text>
+									<Text
+										style={{
+											fontSize: 12,
+											color: isDark
+												? "#fcd34d"
+												: "#b45309",
+											lineHeight: 18,
+										}}>
+										Vous serez notifié dès que votre profil
+										sera validé (24–48h).
+									</Text>
+								</VStack>
+							</HStack>
+						</Card>
+					) : null}
 					{/* Header with Search */}
 					<VStack space='md'>
 						<HStack
