@@ -163,6 +163,7 @@ function RootLayoutNav() {
 										title={props.options.headerTitle}
 										headerRight={props.options.headerRight}
 										showBack={props.back}
+										titleBadge={props.options.titleBadge}
 									/>
 								),
 								headerShown: false,
