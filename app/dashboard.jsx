@@ -314,19 +314,43 @@ const DashboardScreen = () => {
 				showsVerticalScrollIndicator={false}>
 				<Box style={{ padding: 20, paddingBottom: 40 }}>
 					<VStack space='2xl'>
-						{/* Header */}
-						{/* <VStack space='md'>
-						<Heading
-							size='2xl'
-							style={{ color: isDark ? "#f3f4f6" : "#111827" }}>
-							Tableau de bord
-						</Heading>
-						<Text
-							size='md'
-							style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-							Gérez votre entreprise et vos documents
-						</Text>
-					</VStack> */}
+						{/* Bannière rejet */}
+						{company?.company_status === "rejected" && (
+							<Card
+								style={{
+									padding: 16,
+									backgroundColor: isDark
+										? "#450a0a"
+										: "#fef2f2",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: isDark ? "#7f1d1d" : "#fecaca",
+								}}>
+								<VStack space='xs'>
+									<Text
+										style={{
+											fontWeight: "700",
+											color: isDark
+												? "#fca5a5"
+												: "#b91c1c",
+											fontSize: 14,
+										}}>
+										Votre entreprise a été refusée
+									</Text>
+									{company?.reject_message ? (
+										<Text
+											style={{
+												color: isDark
+													? "#fca5a5"
+													: "#dc2626",
+												fontSize: 13,
+											}}>
+											{company.reject_message}
+										</Text>
+									) : null}
+								</VStack>
+							</Card>
+						)}
 
 						{/* Company Info Card */}
 						<Card
@@ -367,10 +391,25 @@ const DashboardScreen = () => {
 														? "#f3f4f6"
 														: "#111827",
 												}}>
-												{company?.name ||
-													"Mon entreprise"}
+												{company?.name}
 											</Text>
-											{company?.isConfirmed && (
+											{company?.company_status ===
+												"pending" && (
+												<Badge
+													size='sm'
+													variant='solid'
+													action='warning'>
+													<BadgeIcon
+														as={BadgeCheck}
+														className='mr-1'
+													/>
+													<BadgeText>
+														En attente
+													</BadgeText>
+												</Badge>
+											)}
+											{company?.company_status ===
+												"verified" && (
 												<Badge
 													size='sm'
 													variant='solid'
@@ -381,6 +420,36 @@ const DashboardScreen = () => {
 													/>
 													<BadgeText>
 														Vérifié
+													</BadgeText>
+												</Badge>
+											)}
+											{company?.company_status ===
+												"rejected" && (
+												<Badge
+													size='sm'
+													variant='solid'
+													action='error'>
+													<BadgeIcon
+														as={BadgeCheck}
+														className='mr-1'
+													/>
+													<BadgeText>
+														Refusé
+													</BadgeText>
+												</Badge>
+											)}
+											{company?.company_status ===
+												"suspended" && (
+												<Badge
+													size='sm'
+													variant='solid'
+													action='muted'>
+													<BadgeIcon
+														as={BadgeCheck}
+														className='mr-1'
+													/>
+													<BadgeText>
+														Suspendu
 													</BadgeText>
 												</Badge>
 											)}
