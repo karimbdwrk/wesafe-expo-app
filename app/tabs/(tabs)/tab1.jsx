@@ -64,7 +64,7 @@ import HomePro from "../../../components/HomePro";
 
 export default function Tab1() {
 	const router = useRouter();
-	const { user, role, userCompany, userProfile } = useAuth();
+	const { user, role, userCompany, userProfile, refreshUser } = useAuth();
 	const { getAll } = useDataContext();
 	const { isDark } = useTheme();
 	const { unreadCount } = useNotifications();
@@ -259,6 +259,7 @@ export default function Tab1() {
 		useCallback(() => {
 			setSearchQuery("");
 			loadData();
+			refreshUser();
 		}, [role, timePeriod]),
 	);
 	// Recherche avec debounce
