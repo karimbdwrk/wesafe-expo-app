@@ -100,7 +100,13 @@ function MarqueeTitle({ title, style, isDark }) {
 	);
 }
 
-export default function MyHeader({ title, logo, headerRight, showBack }) {
+export default function MyHeader({
+	title,
+	logo,
+	headerRight,
+	showBack,
+	titleBadge,
+}) {
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
 	const { isDark } = useTheme();
@@ -133,6 +139,40 @@ export default function MyHeader({ title, logo, headerRight, showBack }) {
 				pointerEvents='none'>
 				{logo ? (
 					logo
+				) : titleBadge > 0 ? (
+					<View
+						style={{
+							flexDirection: "row",
+							alignItems: "center",
+							gap: 6,
+						}}>
+						<Text
+							style={[
+								styles.title,
+								{ color: isDark ? "#f3f4f6" : "#111827" },
+							]}>
+							{title}
+						</Text>
+						<View
+							style={{
+								backgroundColor: "#2563eb",
+								borderRadius: 10,
+								minWidth: 20,
+								height: 20,
+								paddingHorizontal: 5,
+								alignItems: "center",
+								justifyContent: "center",
+							}}>
+							<Text
+								style={{
+									color: "#ffffff",
+									fontSize: 11,
+									fontWeight: "700",
+								}}>
+								{titleBadge > 99 ? "99+" : titleBadge}
+							</Text>
+						</View>
+					</View>
 				) : (
 					<MarqueeTitle
 						title={title}
