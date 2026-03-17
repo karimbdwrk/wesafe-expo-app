@@ -308,28 +308,40 @@ export default function TabLayout({ theme = "light" }) {
 												</RNText>
 											</View>
 										)}
-										<Button
-											variant='outline'
-											size='sm'
+										<Pressable
+											// variant='outline'
+											// size='sm'
 											className='rounded-full active:opacity-50'
 											style={{
-												width: 32,
-												height: 32,
+												width: 30,
+												height: 30,
 												padding: 0,
+												justifyContent: "center",
+												alignItems: "center",
+												borderColor: isDark
+													? "#4b5563"
+													: "#d1d5db",
+												borderWidth: 1,
 											}}
 											onPress={() =>
 												router.push("/notifications")
 											}>
-											<ButtonIcon
-												as={Bell}
-												size={16}
-												color={
-													colorScheme === "dark"
-														? "#f3f4f6"
-														: "#111827"
-												}
-											/>
-										</Button>
+											{({ pressed }) => (
+												<Bell
+													size={16}
+													color={
+														colorScheme === "dark"
+															? "#f3f4f6"
+															: "#111827"
+													}
+													style={{
+														opacity: pressed
+															? 0.7
+															: 1,
+													}}
+												/>
+											)}
+										</Pressable>
 									</VStack>
 									{role === "candidat" && (
 										<VStack>
