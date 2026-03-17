@@ -311,7 +311,7 @@ export default function TabLayout({ theme = "light" }) {
 										<Button
 											variant='outline'
 											size='sm'
-											className='rounded-full'
+											className='rounded-full active:opacity-50'
 											style={{
 												width: 32,
 												height: 32,
