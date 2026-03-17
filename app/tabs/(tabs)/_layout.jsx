@@ -11,7 +11,14 @@ import {
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
-import { View, StyleSheet, Pressable, Image, Platform } from "react-native";
+import {
+	View,
+	StyleSheet,
+	Pressable,
+	Image,
+	Platform,
+	Text as RNText,
+} from "react-native";
 import Svg, { Path, G } from "react-native-svg";
 import {
 	Avatar,
@@ -20,6 +27,7 @@ import {
 	AvatarImage,
 } from "@/components/ui/avatar";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
+import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import { Badge, BadgeText } from "@/components/ui/badge";
 import { Text } from "@/components/ui/text";
@@ -72,6 +80,7 @@ import LoggedInAppInitializer from "@/context/LoggedInAppInitializer";
 import MyHeader from "@/components/MyHeader";
 import { useTheme } from "@/context/ThemeContext";
 import { toast } from "sonner-native";
+import { width } from "dom-helpers";
 
 // import {
 // 	registerForPushNotificationsAsync,
@@ -244,7 +253,7 @@ export default function TabLayout({ theme = "light" }) {
 								/>
 							}
 							headerRight={() => (
-								<>
+								<HStack space='md' alignItems='center'>
 									{!accessToken && (
 										<Link href='/signin' asChild>
 											<Pressable>
@@ -271,45 +280,56 @@ export default function TabLayout({ theme = "light" }) {
 									)}
 									<VStack>
 										{contextUnreadCount > 0 && (
-											<Badge
-												className='absolute z-10 self-start h-[14px] w-[14px] bg-red-600 rounded-full left-0 top-1'
-												variant='solid'>
-												<BadgeText
-													className='text-white absolute right-1'
-													style={{ fontSize: 10 }}>
+											<View
+												style={{
+													position: "absolute",
+													left: -5,
+													top: -4,
+													width: 17,
+													height: 17,
+													borderRadius: 9,
+													backgroundColor: "#dc2626",
+													justifyContent: "center",
+													alignItems: "center",
+													zIndex: 10,
+												}}>
+												<RNText
+													style={{
+														color: "#ffffff",
+														fontSize: 10,
+														fontWeight: "700",
+														includeFontPadding: false,
+														textAlignVertical:
+															"center",
+													}}>
 													{contextUnreadCount > 9
 														? "9+"
 														: contextUnreadCount}
-												</BadgeText>
-											</Badge>
+												</RNText>
+											</View>
 										)}
-										<Pressable
-											// variant='link'
+										<Button
+											variant='outline'
+											size='sm'
+											className='rounded-full'
 											style={{
-												marginRight: 10,
-												// backgroundColor: "pink",
-												paddingHorizontal: 5,
-												paddingVertical: 10,
+												width: 32,
+												height: 32,
+												padding: 0,
 											}}
 											onPress={() =>
 												router.push("/notifications")
 											}>
-											{({ pressed }) => (
-												<Bell
-													color={
-														colorScheme === "dark"
-															? "#f3f4f6"
-															: "#111827"
-													}
-													size={20}
-													style={{
-														opacity: pressed
-															? 0.7
-															: 1,
-													}}
-												/>
-											)}
-										</Pressable>
+											<ButtonIcon
+												as={Bell}
+												size={16}
+												color={
+													colorScheme === "dark"
+														? "#f3f4f6"
+														: "#111827"
+												}
+											/>
+										</Button>
 									</VStack>
 									{role === "candidat" && (
 										<VStack>
@@ -521,7 +541,7 @@ export default function TabLayout({ theme = "light" }) {
 											) : null}
 										</VStack>
 									)}
-								</>
+								</HStack>
 							)}
 						/>
 					),
