@@ -306,7 +306,8 @@ export const AuthProvider = ({ children }) => {
 				// Charger toutes les données supplémentaires (rôle, profil/entreprise, abonnement)
 				await loadUserData(userData.id, token);
 			} catch (err) {
-				if (err.response?.status === 401 && refresh_token) {
+				const status = err.response?.status;
+				if ((status === 401 || status === 403) && refresh_token) {
 					try {
 						const newAccessToken = await refreshToken();
 						// Après refresh, recharger les données de l'utilisateur avec le nouveau token
@@ -330,11 +331,15 @@ export const AuthProvider = ({ children }) => {
 						await signOut(); // Déconnexion si refresh échoue
 					}
 				} else {
-					console.error(
-						"Erreur de chargement de session ou token invalide:",
-						err,
-					);
-					await signOut(); // Déconnexion si le token est invalide
+					// Token invalide et pas de refresh possible → nettoyage silencieux
+					await SecureStore.deleteItemAsync("access_token");
+					await SecureStore.deleteItemAsync("refresh_token");
+					setUser(null);
+					setRole(null);
+					setAccessToken(null);
+					setUserProfile(null);
+					setUserCompany(null);
+					setHasSubscription(false);
 				}
 			}
 		} else {
