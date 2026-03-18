@@ -768,14 +768,19 @@ export const DataProvider = ({ children }) => {
 		async (eventType, metadata = {}) => {
 			if (!user?.id) return;
 			try {
-				await axiosInstance.post("/user_activity", {
+				const payload = {
 					user_id: user.id,
 					event_type: eventType,
 					metadata,
-				});
+				};
+				console.log("[trackActivity]", payload);
+				await axiosInstance.post("/user_activity", payload);
 			} catch (error) {
 				// Silencieux : l'activité est non-critique
-				console.warn("trackActivity error:", error?.message);
+				console.warn(
+					"trackActivity error:",
+					error?.response?.data || error?.message,
+				);
 			}
 		},
 		[axiosInstance, user?.id],
