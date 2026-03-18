@@ -45,6 +45,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { STAMP_TAKE_PHOTO, STAMP_PICK_GALLERY, STAMP_PICK_DOCUMENT } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
@@ -54,7 +55,7 @@ const API_URL = "https://web-production-5fcb9.up.railway.app/process/";
 const StampScreen = () => {
 	const { user, userCompany, refreshUser, accessToken } = useAuth();
 	const { isDark } = useTheme();
-	const { update } = useDataContext();
+	const { update, trackActivity } = useDataContext();
 	const router = useRouter();
 
 	const [showActionsheet, setShowActionsheet] = useState(false);
@@ -170,6 +171,7 @@ const StampScreen = () => {
 	};
 
 	const handleTakePhoto = async () => {
+		trackActivity(STAMP_TAKE_PHOTO);
 		handleCloseActionsheet();
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
 		if (status !== "granted") {
@@ -196,6 +198,7 @@ const StampScreen = () => {
 	};
 
 	const handlePickFromGallery = async () => {
+		trackActivity(STAMP_PICK_GALLERY);
 		handleCloseActionsheet();
 		const { status } =
 			await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -223,6 +226,7 @@ const StampScreen = () => {
 	};
 
 	const handlePickDocument = async () => {
+		trackActivity(STAMP_PICK_DOCUMENT);
 		handleCloseActionsheet();
 		try {
 			const result = await DocumentPicker.getDocumentAsync({

@@ -3,6 +3,8 @@ import { TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { createSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useDataContext } from "@/context/DataContext";
+import { VIEW_APPLICATION } from "@/utils/activityEvents";
 
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
@@ -108,6 +110,7 @@ const ApplyCard = ({
 }) => {
 	const router = useRouter();
 	const { user, accessToken, role } = useAuth();
+	const { trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 
 	// États locaux pour les données real-time
@@ -194,7 +197,8 @@ const ApplyCard = ({
 
 	return (
 		<TouchableOpacity
-			onPress={() =>
+			onPress={() => {
+				trackActivity(VIEW_APPLICATION, { apply_id });
 				router.push({
 					pathname: "/application",
 					params: {
@@ -205,8 +209,8 @@ const ApplyCard = ({
 						apply_id,
 						name,
 					},
-				})
-			}
+				});
+			}}
 			activeOpacity={0.7}>
 			<Card
 				style={{

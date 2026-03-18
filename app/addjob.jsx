@@ -23,6 +23,7 @@ import CreateJobForm3 from "../components/CreateJobForm3";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { JOB_PUBLISHED } from "@/utils/activityEvents";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
@@ -36,7 +37,7 @@ export default function AddJobScreen() {
 		loadUserData,
 		accessToken,
 	} = useAuth();
-	const { getAll, isLoading } = useDataContext();
+	const { getAll, isLoading, trackActivity } = useDataContext();
 
 	const [jobCount, setJobCount] = useState(null);
 	const [remainingJobs, setRemainingJobs] = useState(0);
@@ -71,6 +72,7 @@ export default function AddJobScreen() {
 
 	const handleJobCreated = (isSubmitted) => {
 		if (isSubmitted) {
+			trackActivity(JOB_PUBLISHED);
 			toast.success(`Job publié sur WeSafe`, {
 				// style: { backgroundColor: "blue" },
 				description: "Everything worked as expected.",

@@ -10,16 +10,19 @@ import Constants from "expo-constants";
 import { Button, ButtonText } from "@/components/ui/button";
 
 import { useAuth } from "@/context/AuthContext";
+import { useDataContext } from "@/context/DataContext";
+import { SELECT_SUBSCRIPTION_PLAN } from "@/utils/activityEvents";
 
 const { SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
-export default function SubscriptionPaymentSheet({ company_id, email }) {
+export default function SubscriptionPaymentSheet({ company_id, email, plan }) {
 	const {
 		verifySubscription,
 		checkSubscription,
 		accessToken,
 		fetchCompanyFromSession,
 	} = useAuth();
+	const { trackActivity } = useDataContext();
 
 	const [loading, setLoading] = useState(false);
 
@@ -84,6 +87,7 @@ export default function SubscriptionPaymentSheet({ company_id, email }) {
 	};
 
 	const openPaymentSheet = async () => {
+		trackActivity(SELECT_SUBSCRIPTION_PLAN, { plan });
 		setLoading(true);
 		try {
 			const clientSecret = await initializePaymentSheet();

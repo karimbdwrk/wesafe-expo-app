@@ -48,6 +48,7 @@ import {
 } from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
+import { CREATE_PROCARD } from "@/utils/activityEvents";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -67,7 +68,7 @@ const CARD_CATEGORIES = [
 
 const ProCardForm = ({ procards }) => {
 	const { user, userProfile, accessToken, loadUserData } = useAuth();
-	const { create, update, getAll } = useDataContext();
+	const { create, update, getAll, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const toast = useToast();
 
@@ -340,7 +341,7 @@ const ProCardForm = ({ procards }) => {
 				const imageUrl = await uploadCardImage();
 				cardData.card_image_url = imageUrl;
 			}
-
+			trackActivity(CREATE_PROCARD);
 			await create("procards", cardData);
 
 			toast.show({

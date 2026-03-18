@@ -765,12 +765,13 @@ export const DataProvider = ({ children }) => {
 	};
 
 	const trackActivity = useCallback(
-		async (eventType) => {
+		async (eventType, metadata = {}) => {
 			if (!user?.id) return;
 			try {
 				await axiosInstance.post("/user_activity", {
 					user_id: user.id,
 					event_type: eventType,
+					metadata,
 				});
 			} catch (error) {
 				// Silencieux : l'activité est non-critique

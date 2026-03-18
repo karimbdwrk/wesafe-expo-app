@@ -38,6 +38,7 @@ import {
 } from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
+import { SUBMIT_SOCIAL_SECURITY_DOCUMENT } from "@/utils/activityEvents";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -46,7 +47,7 @@ const DOCUMENTS_BUCKET = "social-security-documents";
 
 export default function SocialSecurityDocumentVerification({ navigation }) {
 	const { user, userProfile, accessToken, loadUserData } = useAuth();
-	const { update } = useDataContext();
+	const { update, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 
 	const [documentType, setDocumentType] = useState(null);
@@ -170,6 +171,7 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 	/* ------------------ */
 
 	const handleSubmit = async () => {
+		trackActivity(SUBMIT_SOCIAL_SECURITY_DOCUMENT);
 		if (!validateSSN()) return;
 		try {
 			const fileUrl = await uploadDocument();

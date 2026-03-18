@@ -6,11 +6,14 @@ import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import Constants from "expo-constants";
 
 import { useAuth } from "@/context/AuthContext";
+import { useDataContext } from "@/context/DataContext";
+import { CANCEL_SUBSCRIPTION } from "@/utils/activityEvents";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
 const CancelSubscriptionScreen = () => {
 	const { accessToken } = useAuth();
+	const { trackActivity } = useDataContext();
 
 	const params = useLocalSearchParams();
 	const { subscription_id } = params;
@@ -27,6 +30,7 @@ const CancelSubscriptionScreen = () => {
 	);
 
 	const handleCancelSubscription = async () => {
+		trackActivity(CANCEL_SUBSCRIPTION);
 		setLoading(true);
 		setError(null);
 

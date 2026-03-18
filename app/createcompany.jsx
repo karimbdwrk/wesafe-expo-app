@@ -183,6 +183,7 @@ const CreateCompany = () => {
 				...(description.trim() && { description: description.trim() }),
 			};
 
+			trackActivity(CREATE_COMPANY);
 			const newCompanyResponse = await create(
 				"companies",
 				companyPayload,

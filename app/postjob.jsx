@@ -86,6 +86,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { POST_JOB } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 import { formatSalary } from "@/constants/salary";
 
@@ -229,7 +230,7 @@ const STEPS = [
 const PostJob = () => {
 	const { user, accessToken, userCompany } = useAuth();
 	const { isDark } = useTheme();
-	const { create, getAll, update } = useDataContext();
+	const { create, getAll, update, trackActivity } = useDataContext();
 	const router = useRouter();
 	const toast = useToast();
 
@@ -1001,6 +1002,7 @@ const PostJob = () => {
 	};
 
 	const handleSubmit = async () => {
+		trackActivity(POST_JOB);
 		console.log("form data to submit:", formData);
 		setLoading(true);
 		try {

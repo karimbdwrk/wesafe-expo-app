@@ -30,10 +30,13 @@ import {
 import ScannerAnimation from "@/components/ScannerAnimation";
 import { createSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useDataContext } from "@/context/DataContext";
+import { SCAN_QR_CODE } from "@/utils/activityEvents";
 
 const ScannerScreen = () => {
 	const router = useRouter();
 	const { accessToken } = useAuth();
+	const { trackActivity } = useDataContext();
 	const { top: topInset, bottom: bottomInset } = useSafeAreaInsets();
 	const { height: screenHeight } = useWindowDimensions();
 	const [permission, requestPermission] = useCameraPermissions();
@@ -56,6 +59,7 @@ const ScannerScreen = () => {
 	const handleBarCodeScanned = async ({ data }) => {
 		if (scanned) return;
 		setScanned(true);
+		trackActivity(SCAN_QR_CODE);
 
 		console.log("[Scanner] QR data scannée :", data);
 

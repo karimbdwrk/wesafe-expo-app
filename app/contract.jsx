@@ -21,6 +21,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { SEND_CONTRACT_OTP, SIGN_CONTRACT } from "@/utils/activityEvents";
 
 import { createSupabaseClient } from "@/lib/supabase";
 
@@ -59,6 +60,7 @@ const ContractScreen = () => {
 		update,
 		updateApplicationStatus,
 		createNotification,
+		trackActivity,
 	} = useDataContext();
 	const toast = useToast();
 
@@ -140,6 +142,7 @@ const ContractScreen = () => {
 	};
 
 	const handleConfirm = async () => {
+		trackActivity(SEND_CONTRACT_OTP, { apply_id });
 		console.log("Confirmer avec OTP:", otp);
 		console.log("Contract ID:", contractId);
 		if (otp.length !== 6) {
@@ -413,6 +416,7 @@ const ContractScreen = () => {
 	};
 
 	const confirmSign = async () => {
+		trackActivity(SIGN_CONTRACT, { apply_id });
 		try {
 			if (role === "pro") {
 				// Signature Pro

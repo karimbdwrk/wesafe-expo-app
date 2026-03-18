@@ -41,6 +41,7 @@ import {
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import { useDataContext } from "@/context/DataContext";
+import { SUBMIT_ID_DOCUMENT } from "@/utils/activityEvents";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -56,7 +57,7 @@ const flagEmoji = (cca2) =>
 
 export default function IDDocumentVerification({ navigation }) {
 	const { user, userProfile, accessToken, loadUserData } = useAuth();
-	const { update } = useDataContext();
+	const { update, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const toast = useToast();
 
@@ -250,6 +251,7 @@ export default function IDDocumentVerification({ navigation }) {
 	/* ------------------ */
 
 	const handleSubmitDocuments = async () => {
+		trackActivity(SUBMIT_ID_DOCUMENT);
 		console.log("Submitting documents...");
 		setIsSubmitting(true);
 		try {

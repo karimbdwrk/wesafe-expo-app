@@ -81,6 +81,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { SELECT_CANDIDATE, REJECT_CANDIDATE, GENERATE_CONTRACT } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 
 import { sendApplicationSelectedEmail } from "@/utils/sendApplicationSelectedEmail";
@@ -173,6 +174,7 @@ const ApplicationScreen = () => {
 		refuseApplication,
 		updateApplicationStatus,
 		createNotification,
+		trackActivity,
 	} = useDataContext();
 
 	const [isLoading, setIsLoading] = useState(false);
@@ -641,6 +643,7 @@ const ApplicationScreen = () => {
 	};
 
 	const handleSelect = () => {
+		trackActivity(SELECT_CANDIDATE, { apply_id });
 		setShowSelectModal(true);
 	};
 
@@ -702,6 +705,7 @@ const ApplicationScreen = () => {
 	};
 
 	const handleGenerateContract = () => {
+		trackActivity(GENERATE_CONTRACT, { apply_id });
 		setShowGenerateContractModal(true);
 	};
 
@@ -792,6 +796,7 @@ const ApplicationScreen = () => {
 	};
 
 	const handleReject = () => {
+		trackActivity(REJECT_CANDIDATE, { apply_id });
 		setShowRejectModal(true);
 	};
 

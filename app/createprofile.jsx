@@ -38,6 +38,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { CREATE_PROFILE } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 
 const GENDERS = [
@@ -48,7 +49,7 @@ const GENDERS = [
 const CreateProfile = () => {
 	const router = useRouter();
 	const { user, setJustSignup, loadSession, role } = useAuth();
-	const { create } = useDataContext();
+	const { create, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 
 	const [step, setStep] = useState(1);
@@ -177,6 +178,7 @@ const CreateProfile = () => {
 				profile_status: "pending",
 			};
 
+			trackActivity(CREATE_PROFILE);
 			await create("profiles", profileData);
 			await loadSession();
 			setJustSignup(false);

@@ -12,11 +12,12 @@ import { parseDate, today } from "@internationalized/date";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { DELETE_PROCARD } from "@/utils/activityEvents";
 
 const ProCardScreen = () => {
 	const { id } = useLocalSearchParams();
 	const { user } = useAuth();
-	const { getById, proCardDelete } = useDataContext();
+	const { getById, proCardDelete, trackActivity } = useDataContext();
 
 	const [proCard, setProCard] = useState(null);
 	const [isDeleted, setIsDeleted] = useState(false);
@@ -49,6 +50,7 @@ const ProCardScreen = () => {
 	}, []);
 
 	const handleDelete = async () => {
+		trackActivity(DELETE_PROCARD, { procard_id: id });
 		try {
 			const data = await proCardDelete(id);
 			console.log("deleted pro card :", data);

@@ -4,6 +4,7 @@ import { useFocusEffect } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { BUY_CREDITS } from "@/utils/activityEvents";
 import { useStripePaymentHandler } from "../services/stripeApi";
 
 import { Box } from "@/components/ui/box";
@@ -19,7 +20,7 @@ import { Coins, CreditCard, Check, Zap } from "lucide-react-native";
 
 const BuyCreditsScreen = () => {
 	const { user, loadUserData, accessToken } = useAuth();
-	const { getById, update } = useDataContext();
+	const { getById, update, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const { initiateAndPresentPayment } = useStripePaymentHandler();
 
@@ -61,6 +62,7 @@ const BuyCreditsScreen = () => {
 	);
 
 	const handleBuyCredits = async () => {
+		trackActivity(BUY_CREDITS);
 		if (!companyId) {
 			Alert.alert(
 				"Erreur",

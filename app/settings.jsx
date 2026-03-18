@@ -40,11 +40,12 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useDataContext } from "@/context/DataContext";
+import { SIGN_OUT, DELETE_ACCOUNT, TOGGLE_PUSH_NOTIFICATIONS, TOGGLE_DARK_MODE } from "@/utils/activityEvents";
 
 const Settings = () => {
 	const { user, role, accessToken, signOut } = useAuth();
 	const { colorMode, setTheme, isDark } = useTheme();
-	const { update } = useDataContext();
+	const { update, trackActivity } = useDataContext();
 	const toast = useToast();
 
 	const showToast = (message) => {
@@ -102,6 +103,7 @@ const Settings = () => {
 
 	const handlePushToggle = (value) => {
 		setNotifications(value);
+		trackActivity(TOGGLE_PUSH_NOTIFICATIONS, { enabled: value });
 		saveNotifPref("push_notifications", value);
 		showToast(
 			value
@@ -121,15 +123,18 @@ const Settings = () => {
 	};
 
 	const handleThemeToggle = (value) => {
+		trackActivity(TOGGLE_DARK_MODE, { dark: value });
 		setTheme(value ? "dark" : "light");
 	};
 
 	const handleLogout = async () => {
+		trackActivity(SIGN_OUT);
 		await signOut();
 		router.replace("/connexion");
 	};
 
 	const handleDeleteAccount = async () => {
+		trackActivity(DELETE_ACCOUNT);
 		if (!user?.id) return;
 		setIsDeleting(true);
 		try {

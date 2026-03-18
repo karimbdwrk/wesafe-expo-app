@@ -70,6 +70,7 @@ import { useNotifications } from "@/context/NotificationsContext";
 import { createSupabaseClient } from "@/lib/supabase";
 
 import LogoUploader from "@/components/LogoUploader";
+import { OPEN_SUPPORT_CHAT, SIGN_OUT } from "@/utils/activityEvents";
 import SubscriptionPaymentSheet from "../components/SubscriptionPaymentSheet";
 import MessageThread from "@/components/MessageThread";
 
@@ -91,7 +92,7 @@ const formatSiret = (value) => {
 
 const DashboardScreen = () => {
 	const { signOut, user, hasSubscription, accessToken } = useAuth();
-	const { getById } = useDataContext();
+	const { getById, trackActivity } = useDataContext();
 	const { image } = useImage();
 	const { isDark } = useTheme();
 	const { refreshNotifications } = useNotifications();
@@ -155,6 +156,7 @@ const DashboardScreen = () => {
 		} catch (e) {
 			console.error("Erreur support conv:", e);
 		}
+		trackActivity(OPEN_SUPPORT_CHAT);
 		setShowSupportSheet(true);
 	};
 
@@ -925,6 +927,7 @@ const DashboardScreen = () => {
 										action='negative'
 										onPress={() => {
 											setShowLogoutDialog(false);
+											trackActivity(SIGN_OUT);
 											signOut();
 										}}
 										style={{ flex: 1 }}>

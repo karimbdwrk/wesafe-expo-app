@@ -31,6 +31,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { MARK_ALL_NOTIFICATIONS_READ, VIEW_NOTIFICATION } from "@/utils/activityEvents";
 import { useNotifications } from "@/context/NotificationsContext";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -39,7 +40,7 @@ import Constants from "expo-constants";
 
 const Notifications = () => {
 	const { user, accessToken, role } = useAuth();
-	const { getAll, update } = useDataContext();
+	const { getAll, update, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const {
 		notifications,
@@ -90,6 +91,7 @@ const Notifications = () => {
 
 	const handleMarkAllAsRead = async () => {
 		console.log("Marking all as read...");
+		trackActivity(MARK_ALL_NOTIFICATIONS_READ);
 		try {
 			// Marquer toutes les notifications non lues dans la base de données
 			const unreadNotifications = notifications.filter((n) => !n.is_read);
@@ -136,6 +138,7 @@ const Notifications = () => {
 
 	const handleNotificationPress = async (notification) => {
 		console.log("Notification pressed:", notification);
+		trackActivity(VIEW_NOTIFICATION, { type: notification.type, notification_id: notification.id });
 
 		// Marquer la notification comme lue
 		if (!notification.is_read) {

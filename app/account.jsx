@@ -87,6 +87,7 @@ import { useNotifications } from "@/context/NotificationsContext";
 import { useImage } from "@/context/ImageContext";
 import { createSupabaseClient } from "@/lib/supabase";
 import MessageThread from "@/components/MessageThread";
+import { OPEN_SUPPORT_CHAT, SIGN_OUT, OPEN_QR_MODAL } from "@/utils/activityEvents";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const { SUPERADMIN_ID } = Constants.expoConfig.extra;
@@ -95,7 +96,7 @@ import Logo from "@/components/Logo";
 
 const AccountScreen = () => {
 	const { user, signOut, accessToken } = useAuth();
-	const { getById, getAll } = useDataContext();
+	const { getById, getAll, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const { unreadCount, refreshNotifications } = useNotifications();
 	const { image } = useImage();
@@ -160,6 +161,7 @@ const AccountScreen = () => {
 		} catch (e) {
 			console.error("Erreur support conv:", e);
 		}
+		trackActivity(OPEN_SUPPORT_CHAT);
 		setShowSupportSheet(true);
 	};
 	const [verifiedDocs, setVerifiedDocs] = useState({
@@ -424,7 +426,7 @@ const AccountScreen = () => {
 							style={{
 								backgroundColor: "transparent",
 							}}
-							onPress={() => setShowQRModal(true)}
+							onPress={() => { setShowQRModal(true); trackActivity(OPEN_QR_MODAL); }}
 							activeOpacity={0.7}>
 							<Icon
 								as={QrCode}
@@ -1426,6 +1428,7 @@ const AccountScreen = () => {
 									action='negative'
 									onPress={() => {
 										setShowLogoutDialog(false);
+										trackActivity(SIGN_OUT);
 										signOut();
 									}}
 									style={{ flex: 1 }}>

@@ -48,6 +48,7 @@ import { Spinner } from "@/components/ui/spinner";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { TOGGLE_WISHLIST_JOB, ARCHIVE_JOB } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 
 import {
@@ -222,6 +223,7 @@ const JobScreen = () => {
 
 	const handleToggle = async () => {
 		const isNowInWishlist = await toggleWishlistJob(id, user.id);
+		trackActivity(TOGGLE_WISHLIST_JOB, { job_id: id });
 		setIsInWishlist(isNowInWishlist);
 		toast.success(
 			isNowInWishlist ? "Ajouté aux favoris" : "Retiré des favoris",
@@ -299,6 +301,7 @@ const JobScreen = () => {
 
 	const handleArchive = async () => {
 		const isNowArchived = await archiveJob(id);
+		trackActivity(ARCHIVE_JOB, { job_id: id });
 		setIsArchived(isNowArchived);
 	};
 

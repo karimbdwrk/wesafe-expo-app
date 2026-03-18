@@ -47,6 +47,7 @@ import {
 } from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
+import { SUBMIT_KBIS_DOCUMENT } from "@/utils/activityEvents";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -56,7 +57,7 @@ const DOCUMENTS_BUCKET = "kbis";
 export default function KBISDocumentVerification() {
 	const router = useRouter();
 	const { user, userCompany, accessToken, loadUserData } = useAuth();
-	const { update, getById } = useDataContext();
+	const { update, getById, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const toast = useToast();
 
@@ -222,6 +223,7 @@ export default function KBISDocumentVerification() {
 	/* ------------------ */
 
 	const handleSubmitKBIS = async () => {
+		trackActivity(SUBMIT_KBIS_DOCUMENT);
 		console.log("Submitting KBIS...");
 		setIsSubmitting(true);
 		try {

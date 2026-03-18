@@ -49,6 +49,8 @@ import {
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
+import { useDataContext } from "@/context/DataContext";
+import { SUBMIT_PRODOC } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 import { createSupabaseClient } from "@/lib/supabase";
 import Constants from "expo-constants";
@@ -240,6 +242,7 @@ const getDocInfo = (category, typeCode) => {
 
 const ProDocs = ({ navigation }) => {
 	const { user, accessToken } = useAuth();
+	const { trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const toast = useToast();
 
@@ -430,6 +433,7 @@ const ProDocs = ({ navigation }) => {
 
 	/* --- submit --- */
 	const handleSubmit = async () => {
+		trackActivity(SUBMIT_PRODOC);
 		if (!docImage) return;
 		if (selectedCategory === "cnaps" && cnapsCardNumber.trim().length !== 7)
 			return;
