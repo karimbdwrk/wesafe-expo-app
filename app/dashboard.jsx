@@ -66,6 +66,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useImage } from "@/context/ImageContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useNotifications } from "@/context/NotificationsContext";
 import { createSupabaseClient } from "@/lib/supabase";
 
 import LogoUploader from "@/components/LogoUploader";
@@ -93,6 +94,7 @@ const DashboardScreen = () => {
 	const { getById } = useDataContext();
 	const { image } = useImage();
 	const { isDark } = useTheme();
+	const { refreshNotifications } = useNotifications();
 
 	const router = useRouter();
 	const { openSupport } = useLocalSearchParams();
@@ -143,6 +145,13 @@ const DashboardScreen = () => {
 				.select("id")
 				.single();
 			if (!error && data?.id) setSupportConvId(data.id);
+			await supabase
+				.from("notifications")
+				.update({ is_read: true, read_at: new Date().toISOString() })
+				.eq("recipient_id", user.id)
+				.eq("type", "support_message")
+				.eq("actor_id", SUPERADMIN_ID);
+			await refreshNotifications();
 		} catch (e) {
 			console.error("Erreur support conv:", e);
 		}
