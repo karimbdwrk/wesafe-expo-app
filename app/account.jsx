@@ -97,7 +97,7 @@ const AccountScreen = () => {
 	const { user, signOut, accessToken } = useAuth();
 	const { getById, getAll } = useDataContext();
 	const { isDark } = useTheme();
-	const { unreadCount } = useNotifications();
+	const { unreadCount, refreshNotifications } = useNotifications();
 	const { image } = useImage();
 	const router = useRouter();
 	const { openSupport } = useLocalSearchParams();
@@ -150,6 +150,13 @@ const AccountScreen = () => {
 				.select("id")
 				.single();
 			if (!error && data?.id) setSupportConvId(data.id);
+			await supabase
+				.from("notifications")
+				.update({ is_read: true, read_at: new Date().toISOString() })
+				.eq("recipient_id", user.id)
+				.eq("type", "support_message")
+				.eq("actor_id", SUPERADMIN_ID);
+			await refreshNotifications();
 		} catch (e) {
 			console.error("Erreur support conv:", e);
 		}
