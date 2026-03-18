@@ -390,15 +390,14 @@ const MessageThread = ({
 			}
 
 			// Marquer les notifications de cette conversation comme lues
-			const { data: messageNotifications } = await supabase
+			const { data: unreadNotifs } = await supabase
 				.from("notifications")
 				.select("id")
 				.eq("recipient_id", user.id)
-				.eq("entity_type", "message")
+				.eq("entity_type", receiverId ? "support_message" : "message")
 				.eq("entity_id", applyId)
-				.eq("is_read", false);
-
-			if (messageNotifications && messageNotifications.length > 0) {
+				.or("is_read.is.false,is_read.is.null");
+			if (unreadNotifs?.length > 0) {
 				await supabase
 					.from("notifications")
 					.update({
@@ -407,12 +406,8 @@ const MessageThread = ({
 					})
 					.in(
 						"id",
-						messageNotifications.map((n) => n.id),
+						unreadNotifs.map((n) => n.id),
 					);
-				console.log(
-					"🔔 Notifications marquées comme lues:",
-					messageNotifications.length,
-				);
 			}
 		} catch (error) {
 			console.error("Erreur:", error);
