@@ -89,130 +89,10 @@ import { useDataContext } from "@/context/DataContext";
 import { POST_JOB } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 import { formatSalary } from "@/constants/salary";
-
-const result = {
-	accommodations: true,
-	category: "Agent cynophile",
-	city: "Levallois-Perret",
-	contract_type: "CDI",
-	department: "Hauts-de-Seine",
-	department_code: "92",
-	description: "Pirhozegopienrgoif",
-	diplomas_required: ["CQP", "SST"],
-	driving_licenses: ["Permis B", "Permis A"],
-	end_date: "2026-03-25",
-	end_time: "23:33",
-	// experience_required: "2",
-	isLastMinute: false,
-	languages: ["Français", "Anglais"],
-	latitude: 48.8946,
-	longitude: 2.2874,
-	missions: [
-		"Assurer la sécurité des biens et des personnes",
-		"Réaliser des rondes de surveillance",
-		"Intervenir en cas d'incident ou d'urgence",
-	],
-	packed_lunch: true,
-	postcode: "92300",
-	region: "Île-de-France",
-	region_code: "11",
-	reimbursements: true,
-	salary_hourly: "15",
-	searched_profile: [
-		"Carte professionnelle en cours de validité",
-		"Experience en surveillance de site industriel",
-	],
-	start_date: "2026-03-19",
-	start_time: "22:22",
-	title: "Uerhgeonmrgop",
-	weekly_hours: "35",
-	daily_hours: "",
-	work_hours_type: "semaine",
-	work_schedule: "day",
-	work_time: "fulltime",
-};
-
-const result2 = {
-	accommodations: true,
-	category: "Agent SSIAP",
-	city: "Besançon",
-	contract_type: "CDD",
-	daily_hours: "",
-	department: "Doubs",
-	department_code: "25",
-	description: "Fhg’c",
-	diplomas_required: ["SSIAP 1", "CQP", "SST"],
-	driving_licenses: ["Ttt"],
-	end_date: "2026-03-19T23:05:43.000Z",
-	end_time: "23:00",
-	isLastMinute: true,
-	languages: ["Gggg"],
-	latitude: 47.2602,
-	longitude: 6.0123,
-	missions: ["Mission 1", "Mission 2"],
-	packed_lunch: true,
-	postcode: "25000",
-	region: "Bourgogne-Franche-Comté",
-	region_code: "27",
-	reimbursements: ["Ggg"],
-	salary_hourly: "15",
-	searched_profile: ["Profil 1", "Profil 2"],
-	start_date: "2026-03-19T23:05:43.000Z",
-	start_time: "15:00",
-	title: "Hhh",
-	weekly_hours: "25",
-	work_hours_type: "semaine",
-	work_schedule: "Jour",
-	work_time: "Temps plein",
-};
-
-const CATEGORIES = [
-	{
-		id: "aps",
-		acronym: "APS",
-		name: "Agent de Prévention et de Sécurité",
-		category: "surveillance_humaine",
-	},
-	{
-		id: "ads",
-		acronym: "ADS",
-		name: "Agent De Sécurité",
-		category: "surveillance_humaine",
-	},
-	{
-		id: "ssiap_1",
-		acronym: "SSIAP 1",
-		name: "Agent de Sécurité Incendie",
-		category: "securite_incendie",
-		level: 1,
-	},
-	{
-		id: "ssiap_2",
-		acronym: "SSIAP 2",
-		name: "Chef d'Équipe de Sécurité Incendie",
-		category: "securite_incendie",
-		level: 2,
-	},
-	{
-		id: "ssiap_3",
-		acronym: "SSIAP 3",
-		name: "Chef de Service de Sécurité Incendie",
-		category: "securite_incendie",
-		level: 3,
-	},
-	{
-		id: "asc",
-		acronym: "ASC",
-		name: "Agent de Sécurité Cynophile",
-		category: "cynophile",
-	},
-	{
-		id: "apr",
-		acronym: "APR",
-		name: "Agent de Protection Rapprochée",
-		category: "protection_rapprochee",
-	},
-];
+import {
+	CATEGORY as CATEGORIES,
+	getCategoryLabel,
+} from "@/constants/categories";
 
 const CONTRACT_TYPES = ["CDI", "CDD"];
 const WORK_TIME = ["Temps plein", "Temps partiel"];
@@ -268,6 +148,7 @@ const PostJob = () => {
 	const [showStartTimePicker, setShowStartTimePicker] = useState(false);
 	const [showEndTimePicker, setShowEndTimePicker] = useState(false);
 	const [showVacationDatePicker, setShowVacationDatePicker] = useState(false);
+	const [showCategorySheet, setShowCategorySheet] = useState(false);
 	const [currentVacation, setCurrentVacation] = useState({
 		date: null,
 		start_time: "",
@@ -1932,76 +1813,47 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
+														color: isDark ? "#f3f4f6" : "#111827",
+													}}>
+													Catégorie *
+												</Text>
+												<TouchableOpacity
+													activeOpacity={0.7}
+													onPress={() => setShowCategorySheet(true)}>
+													<Box
+														style={{
+															flexDirection: "row",
+															alignItems: "center",
+															justifyContent: "space-between",
+															padding: 12,
+															borderRadius: 8,
+															borderWidth: 1,
+															borderColor: formData.category
+																? "#3b82f6"
+																: isDark ? "#4b5563" : "#e5e7eb",
+															backgroundColor: formData.category
+																? isDark ? "#1e3a8a" : "#dbeafe"
+																: isDark ? "#1f2937" : "#ffffff",
 														}}>
-														Catégorie *
-													</Text>
-													<Select
-														selectedValue={
-															formData.category
-														}
-														onValueChange={(
-															value,
-														) =>
-															updateField(
-																"category",
-																value,
-															)
-														}>
-														<SelectTrigger
-															variant='outline'
-															size='md'
+														<Text
 															style={{
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#ffffff",
-																borderColor:
-																	isDark
-																		? "#4b5563"
-																		: "#e5e7eb",
+																flex: 1,
+																color: formData.category
+																	? "#3b82f6"
+																	: isDark ? "#9ca3af" : "#6b7280",
+																fontWeight: formData.category ? "600" : "400",
 															}}>
-															<SelectInput
-																placeholder='Sélectionnez une catégorie'
-																style={{
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}
-															/>
-															<SelectIcon
-																as={ChevronDown}
-																style={{
-																	color: isDark
-																		? "#9ca3af"
-																		: "#6b7280",
-																}}
-															/>
-														</SelectTrigger>
-														<SelectPortal>
-															<SelectBackdrop />
-															<SelectContent>
-																<SelectDragIndicatorWrapper>
-																	<SelectDragIndicator />
-																</SelectDragIndicatorWrapper>
-																{CATEGORIES.map(
-																	(cat) => (
-																		<SelectItem
-																			key={
-																				cat.id
-																			}
-																			label={`${cat.acronym} - ${cat.name}`}
-																			value={
-																				cat.id
-																			}
-																		/>
-																	),
-																)}
-															</SelectContent>
-														</SelectPortal>
-													</Select>
+															{formData.category
+																? getCategoryLabel(formData.category)
+																: "Sélectionnez une catégorie"}
+														</Text>
+														<Icon
+															as={ChevronDown}
+															size='sm'
+															style={{ color: formData.category ? "#3b82f6" : isDark ? "#9ca3af" : "#6b7280" }}
+														/>
+													</Box>
+												</TouchableOpacity>
 												</VStack>
 
 												{/* Description */}
@@ -7744,6 +7596,137 @@ const PostJob = () => {
 									Confirmer
 								</ButtonText>
 							</Button>
+						</VStack>
+					</ActionsheetContent>
+				</Actionsheet>
+
+				{/* Actionsheet — Catégorie */}
+				<Actionsheet
+					isOpen={showCategorySheet}
+					onClose={() => setShowCategorySheet(false)}>
+					<ActionsheetBackdrop />
+					<ActionsheetContent
+						style={{
+							backgroundColor: isDark ? "#1f2937" : "#ffffff",
+							maxHeight: "80%",
+							paddingBottom: 32,
+						}}>
+						<ActionsheetDragIndicatorWrapper>
+							<ActionsheetDragIndicator />
+						</ActionsheetDragIndicatorWrapper>
+						<VStack style={{ width: "100%", paddingTop: 8 }} space='sm'>
+							<Text
+								style={{
+									fontWeight: "700",
+									fontSize: 17,
+									color: isDark ? "#f3f4f6" : "#111827",
+									paddingHorizontal: 4,
+									marginBottom: 8,
+								}}>
+								Catégorie du poste
+							</Text>
+							<ScrollView
+								showsVerticalScrollIndicator={false}
+								style={{ width: "100%" }}>
+								<VStack space='lg' style={{ paddingBottom: 16 }}>
+									{(() => {
+										const CATEGORY_GROUP_LABELS = {
+											surveillance_humaine: "Surveillance humaine",
+											securite_incendie: "Sécurité Incendie",
+											cynophile: "Cynophile",
+											protection_rapprochee: "Protection Rapprochée",
+											transport_fonds: "Transport de Fonds",
+											videosurveillance: "Vidéosurveillance",
+											surete_aeroportuaire: "Sûreté Aéroportuaire",
+											encadrement: "Encadrement",
+											specialisation: "Spécialisations",
+										};
+										const grouped = CATEGORIES.reduce((acc, cat) => {
+											if (!acc[cat.category]) acc[cat.category] = [];
+											acc[cat.category].push(cat);
+											return acc;
+										}, {});
+										return Object.entries(grouped).map(([groupKey, items]) => (
+											<VStack key={groupKey} space='sm'>
+												<Text
+													style={{
+														fontSize: 12,
+														fontWeight: "700",
+														letterSpacing: 0.8,
+														textTransform: "uppercase",
+														color: isDark ? "#9ca3af" : "#6b7280",
+														paddingHorizontal: 4,
+													}}>
+													{CATEGORY_GROUP_LABELS[groupKey] || groupKey}
+												</Text>
+												<VStack space='xs'>
+													{items.map((cat) => {
+														const isSelected = formData.category === cat.id;
+														return (
+															<Pressable
+																key={cat.id}
+																onPress={() => {
+																	updateField("category", cat.id);
+																	setShowCategorySheet(false);
+																}}>
+																<Box
+																	style={{
+																		padding: 14,
+																		borderRadius: 10,
+																		borderWidth: 2,
+																		borderColor: isSelected
+																			? "#3b82f6"
+																			: isDark ? "#374151" : "#e5e7eb",
+																		backgroundColor: isSelected
+																			? isDark ? "#1e3a8a" : "#dbeafe"
+																			: isDark ? "#374151" : "#f9fafb",
+																	}}>
+																	<HStack
+																		space='sm'
+																		style={{ alignItems: "center" }}>
+																		<Box
+																			style={{
+																				paddingHorizontal: 8,
+																				paddingVertical: 3,
+																				borderRadius: 6,
+																				backgroundColor: isSelected
+																					? "#3b82f6"
+																					: isDark ? "#4b5563" : "#e5e7eb",
+																			}}>
+																			<Text
+																				style={{
+																					fontSize: 11,
+																					fontWeight: "800",
+																					color: isSelected
+																						? "#ffffff"
+																						: isDark ? "#d1d5db" : "#374151",
+																				}}>
+																				{cat.acronym}
+																			</Text>
+																		</Box>
+																		<Text
+																			style={{
+																				flex: 1,
+																				fontSize: 14,
+																				color: isSelected
+																					? "#3b82f6"
+																					: isDark ? "#f3f4f6" : "#111827",
+																				fontWeight: isSelected ? "600" : "400",
+																			}}>
+																			{cat.name}
+																		</Text>
+																	</HStack>
+																</Box>
+															</Pressable>
+														);
+													})}
+												</VStack>
+											</VStack>
+										));
+									})()
+									}
+								</VStack>
+							</ScrollView>
 						</VStack>
 					</ActionsheetContent>
 				</Actionsheet>
