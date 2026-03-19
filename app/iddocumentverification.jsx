@@ -38,7 +38,14 @@ import {
 	Globe,
 } from "lucide-react-native";
 
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import {
+	Actionsheet,
+	ActionsheetContent,
+	ActionsheetDragIndicator,
+	ActionsheetDragIndicatorWrapper,
+	ActionsheetBackdrop,
+} from "@/components/ui/actionsheet";
 
 import { useDataContext } from "@/context/DataContext";
 import { SUBMIT_ID_DOCUMENT } from "@/utils/activityEvents";
@@ -173,10 +180,13 @@ export default function IDDocumentVerification({ navigation }) {
 		}
 	}, [date]);
 
-	const handleConfirmDate = (isoDate) => {
-		const simpleDate = new Date(isoDate).toISOString().split("T")[0];
-		setDate(simpleDate);
-		setDatePickerVisibility(false);
+	const handleConfirmDate = (event, selectedDate) => {
+		if (selectedDate) {
+			const simpleDate = new Date(selectedDate)
+				.toISOString()
+				.split("T")[0];
+			setDate(simpleDate);
+		}
 	};
 
 	/* ------------------ */
@@ -432,218 +442,29 @@ export default function IDDocumentVerification({ navigation }) {
 							Téléchargez un document d'identité valide pour
 							vérifier votre compte
 						</Text>
+						<HStack
+							space='sm'
+							style={{
+								alignItems: "center",
+								backgroundColor: isDark ? "#1e3a5f" : "#dbeafe",
+								borderRadius: 8,
+								padding: 12,
+							}}>
+							<Text style={{ fontSize: 18 }}>🇫🇷</Text>
+							<Text
+								size='sm'
+								style={{
+									flex: 1,
+									color: isDark ? "#93c5fd" : "#1d4ed8",
+									fontWeight: "500",
+								}}>
+								Nous acceptons uniquement les documents
+								d'identité français (carte nationale d'identité,
+								passeport français) ou titre de séjour en cours
+								de validité.
+							</Text>
+						</HStack>
 					</VStack>
-
-					{/* Nationalité */}
-					<Card
-						style={{
-							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
-							borderRadius: 12,
-							shadowColor: "#000",
-							shadowOffset: { width: 0, height: 2 },
-							shadowOpacity: 0.05,
-							shadowRadius: 8,
-							elevation: 2,
-						}}>
-						<VStack space='md'>
-							<HStack space='sm' style={{ alignItems: "center" }}>
-								<Icon
-									as={Globe}
-									size='md'
-									style={{
-										color: isDark ? "#60a5fa" : "#2563eb",
-									}}
-								/>
-								<Text
-									size='md'
-									style={{
-										fontWeight: "600",
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}>
-									Nationalité
-								</Text>
-							</HStack>
-
-							{selectedNationality ? (
-								<HStack
-									space='sm'
-									style={{
-										alignItems: "center",
-										padding: 12,
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f0fdf4",
-										borderRadius: 8,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#10b981"
-											: "#bbf7d0",
-									}}>
-									<Text style={{ fontSize: 22 }}>
-										{selectedNationality.flag}
-									</Text>
-									<Text
-										style={{
-											flex: 1,
-											fontWeight: "600",
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-										}}>
-										{selectedNationality.name}
-									</Text>
-									<Text
-										size='sm'
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-											marginRight: 8,
-										}}>
-										{selectedNationality.code}
-									</Text>
-									<TouchableOpacity
-										onPress={() => {
-											setSelectedNationality(null);
-											setNationalityQuery("");
-										}}>
-										<Icon
-											as={X}
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}
-										/>
-									</TouchableOpacity>
-								</HStack>
-							) : (
-								<Input
-									variant='outline'
-									size='md'
-									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#ffffff",
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-									}}>
-									<InputField
-										placeholder='Tapez 3 lettres pour rechercher...'
-										value={nationalityQuery}
-										onChangeText={handleNationalityChange}
-										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-										}}
-									/>
-								</Input>
-							)}
-
-							{loadingNationalities && (
-								<Text
-									size='sm'
-									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
-										textAlign: "center",
-									}}>
-									Recherche en cours...
-								</Text>
-							)}
-
-							{nationalitySuggestions.length > 0 && (
-								<VStack
-									style={{
-										borderRadius: 8,
-										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
-										overflow: "hidden",
-									}}>
-									{nationalitySuggestions.map(
-										(country, i) => (
-											<TouchableOpacity
-												key={country.code}
-												onPress={() =>
-													handleSelectNationality(
-														country,
-													)
-												}
-												activeOpacity={0.7}>
-												<HStack
-													space='sm'
-													style={{
-														padding: 12,
-														alignItems: "center",
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
-														borderBottomWidth:
-															i <
-															nationalitySuggestions.length -
-																1
-																? 1
-																: 0,
-														borderBottomColor:
-															isDark
-																? "#374151"
-																: "#f3f4f6",
-													}}>
-													<Text
-														style={{
-															fontSize: 20,
-															width: 32,
-														}}>
-														{country.flag}
-													</Text>
-													<Text
-														style={{
-															flex: 1,
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														{country.name}
-													</Text>
-													<Text
-														size='xs'
-														style={{
-															color: isDark
-																? "#6b7280"
-																: "#9ca3af",
-															fontWeight: "600",
-														}}>
-														{country.code}
-													</Text>
-												</HStack>
-											</TouchableOpacity>
-										),
-									)}
-								</VStack>
-							)}
-
-							{nationalityQuery.length >= 3 &&
-								nationalitySuggestions.length === 0 &&
-								!loadingNationalities &&
-								!selectedNationality && (
-									<Text
-										size='sm'
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-											textAlign: "center",
-										}}>
-										Aucun pays trouvé
-									</Text>
-								)}
-						</VStack>
-					</Card>
 
 					{/* Status Card */}
 					{documentUploadedStatus && (
@@ -751,7 +572,14 @@ export default function IDDocumentVerification({ navigation }) {
 							</Text>
 
 							<TouchableOpacity
-								onPress={() => setDocumentType("passport")}
+								onPress={() => {
+									setDocumentType("passport");
+									handleSelectNationality({
+										code: "FR",
+										name: "France",
+										flag: "🇫🇷",
+									});
+								}}
 								activeOpacity={0.7}>
 								<Card
 									style={{
@@ -809,7 +637,14 @@ export default function IDDocumentVerification({ navigation }) {
 							</TouchableOpacity>
 
 							<TouchableOpacity
-								onPress={() => setDocumentType("national_id")}
+								onPress={() => {
+									setDocumentType("national_id");
+									handleSelectNationality({
+										code: "FR",
+										name: "France",
+										flag: "🇫🇷",
+									});
+								}}
 								activeOpacity={0.7}>
 								<Card
 									style={{
@@ -867,9 +702,11 @@ export default function IDDocumentVerification({ navigation }) {
 							</TouchableOpacity>
 
 							<TouchableOpacity
-								onPress={() =>
-									setDocumentType("residence_permit")
-								}
+								onPress={() => {
+									setDocumentType("residence_permit");
+									setSelectedNationality(null);
+									setNationalityQuery("");
+								}}
 								activeOpacity={0.7}>
 								<Card
 									style={{
@@ -986,6 +823,233 @@ export default function IDDocumentVerification({ navigation }) {
 								</HStack>
 							</Card>
 
+							{/* Nationalité — uniquement pour titre de séjour */}
+							{documentType === "residence_permit" && (
+								<Card
+									style={{
+										padding: 20,
+										backgroundColor: isDark ? "#374151" : "#ffffff",
+										borderRadius: 12,
+										shadowColor: "#000",
+										shadowOffset: { width: 0, height: 2 },
+										shadowOpacity: 0.05,
+										shadowRadius: 8,
+										elevation: 2,
+									}}>
+									<VStack space='md'>
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={Globe}
+												size='md'
+												style={{
+													color: isDark
+														? "#60a5fa"
+														: "#2563eb",
+												}}
+											/>
+											<Text
+												size='md'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Nationalité
+											</Text>
+										</HStack>
+
+										{selectedNationality ? (
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+													padding: 12,
+													backgroundColor: isDark
+														? "#1f2937"
+														: "#f0fdf4",
+													borderRadius: 8,
+													borderWidth: 1,
+													borderColor: isDark
+														? "#10b981"
+														: "#bbf7d0",
+												}}>
+												<Text style={{ fontSize: 22 }}>
+													{selectedNationality.flag}
+												</Text>
+												<Text
+													style={{
+														flex: 1,
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													{selectedNationality.name}
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														marginRight: 8,
+													}}>
+													{selectedNationality.code}
+												</Text>
+												<TouchableOpacity
+													onPress={() => {
+														setSelectedNationality(null);
+														setNationalityQuery("");
+													}}>
+													<Icon
+														as={X}
+														size='sm'
+														style={{
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}
+													/>
+												</TouchableOpacity>
+											</HStack>
+										) : (
+											<Input
+												variant='outline'
+												size='md'
+												style={{
+													backgroundColor: isDark
+														? "#1f2937"
+														: "#ffffff",
+													borderColor: isDark
+														? "#4b5563"
+														: "#e5e7eb",
+												}}>
+												<InputField
+													placeholder='Tapez 3 lettres pour rechercher...'
+													value={nationalityQuery}
+													onChangeText={
+														handleNationalityChange
+													}
+													style={{
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}
+												/>
+											</Input>
+										)}
+
+										{loadingNationalities && (
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+													textAlign: "center",
+												}}>
+												Recherche en cours...
+											</Text>
+										)}
+
+										{nationalitySuggestions.length > 0 && (
+											<VStack
+												style={{
+													borderRadius: 8,
+													borderWidth: 1,
+													borderColor: isDark
+														? "#4b5563"
+														: "#e5e7eb",
+													overflow: "hidden",
+												}}>
+												{nationalitySuggestions.map(
+													(country, i) => (
+														<TouchableOpacity
+															key={country.code}
+															onPress={() =>
+																handleSelectNationality(
+																	country,
+																)
+															}
+															activeOpacity={0.7}>
+															<HStack
+																space='sm'
+																style={{
+																	padding: 12,
+																	alignItems:
+																		"center",
+																	backgroundColor:
+																		isDark
+																			? "#1f2937"
+																			: "#ffffff",
+																	borderBottomWidth:
+																		i <
+																		nationalitySuggestions.length -
+																			1
+																			? 1
+																			: 0,
+																	borderBottomColor:
+																		isDark
+																			? "#374151"
+																			: "#f3f4f6",
+																}}>
+																<Text
+																	style={{
+																		fontSize: 20,
+																		width: 32,
+																	}}>
+																	{country.flag}
+																</Text>
+																<Text
+																	style={{
+																		flex: 1,
+																		color: isDark
+																			? "#f3f4f6"
+																			: "#111827",
+																	}}>
+																	{country.name}
+																</Text>
+																<Text
+																	size='xs'
+																	style={{
+																		color: isDark
+																			? "#6b7280"
+																			: "#9ca3af",
+																		fontWeight:
+																			"600",
+																	}}>
+																	{country.code}
+																</Text>
+															</HStack>
+														</TouchableOpacity>
+													),
+												)}
+											</VStack>
+										)}
+
+										{nationalityQuery.length >= 3 &&
+											nationalitySuggestions.length === 0 &&
+											!loadingNationalities &&
+											!selectedNationality && (
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+														textAlign: "center",
+													}}>
+													Aucun pays trouvé
+												</Text>
+											)}
+									</VStack>
+								</Card>
+							)}
+
+
 							{/* Upload Blocks */}
 							<VStack space='md'>
 								<UploadBlock
@@ -1097,15 +1161,79 @@ export default function IDDocumentVerification({ navigation }) {
 											</Text>
 										</Box>
 									</TouchableOpacity>
-									<DateTimePickerModal
-										isVisible={isDatePickerVisible}
-										mode='date'
-										onConfirm={handleConfirmDate}
-										onCancel={() =>
+									<Actionsheet
+										isOpen={isDatePickerVisible}
+										onClose={() =>
 											setDatePickerVisibility(false)
-										}
-										minimumDate={new Date()}
-									/>
+										}>
+										<ActionsheetBackdrop />
+										<ActionsheetContent
+											style={{
+												paddingBottom: 32,
+												backgroundColor: isDark
+													? "#1f2937"
+													: "#ffffff",
+											}}>
+											<ActionsheetDragIndicatorWrapper>
+												<ActionsheetDragIndicator />
+											</ActionsheetDragIndicatorWrapper>
+											<VStack
+												space='md'
+												style={{
+													width: "100%",
+													alignItems: "center",
+													paddingTop: 8,
+												}}>
+												<Text
+													style={{
+														fontWeight: "600",
+														fontSize: 16,
+														color: isDark
+															? "#f9fafb"
+															: "#111827",
+													}}>
+													Date d'expiration
+												</Text>
+												<DateTimePicker
+													value={
+														date
+															? new Date(date)
+															: new Date()
+													}
+													mode='date'
+													display='spinner'
+													onChange={handleConfirmDate}
+													minimumDate={new Date()}
+													style={{ width: "100%" }}
+													textColor={
+														isDark
+															? "#f9fafb"
+															: "#111827"
+													}
+												/>
+												<Button
+													size='md'
+													onPress={() =>
+														setDatePickerVisibility(
+															false,
+														)
+													}
+													style={{
+														backgroundColor:
+															"#3b82f6",
+														width: "100%",
+														marginTop: 8,
+													}}>
+													<ButtonText
+														style={{
+															color: "#ffffff",
+														}}>
+														Confirmer
+													</ButtonText>
+												</Button>
+											</VStack>
+										</ActionsheetContent>
+									</Actionsheet>
 								</VStack>
 							</Card>
 
