@@ -67,15 +67,40 @@ const SUPERADMIN_ID = Constants.expoConfig?.extra?.SUPERADMIN_ID;
 const CNAPS_ACTIVITIES = [
 	{
 		code: "SURVEILLANCE_HUMAINE",
+		id: "surveillance_humaine",
+		acronym: "SURV",
 		name: "Surveillance humaine ou gardiennage",
 	},
-	{ code: "CYNOPHILE", name: "Surveillance humaine avec chien" },
+	{
+		code: "VIDEO_PROTECTION",
+		id: "videoprotection",
+		acronym: "VIDEO",
+		name: "Surveillance par systèmes électroniques de sécurité (vidéoprotection)",
+	},
+	{
+		code: "CYNOPHILE",
+		id: "cynophile",
+		acronym: "CYN",
+		name: "Surveillance humaine avec chien",
+	},
 	{
 		code: "PROTECTION_RAPPROCHEE",
+		id: "protection_rapprochee",
+		acronym: "APR",
 		name: "Protection physique des personnes",
 	},
-	{ code: "TRANSPORT_FONDS", name: "Transport de fonds" },
-	{ code: "SURETE_AEROPORTUAIRE", name: "Sûreté aéroportuaire" },
+	{
+		code: "TRANSPORT_FONDS",
+		id: "transport_fonds",
+		acronym: "TF",
+		name: "Transport de fonds",
+	},
+	{
+		code: "RECHERCHES_PRIVEES",
+		id: "recherches_privees",
+		acronym: "ARP",
+		name: "Recherches privées",
+	},
 ];
 
 const DIPLOMAS = [
