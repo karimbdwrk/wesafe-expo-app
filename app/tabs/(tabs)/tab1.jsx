@@ -74,6 +74,7 @@ export default function Tab1() {
 	const [filteredJobs, setFilteredJobs] = useState([]);
 	const [searchLoading, setSearchLoading] = useState(false);
 	const [recentJobs, setRecentJobs] = useState([]);
+	const [suggestedJobs, setSuggestedJobs] = useState([]);
 	const [timePeriod, setTimePeriod] = useState("7d"); // 7d, 1m, 6m, 1y, all
 	const [chartData, setChartData] = useState([]);
 	const [stats, setStats] = useState({
@@ -83,6 +84,12 @@ export default function Tab1() {
 		inProgress: 0,
 		rejected: 0,
 	});
+
+	useEffect(() => {
+		if (role === "candidat") {
+			console.log("Suggested jobs updated:", suggestedJobs);
+		}
+	}, [suggestedJobs]);
 
 	const searchJobs = async (query) => {
 		if (!query || query.trim().length < 2) {
@@ -207,6 +214,7 @@ export default function Tab1() {
 				// Offres récentes pour les candidats
 				if (!user || !user.id) {
 					setRecentJobs([]);
+					setSuggestedJobs([]);
 					setStats({ wishlist: 0, applications: 0 });
 					return;
 				}
@@ -219,6 +227,49 @@ export default function Tab1() {
 					"created_at.desc",
 				);
 				setRecentJobs(jobs || []);
+
+				// Offres suggérées : filtrées par procards + département
+				try {
+					const { data: procards } = await getAll(
+						"user_cnaps_cards",
+						"type",
+						`&user_id=eq.${user.id}&status=eq.verified`,
+						1,
+						100,
+					);
+					const proCardCategories = [
+						...new Set(
+							(procards || []).map((p) => p.type).filter(Boolean),
+						),
+					];
+
+					console.log("ProCards:", procards);
+					console.log("ProCard categories:", proCardCategories);
+
+					if (proCardCategories.length > 0) {
+						const deptFilter = userProfile?.region_code
+							? `&dregion_code=eq.${encodeURIComponent(userProfile.region_code)}`
+							: "";
+						// PostgREST in() avec valeurs qui peuvent contenir des espaces : entre guillemets
+						const inList = proCardCategories
+							.map((c) => `"${c}"`)
+							.join(",");
+						const { data: suggested } = await getAll(
+							"jobs",
+							"*, companies(name, logo_url)",
+							`&is_archived=eq.false&category=in.(${inList})${deptFilter}`,
+							1,
+							3,
+							"created_at.desc",
+						);
+						setSuggestedJobs(suggested || []);
+					} else {
+						setSuggestedJobs([]);
+					}
+				} catch (suggestErr) {
+					console.warn("Erreur suggestions:", suggestErr);
+					setSuggestedJobs([]);
+				}
 
 				// Stats candidat
 				const { totalCount: wishlistCount } = await getAll(
@@ -260,7 +311,7 @@ export default function Tab1() {
 			setSearchQuery("");
 			loadData();
 			refreshUser();
-		}, [role, timePeriod]),
+		}, [role, timePeriod, userProfile?.id]),
 	);
 	// Recherche avec debounce
 	useEffect(() => {
@@ -1178,6 +1229,105 @@ export default function Tab1() {
 							)}
 						</VStack>
 					</VStack>
+
+					{/* Offres suggérées (procards + localisation) */}
+					{suggestedJobs.length > 0 && (
+						<VStack space='md'>
+							<HStack
+								style={{
+									justifyContent: "space-between",
+									alignItems: "center",
+								}}>
+								<VStack space='xs'>
+									<Text
+										size='lg'
+										style={{
+											fontWeight: "700",
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										Recommandées pour vous
+									</Text>
+									{userProfile?.department && (
+										<HStack
+											space='xs'
+											style={{ alignItems: "center" }}>
+											<MapPin
+												size={12}
+												color={
+													isDark
+														? "#9ca3af"
+														: "#6b7280"
+												}
+											/>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#9ca3af"
+														: "#6b7280",
+												}}>
+												{userProfile.department}
+											</Text>
+										</HStack>
+									)}
+								</VStack>
+								<TouchableOpacity
+									onPress={() =>
+										router.push("/tabs/(tabs)/tab2")
+									}>
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#60a5fa"
+												: "#2563eb",
+											fontWeight: "500",
+										}}>
+										Voir tout
+									</Text>
+								</TouchableOpacity>
+							</HStack>
+							{suggestedJobs.map((job) => (
+								<JobCard
+									key={job.id}
+									id={job.id}
+									title={job.title}
+									category={job.category}
+									company_id={job.company_id}
+									company_name={job.companies?.name}
+									city={job.city}
+									postcode={job.postcode}
+									logo={job.companies?.logo_url}
+									contract_type={job?.contract_type}
+									working_time={job?.work_time}
+									salary_hourly={job?.salary_hourly}
+									salary_amount={job?.salary_amount}
+									salary_min={job?.salary_min}
+									salary_max={job?.salary_max}
+									salary_type={job?.salary_type}
+									salary_monthly_fixed={
+										job?.salary_monthly_fixed
+									}
+									salary_monthly_min={job?.salary_monthly_min}
+									salary_monthly_max={job?.salary_monthly_max}
+									salary_annual_fixed={
+										job?.salary_annual_fixed
+									}
+									salary_annual_min={job?.salary_annual_min}
+									salary_annual_max={job?.salary_annual_max}
+									isArchived={job.is_archived}
+									isLastMinute={job.isLastMinute}
+									vacations={job?.vacations}
+									date_mode={job?.date_mode}
+									start_date_asap={job?.start_date_asap}
+									start_date={job?.start_date}
+									end_date={job?.end_date}
+								/>
+							))}
+						</VStack>
+					)}
 
 					{/* Stats */}
 					<HStack space='md' style={{ width: "100%" }}>
