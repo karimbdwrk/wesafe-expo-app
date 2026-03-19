@@ -201,7 +201,25 @@ const DashboardScreen = () => {
 						table: "notifications",
 						filter: `recipient_id=eq.${user?.id}`,
 					},
-					() => fetchNotifCount(),
+					(payload) => {
+						fetchNotifCount();
+						if (payload.new?.type === "support_message") {
+							fetchSupportUnreadCount();
+						}
+					},
+				)
+				.on(
+					"postgres_changes",
+					{
+						event: "INSERT",
+						schema: "public",
+						table: "support_messages",
+					},
+					(payload) => {
+						if (payload.new?.sender_id !== user?.id) {
+							fetchSupportUnreadCount();
+						}
+					},
 				)
 				.subscribe();
 
@@ -943,7 +961,10 @@ const DashboardScreen = () => {
 			{/* ActionSheet Support Messages */}
 			<Actionsheet
 				isOpen={showSupportSheet}
-				onClose={() => setShowSupportSheet(false)}>
+				onClose={() => {
+					setShowSupportSheet(false);
+					setSupportUnreadCount(0);
+				}}>
 				<ActionsheetBackdrop />
 				<ActionsheetContent style={{ padding: 0 }}>
 					<Box
@@ -989,7 +1010,10 @@ const DashboardScreen = () => {
 								</Text>
 							</VStack>
 							<TouchableOpacity
-								onPress={() => setShowSupportSheet(false)}
+								onPress={() => {
+									setShowSupportSheet(false);
+									setSupportUnreadCount(0);
+								}}
 								activeOpacity={0.7}
 								style={{
 									width: 32,

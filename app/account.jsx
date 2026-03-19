@@ -87,7 +87,11 @@ import { useNotifications } from "@/context/NotificationsContext";
 import { useImage } from "@/context/ImageContext";
 import { createSupabaseClient } from "@/lib/supabase";
 import MessageThread from "@/components/MessageThread";
-import { OPEN_SUPPORT_CHAT, SIGN_OUT, OPEN_QR_MODAL } from "@/utils/activityEvents";
+import {
+	OPEN_SUPPORT_CHAT,
+	SIGN_OUT,
+	OPEN_QR_MODAL,
+} from "@/utils/activityEvents";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const { SUPERADMIN_ID } = Constants.expoConfig.extra;
@@ -314,7 +318,25 @@ const AccountScreen = () => {
 						table: "notifications",
 						filter: `recipient_id=eq.${user?.id}`,
 					},
-					() => fetchNotifCount(),
+					(payload) => {
+						fetchNotifCount();
+						if (payload.new?.type === "support_message") {
+							fetchSupportUnreadCount();
+						}
+					},
+				)
+				.on(
+					"postgres_changes",
+					{
+						event: "INSERT",
+						schema: "public",
+						table: "support_messages",
+					},
+					(payload) => {
+						if (payload.new?.sender_id !== user?.id) {
+							fetchSupportUnreadCount();
+						}
+					},
 				)
 				.subscribe();
 
@@ -426,7 +448,10 @@ const AccountScreen = () => {
 							style={{
 								backgroundColor: "transparent",
 							}}
-							onPress={() => { setShowQRModal(true); trackActivity(OPEN_QR_MODAL); }}
+							onPress={() => {
+								setShowQRModal(true);
+								trackActivity(OPEN_QR_MODAL);
+							}}
 							activeOpacity={0.7}>
 							<Icon
 								as={QrCode}
@@ -1442,7 +1467,10 @@ const AccountScreen = () => {
 			{/* ActionSheet Support Messages */}
 			<Actionsheet
 				isOpen={showSupportSheet}
-				onClose={() => setShowSupportSheet(false)}>
+				onClose={() => {
+					setShowSupportSheet(false);
+					setSupportUnreadCount(0);
+				}}>
 				<ActionsheetBackdrop />
 				<ActionsheetContent style={{ padding: 0 }}>
 					<Box
@@ -1488,7 +1516,10 @@ const AccountScreen = () => {
 								</Text>
 							</VStack>
 							<TouchableOpacity
-								onPress={() => setShowSupportSheet(false)}
+								onPress={() => {
+									setShowSupportSheet(false);
+									setSupportUnreadCount(0);
+								}}
 								activeOpacity={0.7}
 								style={{
 									width: 32,
