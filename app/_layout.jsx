@@ -283,11 +283,17 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='iddocumentverification'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Documents d'identité",
+								}}
 							/>
 							<Stack.Screen
 								name='socialsecuritydocumentverification'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Document de sécurité sociale",
+								}}
 							/>
 							<Stack.Screen
 								name='updateprofile'
