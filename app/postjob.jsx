@@ -93,6 +93,7 @@ import {
 	CATEGORY as CATEGORIES,
 	getCategoryLabel,
 } from "@/constants/categories";
+import { DRIVING_LICENSES } from "@/constants/drivinglicences";
 
 const CONTRACT_TYPES = ["CDI", "CDD"];
 const WORK_TIME = ["Temps plein", "Temps partiel"];
@@ -149,6 +150,8 @@ const PostJob = () => {
 	const [showEndTimePicker, setShowEndTimePicker] = useState(false);
 	const [showVacationDatePicker, setShowVacationDatePicker] = useState(false);
 	const [showCategorySheet, setShowCategorySheet] = useState(false);
+	const [showDrivingLicenseSheet, setShowDrivingLicenseSheet] =
+		useState(false);
 	const [currentVacation, setCurrentVacation] = useState({
 		date: null,
 		start_time: "",
@@ -1813,47 +1816,77 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-														color: isDark ? "#f3f4f6" : "#111827",
-													}}>
-													Catégorie *
-												</Text>
-												<TouchableOpacity
-													activeOpacity={0.7}
-													onPress={() => setShowCategorySheet(true)}>
-													<Box
-														style={{
-															flexDirection: "row",
-															alignItems: "center",
-															justifyContent: "space-between",
-															padding: 12,
-															borderRadius: 8,
-															borderWidth: 1,
-															borderColor: formData.category
-																? "#3b82f6"
-																: isDark ? "#4b5563" : "#e5e7eb",
-															backgroundColor: formData.category
-																? isDark ? "#1e3a8a" : "#dbeafe"
-																: isDark ? "#1f2937" : "#ffffff",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
 														}}>
-														<Text
+														Catégorie *
+													</Text>
+													<TouchableOpacity
+														activeOpacity={0.7}
+														onPress={() =>
+															setShowCategorySheet(
+																true,
+															)
+														}>
+														<Box
 															style={{
-																flex: 1,
-																color: formData.category
-																	? "#3b82f6"
-																	: isDark ? "#9ca3af" : "#6b7280",
-																fontWeight: formData.category ? "600" : "400",
+																flexDirection:
+																	"row",
+																alignItems:
+																	"center",
+																justifyContent:
+																	"space-between",
+																padding: 12,
+																borderRadius: 8,
+																borderWidth: 1,
+																borderColor:
+																	formData.category
+																		? "#3b82f6"
+																		: isDark
+																			? "#4b5563"
+																			: "#e5e7eb",
+																backgroundColor:
+																	formData.category
+																		? isDark
+																			? "#1e3a8a"
+																			: "#dbeafe"
+																		: isDark
+																			? "#1f2937"
+																			: "#ffffff",
 															}}>
-															{formData.category
-																? getCategoryLabel(formData.category)
-																: "Sélectionnez une catégorie"}
-														</Text>
-														<Icon
-															as={ChevronDown}
-															size='sm'
-															style={{ color: formData.category ? "#3b82f6" : isDark ? "#9ca3af" : "#6b7280" }}
-														/>
-													</Box>
-												</TouchableOpacity>
+															<Text
+																style={{
+																	flex: 1,
+																	color: formData.category
+																		? "#3b82f6"
+																		: isDark
+																			? "#9ca3af"
+																			: "#6b7280",
+																	fontWeight:
+																		formData.category
+																			? "600"
+																			: "400",
+																}}>
+																{formData.category
+																	? getCategoryLabel(
+																			formData.category,
+																		)
+																	: "Sélectionnez une catégorie"}
+															</Text>
+															<Icon
+																as={ChevronDown}
+																size='sm'
+																style={{
+																	color: formData.category
+																		? "#3b82f6"
+																		: isDark
+																			? "#9ca3af"
+																			: "#6b7280",
+																}}
+															/>
+														</Box>
+													</TouchableOpacity>
 												</VStack>
 
 												{/* Description */}
@@ -5352,133 +5385,130 @@ const PostJob = () => {
 														Permis de conduire
 													</Text>
 												</HStack>
-												<HStack space='sm'>
-													<VStack
-														ref={
-															drivingLicenseInputRef
-														}
-														style={{ flex: 1 }}>
-														<Input
-															variant='outline'
-															size='md'
-															style={{
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#ffffff",
-																borderColor:
-																	isDark
+												<TouchableOpacity
+													activeOpacity={0.7}
+													onPress={() =>
+														setShowDrivingLicenseSheet(
+															true,
+														)
+													}>
+													<Box
+														style={{
+															flexDirection:
+																"row",
+															alignItems:
+																"center",
+															justifyContent:
+																"space-between",
+															padding: 12,
+															borderRadius: 8,
+															borderWidth: 1,
+															borderColor:
+																formData
+																	.driving_licenses
+																	.length > 0
+																	? "#3b82f6"
+																	: isDark
 																		? "#4b5563"
 																		: "#e5e7eb",
-															}}>
-															<InputField
-																placeholder='Ex: Permis B'
-																value={
-																	currentDrivingLicense
-																}
-																onChangeText={
-																	setCurrentDrivingLicense
-																}
-																onFocus={() =>
-																	scrollToInput(
-																		drivingLicenseInputRef,
-																		2,
-																	)
-																}
-																style={{
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}
-															/>
-														</Input>
-													</VStack>
-													<Button
-														size='md'
-														onPress={
-															addDrivingLicense
-														}
-														style={{
 															backgroundColor:
-																"#3b82f6",
+																formData
+																	.driving_licenses
+																	.length > 0
+																	? isDark
+																		? "#1e3a8a"
+																		: "#dbeafe"
+																	: isDark
+																		? "#1f2937"
+																		: "#ffffff",
 														}}>
-														<ButtonIcon
-															as={Plus}
+														<Text
 															style={{
-																color: "#ffffff",
+																flex: 1,
+																color:
+																	formData
+																		.driving_licenses
+																		.length >
+																	0
+																		? "#3b82f6"
+																		: isDark
+																			? "#9ca3af"
+																			: "#6b7280",
+																fontWeight:
+																	formData
+																		.driving_licenses
+																		.length >
+																	0
+																		? "600"
+																		: "400",
+															}}>
+															{formData
+																.driving_licenses
+																.length > 0
+																? `${formData.driving_licenses.length} permis sélectionné${
+																		formData
+																			.driving_licenses
+																			.length >
+																		1
+																			? "s"
+																			: ""
+																	}`
+																: "Sélectionnez les permis requis"}
+														</Text>
+														<Icon
+															as={ChevronDown}
+															size='sm'
+															style={{
+																color:
+																	formData
+																		.driving_licenses
+																		.length >
+																	0
+																		? "#3b82f6"
+																		: isDark
+																			? "#9ca3af"
+																			: "#6b7280",
 															}}
 														/>
-													</Button>
-												</HStack>
-												{/* Liste des permis */}
+													</Box>
+												</TouchableOpacity>
 												{formData.driving_licenses
 													.length > 0 && (
-													<VStack
+													<HStack
 														space='xs'
 														style={{
-															marginTop: 8,
+															flexWrap: "wrap",
+															marginTop: 6,
 														}}>
 														{formData.driving_licenses.map(
-															(
-																license,
-																index,
-															) => (
-																<HStack
-																	key={index}
-																	space='sm'
+															(acronym) => (
+																<Box
+																	key={
+																		acronym
+																	}
 																	style={{
-																		alignItems:
-																			"center",
-																		padding: 8,
+																		paddingHorizontal: 8,
+																		paddingVertical: 3,
+																		borderRadius: 6,
 																		backgroundColor:
-																			isDark
-																				? "#1f2937"
-																				: "#f3f4f6",
-																		borderRadius: 8,
+																			"#3b82f6",
+																		marginBottom: 4,
 																	}}>
-																	<Box
-																		style={{
-																			width: 6,
-																			height: 6,
-																			borderRadius: 3,
-																			backgroundColor:
-																				"#3b82f6",
-																		}}
-																	/>
 																	<Text
-																		size='sm'
 																		style={{
-																			flex: 1,
-																			color: isDark
-																				? "#f3f4f6"
-																				: "#111827",
+																			fontSize: 11,
+																			fontWeight:
+																				"800",
+																			color: "#ffffff",
 																		}}>
 																		{
-																			license
+																			acronym
 																		}
 																	</Text>
-																	<Button
-																		size='xs'
-																		variant='link'
-																		onPress={() =>
-																			removeDrivingLicense(
-																				index,
-																			)
-																		}>
-																		<ButtonIcon
-																			as={
-																				Trash2
-																			}
-																			size='sm'
-																			style={{
-																				color: "#ef4444",
-																			}}
-																		/>
-																	</Button>
-																</HStack>
+																</Box>
 															),
 														)}
-													</VStack>
+													</HStack>
 												)}
 											</VStack>
 										</Card>
@@ -7614,7 +7644,9 @@ const PostJob = () => {
 						<ActionsheetDragIndicatorWrapper>
 							<ActionsheetDragIndicator />
 						</ActionsheetDragIndicatorWrapper>
-						<VStack style={{ width: "100%", paddingTop: 8 }} space='sm'>
+						<VStack
+							style={{ width: "100%", paddingTop: 8 }}
+							space='sm'>
 							<Text
 								style={{
 									fontWeight: "700",
@@ -7628,105 +7660,385 @@ const PostJob = () => {
 							<ScrollView
 								showsVerticalScrollIndicator={false}
 								style={{ width: "100%" }}>
-								<VStack space='lg' style={{ paddingBottom: 16 }}>
+								<VStack
+									space='lg'
+									style={{ paddingBottom: 16 }}>
 									{(() => {
 										const CATEGORY_GROUP_LABELS = {
-											surveillance_humaine: "Surveillance humaine",
-											securite_incendie: "Sécurité Incendie",
+											surveillance_humaine:
+												"Surveillance humaine",
+											securite_incendie:
+												"Sécurité Incendie",
 											cynophile: "Cynophile",
-											protection_rapprochee: "Protection Rapprochée",
-											transport_fonds: "Transport de Fonds",
-											videosurveillance: "Vidéosurveillance",
-											surete_aeroportuaire: "Sûreté Aéroportuaire",
+											protection_rapprochee:
+												"Protection Rapprochée",
+											transport_fonds:
+												"Transport de Fonds",
+											videosurveillance:
+												"Vidéosurveillance",
+											surete_aeroportuaire:
+												"Sûreté Aéroportuaire",
 											encadrement: "Encadrement",
 											specialisation: "Spécialisations",
 										};
-										const grouped = CATEGORIES.reduce((acc, cat) => {
-											if (!acc[cat.category]) acc[cat.category] = [];
-											acc[cat.category].push(cat);
-											return acc;
-										}, {});
-										return Object.entries(grouped).map(([groupKey, items]) => (
-											<VStack key={groupKey} space='sm'>
-												<Text
-													style={{
-														fontSize: 12,
-														fontWeight: "700",
-														letterSpacing: 0.8,
-														textTransform: "uppercase",
-														color: isDark ? "#9ca3af" : "#6b7280",
-														paddingHorizontal: 4,
-													}}>
-													{CATEGORY_GROUP_LABELS[groupKey] || groupKey}
-												</Text>
-												<VStack space='xs'>
-													{items.map((cat) => {
-														const isSelected = formData.category === cat.id;
-														return (
-															<Pressable
-																key={cat.id}
-																onPress={() => {
-																	updateField("category", cat.id);
-																	setShowCategorySheet(false);
-																}}>
-																<Box
-																	style={{
-																		padding: 14,
-																		borderRadius: 10,
-																		borderWidth: 2,
-																		borderColor: isSelected
-																			? "#3b82f6"
-																			: isDark ? "#374151" : "#e5e7eb",
-																		backgroundColor: isSelected
-																			? isDark ? "#1e3a8a" : "#dbeafe"
-																			: isDark ? "#374151" : "#f9fafb",
+										const grouped = CATEGORIES.reduce(
+											(acc, cat) => {
+												if (!acc[cat.category])
+													acc[cat.category] = [];
+												acc[cat.category].push(cat);
+												return acc;
+											},
+											{},
+										);
+										return Object.entries(grouped).map(
+											([groupKey, items]) => (
+												<VStack
+													key={groupKey}
+													space='sm'>
+													<Text
+														style={{
+															fontSize: 12,
+															fontWeight: "700",
+															letterSpacing: 0.8,
+															textTransform:
+																"uppercase",
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+															paddingHorizontal: 4,
+														}}>
+														{CATEGORY_GROUP_LABELS[
+															groupKey
+														] || groupKey}
+													</Text>
+													<VStack space='xs'>
+														{items.map((cat) => {
+															const isSelected =
+																formData.category ===
+																cat.id;
+															return (
+																<Pressable
+																	key={cat.id}
+																	onPress={() => {
+																		updateField(
+																			"category",
+																			cat.id,
+																		);
+																		setShowCategorySheet(
+																			false,
+																		);
 																	}}>
-																	<HStack
-																		space='sm'
-																		style={{ alignItems: "center" }}>
-																		<Box
-																			style={{
-																				paddingHorizontal: 8,
-																				paddingVertical: 3,
-																				borderRadius: 6,
-																				backgroundColor: isSelected
+																	<Box
+																		style={{
+																			padding: 14,
+																			borderRadius: 10,
+																			borderWidth: 2,
+																			borderColor:
+																				isSelected
 																					? "#3b82f6"
-																					: isDark ? "#4b5563" : "#e5e7eb",
+																					: isDark
+																						? "#374151"
+																						: "#e5e7eb",
+																			backgroundColor:
+																				isSelected
+																					? isDark
+																						? "#1e3a8a"
+																						: "#dbeafe"
+																					: isDark
+																						? "#374151"
+																						: "#f9fafb",
+																		}}>
+																		<HStack
+																			space='sm'
+																			style={{
+																				alignItems:
+																					"center",
 																			}}>
+																			<Box
+																				style={{
+																					paddingHorizontal: 8,
+																					paddingVertical: 3,
+																					borderRadius: 6,
+																					backgroundColor:
+																						isSelected
+																							? "#3b82f6"
+																							: isDark
+																								? "#4b5563"
+																								: "#e5e7eb",
+																				}}>
+																				<Text
+																					style={{
+																						fontSize: 11,
+																						fontWeight:
+																							"800",
+																						color: isSelected
+																							? "#ffffff"
+																							: isDark
+																								? "#d1d5db"
+																								: "#374151",
+																					}}>
+																					{
+																						cat.acronym
+																					}
+																				</Text>
+																			</Box>
 																			<Text
 																				style={{
-																					fontSize: 11,
-																					fontWeight: "800",
+																					flex: 1,
+																					fontSize: 14,
 																					color: isSelected
-																						? "#ffffff"
-																						: isDark ? "#d1d5db" : "#374151",
+																						? "#3b82f6"
+																						: isDark
+																							? "#f3f4f6"
+																							: "#111827",
+																					fontWeight:
+																						isSelected
+																							? "600"
+																							: "400",
 																				}}>
-																				{cat.acronym}
+																				{
+																					cat.name
+																				}
 																			</Text>
-																		</Box>
-																		<Text
-																			style={{
-																				flex: 1,
-																				fontSize: 14,
-																				color: isSelected
-																					? "#3b82f6"
-																					: isDark ? "#f3f4f6" : "#111827",
-																				fontWeight: isSelected ? "600" : "400",
-																			}}>
-																			{cat.name}
-																		</Text>
-																	</HStack>
-																</Box>
-															</Pressable>
-														);
-													})}
+																		</HStack>
+																	</Box>
+																</Pressable>
+															);
+														})}
+													</VStack>
 												</VStack>
-											</VStack>
-										));
-									})()
-									}
+											),
+										);
+									})()}
 								</VStack>
 							</ScrollView>
+						</VStack>
+					</ActionsheetContent>
+				</Actionsheet>
+
+				{/* Actionsheet — Permis de conduire */}
+				<Actionsheet
+					isOpen={showDrivingLicenseSheet}
+					onClose={() => setShowDrivingLicenseSheet(false)}>
+					<ActionsheetBackdrop />
+					<ActionsheetContent
+						style={{
+							backgroundColor: isDark ? "#1f2937" : "#ffffff",
+							maxHeight: "80%",
+							paddingBottom: 32,
+						}}>
+						<ActionsheetDragIndicatorWrapper>
+							<ActionsheetDragIndicator />
+						</ActionsheetDragIndicatorWrapper>
+						<VStack
+							style={{ width: "100%", paddingTop: 8 }}
+							space='sm'>
+							<HStack
+								style={{
+									alignItems: "center",
+									justifyContent: "space-between",
+									paddingHorizontal: 4,
+									marginBottom: 8,
+								}}>
+								<Text
+									style={{
+										fontWeight: "700",
+										fontSize: 17,
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									Permis de conduire
+								</Text>
+								{formData.driving_licenses.length > 0 && (
+									<Pressable
+										onPress={() =>
+											setFormData((prev) => ({
+												...prev,
+												driving_licenses: [],
+											}))
+										}>
+										<Text
+											style={{
+												fontSize: 13,
+												color: "#ef4444",
+											}}>
+											Tout effacer
+										</Text>
+									</Pressable>
+								)}
+							</HStack>
+							<ScrollView
+								showsVerticalScrollIndicator={false}
+								style={{ width: "100%" }}>
+								<VStack
+									space='lg'
+									style={{ paddingBottom: 16 }}>
+									{(() => {
+										const DL_GROUP_LABELS = {
+											moto: "Moto",
+											vehicule_leger: "Véhicule léger",
+											poids_lourd: "Poids lourd",
+											transport_personnes:
+												"Transport de personnes",
+										};
+										const grouped = Object.entries(
+											DRIVING_LICENSES,
+										).reduce((acc, [key, dl]) => {
+											if (!acc[dl.category])
+												acc[dl.category] = [];
+											acc[dl.category].push({
+												key,
+												...dl,
+											});
+											return acc;
+										}, {});
+										return Object.entries(grouped).map(
+											([groupKey, items]) => (
+												<VStack
+													key={groupKey}
+													space='sm'>
+													<Text
+														style={{
+															fontSize: 12,
+															fontWeight: "700",
+															letterSpacing: 0.8,
+															textTransform:
+																"uppercase",
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+															paddingHorizontal: 4,
+														}}>
+														{DL_GROUP_LABELS[
+															groupKey
+														] || groupKey}
+													</Text>
+													<VStack space='xs'>
+														{items.map((dl) => {
+															const isSel =
+																formData.driving_licenses.includes(
+																	dl.acronym,
+																);
+															return (
+																<Pressable
+																	key={dl.key}
+																	onPress={() =>
+																		setFormData(
+																			(
+																				prev,
+																			) => ({
+																				...prev,
+																				driving_licenses:
+																					isSel
+																						? prev.driving_licenses.filter(
+																								(
+																									v,
+																								) =>
+																									v !==
+																									dl.acronym,
+																							)
+																						: [
+																								...prev.driving_licenses,
+																								dl.acronym,
+																							],
+																			}),
+																		)
+																	}>
+																	<Box
+																		style={{
+																			padding: 14,
+																			borderRadius: 10,
+																			borderWidth: 2,
+																			borderColor:
+																				isSel
+																					? "#3b82f6"
+																					: isDark
+																						? "#374151"
+																						: "#e5e7eb",
+																			backgroundColor:
+																				isSel
+																					? isDark
+																						? "#1e3a8a"
+																						: "#dbeafe"
+																					: isDark
+																						? "#374151"
+																						: "#f9fafb",
+																		}}>
+																		<HStack
+																			space='sm'
+																			style={{
+																				alignItems:
+																					"center",
+																			}}>
+																			<Box
+																				style={{
+																					paddingHorizontal: 8,
+																					paddingVertical: 3,
+																					borderRadius: 6,
+																					backgroundColor:
+																						isSel
+																							? "#3b82f6"
+																							: isDark
+																								? "#4b5563"
+																								: "#e5e7eb",
+																				}}>
+																				<Text
+																					style={{
+																						fontSize: 11,
+																						fontWeight:
+																							"800",
+																						color: isSel
+																							? "#ffffff"
+																							: isDark
+																								? "#d1d5db"
+																								: "#374151",
+																					}}>
+																					{
+																						dl.acronym
+																					}
+																				</Text>
+																			</Box>
+																			<Text
+																				style={{
+																					flex: 1,
+																					fontSize: 14,
+																					color: isSel
+																						? "#3b82f6"
+																						: isDark
+																							? "#f3f4f6"
+																							: "#111827",
+																					fontWeight:
+																						isSel
+																							? "600"
+																							: "400",
+																				}}>
+																				{
+																					dl.name
+																				}
+																			</Text>
+																		</HStack>
+																	</Box>
+																</Pressable>
+															);
+														})}
+													</VStack>
+												</VStack>
+											),
+										);
+									})()}
+								</VStack>
+							</ScrollView>
+							<Button
+								style={{
+									backgroundColor: "#3b82f6",
+									marginTop: 8,
+								}}
+								onPress={() =>
+									setShowDrivingLicenseSheet(false)
+								}>
+								<ButtonText style={{ color: "#ffffff" }}>
+									Confirmer
+								</ButtonText>
+							</Button>
 						</VStack>
 					</ActionsheetContent>
 				</Actionsheet>
