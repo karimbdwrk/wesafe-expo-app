@@ -79,6 +79,7 @@ import {
 	ChevronRight,
 	ChevronDownIcon,
 	GraduationCap,
+	Award,
 	Zap,
 	Sparkles,
 	CalendarDays,
@@ -94,6 +95,8 @@ import {
 	getCategoryLabel,
 } from "@/constants/categories";
 import { DRIVING_LICENSES } from "@/constants/drivinglicences";
+import { DIPLOMAS } from "@/constants/diplomas";
+import { CERTIFICATIONS } from "@/constants/certifications";
 
 const CONTRACT_TYPES = ["CDI", "CDD"];
 const WORK_TIME = ["Temps plein", "Temps partiel"];
@@ -152,6 +155,8 @@ const PostJob = () => {
 	const [showCategorySheet, setShowCategorySheet] = useState(false);
 	const [showDrivingLicenseSheet, setShowDrivingLicenseSheet] =
 		useState(false);
+	const [showDiplomaSheet, setShowDiplomaSheet] = useState(false);
+	const [showCertificationSheet, setShowCertificationSheet] = useState(false);
 	const [currentVacation, setCurrentVacation] = useState({
 		date: null,
 		start_time: "",
@@ -190,6 +195,7 @@ const PostJob = () => {
 		missions: [],
 		searched_profile: [],
 		diplomas_required: [],
+		certifications_required: [],
 		driving_licenses: [],
 		languages: [],
 		reimbursements: [],
@@ -1059,6 +1065,9 @@ const PostJob = () => {
 				missions: cleanArrayField(formData.missions),
 				searched_profile: cleanArrayField(formData.searched_profile),
 				diplomas_required: cleanArrayField(formData.diplomas_required),
+				certifications_required: cleanArrayField(
+					formData.certifications_required,
+				),
 				driving_licenses: cleanArrayField(formData.driving_licenses),
 				languages: cleanArrayField(formData.languages),
 				reimbursements: cleanArrayField(formData.reimbursements),
@@ -1174,6 +1183,7 @@ const PostJob = () => {
 				missions: [],
 				searched_profile: [],
 				diplomas_required: [],
+				certifications_required: [],
 				driving_licenses: [],
 				languages: [],
 				reimbursements: [],
@@ -2342,129 +2352,284 @@ const PostJob = () => {
 														Diplômes requis
 													</Text>
 												</HStack>
-												<HStack space='sm'>
-													<VStack
-														ref={diplomaInputRef}
-														style={{ flex: 1 }}>
-														<Input
-															variant='outline'
-															size='md'
-															style={{
-																backgroundColor:
-																	isDark
-																		? "#1f2937"
-																		: "#ffffff",
-																borderColor:
-																	isDark
+												<TouchableOpacity
+													activeOpacity={0.7}
+													onPress={() =>
+														setShowDiplomaSheet(
+															true,
+														)
+													}>
+													<Box
+														style={{
+															flexDirection:
+																"row",
+															alignItems:
+																"center",
+															justifyContent:
+																"space-between",
+															padding: 12,
+															borderRadius: 8,
+															borderWidth: 1,
+															borderColor:
+																formData
+																	.diplomas_required
+																	.length > 0
+																	? "#3b82f6"
+																	: isDark
 																		? "#4b5563"
 																		: "#e5e7eb",
-															}}>
-															<InputField
-																placeholder='Ex: SSIAP 1'
-																value={
-																	currentDiploma
-																}
-																onChangeText={
-																	setCurrentDiploma
-																}
-																onFocus={() =>
-																	scrollToInput(
-																		diplomaInputRef,
-																		0,
-																	)
-																}
-																style={{
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
-																}}
-															/>
-														</Input>
-													</VStack>
-													<Button
-														size='md'
-														onPress={addDiploma}
-														style={{
 															backgroundColor:
-																"#3b82f6",
+																formData
+																	.diplomas_required
+																	.length > 0
+																	? isDark
+																		? "#1e3a8a"
+																		: "#dbeafe"
+																	: isDark
+																		? "#1f2937"
+																		: "#ffffff",
 														}}>
-														<ButtonIcon
-															as={Plus}
+														<Text
 															style={{
-																color: "#ffffff",
+																flex: 1,
+																color:
+																	formData
+																		.diplomas_required
+																		.length >
+																	0
+																		? "#3b82f6"
+																		: isDark
+																			? "#9ca3af"
+																			: "#6b7280",
+																fontWeight:
+																	formData
+																		.diplomas_required
+																		.length >
+																	0
+																		? "600"
+																		: "400",
+															}}>
+															{formData
+																.diplomas_required
+																.length > 0
+																? `${formData.diplomas_required.length} diplôme${formData.diplomas_required.length > 1 ? "s" : ""} sélectionné${formData.diplomas_required.length > 1 ? "s" : ""}`
+																: "Sélectionnez les diplômes requises"}
+														</Text>
+														<Icon
+															as={ChevronDown}
+															size='sm'
+															style={{
+																color:
+																	formData
+																		.diplomas_required
+																		.length >
+																	0
+																		? "#3b82f6"
+																		: isDark
+																			? "#9ca3af"
+																			: "#6b7280",
 															}}
 														/>
-													</Button>
-												</HStack>
-												{/* Liste des diplômes */}
+													</Box>
+												</TouchableOpacity>
 												{formData.diplomas_required
 													.length > 0 && (
-													<VStack
+													<HStack
 														space='xs'
 														style={{
-															marginTop: 8,
+															flexWrap: "wrap",
+															marginTop: 6,
 														}}>
 														{formData.diplomas_required.map(
-															(
-																diploma,
-																index,
-															) => (
-																<HStack
-																	key={index}
-																	space='sm'
+															(acronym) => (
+																<Box
+																	key={
+																		acronym
+																	}
 																	style={{
-																		alignItems:
-																			"center",
-																		padding: 8,
+																		paddingHorizontal: 8,
+																		paddingVertical: 3,
+																		borderRadius: 6,
 																		backgroundColor:
-																			isDark
-																				? "#1f2937"
-																				: "#f3f4f6",
-																		borderRadius: 8,
+																			"#3b82f6",
+																		marginBottom: 4,
 																	}}>
-																	<Box
-																		style={{
-																			width: 6,
-																			height: 6,
-																			borderRadius: 3,
-																			backgroundColor:
-																				"#3b82f6",
-																		}}
-																	/>
 																	<Text
-																		size='sm'
 																		style={{
-																			flex: 1,
-																			color: isDark
-																				? "#f3f4f6"
-																				: "#111827",
+																			fontSize: 11,
+																			fontWeight:
+																				"800",
+																			color: "#ffffff",
 																		}}>
 																		{
-																			diploma
+																			acronym
 																		}
 																	</Text>
-																	<Button
-																		size='xs'
-																		variant='link'
-																		onPress={() =>
-																			removeDiploma(
-																				index,
-																			)
-																		}>
-																		<ButtonIcon
-																			as={
-																				Trash2
-																			}
-																			size='sm'
-																			style={{
-																				color: "#ef4444",
-																			}}
-																		/>
-																	</Button>
-																</HStack>
+																</Box>
 															),
 														)}
-													</VStack>
+													</HStack>
+												)}
+											</VStack>
+										</Card>
+
+										{/* Certifications requises */}
+										<Card
+											style={{
+												padding: 20,
+												backgroundColor: isDark
+													? "#374151"
+													: "#ffffff",
+												borderRadius: 12,
+												borderWidth: 1,
+												borderColor: isDark
+													? "#4b5563"
+													: "#e5e7eb",
+											}}>
+											<VStack space='md'>
+												<HStack
+													space='sm'
+													style={{
+														alignItems: "center",
+													}}>
+													<Icon
+														as={Award}
+														size='lg'
+														style={{
+															color: isDark
+																? "#60a5fa"
+																: "#3b82f6",
+														}}
+													/>
+													<Text
+														size='md'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														Certifications requises
+													</Text>
+												</HStack>
+												<TouchableOpacity
+													activeOpacity={0.7}
+													onPress={() =>
+														setShowCertificationSheet(
+															true,
+														)
+													}>
+													<Box
+														style={{
+															flexDirection:
+																"row",
+															alignItems:
+																"center",
+															justifyContent:
+																"space-between",
+															padding: 12,
+															borderRadius: 8,
+															borderWidth: 1,
+															borderColor:
+																formData
+																	.certifications_required
+																	.length > 0
+																	? "#3b82f6"
+																	: isDark
+																		? "#4b5563"
+																		: "#e5e7eb",
+															backgroundColor:
+																formData
+																	.certifications_required
+																	.length > 0
+																	? isDark
+																		? "#1e3a8a"
+																		: "#dbeafe"
+																	: isDark
+																		? "#1f2937"
+																		: "#ffffff",
+														}}>
+														<Text
+															style={{
+																flex: 1,
+																color:
+																	formData
+																		.certifications_required
+																		.length >
+																	0
+																		? "#3b82f6"
+																		: isDark
+																			? "#9ca3af"
+																			: "#6b7280",
+																fontWeight:
+																	formData
+																		.certifications_required
+																		.length >
+																	0
+																		? "600"
+																		: "400",
+															}}>
+															{formData
+																.certifications_required
+																.length > 0
+																? `${formData.certifications_required.length} certification${formData.certifications_required.length > 1 ? "s" : ""} sélectionné${formData.certifications_required.length > 1 ? "s" : ""}`
+																: "Sélectionnez les certifications requis"}
+														</Text>
+														<Icon
+															as={ChevronDown}
+															size='sm'
+															style={{
+																color:
+																	formData
+																		.certifications_required
+																		.length >
+																	0
+																		? "#3b82f6"
+																		: isDark
+																			? "#9ca3af"
+																			: "#6b7280",
+															}}
+														/>
+													</Box>
+												</TouchableOpacity>
+												{formData
+													.certifications_required
+													.length > 0 && (
+													<HStack
+														space='xs'
+														style={{
+															flexWrap: "wrap",
+															marginTop: 6,
+														}}>
+														{formData.certifications_required.map(
+															(acronym) => (
+																<Box
+																	key={
+																		acronym
+																	}
+																	style={{
+																		paddingHorizontal: 8,
+																		paddingVertical: 3,
+																		borderRadius: 6,
+																		backgroundColor:
+																			"#3b82f6",
+																		marginBottom: 4,
+																	}}>
+																	<Text
+																		style={{
+																			fontSize: 11,
+																			fontWeight:
+																				"800",
+																			color: "#ffffff",
+																		}}>
+																		{
+																			acronym
+																		}
+																	</Text>
+																</Box>
+															),
+														)}
+													</HStack>
 												)}
 											</VStack>
 										</Card>
@@ -8034,6 +8199,467 @@ const PostJob = () => {
 								}}
 								onPress={() =>
 									setShowDrivingLicenseSheet(false)
+								}>
+								<ButtonText style={{ color: "#ffffff" }}>
+									Confirmer
+								</ButtonText>
+							</Button>
+						</VStack>
+					</ActionsheetContent>
+				</Actionsheet>
+
+				{/* Actionsheet — Diplômes requis */}
+				<Actionsheet
+					isOpen={showDiplomaSheet}
+					onClose={() => setShowDiplomaSheet(false)}>
+					<ActionsheetBackdrop />
+					<ActionsheetContent
+						style={{
+							backgroundColor: isDark ? "#1f2937" : "#ffffff",
+							maxHeight: "80%",
+							paddingBottom: 32,
+						}}>
+						<ActionsheetDragIndicatorWrapper>
+							<ActionsheetDragIndicator />
+						</ActionsheetDragIndicatorWrapper>
+						<VStack
+							style={{ width: "100%", paddingTop: 8 }}
+							space='sm'>
+							<HStack
+								style={{
+									alignItems: "center",
+									justifyContent: "space-between",
+									paddingHorizontal: 4,
+									marginBottom: 8,
+								}}>
+								<Text
+									style={{
+										fontWeight: "700",
+										fontSize: 17,
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									Diplômes requis
+								</Text>
+								{formData.diplomas_required.length > 0 && (
+									<Pressable
+										onPress={() =>
+											setFormData((prev) => ({
+												...prev,
+												diplomas_required: [],
+											}))
+										}>
+										<Text
+											style={{
+												fontSize: 13,
+												color: "#ef4444",
+											}}>
+											Tout effacer
+										</Text>
+									</Pressable>
+								)}
+							</HStack>
+							<ScrollView
+								showsVerticalScrollIndicator={false}
+								style={{ width: "100%" }}>
+								<VStack
+									space='lg'
+									style={{ paddingBottom: 16 }}>
+									{(() => {
+										const DIPLOMA_GROUP_LABELS = {
+											surveillance_humaine:
+												"Surveillance humaine",
+											cynophile: "Cynophile",
+											protection_rapprochee:
+												"Protection rapprochée",
+											videoprotection: "Vidéoprotection",
+											securite_incendie:
+												"Sécurité Incendie",
+										};
+										const grouped = Object.entries(
+											DIPLOMAS,
+										).reduce((acc, [key, d]) => {
+											if (!acc[d.category])
+												acc[d.category] = [];
+											acc[d.category].push({
+												key,
+												...d,
+											});
+											return acc;
+										}, {});
+										return Object.entries(grouped).map(
+											([groupKey, items]) => (
+												<VStack
+													key={groupKey}
+													space='sm'>
+													<Text
+														style={{
+															fontSize: 12,
+															fontWeight: "700",
+															letterSpacing: 0.8,
+															textTransform:
+																"uppercase",
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+															paddingHorizontal: 4,
+														}}>
+														{DIPLOMA_GROUP_LABELS[
+															groupKey
+														] || groupKey}
+													</Text>
+													<VStack space='xs'>
+														{items.map((d) => {
+															const isSel =
+																formData.diplomas_required.includes(
+																	d.acronym,
+																);
+															return (
+																<Pressable
+																	key={d.key}
+																	onPress={() =>
+																		setFormData(
+																			(
+																				prev,
+																			) => ({
+																				...prev,
+																				diplomas_required:
+																					isSel
+																						? prev.diplomas_required.filter(
+																								(
+																									v,
+																								) =>
+																									v !==
+																									d.acronym,
+																							)
+																						: [
+																								...prev.diplomas_required,
+																								d.acronym,
+																							],
+																			}),
+																		)
+																	}>
+																	<Box
+																		style={{
+																			padding: 14,
+																			borderRadius: 10,
+																			borderWidth: 2,
+																			borderColor:
+																				isSel
+																					? "#3b82f6"
+																					: isDark
+																						? "#374151"
+																						: "#e5e7eb",
+																			backgroundColor:
+																				isSel
+																					? isDark
+																						? "#1e3a8a"
+																						: "#dbeafe"
+																					: isDark
+																						? "#374151"
+																						: "#f9fafb",
+																		}}>
+																		<HStack
+																			space='sm'
+																			style={{
+																				alignItems:
+																					"center",
+																			}}>
+																			<Box
+																				style={{
+																					paddingHorizontal: 8,
+																					paddingVertical: 3,
+																					borderRadius: 6,
+																					backgroundColor:
+																						isSel
+																							? "#3b82f6"
+																							: isDark
+																								? "#4b5563"
+																								: "#e5e7eb",
+																				}}>
+																				<Text
+																					style={{
+																						fontSize: 11,
+																						fontWeight:
+																							"800",
+																						color: isSel
+																							? "#ffffff"
+																							: isDark
+																								? "#d1d5db"
+																								: "#374151",
+																					}}>
+																					{
+																						d.acronym
+																					}
+																				</Text>
+																			</Box>
+																			<Text
+																				style={{
+																					flex: 1,
+																					fontSize: 14,
+																					color: isSel
+																						? "#3b82f6"
+																						: isDark
+																							? "#f3f4f6"
+																							: "#111827",
+																					fontWeight:
+																						isSel
+																							? "600"
+																							: "400",
+																				}}>
+																				{
+																					d.name
+																				}
+																			</Text>
+																		</HStack>
+																	</Box>
+																</Pressable>
+															);
+														})}
+													</VStack>
+												</VStack>
+											),
+										);
+									})()}
+								</VStack>
+							</ScrollView>
+							<Button
+								style={{
+									backgroundColor: "#3b82f6",
+									marginTop: 8,
+								}}
+								onPress={() => setShowDiplomaSheet(false)}>
+								<ButtonText style={{ color: "#ffffff" }}>
+									Confirmer
+								</ButtonText>
+							</Button>
+						</VStack>
+					</ActionsheetContent>
+				</Actionsheet>
+
+				{/* Actionsheet — Certifications requises */}
+				<Actionsheet
+					isOpen={showCertificationSheet}
+					onClose={() => setShowCertificationSheet(false)}>
+					<ActionsheetBackdrop />
+					<ActionsheetContent
+						style={{
+							backgroundColor: isDark ? "#1f2937" : "#ffffff",
+							maxHeight: "80%",
+							paddingBottom: 32,
+						}}>
+						<ActionsheetDragIndicatorWrapper>
+							<ActionsheetDragIndicator />
+						</ActionsheetDragIndicatorWrapper>
+						<VStack
+							style={{ width: "100%", paddingTop: 8 }}
+							space='sm'>
+							<HStack
+								style={{
+									alignItems: "center",
+									justifyContent: "space-between",
+									paddingHorizontal: 4,
+									marginBottom: 8,
+								}}>
+								<Text
+									style={{
+										fontWeight: "700",
+										fontSize: 17,
+										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									Certifications requises
+								</Text>
+								{formData.certifications_required.length >
+									0 && (
+									<Pressable
+										onPress={() =>
+											setFormData((prev) => ({
+												...prev,
+												certifications_required: [],
+											}))
+										}>
+										<Text
+											style={{
+												fontSize: 13,
+												color: "#ef4444",
+											}}>
+											Tout effacer
+										</Text>
+									</Pressable>
+								)}
+							</HStack>
+							<ScrollView
+								showsVerticalScrollIndicator={false}
+								style={{ width: "100%" }}>
+								<VStack
+									space='lg'
+									style={{ paddingBottom: 16 }}>
+									{(() => {
+										const CERTIF_GROUP_LABELS = {
+											secourisme: "Secourisme",
+											habilitation: "Habilitation",
+											evenementiel: "Événementiel",
+											protection_rapprochee:
+												"Protection rapprochée",
+											surete_aeroportuaire:
+												"Sûreté aéroportuaire",
+											securite_incendie:
+												"Sécurité Incendie",
+											cynophile: "Cynophile",
+										};
+										const grouped = Object.entries(
+											CERTIFICATIONS,
+										).reduce((acc, [key, c]) => {
+											if (!acc[c.category])
+												acc[c.category] = [];
+											acc[c.category].push({
+												key,
+												...c,
+											});
+											return acc;
+										}, {});
+										return Object.entries(grouped).map(
+											([groupKey, items]) => (
+												<VStack
+													key={groupKey}
+													space='sm'>
+													<Text
+														style={{
+															fontSize: 12,
+															fontWeight: "700",
+															letterSpacing: 0.8,
+															textTransform:
+																"uppercase",
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+															paddingHorizontal: 4,
+														}}>
+														{CERTIF_GROUP_LABELS[
+															groupKey
+														] || groupKey}
+													</Text>
+													<VStack space='xs'>
+														{items.map((c) => {
+															const isSel =
+																formData.certifications_required.includes(
+																	c.acronym,
+																);
+															return (
+																<Pressable
+																	key={c.key}
+																	onPress={() =>
+																		setFormData(
+																			(
+																				prev,
+																			) => ({
+																				...prev,
+																				certifications_required:
+																					isSel
+																						? prev.certifications_required.filter(
+																								(
+																									v,
+																								) =>
+																									v !==
+																									c.acronym,
+																							)
+																						: [
+																								...prev.certifications_required,
+																								c.acronym,
+																							],
+																			}),
+																		)
+																	}>
+																	<Box
+																		style={{
+																			padding: 14,
+																			borderRadius: 10,
+																			borderWidth: 2,
+																			borderColor:
+																				isSel
+																					? "#3b82f6"
+																					: isDark
+																						? "#374151"
+																						: "#e5e7eb",
+																			backgroundColor:
+																				isSel
+																					? isDark
+																						? "#1e3a8a"
+																						: "#dbeafe"
+																					: isDark
+																						? "#374151"
+																						: "#f9fafb",
+																		}}>
+																		<HStack
+																			space='sm'
+																			style={{
+																				alignItems:
+																					"center",
+																			}}>
+																			<Box
+																				style={{
+																					paddingHorizontal: 8,
+																					paddingVertical: 3,
+																					borderRadius: 6,
+																					backgroundColor:
+																						isSel
+																							? "#3b82f6"
+																							: isDark
+																								? "#4b5563"
+																								: "#e5e7eb",
+																				}}>
+																				<Text
+																					style={{
+																						fontSize: 11,
+																						fontWeight:
+																							"800",
+																						color: isSel
+																							? "#ffffff"
+																							: isDark
+																								? "#d1d5db"
+																								: "#374151",
+																					}}>
+																					{
+																						c.acronym
+																					}
+																				</Text>
+																			</Box>
+																			<Text
+																				style={{
+																					flex: 1,
+																					fontSize: 14,
+																					color: isSel
+																						? "#3b82f6"
+																						: isDark
+																							? "#f3f4f6"
+																							: "#111827",
+																					fontWeight:
+																						isSel
+																							? "600"
+																							: "400",
+																				}}>
+																				{
+																					c.name
+																				}
+																			</Text>
+																		</HStack>
+																	</Box>
+																</Pressable>
+															);
+														})}
+													</VStack>
+												</VStack>
+											),
+										);
+									})()}
+								</VStack>
+							</ScrollView>
+							<Button
+								style={{
+									backgroundColor: "#3b82f6",
+									marginTop: 8,
+								}}
+								onPress={() =>
+									setShowCertificationSheet(false)
 								}>
 								<ButtonText style={{ color: "#ffffff" }}>
 									Confirmer
