@@ -7662,7 +7662,7 @@ const PostJob = () => {
 								style={{ width: "100%" }}>
 								<VStack
 									space='lg'
-									style={{ paddingBottom: 16 }}>
+									style={{ paddingBottom: 60 }}>
 									{(() => {
 										const CATEGORY_GROUP_LABELS = {
 											surveillance_humaine:
