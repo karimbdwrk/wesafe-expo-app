@@ -7,27 +7,21 @@ export const CATEGORY = [
 		category: "surveillance_humaine",
 	},
 	{
-		id: "ads",
-		acronym: "ADS",
-		name: "Agent de Sécurité",
-		category: "surveillance_humaine",
-	},
-	{
 		id: "ads_magasin",
 		acronym: "ADS MAG",
 		name: "Agent de Sécurité Magasin",
 		category: "surveillance_humaine",
 	},
 	{
-		id: "ads_filtrage",
-		acronym: "ADS FIL",
-		name: "Agent de Filtrage",
-		category: "surveillance_humaine",
-	},
-	{
 		id: "ads_ronde",
 		acronym: "ADS RONDE",
 		name: "Agent de Ronde",
+		category: "surveillance_humaine",
+	},
+	{
+		id: "agent_mobile",
+		acronym: "AM",
+		name: "Agent Mobile",
 		category: "surveillance_humaine",
 	},
 	{
@@ -62,7 +56,7 @@ export const CATEGORY = [
 
 	// CYNOPHILE
 	{
-		id: "asc",
+		id: "cynophile",
 		acronym: "ASC",
 		name: "Agent de Sécurité Cynophile",
 		category: "cynophile",
@@ -75,11 +69,27 @@ export const CATEGORY = [
 		name: "Agent de Protection Rapprochée",
 		category: "protection_rapprochee",
 	},
+
+	// SURVEILLANCE TECHNIQUE
 	{
-		id: "apr_arme",
-		acronym: "APR A",
-		name: "Agent de Protection Rapprochée Armé",
-		category: "protection_rapprochee",
+		id: "operateur_videoprotection",
+		acronym: "OVS",
+		name: "Opérateur Vidéoprotection",
+		category: "videoprotection",
+	},
+	{
+		id: "telesurveillance",
+		acronym: "ATS",
+		name: "Agent de Télésurveillance",
+		category: "videoprotection",
+	},
+
+	// SÛRETÉ AÉROPORTUAIRE
+	{
+		id: "surete_aeroportuaire",
+		acronym: "ASA",
+		name: "Agent de Sûreté Aéroportuaire",
+		category: "surete_aeroportuaire",
 	},
 
 	// TRANSPORT DE FONDS
@@ -88,92 +98,6 @@ export const CATEGORY = [
 		acronym: "TF",
 		name: "Agent de Transport de Fonds",
 		category: "transport_fonds",
-	},
-	{
-		id: "convoyeur_fonds",
-		acronym: "CF",
-		name: "Convoyeur de Fonds",
-		category: "transport_fonds",
-	},
-
-	// SURVEILLANCE TECHNIQUE
-	{
-		id: "operateur_videosurveillance",
-		acronym: "OVS",
-		name: "Opérateur Vidéosurveillance",
-		category: "videosurveillance",
-	},
-	{
-		id: "operateur_pc",
-		acronym: "OPC",
-		name: "Opérateur PC Sécurité",
-		category: "videosurveillance",
-	},
-	{
-		id: "tele_surveillance",
-		acronym: "ATS",
-		name: "Agent de Télésurveillance",
-		category: "videosurveillance",
-	},
-
-	// SÛRETÉ AÉROPORTUAIRE
-	{
-		id: "agent_surete_aeroportuaire",
-		acronym: "ASA",
-		name: "Agent de Sûreté Aéroportuaire",
-		category: "surete_aeroportuaire",
-	},
-
-	// ENCADREMENT
-	{
-		id: "chef_equipe_securite",
-		acronym: "CES",
-		name: "Chef d'Équipe Sécurité",
-		category: "encadrement",
-	},
-	{
-		id: "chef_site",
-		acronym: "CS",
-		name: "Chef de Site",
-		category: "encadrement",
-	},
-	{
-		id: "responsable_securite",
-		acronym: "RS",
-		name: "Responsable Sécurité",
-		category: "encadrement",
-	},
-	{
-		id: "directeur_securite",
-		acronym: "DS",
-		name: "Directeur Sécurité",
-		category: "encadrement",
-	},
-
-	// SPÉCIALISATIONS
-	{
-		id: "agent_palpage",
-		acronym: "AP",
-		name: "Agent de Palpation",
-		category: "specialisation",
-	},
-	{
-		id: "agent_inspection_filtrage",
-		acronym: "AIF",
-		name: "Agent Inspection Filtrage",
-		category: "specialisation",
-	},
-	{
-		id: "agent_intervention",
-		acronym: "AI",
-		name: "Agent d'Intervention",
-		category: "specialisation",
-	},
-	{
-		id: "agent_mobile",
-		acronym: "AM",
-		name: "Agent Mobile",
-		category: "specialisation",
 	},
 ];
 
