@@ -139,7 +139,7 @@ const SuggestedJobs = () => {
 				"*, companies(name, logo_url)",
 				`&is_archived=eq.false&category=in.(${inList})${regionFilter}`,
 				1,
-				10,
+				3,
 				"created_at.desc",
 			);
 
@@ -253,6 +253,25 @@ const SuggestedJobs = () => {
 							department={job.department_code}
 							isLastMinute={job.isLastMinute}
 							logo={job.companies?.logo_url}
+							contract_type={job?.contract_type}
+							working_time={job?.work_time}
+							salary_hourly={job?.salary_hourly}
+							salary_amount={job?.salary_amount}
+							salary_min={job?.salary_min}
+							salary_max={job?.salary_max}
+							salary_type={job?.salary_type}
+							salary_monthly_fixed={job?.salary_monthly_fixed}
+							salary_monthly_min={job?.salary_monthly_min}
+							salary_monthly_max={job?.salary_monthly_max}
+							salary_annual_fixed={job?.salary_annual_fixed}
+							salary_annual_min={job?.salary_annual_min}
+							salary_annual_max={job?.salary_annual_max}
+							vacations={job?.vacations}
+							date_mode={job?.date_mode}
+							start_date_asap={job?.start_date_asap}
+							start_date={job?.start_date}
+							end_date={job?.end_date}
+							sponsorship_date={job?.sponsorship_date}
 						/>
 					))}
 				</VStack>
