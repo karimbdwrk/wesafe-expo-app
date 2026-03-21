@@ -74,6 +74,11 @@ export default function Tab1() {
 	const [availableLoading, setAvailableLoading] = useState(false);
 	const [isAvailable, setIsAvailable] = useState(!!userProfile?.is_available);
 	const [refreshing, setRefreshing] = useState(false);
+
+	// Sync avec le contexte dès que userProfile est mis à jour
+	useEffect(() => {
+		setIsAvailable(!!userProfile?.is_available);
+	}, [userProfile?.is_available]);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [filteredJobs, setFilteredJobs] = useState([]);
 	const [searchLoading, setSearchLoading] = useState(false);
@@ -100,6 +105,7 @@ export default function Tab1() {
 		setAvailableLoading(true);
 		try {
 			await update("profiles", user.id, { is_available: value });
+			refreshUser(); // sync le contexte global (badge navbar) sans attendre
 		} catch (e) {
 			console.error("Erreur mise à jour disponibilité:", e);
 			setIsAvailable(!value); // rollback en cas d'erreur
@@ -284,7 +290,6 @@ export default function Tab1() {
 			setSearchQuery("");
 			loadData();
 			refreshUser();
-			setIsAvailable(!!userProfile?.is_available);
 		}, [role, timePeriod, userProfile?.id]),
 	);
 	// Recherche avec debounce
