@@ -6,6 +6,7 @@ import {
 	Dimensions,
 	KeyboardAvoidingView,
 	Platform,
+	Switch,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { LineChart, BarChart, PieChart } from "react-native-gifted-charts";
@@ -66,10 +67,12 @@ import HomePro from "../../../components/HomePro";
 export default function Tab1() {
 	const router = useRouter();
 	const { user, role, userCompany, userProfile, refreshUser } = useAuth();
-	const { getAll } = useDataContext();
+	const { getAll, update } = useDataContext();
 	const { isDark } = useTheme();
 	const { unreadCount } = useNotifications();
 
+	const [availableLoading, setAvailableLoading] = useState(false);
+	const [isAvailable, setIsAvailable] = useState(!!userProfile?.is_available);
 	const [refreshing, setRefreshing] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [filteredJobs, setFilteredJobs] = useState([]);
@@ -90,6 +93,20 @@ export default function Tab1() {
 	// 		console.log("Suggested jobs updated:", suggestedJobs);
 	// 	}
 	// }, [suggestedJobs]);
+
+	const toggleAvailability = async (value) => {
+		if (availableLoading) return;
+		setIsAvailable(value); // optimiste : mise à jour immédiate
+		setAvailableLoading(true);
+		try {
+			await update("profiles", user.id, { is_available: value });
+		} catch (e) {
+			console.error("Erreur mise à jour disponibilité:", e);
+			setIsAvailable(!value); // rollback en cas d'erreur
+		} finally {
+			setAvailableLoading(false);
+		}
+	};
 
 	const searchJobs = async (query) => {
 		if (!query || query.trim().length < 2) {
@@ -267,6 +284,7 @@ export default function Tab1() {
 			setSearchQuery("");
 			loadData();
 			refreshUser();
+			setIsAvailable(!!userProfile?.is_available);
 		}, [role, timePeriod, userProfile?.id]),
 	);
 	// Recherche avec debounce
@@ -937,6 +955,81 @@ export default function Tab1() {
 									Les meilleures offres dans la sécurité
 								</Text>
 							</VStack>
+						</HStack>
+
+						{/* Disponibilité */}
+						<HStack
+							style={{
+								alignItems: "center",
+								justifyContent: "space-between",
+								backgroundColor: isDark ? "#1f2937" : "#ffffff",
+								borderRadius: 12,
+								paddingHorizontal: 16,
+								paddingVertical: 12,
+								borderWidth: 1,
+								borderColor: isAvailable
+									? isDark
+										? "#065f46"
+										: "#a7f3d0"
+									: isDark
+										? "#374151"
+										: "#e5e7eb",
+							}}>
+							<HStack
+								space='sm'
+								style={{ alignItems: "center", flex: 1 }}>
+								<Box
+									style={{
+										width: 10,
+										height: 10,
+										borderRadius: 5,
+										backgroundColor: isAvailable
+											? "#10b981"
+											: "#6b7280",
+									}}
+								/>
+								<VStack space='xs'>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "600",
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										{isAvailable
+											? "Disponible"
+											: "Non disponible"}
+									</Text>
+									<Text
+										size='xs'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}>
+										{isAvailable
+											? "Visible par les recruteurs"
+											: "Masqué des recruteurs"}
+									</Text>
+								</VStack>
+							</HStack>
+							<Switch
+								value={isAvailable}
+								onValueChange={toggleAvailability}
+								disabled={availableLoading}
+								trackColor={{
+									false: isDark ? "#374151" : "#d1d5db",
+									true: "#10b981",
+								}}
+								thumbColor={
+									isAvailable
+										? "#ffffff"
+										: isDark
+											? "#9ca3af"
+											: "#f3f4f6"
+								}
+							/>
 						</HStack>
 
 						{/* Search Bar */}
