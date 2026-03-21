@@ -137,7 +137,7 @@ const SuggestedJobs = () => {
 			const { data: jobs } = await getAll(
 				"jobs",
 				"*, companies(name, logo_url)",
-				`&is_archived=eq.false&category=in.(${inList})${regionFilter}`,
+				`&is_archived=eq.false&category=in.(${inList})${regionFilter}&isLastMinute=eq.false`,
 				1,
 				3,
 				"created_at.desc",
