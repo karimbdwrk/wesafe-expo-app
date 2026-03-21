@@ -798,6 +798,82 @@ export default function Tab1() {
 						padding: 16,
 						paddingBottom: 40,
 					}}>
+					{/* Disponibilité – visible uniquement si profil vérifié */}
+					{userProfile?.profile_status === "verified" && (
+						<HStack
+							style={{
+								alignItems: "center",
+								justifyContent: "space-between",
+								backgroundColor: isDark ? "#1f2937" : "#ffffff",
+								borderRadius: 12,
+								paddingHorizontal: 16,
+								paddingVertical: 12,
+								borderWidth: 1,
+								borderColor: isAvailable
+									? isDark
+										? "#065f46"
+										: "#a7f3d0"
+									: isDark
+										? "#374151"
+										: "#e5e7eb",
+							}}>
+							<HStack
+								space='sm'
+								style={{ alignItems: "center", flex: 1 }}>
+								<Box
+									style={{
+										width: 10,
+										height: 10,
+										borderRadius: 5,
+										backgroundColor: isAvailable
+											? "#10b981"
+											: "#6b7280",
+									}}
+								/>
+								<VStack space='xs'>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "600",
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										{isAvailable
+											? "Disponible"
+											: "Non disponible"}
+									</Text>
+									<Text
+										size='xs'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}>
+										{isAvailable
+											? "Visible par les recruteurs"
+											: "Masqué des recruteurs"}
+									</Text>
+								</VStack>
+							</HStack>
+							<Switch
+								value={isAvailable}
+								onValueChange={toggleAvailability}
+								disabled={availableLoading}
+								trackColor={{
+									false: isDark ? "#374151" : "#d1d5db",
+									true: "#10b981",
+								}}
+								thumbColor={
+									isAvailable
+										? "#ffffff"
+										: isDark
+											? "#9ca3af"
+											: "#f3f4f6"
+								}
+							/>
+						</HStack>
+					)}
 					{/* Statut du profil */}
 					{userProfile?.profile_status === "rejected" ? (
 						<Card
@@ -960,81 +1036,6 @@ export default function Tab1() {
 									Les meilleures offres dans la sécurité
 								</Text>
 							</VStack>
-						</HStack>
-
-						{/* Disponibilité */}
-						<HStack
-							style={{
-								alignItems: "center",
-								justifyContent: "space-between",
-								backgroundColor: isDark ? "#1f2937" : "#ffffff",
-								borderRadius: 12,
-								paddingHorizontal: 16,
-								paddingVertical: 12,
-								borderWidth: 1,
-								borderColor: isAvailable
-									? isDark
-										? "#065f46"
-										: "#a7f3d0"
-									: isDark
-										? "#374151"
-										: "#e5e7eb",
-							}}>
-							<HStack
-								space='sm'
-								style={{ alignItems: "center", flex: 1 }}>
-								<Box
-									style={{
-										width: 10,
-										height: 10,
-										borderRadius: 5,
-										backgroundColor: isAvailable
-											? "#10b981"
-											: "#6b7280",
-									}}
-								/>
-								<VStack space='xs'>
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "600",
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-										}}>
-										{isAvailable
-											? "Disponible"
-											: "Non disponible"}
-									</Text>
-									<Text
-										size='xs'
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-										}}>
-										{isAvailable
-											? "Visible par les recruteurs"
-											: "Masqué des recruteurs"}
-									</Text>
-								</VStack>
-							</HStack>
-							<Switch
-								value={isAvailable}
-								onValueChange={toggleAvailability}
-								disabled={availableLoading}
-								trackColor={{
-									false: isDark ? "#374151" : "#d1d5db",
-									true: "#10b981",
-								}}
-								thumbColor={
-									isAvailable
-										? "#ffffff"
-										: isDark
-											? "#9ca3af"
-											: "#f3f4f6"
-								}
-							/>
 						</HStack>
 
 						{/* Search Bar */}
