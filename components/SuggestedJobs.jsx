@@ -168,11 +168,11 @@ const SuggestedJobs = () => {
 					horizontal
 					showsHorizontalScrollIndicator={false}
 					contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
-					{userCnapsList.map((type) => {
+					{userCnapsList.map((type, id) => {
 						const card = CNAPS_CARDS[type?.toLowerCase()];
 						return (
 							<Badge
-								key={`cnaps-${type}`}
+								key={`cnaps-${id}-${type}`}
 								size='sm'
 								variant='solid'
 								action='info'>
