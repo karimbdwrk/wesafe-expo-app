@@ -139,10 +139,20 @@ const SuggestedJobs = () => {
 
 	return (
 		<VStack style={{ gap: 12 }}>
-			<HStack style={{ alignItems: "center", gap: 8 }}>
-				<Sparkles size={18} color='#7c3aed' />
-				<Heading size='sm'>Offres suggérées</Heading>
-			</HStack>
+			<VStack style={{ alignItems: "flex-start", gap: 4 }}>
+				<HStack
+					space='sm'
+					alignItems='center'
+					justifyContent='flex-start'
+					width='100%'>
+					<Sparkles size={18} color='#7c3aed' />
+					<Heading size='sm'>Offres suggérées</Heading>
+				</HStack>
+				<Text size='xs' color='muted' style={{ fontStyle: "italic" }}>
+					Suggestions d'emplois basées sur votre région et vos
+					qualifications.
+				</Text>
+			</VStack>
 
 			{eligibleCategories.length > 0 && (
 				<ScrollView
