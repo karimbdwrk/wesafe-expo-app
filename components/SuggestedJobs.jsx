@@ -17,7 +17,28 @@ import { JOB_REQUIREMENTS } from "@/constants/jobrequirements";
 import { CNAPS_CARDS } from "@/constants/cnapscards";
 import { DIPLOMAS } from "@/constants/diplomas";
 
-import { Sparkles, Info, IdCard } from "lucide-react-native";
+import { Sparkles, Info, IdCard, MapPin } from "lucide-react-native";
+
+const REGION_NAMES = {
+	11: "Île-de-France",
+	24: "Centre-Val de Loire",
+	27: "Bourgogne-Franche-Comté",
+	28: "Normandie",
+	32: "Hauts-de-France",
+	44: "Grand Est",
+	52: "Pays de la Loire",
+	53: "Bretagne",
+	75: "Nouvelle-Aquitaine",
+	76: "Occitanie",
+	84: "Auvergne-Rhône-Alpes",
+	93: "Provence-Alpes-Côte d'Azur",
+	94: "Corse",
+	"01": "Guadeloupe",
+	"02": "Martinique",
+	"03": "Guyane",
+	"04": "La Réunion",
+	"06": "Mayotte",
+};
 
 const SuggestedJobs = () => {
 	const { user, userProfile } = useAuth();
@@ -69,7 +90,13 @@ const SuggestedJobs = () => {
 			setUserCnapsList(userCnapsRaw);
 			setUserDiplomasList(userDiplomasRaw);
 
-			const userCnaps = new Set(userCnapsRaw.map((t) => t.toUpperCase()));
+			const userCnaps = new Set(
+				userCnapsRaw.map(
+					(t) =>
+						CNAPS_CARDS[t.toLowerCase()]?.acronym ??
+						t.toUpperCase(),
+				),
+			);
 			const userDiplomas = new Set(
 				userDiplomasRaw.map((t) => t.toUpperCase()),
 			);
@@ -90,13 +117,7 @@ const SuggestedJobs = () => {
 					req.diplomas.length === 0 ||
 					req.diplomas.some((d) => userDiplomas.has(d.toUpperCase()));
 
-				const hasCerts =
-					req.certifications.length === 0 ||
-					req.certifications.every((c) =>
-						userCerts.has(c.toUpperCase()),
-					);
-
-				if (hasCnaps && hasDiploma && hasCerts) {
+				if (hasCnaps && hasDiploma) {
 					eligibleCategories.push(jobKey);
 				}
 			}
@@ -163,11 +184,22 @@ const SuggestedJobs = () => {
 				</Text>
 			</VStack>
 
-			{(userCnapsList.length > 0 || userDiplomasList.length > 0) && (
+			{(userCnapsList.length > 0 ||
+				userDiplomasList.length > 0 ||
+				userProfile?.region_code) && (
 				<ScrollView
 					horizontal
 					showsHorizontalScrollIndicator={false}
 					contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
+					{userProfile?.region_code && (
+						<Badge size='sm' variant='solid' action='info'>
+							<BadgeIcon as={MapPin} className='mr-1' />
+							<BadgeText>
+								{REGION_NAMES[userProfile.region_code] ??
+									userProfile.region_code}
+							</BadgeText>
+						</Badge>
+					)}
 					{userCnapsList.map((type, id) => {
 						const card = CNAPS_CARDS[type?.toLowerCase()];
 						return (
