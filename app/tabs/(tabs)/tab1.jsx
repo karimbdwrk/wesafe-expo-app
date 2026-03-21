@@ -55,6 +55,7 @@ import {
 } from "lucide-react-native";
 
 import SuggestedJobs from "@/components/SuggestedJobs";
+import LastMinuteJobs from "../../../components/LastMinuteJobs";
 import JobCard from "@/components/JobCard";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
@@ -1284,6 +1285,9 @@ export default function Tab1() {
 							)}
 						</VStack>
 					</VStack>
+
+					{/* Offres last minute suggérées */}
+					<LastMinuteJobs />
 
 					{/* Offres suggérées (procards + localisation) */}
 					<SuggestedJobs />
