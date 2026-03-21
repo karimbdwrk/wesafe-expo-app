@@ -446,6 +446,27 @@ export default function TabLayout({ theme = "light" }) {
 														!
 													</BadgeText>
 												</Badge>
+											) : userProfile?.profile_status ===
+											  "verified" ? (
+												<View
+													style={{
+														position: "absolute",
+														right: -2,
+														bottom: -2,
+														width: 10,
+														height: 10,
+														borderRadius: 5,
+														backgroundColor:
+															userProfile?.is_available
+																? "#10b981"
+																: "#9ca3af",
+														borderWidth: 1.5,
+														borderColor: isDark
+															? "#111827"
+															: "#f9fafb",
+														zIndex: 10,
+													}}
+												/>
 											) : null}
 										</VStack>
 									)}
