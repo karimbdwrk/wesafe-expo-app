@@ -23,6 +23,7 @@ import { Icon } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { Divider } from "@/components/ui/divider";
+import { Pressable } from "@/components/ui/pressable";
 import { Input, InputField } from "@/components/ui/input";
 import {
 	useToast,
@@ -53,6 +54,9 @@ import { useDataContext } from "@/context/DataContext";
 import { SUBMIT_PRODOC } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 import { createSupabaseClient } from "@/lib/supabase";
+import { CNAPS_CARDS } from "@/constants/cnapscards";
+import { DIPLOMAS as DIPLOMAS_CONST } from "@/constants/diplomas";
+import { CERTIFICATIONS as CERTIFICATIONS_CONST } from "@/constants/certifications";
 import Constants from "expo-constants";
 
 const DOCUMENTS_BUCKET = "pro-documents";
@@ -61,137 +65,38 @@ const DOCUMENTS_BUCKET = "pro-documents";
 const SUPERADMIN_ID = Constants.expoConfig?.extra?.SUPERADMIN_ID;
 
 /* ------------------------------------------------------------------ */
-/* Data                                                                 */
+/* Data (from /constants)                                               */
 /* ------------------------------------------------------------------ */
 
-const CNAPS_ACTIVITIES = [
-	{
-		code: "SURVEILLANCE_HUMAINE",
-		id: "surveillance_humaine",
-		acronym: "SURV",
-		name: "Surveillance humaine ou gardiennage",
-	},
-	{
-		code: "VIDEO_PROTECTION",
-		id: "videoprotection",
-		acronym: "VIDEO",
-		name: "Surveillance par systèmes électroniques de sécurité (vidéoprotection)",
-	},
-	{
-		code: "CYNOPHILE",
-		id: "cynophile",
-		acronym: "CYN",
-		name: "Surveillance humaine avec chien",
-	},
-	{
-		code: "PROTECTION_RAPPROCHEE",
-		id: "protection_rapprochee",
-		acronym: "APR",
-		name: "Protection physique des personnes",
-	},
-	{
-		code: "TRANSPORT_FONDS",
-		id: "transport_fonds",
-		acronym: "TF",
-		name: "Transport de fonds",
-	},
-	{
-		code: "RECHERCHES_PRIVEES",
-		id: "recherches_privees",
-		acronym: "ARP",
-		name: "Recherches privées",
-	},
-];
+const CNAPS_ACTIVITIES = Object.entries(CNAPS_CARDS)
+	.map(([key, val]) => ({
+		code: key.toUpperCase(),
+		id: key,
+		name: val.name,
+		acronym: val.acronym,
+		validity_years: 5,
+	}))
+	.sort((a, b) => a.name.localeCompare(b.name, "fr"));
 
-const DIPLOMAS = [
-	{
-		code: "TFP_APS",
-		name: "Titre à Finalité Professionnelle Agent de Prévention et de Sécurité",
-		acronym: "TFP APS",
-		validity_years: null,
-	},
-	{
-		code: "SSIAP_1",
-		name: "Service de Sécurité Incendie et Assistance à Personnes niveau 1",
-		acronym: "SSIAP 1",
-		validity_years: 3,
-	},
-	{
-		code: "SSIAP_2",
-		name: "Service de Sécurité Incendie et Assistance à Personnes niveau 2",
-		acronym: "SSIAP 2",
-		validity_years: 3,
-	},
-	{
-		code: "SSIAP_3",
-		name: "Service de Sécurité Incendie et Assistance à Personnes niveau 3",
-		acronym: "SSIAP 3",
-		validity_years: 3,
-	},
-	{
-		code: "TFP_ASC",
-		name: "Titre à Finalité Professionnelle Agent de Sécurité Cynophile",
-		acronym: "TFP ASC",
-		validity_years: null,
-	},
-	{
-		code: "TFP_APR",
-		name: "Titre à Finalité Professionnelle Agent de Protection Rapprochée",
-		acronym: "TFP APR",
-		validity_years: null,
-	},
-	{
-		code: "TFP_OTS",
-		name: "Titre à Finalité Professionnelle Opérateur en Télésurveillance",
-		acronym: "TFP OTS",
-		validity_years: null,
-	},
-	{
-		code: "TFP_ASA",
-		name: "Titre à Finalité Professionnelle Agent de Sûreté Aéroportuaire",
-		acronym: "TFP ASA",
-		validity_years: null,
-	},
-];
+const DIPLOMAS = Object.entries(DIPLOMAS_CONST)
+	.map(([key, val]) => ({
+		code: key.toUpperCase(),
+		id: key,
+		name: val.name,
+		acronym: val.acronym,
+		validity_years: val.validity_years ?? null,
+	}))
+	.sort((a, b) => a.name.localeCompare(b.name, "fr"));
 
-const CERTIFICATIONS = [
-	{
-		code: "SST",
-		name: "Sauveteur Secouriste du Travail",
-		acronym: "SST",
-		validity_years: 2,
-	},
-	{
-		code: "MAC_SST",
-		name: "Maintien et Actualisation des Compétences SST",
-		acronym: "MAC SST",
-		validity_years: 2,
-	},
-	{
-		code: "H0B0",
-		name: "Habilitation électrique H0B0",
-		acronym: "H0B0",
-		validity_years: 3,
-	},
-	{
-		code: "MAC_SSIAP",
-		name: "Maintien et Actualisation des Compétences SSIAP",
-		acronym: "MAC SSIAP",
-		validity_years: 3,
-	},
-	{
-		code: "PSE1",
-		name: "Premiers Secours en Équipe niveau 1",
-		acronym: "PSE1",
-		validity_years: 1,
-	},
-	{
-		code: "PSE2",
-		name: "Premiers Secours en Équipe niveau 2",
-		acronym: "PSE2",
-		validity_years: 2,
-	},
-];
+const CERTIFICATIONS = Object.entries(CERTIFICATIONS_CONST)
+	.map(([key, val]) => ({
+		code: key.toUpperCase(),
+		id: key,
+		name: val.name,
+		acronym: val.acronym,
+		validity_years: val.validity_years ?? null,
+	}))
+	.sort((a, b) => a.name.localeCompare(b.name, "fr"));
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                              */
@@ -251,7 +156,7 @@ const getCategoryColor = (cat) => {
 const getDocInfo = (category, typeCode) => {
 	if (category === "cnaps") {
 		const act = CNAPS_ACTIVITIES.find((a) => a.code === typeCode);
-		return { acronym: "CNAPS", name: act?.name || typeCode };
+		return { acronym: act?.acronym || null, name: act?.name || typeCode };
 	} else if (category === "diploma") {
 		const d = DIPLOMAS.find((d) => d.code === typeCode);
 		return { acronym: d?.acronym || null, name: d?.name || typeCode };
@@ -474,17 +379,15 @@ const ProDocs = ({ navigation }) => {
 				placement: "top",
 				duration: 3000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='warning' variant='accent'>
-						<Icon
-							as={AlertCircle}
-							size='lg'
-							style={{ color: "#f59e0b" }}
-						/>
+					<Toast
+						nativeID={id}
+						action='warning'
+						variant='solid'
+						style={{ backgroundColor: isDark ? "#111827" : "#f9fafb" }}>
+						<Icon as={AlertCircle} size='lg' style={{ color: "#f59e0b" }} />
 						<VStack space='xs' style={{ flex: 1, marginLeft: 8 }}>
-							<ToastTitle>Document déjà soumis</ToastTitle>
-							<ToastDescription>
-								Ce document est déjà dans votre dossier.
-							</ToastDescription>
+							<ToastTitle style={{ color: isDark ? "#f9fafb" : "#111827" }}>Document déjà soumis</ToastTitle>
+							<ToastDescription style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Ce document est déjà dans votre dossier.</ToastDescription>
 						</VStack>
 					</Toast>
 				),
@@ -567,17 +470,15 @@ const ProDocs = ({ navigation }) => {
 				placement: "top",
 				duration: 5000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='success' variant='accent'>
-						<Icon
-							as={CheckCircle}
-							size='lg'
-							style={{ color: "#10b981" }}
-						/>
+					<Toast
+						nativeID={id}
+						action='success'
+						variant='solid'
+						style={{ backgroundColor: isDark ? "#111827" : "#f9fafb" }}>
+						<Icon as={CheckCircle} size='lg' style={{ color: "#10b981" }} />
 						<VStack space='xs' style={{ flex: 1, marginLeft: 8 }}>
-							<ToastTitle>Document soumis !</ToastTitle>
-							<ToastDescription>
-								Votre document est en cours de vérification.
-							</ToastDescription>
+							<ToastTitle style={{ color: isDark ? "#f9fafb" : "#111827" }}>Document soumis !</ToastTitle>
+							<ToastDescription style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Votre document est en cours de vérification.</ToastDescription>
 						</VStack>
 					</Toast>
 				),
@@ -588,17 +489,15 @@ const ProDocs = ({ navigation }) => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon
-							as={AlertCircle}
-							size='lg'
-							style={{ color: "#ef4444" }}
-						/>
+					<Toast
+						nativeID={id}
+						action='error'
+						variant='solid'
+						style={{ backgroundColor: isDark ? "#111827" : "#f9fafb" }}>
+						<Icon as={AlertCircle} size='lg' style={{ color: "#ef4444" }} />
 						<VStack space='xs' style={{ flex: 1, marginLeft: 8 }}>
-							<ToastTitle>Erreur lors de l'envoi</ToastTitle>
-							<ToastDescription>
-								Veuillez réessayer.
-							</ToastDescription>
+							<ToastTitle style={{ color: isDark ? "#f9fafb" : "#111827" }}>Erreur lors de l'envoi</ToastTitle>
+							<ToastDescription style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Veuillez réessayer.</ToastDescription>
 						</VStack>
 					</Toast>
 				),
@@ -622,23 +521,73 @@ const ProDocs = ({ navigation }) => {
 		);
 	};
 
-	const SectionHeader = ({ title, onBack }) => (
-		<HStack space='sm' style={{ alignItems: "center", marginBottom: 4 }}>
-			{onBack && (
-				<TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-					<Icon
-						as={ChevronLeft}
-						size='lg'
-						style={{ color: isDark ? "#60a5fa" : "#2563eb" }}
-					/>
-				</TouchableOpacity>
-			)}
-			<Heading
-				size='xl'
-				style={{ color: isDark ? "#f3f4f6" : "#111827" }}>
-				{title}
-			</Heading>
-		</HStack>
+	const SectionHeader = ({ title, subtitle, onBack, step: stepLabel }) => (
+		<VStack
+			style={{
+				paddingVertical: 20,
+				paddingHorizontal: 4,
+				gap: 12,
+			}}>
+			{/* Bouton retour + étape */}
+			<HStack
+				style={{
+					alignItems: "center",
+					justifyContent: "space-between",
+				}}>
+				{onBack ? (
+					<Pressable onPress={onBack}>
+						<HStack
+							alignItems='center'
+							gap={4}
+							style={({ pressed }) => ({
+								opacity: pressed ? 0.6 : 1,
+							})}>
+							<Icon
+								as={ChevronLeft}
+								size='sm'
+								style={{
+									color: isDark ? "#60a5fa" : "#2563eb",
+								}}
+							/>
+							<Text
+								size='sm'
+								style={{
+									color: isDark ? "#60a5fa" : "#2563eb",
+									fontWeight: "600",
+								}}>
+								Retour
+							</Text>
+						</HStack>
+					</Pressable>
+				) : (
+					<Box />
+				)}
+				{stepLabel && (
+					<Badge size='sm' variant='solid' action='info'>
+						<BadgeText>{stepLabel}</BadgeText>
+					</Badge>
+				)}
+			</HStack>
+			{/* Titre + sous-titre */}
+			<VStack style={{ gap: 4 }}>
+				<Heading
+					size='2xl'
+					style={{
+						color: isDark ? "#f3f4f6" : "#111827",
+						lineHeight: 32,
+					}}>
+					{title}
+				</Heading>
+				{subtitle && (
+					<Text
+						size='sm'
+						style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+						{subtitle}
+					</Text>
+				)}
+			</VStack>
+			<Divider />
+		</VStack>
 	);
 
 	/* ---------------------------------------------------------------- */
@@ -937,13 +886,10 @@ const ProDocs = ({ navigation }) => {
 			<VStack space='xl'>
 				<SectionHeader
 					title='Type de document'
+					subtitle='Choisissez la catégorie de votre document'
+					step='Étape 1 / 3'
 					onBack={() => setStep("list")}
 				/>
-				<Text
-					size='md'
-					style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-					Choisissez la catégorie de votre document
-				</Text>
 				{categories.map(({ key, label, subtitle, icon, color }) => (
 					<TouchableOpacity
 						key={key}
@@ -1023,7 +969,6 @@ const ProDocs = ({ navigation }) => {
 		if (selectedCategory === "cnaps") {
 			items = CNAPS_ACTIVITIES.map((act) => ({
 				...act,
-				acronym: "CNAPS",
 				validity_years: 5,
 			}));
 		} else if (selectedCategory === "diploma") {
@@ -1055,16 +1000,13 @@ const ProDocs = ({ navigation }) => {
 			<VStack space='xl'>
 				<SectionHeader
 					title={categoryLabel}
+					subtitle='Sélectionnez votre document'
+					step='Étape 2 / 3'
 					onBack={() => {
 						setStep("category");
 						setSelectedCategory(null);
 					}}
 				/>
-				<Text
-					size='md'
-					style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-					Sélectionnez votre document
-				</Text>
 				<VStack space='sm'>
 					{items.map((item) => {
 						const alreadyAdded = existingTypes.has(item.code);
@@ -1212,6 +1154,8 @@ const ProDocs = ({ navigation }) => {
 			<VStack space='xl'>
 				<SectionHeader
 					title='Ajouter le document'
+					subtitle='Téléchargez une photo ou un PDF de votre document'
+					step='Étape 3 / 3'
 					onBack={() => {
 						setStep("type");
 						setSelectedType(null);
