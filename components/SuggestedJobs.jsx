@@ -46,14 +46,14 @@ const SuggestedJobs = () => {
 				getAll(
 					"user_diplomas",
 					"type",
-					`&user_id=eq.${user.id}`,
+					`&user_id=eq.${user.id}&status=eq.verified`,
 					1,
 					100,
 				),
 				getAll(
 					"user_certifications",
 					"type",
-					`&user_id=eq.${user.id}`,
+					`&user_id=eq.${user.id}&status=eq.verified`,
 					1,
 					100,
 				),
