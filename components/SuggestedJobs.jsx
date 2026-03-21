@@ -14,7 +14,8 @@ import JobCard from "@/components/JobCard";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { JOB_REQUIREMENTS } from "@/constants/jobrequirements";
-import { CATEGORY } from "@/constants/categories";
+import { CNAPS_CARDS } from "@/constants/cnapscards";
+import { DIPLOMAS } from "@/constants/diplomas";
 
 import { Sparkles, Info, IdCard } from "lucide-react-native";
 
@@ -25,6 +26,8 @@ const SuggestedJobs = () => {
 
 	const [suggestedJobs, setSuggestedJobs] = useState([]);
 	const [eligibleCategories, setEligibleCategories] = useState([]);
+	const [userCnapsList, setUserCnapsList] = useState([]);
+	const [userDiplomasList, setUserDiplomasList] = useState([]);
 	const [loading, setLoading] = useState(false);
 
 	const loadSuggestedJobs = useCallback(async () => {
@@ -56,15 +59,19 @@ const SuggestedJobs = () => {
 				),
 			]);
 
-			const userCnaps = new Set(
-				(cnapsRes.data || [])
-					.map((r) => r.type?.toUpperCase())
-					.filter(Boolean),
-			);
+			const userCnapsRaw = (cnapsRes.data || [])
+				.map((r) => r.type)
+				.filter(Boolean);
+			const userDiplomasRaw = (diplomasRes.data || [])
+				.map((r) => r.type)
+				.filter(Boolean);
+
+			setUserCnapsList(userCnapsRaw);
+			setUserDiplomasList(userDiplomasRaw);
+
+			const userCnaps = new Set(userCnapsRaw.map((t) => t.toUpperCase()));
 			const userDiplomas = new Set(
-				(diplomasRes.data || [])
-					.map((r) => r.type?.toUpperCase())
-					.filter(Boolean),
+				userDiplomasRaw.map((t) => t.toUpperCase()),
 			);
 			const userCerts = new Set(
 				(certsRes.data || [])
@@ -120,6 +127,8 @@ const SuggestedJobs = () => {
 			console.error("SuggestedJobs error:", err);
 			setSuggestedJobs([]);
 			setEligibleCategories([]);
+			setUserCnapsList([]);
+			setUserDiplomasList([]);
 		} finally {
 			setLoading(false);
 		}
@@ -154,21 +163,36 @@ const SuggestedJobs = () => {
 				</Text>
 			</VStack>
 
-			{eligibleCategories.length > 0 && (
+			{(userCnapsList.length > 0 || userDiplomasList.length > 0) && (
 				<ScrollView
 					horizontal
 					showsHorizontalScrollIndicator={false}
 					contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
-					{eligibleCategories.map((key) => {
-						const cat = CATEGORY.find((c) => c.id === key);
+					{userCnapsList.map((type) => {
+						const card = CNAPS_CARDS[type?.toLowerCase()];
 						return (
 							<Badge
-								key={key}
+								key={`cnaps-${type}`}
 								size='sm'
 								variant='solid'
 								action='info'>
 								<BadgeIcon as={IdCard} className='mr-1' />
-								<BadgeText>{cat?.acronym ?? key}</BadgeText>
+								<BadgeText>{card?.acronym ?? type}</BadgeText>
+							</Badge>
+						);
+					})}
+					{userDiplomasList.map((type) => {
+						const diploma = DIPLOMAS[type?.toLowerCase()];
+						return (
+							<Badge
+								key={`diploma-${type}`}
+								size='sm'
+								variant='solid'
+								action='success'>
+								<BadgeIcon as={IdCard} className='mr-1' />
+								<BadgeText>
+									{diploma?.acronym ?? type}
+								</BadgeText>
 							</Badge>
 						);
 					})}
