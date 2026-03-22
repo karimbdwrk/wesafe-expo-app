@@ -282,28 +282,35 @@ const PostJob = () => {
 			const response = await axios.get(
 				`https://geo.api.gouv.fr/communes?codePostal=${postcodeInput}&fields=nom,code,codeDepartement,codeRegion&geometry=centre&format=geojson`,
 			);
-			setCities(response.data || []);
+			setCities(response.data.features || []);
+			console.log(response.data.features);
 		} catch (error) {
-			console.error("Error fetching cities:", error);
+			console.error("Error fetching cities:", {
+				status: error?.response?.status,
+				statusText: error?.response?.statusText,
+				url: error?.config?.url,
+				data: error?.response?.data,
+				message: error?.message,
+			});
 			setCities([]);
 		}
 	};
 
 	const selectCity = (cityData) => {
-		const dep = departements.find(
-			(d) => d.code === cityData.codeDepartement,
-		);
-		const reg = regions.find((r) => r.code === cityData.codeRegion);
+		const props = cityData.properties;
+		const coords = cityData.geometry?.coordinates;
+		const dep = departements.find((d) => d.code === props.codeDepartement);
+		const reg = regions.find((r) => r.code === props.codeRegion);
 		setFormData((prev) => ({
 			...prev,
-			city: cityData.nom,
+			city: props.nom,
 			postcode: postcodeInput,
-			department: dep?.nom || cityData.codeDepartement || "",
-			region: reg?.nom || cityData.codeRegion || "",
-			department_code: cityData.codeDepartement || "",
-			region_code: cityData.codeRegion || "",
-			latitude: cityData.centre?.coordinates[1] || null,
-			longitude: cityData.centre?.coordinates[0] || null,
+			department: dep?.nom || props.codeDepartement || "",
+			region: reg?.nom || props.codeRegion || "",
+			department_code: props.codeDepartement || "",
+			region_code: props.codeRegion || "",
+			latitude: coords ? coords[1] : null,
+			longitude: coords ? coords[0] : null,
 		}));
 		setCities([]);
 	};
@@ -2797,15 +2804,15 @@ const PostJob = () => {
 																}}
 															/>
 														</Input>
-														<Button
+														<TouchableOpacity
 															onPress={
 																searchCities
 															}
-															isDisabled={
+															disabled={
 																postcodeInput.length !==
 																5
 															}
-															size='md'
+															activeOpacity={0.7}
 															style={{
 																backgroundColor:
 																	postcodeInput.length ===
@@ -2815,8 +2822,14 @@ const PostJob = () => {
 																			? "#374151"
 																			: "#e5e7eb",
 																borderRadius: 8,
+																paddingHorizontal: 16,
+																paddingVertical: 10,
+																justifyContent:
+																	"center",
+																alignItems:
+																	"center",
 															}}>
-															<ButtonText
+															<Text
 																style={{
 																	color:
 																		postcodeInput.length ===
@@ -2825,10 +2838,12 @@ const PostJob = () => {
 																			: isDark
 																				? "#9ca3af"
 																				: "#6b7280",
+																	fontWeight:
+																		"600",
 																}}>
 																Rechercher
-															</ButtonText>
-														</Button>
+															</Text>
+														</TouchableOpacity>
 													</HStack>
 												</VStack>
 
@@ -2852,7 +2867,9 @@ const PostJob = () => {
 																(cityData) => (
 																	<TouchableOpacity
 																		key={
-																			cityData.code
+																			cityData
+																				.properties
+																				.code
 																		}
 																		onPress={() =>
 																			selectCity(
@@ -2864,7 +2881,9 @@ const PostJob = () => {
 																				padding: 12,
 																				backgroundColor:
 																					formData.city ===
-																					cityData.nom
+																					cityData
+																						.properties
+																						.nom
 																						? isDark
 																							? "#1f2937"
 																							: "#dbeafe"
@@ -2875,7 +2894,9 @@ const PostJob = () => {
 																				borderWidth: 1,
 																				borderColor:
 																					formData.city ===
-																					cityData.nom
+																					cityData
+																						.properties
+																						.nom
 																						? "#3b82f6"
 																						: isDark
 																							? "#4b5563"
@@ -2888,11 +2909,15 @@ const PostJob = () => {
 																						: "#111827",
 																				}}>
 																				{
-																					cityData.nom
+																					cityData
+																						.properties
+																						.nom
 																				}{" "}
 																				(
 																				{
-																					cityData.codeDepartement
+																					cityData
+																						.properties
+																						.codeDepartement
 																				}
 
 																				)
