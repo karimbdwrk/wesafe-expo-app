@@ -275,23 +275,18 @@ const PostJob = () => {
 		}
 	};
 
-	const searchCities = (postalCode) => {
-		if (citySearchTimer.current) clearTimeout(citySearchTimer.current);
-		if (postalCode.length !== 5) {
+	const searchCities = async () => {
+		console.log("code postal envoyé :", postcodeInput);
+		if (postcodeInput.length !== 5) return;
+		try {
+			const response = await axios.get(
+				`https://geo.api.gouv.fr/communes?codePostal=${postcodeInput}&fields=nom,code,codeDepartement,codeRegion&geometry=centre&format=geojson`,
+			);
+			setCities(response.data || []);
+		} catch (error) {
+			console.error("Error fetching cities:", error);
 			setCities([]);
-			return;
 		}
-		citySearchTimer.current = setTimeout(async () => {
-			try {
-				const response = await axios.get(
-					`https://geo.api.gouv.fr/communes?codePostal=${postalCode}&fields=nom,code,codeDepartement,codeRegion&geometry=centre&format=geojson`,
-				);
-				setCities(response.data || []);
-			} catch (error) {
-				console.error("Error fetching cities:", error);
-				setCities([]);
-			}
-		}, 400);
 	};
 
 	const selectCity = (cityData) => {
@@ -2730,12 +2725,14 @@ const PostJob = () => {
 														}}>
 														Code postal *
 													</Text>
-													<VStack
+													<HStack
+														space='sm'
 														ref={postcodeInputRef}>
 														<Input
 															variant='outline'
 															size='md'
 															style={{
+																flex: 1,
 																backgroundColor:
 																	isDark
 																		? "#1f2937"
@@ -2781,8 +2778,8 @@ const PostJob = () => {
 																			}),
 																		);
 																	}
-																	searchCities(
-																		text,
+																	setCities(
+																		[],
 																	);
 																}}
 																onFocus={() =>
@@ -2800,7 +2797,39 @@ const PostJob = () => {
 																}}
 															/>
 														</Input>
-													</VStack>
+														<Button
+															onPress={
+																searchCities
+															}
+															isDisabled={
+																postcodeInput.length !==
+																5
+															}
+															size='md'
+															style={{
+																backgroundColor:
+																	postcodeInput.length ===
+																	5
+																		? "#2563eb"
+																		: isDark
+																			? "#374151"
+																			: "#e5e7eb",
+																borderRadius: 8,
+															}}>
+															<ButtonText
+																style={{
+																	color:
+																		postcodeInput.length ===
+																		5
+																			? "#fff"
+																			: isDark
+																				? "#9ca3af"
+																				: "#6b7280",
+																}}>
+																Rechercher
+															</ButtonText>
+														</Button>
+													</HStack>
 												</VStack>
 
 												{/* Liste des villes */}
