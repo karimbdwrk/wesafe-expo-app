@@ -97,6 +97,8 @@ import {
 import { DRIVING_LICENSES } from "@/constants/drivinglicences";
 import { DIPLOMAS } from "@/constants/diplomas";
 import { CERTIFICATIONS } from "@/constants/certifications";
+import { departements } from "@/constants/departements";
+import { regions } from "@/constants/regions";
 
 const CONTRACT_TYPES = ["CDI", "CDD"];
 const WORK_TIME = ["Temps plein", "Temps partiel"];
@@ -129,6 +131,7 @@ const PostJob = () => {
 	const titleInputRef = useRef(null);
 	const descriptionInputRef = useRef(null);
 	const postcodeInputRef = useRef(null);
+	const citySearchTimer = useRef(null);
 	const startTimeInputRef = useRef(null);
 	const endTimeInputRef = useRef(null);
 	const diplomaInputRef = useRef(null);
@@ -164,6 +167,7 @@ const PostJob = () => {
 	});
 	const [vacationWarnings, setVacationWarnings] = useState(new Set());
 	const [cities, setCities] = useState([]);
+	const [postcodeInput, setPostcodeInput] = useState("");
 	const [formData, setFormData] = useState({
 		title: "",
 		category: "",
@@ -271,29 +275,36 @@ const PostJob = () => {
 		}
 	};
 
-	const searchCities = async (postalCode) => {
+	const searchCities = (postalCode) => {
+		if (citySearchTimer.current) clearTimeout(citySearchTimer.current);
 		if (postalCode.length !== 5) {
 			setCities([]);
 			return;
 		}
-
-		try {
-			const response = await axios.get(
-				`https://geo.api.gouv.fr/communes?codePostal=${postalCode}&fields=nom,code,codesPostaux,codeDepartement,codeRegion,centre&format=json`,
-			);
-			console.log("Cities API response:", response.data);
-			setCities(response.data);
-		} catch (error) {
-			console.error("Error fetching cities:", error);
-		}
+		citySearchTimer.current = setTimeout(async () => {
+			try {
+				const response = await axios.get(
+					`https://geo.api.gouv.fr/communes?codePostal=${postalCode}&fields=nom,code,codeDepartement,codeRegion&geometry=centre&format=geojson`,
+				);
+				setCities(response.data || []);
+			} catch (error) {
+				console.error("Error fetching cities:", error);
+				setCities([]);
+			}
+		}, 400);
 	};
 
 	const selectCity = (cityData) => {
+		const dep = departements.find(
+			(d) => d.code === cityData.codeDepartement,
+		);
+		const reg = regions.find((r) => r.code === cityData.codeRegion);
 		setFormData((prev) => ({
 			...prev,
 			city: cityData.nom,
-			department: cityData.departement?.nom || "",
-			region: cityData.region?.nom || "",
+			postcode: postcodeInput,
+			department: dep?.nom || cityData.codeDepartement || "",
+			region: reg?.nom || cityData.codeRegion || "",
 			department_code: cityData.codeDepartement || "",
 			region_code: cityData.codeRegion || "",
 			latitude: cityData.centre?.coordinates[1] || null,
@@ -1195,6 +1206,7 @@ const PostJob = () => {
 			});
 
 			// Réinitialiser les inputs temporaires
+			setPostcodeInput("");
 			setCurrentMission("");
 			setCurrentProfile("");
 			setCurrentDiploma("");
@@ -2736,15 +2748,39 @@ const PostJob = () => {
 															<InputField
 																placeholder='Entrez le code postal'
 																value={
-																	formData.postcode
+																	postcodeInput
 																}
 																onChangeText={(
 																	text,
 																) => {
-																	updateField(
-																		"postcode",
+																	setPostcodeInput(
 																		text,
 																	);
+																	if (
+																		formData.city
+																	) {
+																		setFormData(
+																			(
+																				prev,
+																			) => ({
+																				...prev,
+																				city: "",
+																				postcode:
+																					"",
+																				department:
+																					"",
+																				region: "",
+																				department_code:
+																					"",
+																				region_code:
+																					"",
+																				latitude:
+																					null,
+																				longitude:
+																					null,
+																			}),
+																		);
+																	}
 																	searchCities(
 																		text,
 																	);
