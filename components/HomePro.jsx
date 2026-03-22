@@ -27,20 +27,18 @@ import { useTheme } from "@/context/ThemeContext";
 const HomePro = () => {
 	const router = useRouter();
 	const { isDark } = useTheme();
-	const { user } = useAuth();
-	const { getAll, getById } = useDataContext();
+	const { user, userCompany } = useAuth();
+	const { getAll } = useDataContext();
+
+	const lmCredits = userCompany?.last_minute_credits ?? null;
 
 	const [todayJobs, setTodayJobs] = useState([]);
 	const [todayApps, setTodayApps] = useState({});
 	const [pendingApps, setPendingApps] = useState([]);
-	const [lmCredits, setLmCredits] = useState(null);
 
 	useEffect(() => {
 		if (!user?.id) return;
 		fetchTodayMissions();
-		getById("companies", user.id, "last_minute_credits").then((data) => {
-			if (data) setLmCredits(data.last_minute_credits ?? 0);
-		});
 	}, [user?.id]);
 
 	const fetchTodayMissions = async () => {
