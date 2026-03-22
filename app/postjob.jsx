@@ -279,7 +279,7 @@ const PostJob = () => {
 
 		try {
 			const response = await axios.get(
-				`https://geo.api.gouv.fr/communes?codePostal=${postalCode}&fields=nom,code,codesPostaux,codeDepartement,codeRegion,departement,region,centre&format=json`,
+				`https://geo.api.gouv.fr/communes?codePostal=${postalCode}&fields=nom,code,codesPostaux,codeDepartement,codeRegion,centre&format=json`,
 			);
 			console.log("Cities API response:", response.data);
 			setCities(response.data);
@@ -7018,7 +7018,8 @@ const PostJob = () => {
 
 									{/* Compétences & Avantages */}
 									{(formData.diplomas_required.length > 0 ||
-										formData.certifications_required.length > 0 ||
+										formData.certifications_required
+											.length > 0 ||
 										formData.driving_licenses.length > 0 ||
 										formData.languages.length > 0 ||
 										formData.reimbursements.length > 0 ||
@@ -7105,7 +7106,8 @@ const PostJob = () => {
 															</Text>
 														</HStack>
 													)}
-													{formData.certifications_required
+													{formData
+														.certifications_required
 														.length > 0 && (
 														<HStack
 															style={{
