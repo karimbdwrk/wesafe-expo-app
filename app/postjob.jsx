@@ -7018,6 +7018,7 @@ const PostJob = () => {
 
 									{/* Compétences & Avantages */}
 									{(formData.diplomas_required.length > 0 ||
+										formData.certifications_required.length > 0 ||
 										formData.driving_licenses.length > 0 ||
 										formData.languages.length > 0 ||
 										formData.reimbursements.length > 0 ||
@@ -7099,6 +7100,43 @@ const PostJob = () => {
 																		"right",
 																}}>
 																{formData.diplomas_required.join(
+																	", ",
+																)}
+															</Text>
+														</HStack>
+													)}
+													{formData.certifications_required
+														.length > 0 && (
+														<HStack
+															style={{
+																justifyContent:
+																	"space-between",
+																alignItems:
+																	"flex-start",
+															}}>
+															<Text
+																size='sm'
+																style={{
+																	color: isDark
+																		? "#9ca3af"
+																		: "#6b7280",
+																	flex: 1,
+																}}>
+																Certifications
+															</Text>
+															<Text
+																size='sm'
+																style={{
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? "#f3f4f6"
+																		: "#111827",
+																	flex: 2,
+																	textAlign:
+																		"right",
+																}}>
+																{formData.certifications_required.join(
 																	", ",
 																)}
 															</Text>
