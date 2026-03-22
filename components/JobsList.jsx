@@ -61,6 +61,8 @@ import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { CATEGORY } from "@/constants/categories";
+import { regions } from "@/constants/regions";
+import { departements } from "@/constants/departements";
 import { Pressable } from "@/components/ui/pressable";
 
 const ITEMS_PER_PAGE = 100;
@@ -170,9 +172,20 @@ export default function JobsList({
 		const id = setTimeout(async () => {
 			try {
 				const res = await axios.get(
-					`https://geo.api.gouv.fr/communes?codePostal=${userCity}&fields=nom,code,codesPostaux,codeDepartement,codeRegion,departement,region,centre&format=json`,
+					`https://geo.api.gouv.fr/communes?codePostal=${userCity}&fields=nom,code,codeDepartement,codeRegion,centre&format=json`,
 				);
-				setResults(res.data || []);
+				const enriched = (res.data || []).map((item) => {
+					const dep = departements.find(
+						(d) => d.code === item.codeDepartement,
+					);
+					const reg = regions.find((r) => r.code === item.codeRegion);
+					return {
+						...item,
+						departement: { nom: dep?.nom || item.codeDepartement },
+						region: { nom: reg?.nom || item.codeRegion },
+					};
+				});
+				setResults(enriched);
 			} catch (err) {
 				console.error("Erreur géolocalisation:", err);
 			}
