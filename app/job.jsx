@@ -890,6 +890,56 @@ const JobScreen = () => {
 											</VStack>
 										</VStack>
 									)}
+									{parseJsonField(
+										job?.certifications_required,
+									).length > 0 && (
+										<VStack space='sm'>
+											<Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Certifications requises :
+											</Text>
+											<VStack
+												space='xs'
+												style={{ paddingLeft: 8 }}>
+												{parseJsonField(
+													job?.certifications_required,
+												).map((cert, index) => (
+													<HStack
+														key={index}
+														space='sm'
+														style={{
+															alignItems:
+																"flex-start",
+														}}>
+														<Text
+															style={{
+																color: isDark
+																	? "#9ca3af"
+																	: "#6b7280",
+															}}>
+															✓
+														</Text>
+														<Text
+															size='sm'
+															style={{
+																flex: 1,
+																color: isDark
+																	? "#d1d5db"
+																	: "#374151",
+															}}>
+															{cert}
+														</Text>
+													</HStack>
+												))}
+											</VStack>
+										</VStack>
+									)}
 									{parseJsonField(job?.driving_licenses)
 										.length > 0 && (
 										<VStack space='sm'>
