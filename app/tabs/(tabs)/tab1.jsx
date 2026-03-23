@@ -1297,7 +1297,7 @@ export default function Tab1() {
 					<SuggestedJobs />
 
 					{/* Stats */}
-					<HStack space='md' style={{ width: "100%" }}>
+					{/* <HStack space='md' style={{ width: "100%" }}>
 						<Pressable
 							onPress={() => router.push("/applications")}
 							style={{ flex: 1 }}>
@@ -1328,7 +1328,7 @@ export default function Tab1() {
 								/>
 							)}
 						</Pressable>
-					</HStack>
+					</HStack> */}
 
 					{/* Quick Categories */}
 					{/* <VStack space='md'>
@@ -1375,7 +1375,7 @@ export default function Tab1() {
 				</VStack> */}
 
 					{/* Recent Jobs */}
-					{recentJobs.length > 0 && (
+					{/* {recentJobs.length > 0 && (
 						<VStack space='md'>
 							<HStack
 								style={{
@@ -1444,16 +1444,16 @@ export default function Tab1() {
 								/>
 							))}
 						</VStack>
-					)}
+					)} */}
 				</VStack>
-				<VStack>
+				{/* <VStack>
 					<Button
 						onPress={() => router.push("/lastminute")}
 						variant='outline'
 						style={{ margin: 16 }}>
 						<ButtonText>Last Minute</ButtonText>
 					</Button>
-				</VStack>
+				</VStack> */}
 			</ScrollView>
 		</KeyboardAvoidingView>
 	);
