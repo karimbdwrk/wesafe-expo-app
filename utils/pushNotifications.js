@@ -51,18 +51,15 @@ export async function registerForPushNotificationsAsync(
 	try {
 		let expoTokenResponse;
 
-		const isStandaloneApp = Constants.appOwnership === "standalone";
 		const projectId =
 			Constants?.expoConfig?.extra?.eas?.projectId ??
 			Constants?.easConfig?.projectId;
 
-		if (isStandaloneApp && projectId) {
-			expoTokenResponse = await Notifications.getExpoPushTokenAsync({
-				projectId,
-			});
-		} else {
-			expoTokenResponse = await Notifications.getExpoPushTokenAsync();
-		}
+		console.warn("projectId used for push token:", projectId);
+
+		expoTokenResponse = await Notifications.getExpoPushTokenAsync(
+			projectId ? { projectId } : {}
+		);
 
 		token = expoTokenResponse?.data;
 
