@@ -33,6 +33,7 @@ import {
 	ActionsheetScrollView,
 } from "@/components/ui/actionsheet";
 import { Center } from "@/components/ui/center";
+import { Icon } from "@/components/ui/icon";
 import {
 	Slider,
 	SliderThumb,
@@ -100,7 +101,7 @@ export default function JobsList({
 }) {
 	const scrollRef = useRef(null);
 	const { userProfile } = useAuth();
-	const { getAll } = useDataContext();
+	const { getAll, create } = useDataContext();
 	const { isDark } = useTheme();
 
 	const [showActionsheet, setShowActionsheet] = React.useState(false);
@@ -163,29 +164,54 @@ export default function JobsList({
 	};
 	const handleCloseSheet = () => setActiveSheet(null);
 
-	// Recherche par code postal (5 chiffres comme dans postjob.jsx)
+	// Recherche par code postal — cache Supabase d'abord, sinon API gouv
 	useEffect(() => {
 		if (!userCity || userCity.length !== 5) {
 			setResults([]);
 			return;
 		}
 		const id = setTimeout(async () => {
+			// 1. Vérifier le cache Supabase
+			try {
+				const { data: cached } = await getAll(
+					"cities",
+					"*",
+					`&postcode=eq.${userCity}`,
+					1,
+					50,
+				);
+				if (cached && cached.length > 0) {
+					console.log("📦 Villes depuis cache Supabase:", cached);
+					setResults(cached);
+					return;
+				}
+			} catch (cacheErr) {
+				console.warn("Cache cities indisponible:", cacheErr?.message);
+			}
+
+			// 2. Fallback API gouv
 			try {
 				const res = await axios.get(
-					`https://geo.api.gouv.fr/communes?codePostal=${userCity}&fields=nom,code,codeDepartement,codeRegion,centre&format=json`,
+					`https://geo.api.gouv.fr/communes?codePostal=${userCity}&fields=nom,code,codeDepartement,codeRegion&geometry=centre&format=geojson`,
 				);
-				const enriched = (res.data || []).map((item) => {
-					const dep = departements.find(
-						(d) => d.code === item.codeDepartement,
+				const features = res.data.features || [];
+				const normalized = features.map((f) => ({
+					postcode: userCity,
+					code: f.properties.code,
+					nom: f.properties.nom,
+					department_code: f.properties.codeDepartement,
+					region_code: f.properties.codeRegion,
+					latitude: f.geometry?.coordinates?.[1] ?? null,
+					longitude: f.geometry?.coordinates?.[0] ?? null,
+				}));
+				// Sauvegarder en background
+				normalized.forEach((city) => {
+					create("cities", city).catch((e) =>
+						console.warn("Erreur save city:", e?.message),
 					);
-					const reg = regions.find((r) => r.code === item.codeRegion);
-					return {
-						...item,
-						departement: { nom: dep?.nom || item.codeDepartement },
-						region: { nom: reg?.nom || item.codeRegion },
-					};
 				});
-				setResults(enriched);
+				console.log("🌐 Villes depuis API:", normalized);
+				setResults(normalized);
 			} catch (err) {
 				console.error("Erreur géolocalisation:", err);
 			}
@@ -342,8 +368,8 @@ export default function JobsList({
 	// helper: pick a city from suggestions (comme dans postjob.jsx)
 	const pickCity = (item) => {
 		setSelectedCityName(item.nom);
-		setUserLat(item.centre.coordinates[1]);
-		setUserLon(item.centre.coordinates[0]);
+		setUserLat(item.latitude);
+		setUserLon(item.longitude);
 		setUserCitySelected(true);
 		if (distanceKm === 0) setDistanceKm(20);
 	};
@@ -362,10 +388,55 @@ export default function JobsList({
 						<ActionsheetDragIndicatorWrapper>
 							<ActionsheetDragIndicator />
 						</ActionsheetDragIndicatorWrapper>
-						<ActionsheetScrollView style={{ paddingBottom: 20 }}>
-							<VStack
+						<HStack
+							style={{
+								width: "100%",
+								paddingHorizontal: 10,
+								paddingVertical: 14,
+								borderBottomWidth: 1,
+								borderBottomColor: isDark
+									? "#1f2937"
+									: "#f3f4f6",
+								alignItems: "center",
+								gap: 10,
+							}}>
+							<Box
 								style={{
-									paddingHorizontal: 15,
+									backgroundColor: isDark
+										? "#1e3a5f"
+										: "#dbeafe",
+									borderRadius: 10,
+									padding: 8,
+								}}>
+								<Icon
+									as={SlidersHorizontal}
+									size='md'
+									color={isDark ? "#60a5fa" : "#2563eb"}
+								/>
+							</Box>
+							<VStack style={{ gap: 1 }}>
+								<Heading
+									size='md'
+									style={{
+										color: isDark ? "#f9fafb" : "#111827",
+									}}>
+									Filtres
+								</Heading>
+								<Text
+									size='xs'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}>
+									Localisation, distance, catégories
+								</Text>
+							</VStack>
+						</HStack>
+						<ActionsheetScrollView
+							style={{ paddingBottom: 20, paddingTop: 10 }}>
+							<VStack
+								space='md'
+								style={{
+									paddingHorizontal: 10,
 									paddingTop: 10,
 								}}>
 								<Heading>Localisation</Heading>
@@ -379,7 +450,10 @@ export default function JobsList({
 										maxLength={5}
 										value={userCity}
 										onChangeText={(text) => {
-											setUserCity(text);
+											const digits = text
+												.replace(/\D/g, "")
+												.slice(0, 5);
+											setUserCity(digits);
 											setUserCitySelected(false);
 											setSelectedCityName("");
 										}}
@@ -388,7 +462,7 @@ export default function JobsList({
 
 								{results.length > 0 && (
 									<VStack
-										space='xs'
+										space='sm'
 										style={{ marginTop: 10 }}>
 										<Text
 											size='sm'
@@ -437,7 +511,7 @@ export default function JobsList({
 															}}>
 															{item.nom} (
 															{
-																item.codeDepartement
+																item.department_code
 															}
 															)
 														</Text>
@@ -448,39 +522,43 @@ export default function JobsList({
 									</VStack>
 								)}
 
-								<VStack style={{ marginTop: 15 }}>
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											alignItems: "center",
-										}}>
-										<Heading>Distance</Heading>
-										<Text>{distanceKm} km</Text>
-									</HStack>
-									<Center
-										style={{
-											paddingHorizontal: 15,
-											paddingVertical: 10,
-										}}>
-										<Slider
-											defaultValue={30}
-											size='lg'
-											orientation='horizontal'
-											onChange={(value) =>
-												setDistanceKm(value)
-											}
-											value={distanceKm}
-											minValue={0}
-											maxValue={200}
-											step={5}>
-											<SliderTrack>
-												<SliderFilledTrack />
-											</SliderTrack>
-											<SliderThumb />
-										</Slider>
-									</Center>
-								</VStack>
-								<VStack style={{ marginTop: 10 }}>
+								{userCitySelected && (
+									<VStack
+										space='sm'
+										style={{ marginTop: 15 }}>
+										<HStack
+											style={{
+												justifyContent: "space-between",
+												alignItems: "center",
+											}}>
+											<Heading>Distance</Heading>
+											<Text>{distanceKm} km</Text>
+										</HStack>
+										<Center
+											style={{
+												paddingHorizontal: 0,
+												paddingVertical: 10,
+											}}>
+											<Slider
+												defaultValue={30}
+												size='lg'
+												orientation='horizontal'
+												onChange={(value) =>
+													setDistanceKm(value)
+												}
+												value={distanceKm}
+												minValue={0}
+												maxValue={200}
+												step={5}>
+												<SliderTrack>
+													<SliderFilledTrack />
+												</SliderTrack>
+												<SliderThumb />
+											</Slider>
+										</Center>
+									</VStack>
+								)}
+								<VStack space='sm' style={{ marginTop: 10 }}>
 									<Heading>Type de contrat</Heading>
 									<HStack
 										style={{
@@ -536,7 +614,7 @@ export default function JobsList({
 										})}
 									</HStack>
 								</VStack>
-								<VStack style={{ marginTop: 15 }}>
+								<VStack space='sm' style={{ marginTop: 15 }}>
 									<Heading>Temps de travail</Heading>
 									<HStack
 										style={{
@@ -605,7 +683,7 @@ export default function JobsList({
 										})}
 									</HStack>
 								</VStack>
-								<VStack style={{ marginTop: 15 }}>
+								<VStack space='sm' style={{ marginTop: 15 }}>
 									<Heading>Catégories</Heading>
 									<HStack
 										style={{
@@ -684,6 +762,49 @@ export default function JobsList({
 						<ActionsheetDragIndicatorWrapper>
 							<ActionsheetDragIndicator />
 						</ActionsheetDragIndicatorWrapper>
+						<HStack
+							style={{
+								width: "100%",
+								paddingHorizontal: 10,
+								paddingVertical: 14,
+								borderBottomWidth: 1,
+								borderBottomColor: isDark
+									? "#1f2937"
+									: "#f3f4f6",
+								alignItems: "center",
+								gap: 10,
+							}}>
+							<Box
+								style={{
+									backgroundColor: isDark
+										? "#1e3a5f"
+										: "#dbeafe",
+									borderRadius: 10,
+									padding: 8,
+								}}>
+								<Icon
+									as={Search}
+									size='md'
+									color={isDark ? "#60a5fa" : "#2563eb"}
+								/>
+							</Box>
+							<VStack style={{ gap: 1 }}>
+								<Heading
+									size='md'
+									style={{
+										color: isDark ? "#f9fafb" : "#111827",
+									}}>
+									Recherche
+								</Heading>
+								<Text
+									size='xs'
+									style={{
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}>
+									Recherche par mots-clés
+								</Text>
+							</VStack>
+						</HStack>
 
 						<ActionsheetScrollView style={{ paddingBottom: 20 }}>
 							<VStack
