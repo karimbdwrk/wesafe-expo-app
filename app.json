@@ -12,8 +12,9 @@
       "SUPABASE_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6dmJ5bGhkcHR3Z2JscGRvbmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTA5MjksImV4cCI6MjA2MTAyNjkyOX0.UdtpnbES2Ul7TDFBcHIpGnVxFxqQYmGt-WVtMHgewk4",
       "SUPERADMIN_ID": "c5f72d6f-7ab4-4e19-8b3b-12714740efad",
       "eas": {
-        "projectId": "dd6d1001-e217-43e0-b545-e89b21412e4b"
-      }
+        "projectId": "9c9684c7-a279-43ca-a263-987be5e4c6d9"
+      },
+      "router": {}
     },
     "version": "1.0.0",
     "orientation": "portrait",
@@ -30,7 +31,7 @@
       "infoPlist": {
         "NSCameraUsageDescription": "This app needs access to your camera."
       },
-      "bundleIdentifier": "com.wesafe.supabaseapp"
+      "bundleIdentifier": "com.wesafe.wesafeapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -43,7 +44,7 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.wesafe.supabaseapp"
+      "package": "com.wesafe.wesafeapp"
     },
     "web": {
       "bundler": "metro",
@@ -67,7 +68,7 @@
       [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": "merchant.com.wesafe.supabaseapp",
+          "merchantIdentifier": "merchant.com.wesafe.wesafeapp",
           "enableGooglePay": false
         }
       ]
