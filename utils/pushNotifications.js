@@ -16,7 +16,7 @@ export async function registerForPushNotificationsAsync(
 	userId,
 	userCompanyId,
 	tokenApiEndpoint,
-	accessToken
+	accessToken,
 ) {
 	let token;
 
@@ -29,7 +29,7 @@ export async function registerForPushNotificationsAsync(
 
 	if (!Device.brand) {
 		console.warn(
-			"Doit utiliser un appareil physique pour les notifications push."
+			"Doit utiliser un appareil physique pour les notifications push.",
 		);
 		return;
 	}
@@ -58,7 +58,7 @@ export async function registerForPushNotificationsAsync(
 		console.warn("projectId used for push token:", projectId);
 
 		expoTokenResponse = await Notifications.getExpoPushTokenAsync(
-			projectId ? { projectId } : {}
+			projectId ? { projectId } : {},
 		);
 
 		token = expoTokenResponse?.data;
@@ -73,7 +73,7 @@ export async function registerForPushNotificationsAsync(
 				},
 				{
 					headers: { Authorization: `Bearer ${accessToken}` },
-				}
+				},
 			);
 		}
 	} catch (error) {
@@ -111,7 +111,7 @@ export function setupNotificationResponseListener(router) {
 					router.push(`/${data.screen}`);
 				}
 			}
-		}
+		},
 	);
 
 	return () => subscription.remove();
