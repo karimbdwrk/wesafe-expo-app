@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "my-app",
-    "slug": "my-app",
+    "name": "WeSafeApp",
+    "slug": "wesafeapp",
     "owner": "wesafe",
     "platforms": [
       "ios",
