@@ -278,12 +278,55 @@ const PostJob = () => {
 	const searchCities = async () => {
 		console.log("code postal envoyé :", postcodeInput);
 		if (postcodeInput.length !== 5) return;
+
+		// 1. Vérifier le cache Supabase
+		try {
+			const { data: cached } = await getAll(
+				"cities",
+				"*",
+				`&postcode=eq.${postcodeInput}`,
+				1,
+				50,
+			);
+			if (cached && cached.length > 0) {
+				console.log("📦 Villes depuis cache Supabase:", cached);
+				setCities(cached);
+				return;
+			}
+		} catch (cacheErr) {
+			console.warn(
+				"Impossible de vérifier le cache cities:",
+				cacheErr?.message,
+			);
+		}
+
+		// 2. Fetch depuis l'API gouv
 		try {
 			const response = await axios.get(
 				`https://geo.api.gouv.fr/communes?codePostal=${postcodeInput}&fields=nom,code,codeDepartement,codeRegion&geometry=centre&format=geojson`,
 			);
-			setCities(response.data.features || []);
-			console.log(response.data.features);
+			const features = response.data.features || [];
+
+			// 3. Normaliser en format plat (snake_case = colonnes Supabase)
+			const normalized = features.map((f) => ({
+				postcode: postcodeInput,
+				code: f.properties.code,
+				nom: f.properties.nom,
+				department_code: f.properties.codeDepartement,
+				region_code: f.properties.codeRegion,
+				latitude: f.geometry?.coordinates?.[1] ?? null,
+				longitude: f.geometry?.coordinates?.[0] ?? null,
+			}));
+
+			// 4. Sauvegarder dans Supabase (sans bloquer l'affichage)
+			normalized.forEach((city) => {
+				create("cities", city).catch((e) =>
+					console.warn("Erreur save city:", e?.message),
+				);
+			});
+
+			console.log("🌐 Villes depuis API:", normalized);
+			setCities(normalized);
 		} catch (error) {
 			console.error("Error fetching cities:", {
 				status: error?.response?.status,
@@ -297,20 +340,20 @@ const PostJob = () => {
 	};
 
 	const selectCity = (cityData) => {
-		const props = cityData.properties;
-		const coords = cityData.geometry?.coordinates;
-		const dep = departements.find((d) => d.code === props.codeDepartement);
-		const reg = regions.find((r) => r.code === props.codeRegion);
+		const dep = departements.find(
+			(d) => d.code === cityData.department_code,
+		);
+		const reg = regions.find((r) => r.code === cityData.region_code);
 		setFormData((prev) => ({
 			...prev,
-			city: props.nom,
+			city: cityData.nom,
 			postcode: postcodeInput,
-			department: dep?.nom || props.codeDepartement || "",
-			region: reg?.nom || props.codeRegion || "",
-			department_code: props.codeDepartement || "",
-			region_code: props.codeRegion || "",
-			latitude: coords ? coords[1] : null,
-			longitude: coords ? coords[0] : null,
+			department: dep?.nom || cityData.department_code || "",
+			region: reg?.nom || cityData.region_code || "",
+			department_code: cityData.department_code || "",
+			region_code: cityData.region_code || "",
+			latitude: cityData.latitude,
+			longitude: cityData.longitude,
 		}));
 		setCities([]);
 	};
@@ -2754,11 +2797,23 @@ const PostJob = () => {
 																value={
 																	postcodeInput
 																}
+																keyboardType='numeric'
+																maxLength={5}
 																onChangeText={(
 																	text,
 																) => {
+																	const digits =
+																		text
+																			.replace(
+																				/\D/g,
+																				"",
+																			)
+																			.slice(
+																				0,
+																				5,
+																			);
 																	setPostcodeInput(
-																		text,
+																		digits,
 																	);
 																	if (
 																		formData.city
@@ -2795,8 +2850,6 @@ const PostJob = () => {
 																		1,
 																	)
 																}
-																keyboardType='numeric'
-																maxLength={5}
 																style={{
 																	color: isDark
 																		? "#f3f4f6"
@@ -2867,9 +2920,7 @@ const PostJob = () => {
 																(cityData) => (
 																	<TouchableOpacity
 																		key={
-																			cityData
-																				.properties
-																				.code
+																			cityData.code
 																		}
 																		onPress={() =>
 																			selectCity(
@@ -2881,9 +2932,7 @@ const PostJob = () => {
 																				padding: 12,
 																				backgroundColor:
 																					formData.city ===
-																					cityData
-																						.properties
-																						.nom
+																					cityData.nom
 																						? isDark
 																							? "#1f2937"
 																							: "#dbeafe"
@@ -2894,9 +2943,7 @@ const PostJob = () => {
 																				borderWidth: 1,
 																				borderColor:
 																					formData.city ===
-																					cityData
-																						.properties
-																						.nom
+																					cityData.nom
 																						? "#3b82f6"
 																						: isDark
 																							? "#4b5563"
@@ -2909,15 +2956,11 @@ const PostJob = () => {
 																						: "#111827",
 																				}}>
 																				{
-																					cityData
-																						.properties
-																						.nom
+																					cityData.nom
 																				}{" "}
 																				(
 																				{
-																					cityData
-																						.properties
-																						.codeDepartement
+																					cityData.department_code
 																				}
 
 																				)
