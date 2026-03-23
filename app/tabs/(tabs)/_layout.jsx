@@ -82,10 +82,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { toast } from "sonner-native";
 import { width } from "dom-helpers";
 
-// import {
-// 	registerForPushNotificationsAsync,
-// 	setupNotificationResponseListener,
-// } from "@/utils/pushNotifications";
+import { setupNotificationResponseListener } from "@/utils/pushNotifications";
 
 // Notifications.setNotificationHandler({
 // 	handleNotification: async () => ({
@@ -178,11 +175,11 @@ export default function TabLayout({ theme = "light" }) {
 		}
 	}, [user, role, authLoading]);
 
-	// useEffect(() => {
-	// 	// setupNotificationResponseListener a besoin de l'objet router pour naviguer
-	// 	const unsubscribe = setupNotificationResponseListener(router);
-	// 	return unsubscribe; // Nettoyer le listener au démontage
-	// }, [router]);
+	useEffect(() => {
+		// setupNotificationResponseListener a besoin de l'objet router pour naviguer
+		const unsubscribe = setupNotificationResponseListener(router);
+		return unsubscribe; // Nettoyer le listener au démontage
+	}, [router]);
 
 	// async function registerForPushNotificationsAsync(companyId) {
 	// 	let token;
