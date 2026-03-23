@@ -4,8 +4,6 @@ import * as SecureStore from "expo-secure-store";
 import { useRouter } from "expo-router";
 import axios from "axios";
 
-import storePushTokenDirectly from "../utils/storePushTokenDirectly";
-
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
 const AuthContext = createContext();
