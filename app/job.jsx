@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import Constants from "expo-constants";
 import {
 	useLocalSearchParams,
 	useFocusEffect,
@@ -73,8 +71,6 @@ import {
 } from "lucide-react-native";
 import { position } from "dom-helpers";
 
-const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
-
 // Tableau des catégories métiers
 import { CATEGORY, getCategoryLabel } from "@/constants/categories";
 import { formatSalary } from "@/constants/salary";
@@ -100,7 +96,7 @@ const mapWorkHoursType = (value) => {
 
 const JobScreen = () => {
 	const { id, title, company_id, category } = useLocalSearchParams();
-	const { user, role, userProfile, accessToken } = useAuth();
+	const { user, role, userProfile } = useAuth();
 	const { isDark } = useTheme();
 	const navigation = useNavigation();
 	const {
@@ -238,8 +234,6 @@ const JobScreen = () => {
 	};
 
 	const confirmApply = async () => {
-		const edgeFunctionUrl = `https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/send-push-notification`;
-
 		const isNowApplied = await applyToJob(
 			user.id,
 			id,
@@ -251,25 +245,6 @@ const JobScreen = () => {
 			userProfile.email,
 		);
 		trackActivity("apply_job");
-
-		const notificationPayload = {
-			offer_id: id,
-			candidate_id: user.id,
-			company_id: company_id, // L'ID de l'entreprise destinataire
-			application_id: isNowApplied[0].id, // L'ID de la candidature créée
-		};
-
-		const notificationResponse = await axios.post(
-			edgeFunctionUrl,
-			notificationPayload,
-			{
-				headers: {
-					"Content-Type": "application/json",
-					apikey: SUPABASE_API_KEY,
-					Authorization: `Bearer ${accessToken}`, // Assurez-vous que l'utilisateur a un accessToken valide
-				},
-			},
-		);
 
 		setIsApplied(
 			Array.isArray(isNowApplied)
