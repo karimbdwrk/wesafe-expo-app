@@ -32,7 +32,13 @@
         "NSCameraUsageDescription": "This app needs access to your camera.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "bundleIdentifier": "com.aizensecu.wesafeapp"
+      "bundleIdentifier": "com.aizensecu.wesafeapp",
+      "preview": {
+        "distribution": "internal",
+        "ios": {
+          "simulator": false
+        }
+      }
     },
     "android": {
       "googleServicesFile": "./google-services.json",
