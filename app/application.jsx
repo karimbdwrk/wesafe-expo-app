@@ -81,7 +81,11 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
-import { SELECT_CANDIDATE, REJECT_CANDIDATE, GENERATE_CONTRACT } from "@/utils/activityEvents";
+import {
+	SELECT_CANDIDATE,
+	REJECT_CANDIDATE,
+	GENERATE_CONTRACT,
+} from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 
 import { sendApplicationSelectedEmail } from "@/utils/sendApplicationSelectedEmail";
@@ -223,6 +227,7 @@ const ApplicationScreen = () => {
 		setApplication(data);
 		setCurrentStatus(data.current_status);
 		hasLoadedOnce.current = true;
+		if (data?.job_id) checkWishlist(data.job_id);
 		if (showLoading) {
 			setIsLoading(false);
 		}
@@ -800,15 +805,18 @@ const ApplicationScreen = () => {
 		setShowRejectModal(true);
 	};
 
-	const checkWishlist = async () => {
-		const inWishlist = await isJobInWishlist(id, user.id);
+	const checkWishlist = async (jobId) => {
+		const resolvedJobId = jobId || application?.job_id || id;
+		if (!resolvedJobId || !user?.id) return;
+		const inWishlist = await isJobInWishlist(resolvedJobId, user.id);
 		setIsInWishlist(inWishlist);
 	};
 
 	useFocusEffect(
 		useCallback(() => {
-			checkWishlist();
-		}, []),
+			const jobId = application?.job_id || id;
+			if (jobId) checkWishlist(jobId);
+		}, [application?.job_id, id]),
 	);
 
 	const formatDate = (date) => {
