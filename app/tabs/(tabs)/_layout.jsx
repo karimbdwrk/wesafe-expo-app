@@ -82,7 +82,10 @@ import { useTheme } from "@/context/ThemeContext";
 import { toast } from "sonner-native";
 import { width } from "dom-helpers";
 
-import { setupNotificationResponseListener } from "@/utils/pushNotifications";
+import {
+	setupNotificationResponseListener,
+	navigateFromNotificationData,
+} from "@/utils/pushNotifications";
 
 // Notifications.setNotificationHandler({
 // 	handleNotification: async () => ({
@@ -175,10 +178,10 @@ export default function TabLayout({ theme = "light" }) {
 		}
 	}, [user, role, authLoading]);
 
+	// Listener background (app en arrière-plan)
 	useEffect(() => {
-		// setupNotificationResponseListener a besoin de l'objet router pour naviguer
 		const unsubscribe = setupNotificationResponseListener(router);
-		return unsubscribe; // Nettoyer le listener au démontage
+		return unsubscribe;
 	}, [router]);
 
 	// async function registerForPushNotificationsAsync(companyId) {
