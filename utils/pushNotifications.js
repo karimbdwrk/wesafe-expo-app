@@ -93,24 +93,53 @@ export async function registerForPushNotificationsAsync(
 }
 
 /**
- * ⚡️ Configure le listener quand un utilisateur TAP sur une notification
+ * Navigue vers le bon écran selon les data d'une notification push
+ */
+export function navigateFromNotificationData(data, router) {
+	if (!data) return;
+
+	if (data.entity_type === "application" && data.entity_id) {
+		router.push({
+			pathname: "/application",
+			params: { apply_id: data.entity_id },
+		});
+		return;
+	}
+
+	if (data.entity_type === "message" && data.entity_id) {
+		router.push({
+			pathname: "/application",
+			params: { apply_id: data.entity_id, openMessaging: "true" },
+		});
+		return;
+	}
+
+	if (data.entity_type === "job" && data.entity_id) {
+		router.push({
+			pathname: "/job",
+			params: { id: data.entity_id },
+		});
+		return;
+	}
+
+	if (data.screen) {
+		router.push({ pathname: `/${data.screen}` });
+	}
+}
+
+/**
+ * ⚡️ Configure le listener quand un utilisateur TAP sur une notification (app en arrière-plan)
  * Compatible Expo Router (router.push)
  */
 export function setupNotificationResponseListener(router) {
 	const subscription = Notifications.addNotificationResponseReceivedListener(
 		(response) => {
 			const data = response.notification.request.content.data;
-
-			// Ex: data = { screen: "offer-details", offerId: 42 }
-			if (data?.screen) {
-				console.log("🔔 Navigating from Push Notification:", data);
-
-				if (data.offerId) {
-					router.push(`/${data.screen}?offerId=${data.offerId}`);
-				} else {
-					router.push(`/${data.screen}`);
-				}
-			}
+			console.warn(
+				"🔔 [BACKGROUND] Notification data:",
+				JSON.stringify(data),
+			);
+			navigateFromNotificationData(data, router);
 		},
 	);
 
