@@ -1147,33 +1147,6 @@ const MessageThread = ({
 
 	return (
 		<VStack style={{ flex: 1, paddingBottom: keyboardHeight }}>
-			{/* Indicateur en ligne */}
-			{isOtherPartyOnline && (
-				<HStack
-					space='xs'
-					style={{
-						alignItems: "center",
-						paddingHorizontal: 16,
-						paddingVertical: 4,
-						backgroundColor: isDark ? "#1f2937" : "#f0fdf4",
-						borderBottomWidth: 1,
-						borderBottomColor: isDark ? "#374151" : "#bbf7d0",
-					}}>
-					<View
-						style={{
-							width: 7,
-							height: 7,
-							borderRadius: 4,
-							backgroundColor: "#22c55e",
-						}}
-					/>
-					<Text
-						size='xs'
-						style={{ color: isDark ? "#86efac" : "#16a34a" }}>
-						En ligne
-					</Text>
-				</HStack>
-			)}
 			{/* Liste des messages */}
 			<ScrollView
 				ref={scrollViewRef}
