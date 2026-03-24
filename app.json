@@ -29,9 +29,10 @@
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "NSCameraUsageDescription": "This app needs access to your camera."
+        "NSCameraUsageDescription": "This app needs access to your camera.",
+        "ITSAppUsesNonExemptEncryption": false
       },
-      "bundleIdentifier": "com.wesafe.wesafeapp"
+      "bundleIdentifier": "com.aizensecu.wesafeapp"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
