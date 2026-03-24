@@ -2,6 +2,8 @@ import React from "react";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import "@/global.css";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import * as Notifications from "expo-notifications";
+import { StatusBar } from "expo-status-bar";
 import {
 	DarkTheme,
 	DefaultTheme,
@@ -71,11 +73,26 @@ export default function RootLayout() {
 	);
 }
 
+// Stocke la navigation en attente depuis une notification (cold start)
+const pendingNotificationNav = { current: null };
+
 function RootLayoutNav() {
 	const pathname = usePathname();
 	const { user, role, loading: authLoading } = useAuth();
 	const { colorMode, toggleColorMode } = useTheme();
 	const { trackActivity } = useDataContext();
+
+	// Capture la notification avant que l'auth soit prête (cold start)
+	React.useEffect(() => {
+		Notifications.getLastNotificationResponseAsync().then((response) => {
+			if (!response) return;
+			const data = response.notification.request.content.data;
+			console.warn("📱 [COLD START ROOT] data:", JSON.stringify(data));
+			if (data?.entity_type || data?.screen) {
+				pendingNotificationNav.current = data;
+			}
+		});
+	}, []);
 
 	// Track open_app une seule fois quand l'user est connecté
 	const hasTrackedOpen = React.useRef(false);
@@ -144,13 +161,55 @@ function RootLayoutNav() {
 			pathname === "/signup" ||
 			pathname === "/finalizeregistration"
 		) {
-			console.log("🔀 Redirecting to /tabs/(tabs) from", pathname);
-			router.replace("/tabs/(tabs)");
+			// Si une notification est en attente, on navigue vers elle après les tabs
+			const pending = pendingNotificationNav.current;
+			if (pending) {
+				pendingNotificationNav.current = null;
+				console.log(
+					"🔀 Redirecting to /tabs/(tabs) then notification",
+					pending,
+				);
+				router.replace("/tabs/(tabs)");
+				setTimeout(() => {
+					if (
+						pending.entity_type === "application" &&
+						pending.entity_id
+					) {
+						router.push({
+							pathname: "/application",
+							params: { apply_id: pending.entity_id },
+						});
+					} else if (
+						pending.entity_type === "message" &&
+						pending.entity_id
+					) {
+						router.push({
+							pathname: "/application",
+							params: {
+								apply_id: pending.entity_id,
+								openMessaging: "true",
+							},
+						});
+					} else if (
+						pending.entity_type === "job" &&
+						pending.entity_id
+					) {
+						router.push({
+							pathname: "/job",
+							params: { id: pending.entity_id },
+						});
+					}
+				}, 800);
+			} else {
+				console.log("🔀 Redirecting to /tabs/(tabs) from", pathname);
+				router.replace("/tabs/(tabs)");
+			}
 		}
 	}, [authLoading, user, role, pathname]);
 
 	return (
 		<>
+			<StatusBar style={colorMode === "dark" ? "light" : "dark"} />
 			<SafeAreaProvider>
 				<GluestackUIProvider mode={colorMode}>
 					<Toaster />
