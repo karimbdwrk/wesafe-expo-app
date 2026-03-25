@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import {
 	Link,
@@ -18,6 +18,7 @@ import {
 	Image,
 	Platform,
 	Text as RNText,
+	AppState,
 } from "react-native";
 import Svg, { Path, G } from "react-native-svg";
 import {
@@ -157,6 +158,19 @@ export default function TabLayout({ theme = "light" }) {
 			refreshUnreadCount();
 		}, [refreshUnreadCount]),
 	);
+
+	// Rafraîchit le badge quand l'app revient au premier plan (depuis background/cold start)
+	useEffect(() => {
+		const subscription = AppState.addEventListener(
+			"change",
+			(nextState) => {
+				if (nextState === "active") {
+					refreshUnreadCount();
+				}
+			},
+		);
+		return () => subscription.remove();
+	}, [refreshUnreadCount]);
 
 	// Fermer le menu quand la route change
 	useEffect(() => {
