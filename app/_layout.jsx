@@ -11,8 +11,9 @@ import {
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Slot, Stack, usePathname, router } from "expo-router";
+import { AppState } from "react-native";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { MoonIcon, SunIcon } from "@/components/ui/icon";
 
@@ -82,16 +83,36 @@ function RootLayoutNav() {
 	const { colorMode, toggleColorMode } = useTheme();
 	const { trackActivity } = useDataContext();
 
-	// Capture la notification avant que l'auth soit prête (cold start)
+	// Capture la notification avant que l'auth soit prête (cold start UNIQUEMENT)
+	// On compare le timestamp de la notification avec le démarrage de l'app
+	// pour éviter de traiter une notif background déjà gérée par le listener
 	React.useEffect(() => {
+		const appStartTime = Date.now();
 		Notifications.getLastNotificationResponseAsync().then((response) => {
 			if (!response) return;
+			// Si la notification date de plus de 5 secondes avant le démarrage, ignorer
+			const notifTime = response.notification.date * 1000 || 0; // expo retourne en secondes
+			if (appStartTime - notifTime > 5000) return;
 			const data = response.notification.request.content.data;
 			console.warn("📱 [COLD START ROOT] data:", JSON.stringify(data));
 			if (data?.entity_type || data?.screen) {
 				pendingNotificationNav.current = data;
 			}
 		});
+	}, []);
+
+	// Vide les notifications et le badge quand l'app revient au premier plan
+	React.useEffect(() => {
+		const subscription = AppState.addEventListener(
+			"change",
+			(nextState) => {
+				if (nextState === "active") {
+					Notifications.dismissAllNotificationsAsync();
+					Notifications.setBadgeCountAsync(0);
+				}
+			},
+		);
+		return () => subscription.remove();
 	}, []);
 
 	// Track open_app une seule fois quand l'user est connecté
