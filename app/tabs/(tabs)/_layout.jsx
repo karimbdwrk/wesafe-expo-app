@@ -327,8 +327,8 @@ export default function TabLayout({ theme = "light" }) {
 											// size='sm'
 											className='rounded-full active:opacity-50'
 											style={{
-												width: 30,
-												height: 30,
+												width: 28,
+												height: 28,
 												padding: 0,
 												justifyContent: "center",
 												alignItems: "center",
