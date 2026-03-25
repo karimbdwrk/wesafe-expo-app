@@ -62,9 +62,10 @@ export async function registerForPushNotificationsAsync(
 		);
 
 		token = expoTokenResponse?.data;
+		console.warn("Push token obtained:", token);
 
 		if (token) {
-			await axios.post(
+			const res = await axios.post(
 				tokenApiEndpoint,
 				{
 					user_id: userId,
@@ -75,9 +76,13 @@ export async function registerForPushNotificationsAsync(
 					headers: { Authorization: `Bearer ${accessToken}` },
 				},
 			);
+			console.warn("Token stored in DB:", res.status, res.data);
 		}
 	} catch (error) {
-		console.warn("Erreur lors de l'envoi du token:", error);
+		console.warn(
+			"Erreur lors de l'envoi du token:",
+			error?.response?.data || error?.message || error,
+		);
 	}
 
 	if (Platform.OS === "android") {
