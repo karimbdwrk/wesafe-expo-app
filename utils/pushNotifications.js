@@ -27,7 +27,13 @@ export async function registerForPushNotificationsAsync(
 		accessToken,
 	});
 
-	if (!Device.brand) {
+	console.warn(
+		"Device.brand:",
+		Device.brand,
+		"Device.isDevice:",
+		Device.isDevice,
+	);
+	if (!Device.isDevice) {
 		console.warn(
 			"Doit utiliser un appareil physique pour les notifications push.",
 		);
