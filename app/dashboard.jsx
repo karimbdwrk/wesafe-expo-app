@@ -91,7 +91,8 @@ const formatSiret = (value) => {
 };
 
 const DashboardScreen = () => {
-	const { signOut, user, hasSubscription, accessToken } = useAuth();
+	const { signOut, user, hasSubscription, userCompany, accessToken } =
+		useAuth();
 	const { getById, trackActivity } = useDataContext();
 	const { image } = useImage();
 	const { isDark } = useTheme();
@@ -595,14 +596,22 @@ const DashboardScreen = () => {
 												size='md'
 												variant='solid'
 												action={
-													hasSubscription
+													userCompany?.subscription_status ===
+													"premium"
 														? "success"
-														: "muted"
+														: userCompany?.subscription_status ===
+															  "standard_plus"
+															? "info"
+															: "muted"
 												}>
 												<BadgeText>
-													{hasSubscription
+													{userCompany?.subscription_status ===
+													"premium"
 														? "Premium"
-														: "Standard"}
+														: userCompany?.subscription_status ===
+															  "standard_plus"
+															? "Standard+"
+															: "Standard"}
 												</BadgeText>
 											</Badge>
 										</HStack>
