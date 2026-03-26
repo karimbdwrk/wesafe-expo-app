@@ -36,7 +36,9 @@ export const useStripePaymentHandler = () => {
 			});
 
 			if (initError) {
-				Alert.alert(`Erreur d'initialisation du paiement: ${initError.message}`);
+				Alert.alert(
+					`Erreur d'initialisation du paiement: ${initError.message}`,
+				);
 				return { success: false, error: initError.message };
 			}
 
@@ -47,7 +49,7 @@ export const useStripePaymentHandler = () => {
 				return { success: false, error: presentError.message };
 			}
 
-			return { success: true };
+			return { success: true, customerId };
 		} catch (error) {
 			console.error(
 				"Error initiating or presenting Stripe payment:",
@@ -55,9 +57,15 @@ export const useStripePaymentHandler = () => {
 			);
 			Alert.alert(
 				"Erreur",
-				error.response?.data?.error || "Impossible de préparer le paiement.",
+				error.response?.data?.error ||
+					"Impossible de préparer le paiement.",
 			);
-			return { success: false, error: error.response?.data?.error || "Failed to initiate payment." };
+			return {
+				success: false,
+				error:
+					error.response?.data?.error ||
+					"Failed to initiate payment.",
+			};
 		}
 	};
 
