@@ -489,6 +489,10 @@ function RootLayoutNav() {
 								options={{ headerShown: true }}
 							/>
 							<Stack.Screen
+								name='contractgeneration'
+								options={{ headerShown: true }}
+							/>
+							<Stack.Screen
 								name='languages'
 								options={{
 									headerShown: true,
