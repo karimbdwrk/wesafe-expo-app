@@ -194,11 +194,17 @@ const styles = StyleSheet.create({
 	container: {
 		height: 100,
 		paddingHorizontal: 16,
-		// paddingBottom: 10,
 		flexDirection: "row",
 		alignItems: "center",
 		backgroundColor: "#FFF",
 		gap: 5,
+		borderBottomWidth: 1,
+		borderBottomColor: "#e7e7e7",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.04,
+		shadowRadius: 6,
+		elevation: 2,
 	},
 	left: {
 		width: 50,
