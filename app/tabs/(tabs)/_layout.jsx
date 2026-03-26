@@ -585,6 +585,33 @@ export default function TabLayout({ theme = "light" }) {
 														!
 													</BadgeText>
 												</Badge>
+											) : userCompany?.company_status ===
+													"verified" ||
+											  userCompany?.company_status ===
+													"active" ? (
+												<View
+													style={{
+														position: "absolute",
+														right: -2,
+														bottom: -2,
+														width: 10,
+														height: 10,
+														borderRadius: 5,
+														backgroundColor:
+															userCompany?.subscription_status ===
+															"premium"
+																? "#10b981"
+																: userCompany?.subscription_status ===
+																	  "standard_plus"
+																	? "#3b82f6"
+																	: "#9ca3af",
+														borderWidth: 1.5,
+														borderColor: isDark
+															? "#111827"
+															: "#f9fafb",
+														zIndex: 10,
+													}}
+												/>
 											) : null}
 										</VStack>
 									)}
