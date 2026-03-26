@@ -1,12 +1,23 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useFocusEffect } from "expo-router";
-import { ScrollView, TouchableOpacity } from "react-native";
+import { ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import axios from "axios";
+import Constants from "expo-constants";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Box } from "@/components/ui/box";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Badge, BadgeText } from "@/components/ui/badge";
+import {
+	AlertDialog,
+	AlertDialogBackdrop,
+	AlertDialogContent,
+	AlertDialogHeader,
+	AlertDialogBody,
+	AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
+import { Button, ButtonText } from "@/components/ui/button";
 import {
 	CreditCard,
 	CheckCircle,
@@ -73,7 +84,7 @@ const PLANS = [
 		bgDark: "#422006",
 		borderActive: "#d97706",
 		priceMonthly: 25,
-		priceYearly: 259,
+		priceYearly: 249,
 		features: [
 			"Tout Standard+ inclus",
 			"Support prioritaire 7j/7",
@@ -87,38 +98,79 @@ const PLANS = [
 const PLAN_RANK = { standard: 0, standard_plus: 1, premium: 2 };
 
 const SubscriptionScreen = () => {
-	const {
-		accessToken,
-		userCompany,
-		user,
-		hasSubscription,
-		checkSubscription,
-	} = useAuth();
-	const { getAll, getById } = useDataContext();
+	const { accessToken, userCompany, user, checkSubscription, refreshUser } =
+		useAuth();
+	const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
+	const { getAll } = useDataContext();
 	const { isDark } = useTheme();
 	const router = useRouter();
 
 	const [subscriptions, setSubscriptions] = useState([]);
-	const [subscriptionStatus, setSubscriptionStatus] = useState(null);
+	const [interval, setInterval] = useState("monthly");
+	const [showCancelDialog, setShowCancelDialog] = useState(false);
+	const [cancelLoading, setCancelLoading] = useState(false);
+
+	const handleCancel = async () => {
+		if (!activeSub?.stripe_subscription_id) return;
+		setCancelLoading(true);
+		try {
+			await axios.post(
+				`${SUPABASE_URL}/functions/v1/cancel-subscription`,
+				{ subscriptionId: activeSub.stripe_subscription_id },
+				{
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${accessToken}`,
+					},
+				},
+			);
+			// Remettre subscription_status à "standard" dans companies
+			await axios.patch(
+				`${SUPABASE_URL}/rest/v1/companies?id=eq.${userCompany?.id}`,
+				{ subscription_status: "standard" },
+				{
+					headers: {
+						apikey: SUPABASE_API_KEY,
+						Authorization: `Bearer ${accessToken}`,
+						"Content-Type": "application/json",
+						Prefer: "return=minimal",
+					},
+				},
+			);
+			setShowCancelDialog(false);
+			await refreshUser();
+			await loadData();
+		} catch (err) {
+			console.error(
+				"❌ Erreur résiliation:",
+				err.response?.data ?? err.message,
+			);
+		} finally {
+			setCancelLoading(false);
+		}
+	};
 
 	const loadData = async () => {
-		const [{ data }, companyData] = await Promise.all([
-			getAll("subscriptions", "*", ``, 1, 5, "created_at.desc"),
-			getById("companies", user.id, "subscription_status"),
-		]);
+		const { data } = await getAll(
+			"subscriptions",
+			"*",
+			``,
+			1,
+			5,
+			"created_at.desc",
+		);
 		setSubscriptions(data);
-		if (companyData) setSubscriptionStatus(companyData.subscription_status);
 	};
 
 	useFocusEffect(
 		useCallback(() => {
-			checkSubscription(user.id, accessToken);
+			loadData();
 		}, []),
 	);
 
 	useEffect(() => {
 		loadData();
-	}, [hasSubscription]);
+	}, []);
 
 	const formatDate = (dateString) => {
 		if (!dateString) return "-";
@@ -129,11 +181,30 @@ const SubscriptionScreen = () => {
 		});
 	};
 
-	const currentRank =
-		subscriptionStatus !== null
-			? (PLAN_RANK[subscriptionStatus] ?? -1)
-			: -1;
 	const activeSub = subscriptions.length > 0 ? subscriptions[0] : null;
+
+	const resolvedStatus = userCompany?.subscription_status ?? "standard";
+	const currentRank = PLAN_RANK[resolvedStatus] ?? -1;
+
+	const isExpiredOrCanceled =
+		!activeSub ||
+		(activeSub.status === "canceled" &&
+			new Date(activeSub.current_period_end) <= new Date());
+
+	const activePlan = PLANS.find((p) => p.key === resolvedStatus);
+	const activeInterval = isExpiredOrCanceled
+		? null
+		: (activeSub?.interval ?? null);
+	const activeIntervalLabel =
+		activeInterval === "yearly"
+			? "Annuel"
+			: activeInterval === "monthly"
+				? "Mensuel"
+				: null;
+	const activePrice =
+		activeInterval === "yearly"
+			? activePlan?.priceYearly
+			: activePlan?.priceMonthly;
 
 	return (
 		<ScrollView
@@ -155,22 +226,16 @@ const SubscriptionScreen = () => {
 				</VStack>
 
 				{/* Current plan summary */}
-				{hasSubscription && subscriptionStatus && (
+				{resolvedStatus && (
 					<Box
 						style={{
 							borderRadius: 14,
 							borderWidth: 1,
 							padding: 16,
 							backgroundColor: isDark
-								? (PLANS.find(
-										(p) => p.key === subscriptionStatus,
-									)?.bgDark ?? "#1f2937")
-								: (PLANS.find(
-										(p) => p.key === subscriptionStatus,
-									)?.bgLight ?? "#f5f3ff"),
-							borderColor:
-								PLANS.find((p) => p.key === subscriptionStatus)
-									?.borderActive ?? "#3b82f6",
+								? (activePlan?.bgDark ?? "#1f2937")
+								: (activePlan?.bgLight ?? "#f5f3ff"),
+							borderColor: activePlan?.borderActive ?? "#3b82f6",
 						}}>
 						<HStack
 							style={{
@@ -187,21 +252,53 @@ const SubscriptionScreen = () => {
 									}}>
 									Formule active
 								</Text>
-								<Text
-									style={{
-										fontWeight: "800",
-										fontSize: 22,
-										color:
-											PLANS.find(
-												(p) =>
-													p.key ===
-													subscriptionStatus,
-											)?.color ?? "#7c3aed",
-									}}>
-									{PLANS.find(
-										(p) => p.key === subscriptionStatus,
-									)?.label ?? subscriptionStatus}
-								</Text>
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Text
+										style={{
+											fontWeight: "800",
+											fontSize: 22,
+											color:
+												activePlan?.color ?? "#7c3aed",
+										}}>
+										{activePlan?.label ?? resolvedStatus}
+									</Text>
+									{activeIntervalLabel && (
+										<Badge
+											size='sm'
+											variant='outline'
+											style={{
+												borderRadius: 20,
+												borderColor:
+													activePlan?.color ??
+													"#7c3aed",
+											}}>
+											<BadgeText
+												style={{
+													color:
+														activePlan?.color ??
+														"#7c3aed",
+												}}>
+												{activeIntervalLabel}
+											</BadgeText>
+										</Badge>
+									)}
+								</HStack>
+								{activePrice && (
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}>
+										{activePrice}€ /{" "}
+										{activeInterval === "yearly"
+											? "an"
+											: "mois"}
+									</Text>
+								)}
 								{activeSub?.current_period_end && (
 									<HStack
 										space='xs'
@@ -235,69 +332,115 @@ const SubscriptionScreen = () => {
 							<Badge
 								size='md'
 								variant='solid'
-								action='success'
+								action={
+									resolvedStatus === "standard"
+										? "muted"
+										: "success"
+								}
 								style={{ borderRadius: 20 }}>
-								<BadgeText>Actif</BadgeText>
+								<BadgeText>
+									{resolvedStatus === "standard"
+										? "Gratuit"
+										: "Actif"}
+								</BadgeText>
 							</Badge>
 						</HStack>
 					</Box>
 				)}
 
-				{/* No subscription banner */}
-				{!hasSubscription && (
-					<Box
-						style={{
-							borderRadius: 14,
-							borderWidth: 1,
-							padding: 16,
-							backgroundColor: isDark
-								? "rgba(239,68,68,0.1)"
-								: "#fef2f2",
-							borderColor: isDark
-								? "rgba(239,68,68,0.3)"
-								: "#fecaca",
-						}}>
-						<HStack space='sm' style={{ alignItems: "center" }}>
-							<AlertCircle size={18} color='#ef4444' />
-							<Text
-								style={{
-									fontWeight: "600",
-									color: "#ef4444",
-									fontSize: 14,
-								}}>
-								Aucun abonnement actif
-							</Text>
-						</HStack>
-						<Text
-							size='sm'
-							style={{
-								color: isDark ? "#fca5a5" : "#b91c1c",
-								marginTop: 4,
-							}}>
-							Choisissez une formule ci-dessous pour accéder aux
-							fonctionnalités WeSafe.
-						</Text>
-					</Box>
-				)}
-
 				{/* Plan cards */}
 				<VStack space='md'>
-					<Text
+					<HStack
 						style={{
-							fontWeight: "700",
-							fontSize: 16,
-							color: isDark ? "#f3f4f6" : "#111827",
+							alignItems: "center",
+							justifyContent: "space-between",
 						}}>
-						Nos formules
-					</Text>
+						<Text
+							style={{
+								fontWeight: "700",
+								fontSize: 16,
+								color: isDark ? "#f3f4f6" : "#111827",
+							}}>
+							Nos formules
+						</Text>
+						{/* Toggle mensuel / annuel */}
+						<HStack
+							style={{
+								backgroundColor: isDark ? "#374151" : "#f3f4f6",
+								borderRadius: 20,
+								padding: 3,
+							}}>
+							<TouchableOpacity
+								onPress={() => setInterval("monthly")}
+								style={{
+									paddingHorizontal: 12,
+									paddingVertical: 5,
+									borderRadius: 18,
+									backgroundColor:
+										interval === "monthly"
+											? isDark
+												? "#111827"
+												: "#ffffff"
+											: "transparent",
+								}}>
+								<Text
+									size='sm'
+									style={{
+										fontWeight:
+											interval === "monthly"
+												? "700"
+												: "400",
+										color:
+											interval === "monthly"
+												? isDark
+													? "#f3f4f6"
+													: "#111827"
+												: isDark
+													? "#9ca3af"
+													: "#6b7280",
+									}}>
+									Mensuel
+								</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								onPress={() => setInterval("yearly")}
+								style={{
+									paddingHorizontal: 12,
+									paddingVertical: 5,
+									borderRadius: 18,
+									backgroundColor:
+										interval === "yearly"
+											? isDark
+												? "#111827"
+												: "#ffffff"
+											: "transparent",
+								}}>
+								<Text
+									size='sm'
+									style={{
+										fontWeight:
+											interval === "yearly"
+												? "700"
+												: "400",
+										color:
+											interval === "yearly"
+												? isDark
+													? "#f3f4f6"
+													: "#111827"
+												: isDark
+													? "#9ca3af"
+													: "#6b7280",
+									}}>
+									Annuel
+								</Text>
+							</TouchableOpacity>
+						</HStack>
+					</HStack>
 					{PLANS.map((plan) => {
 						const planRank = PLAN_RANK[plan.key];
-						const isCurrent =
-							hasSubscription && plan.key === subscriptionStatus;
-						const isLower =
-							hasSubscription && planRank < currentRank;
-						const isUpgrade =
-							!hasSubscription || planRank > currentRank;
+						const isCurrent = plan.key === resolvedStatus;
+						const isLower = planRank < currentRank;
+						const isUpgrade = planRank > currentRank;
 
 						return (
 							<Box
@@ -314,7 +457,6 @@ const SubscriptionScreen = () => {
 										? "#1f2937"
 										: "#ffffff",
 									overflow: "hidden",
-									opacity: isLower ? 0.5 : 1,
 								}}>
 								{/* Plan header */}
 								<Box
@@ -458,7 +600,10 @@ const SubscriptionScreen = () => {
 														color: plan.color,
 														lineHeight: 28,
 													}}>
-													{plan.priceMonthly}€
+													{interval === "yearly"
+														? plan.priceYearly
+														: plan.priceMonthly}
+													€
 												</Text>
 												<Text
 													size='sm'
@@ -468,34 +613,12 @@ const SubscriptionScreen = () => {
 															: "#6b7280",
 														marginBottom: 2,
 													}}>
-													/ mois
+													{interval === "yearly"
+														? "/ an"
+														: "/ mois"}
 												</Text>
 											</HStack>
-											<HStack
-												space='xs'
-												style={{
-													alignItems: "center",
-												}}>
-												<Text
-													size='xs'
-													style={{
-														color: isDark
-															? "#d1d5db"
-															: "#374151",
-													}}>
-													ou{" "}
-													<Text
-														size='xs'
-														style={{
-															fontWeight: "700",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
-														}}>
-														{plan.priceYearly}€
-													</Text>{" "}
-													/ an
-												</Text>
+											{interval === "yearly" ? (
 												<Box
 													style={{
 														backgroundColor:
@@ -503,6 +626,7 @@ const SubscriptionScreen = () => {
 														borderRadius: 6,
 														paddingHorizontal: 6,
 														paddingVertical: 2,
+														alignSelf: "flex-start",
 													}}>
 													<Text
 														size='xs'
@@ -518,10 +642,47 @@ const SubscriptionScreen = () => {
 																		12)) *
 																100,
 														)}
-														%
+														% vs mensuel
 													</Text>
 												</Box>
-											</HStack>
+											) : (
+												<Text
+													size='xs'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													ou{" "}
+													<Text
+														size='xs'
+														style={{
+															fontWeight: "700",
+															color: isDark
+																? "#f3f4f6"
+																: "#111827",
+														}}>
+														{plan.priceYearly}€
+													</Text>{" "}
+													/ an{" "}
+													<Text
+														size='xs'
+														style={{
+															fontWeight: "700",
+															color: "#16a34a",
+														}}>
+														(-
+														{Math.round(
+															(1 -
+																plan.priceYearly /
+																	(plan.priceMonthly *
+																		12)) *
+																100,
+														)}
+														%)
+													</Text>
+												</Text>
+											)}
 										</VStack>
 									)}
 								</Box>
@@ -556,12 +717,13 @@ const SubscriptionScreen = () => {
 									))}
 
 									{/* CTA */}
-									{isUpgrade && !isLower && (
+									{!isCurrent && plan.key !== "standard" && (
 										<Box style={{ marginTop: 12 }}>
 											<SubscriptionPaymentSheet
 												company_id={userCompany?.id}
 												email={user?.email}
 												plan={plan.key}
+												interval={interval}
 											/>
 										</Box>
 									)}
@@ -572,75 +734,151 @@ const SubscriptionScreen = () => {
 				</VStack>
 
 				{/* Cancel */}
-				{hasSubscription && activeSub?.status === "active" && (
-					<Box
-						style={{
-							borderRadius: 14,
-							borderWidth: 1,
-							padding: 16,
-							backgroundColor: isDark ? "#1f2937" : "#ffffff",
-							borderColor: isDark ? "#374151" : "#e5e7eb",
-						}}>
-						<VStack space='md'>
-							<VStack space='xs'>
-								<HStack
-									space='sm'
-									style={{ alignItems: "center" }}>
-									<AlertCircle size={16} color='#ef4444' />
+				{resolvedStatus !== "standard" &&
+					activeSub?.status === "active" && (
+						<Box
+							style={{
+								borderRadius: 14,
+								borderWidth: 1,
+								padding: 16,
+								backgroundColor: isDark ? "#1f2937" : "#ffffff",
+								borderColor: isDark ? "#374151" : "#e5e7eb",
+							}}>
+							<VStack space='md'>
+								<VStack space='xs'>
+									<HStack
+										space='sm'
+										style={{ alignItems: "center" }}>
+										<AlertCircle
+											size={16}
+											color='#ef4444'
+										/>
+										<Text
+											style={{
+												fontWeight: "700",
+												fontSize: 15,
+												color: isDark
+													? "#f3f4f6"
+													: "#111827",
+											}}>
+											Résilier l'abonnement
+										</Text>
+									</HStack>
+									<Text
+										size='sm'
+										style={{
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+										}}>
+										L'accès reste actif jusqu'à la fin de la
+										période en cours.
+									</Text>
+								</VStack>
+								<TouchableOpacity
+									onPress={() => setShowCancelDialog(true)}
+									activeOpacity={0.75}
+									style={{
+										backgroundColor: isDark
+											? "#450a0a"
+											: "#fef2f2",
+										borderRadius: 10,
+										paddingVertical: 12,
+										alignItems: "center",
+										borderWidth: 1,
+										borderColor: isDark
+											? "#7f1d1d"
+											: "#fecaca",
+									}}>
 									<Text
 										style={{
 											fontWeight: "700",
-											fontSize: 15,
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											fontSize: 14,
+											color: "#ef4444",
 										}}>
-										Résilier l'abonnement
+										Annuler l'abonnement
 									</Text>
-								</HStack>
-								<Text
-									size='sm'
-									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
-									}}>
-									Vous pouvez annuler à tout moment. L'accès
-									reste actif jusqu'à la fin de la période en
-									cours.
-								</Text>
+								</TouchableOpacity>
+
+								<AlertDialog
+									isOpen={showCancelDialog}
+									onClose={() => setShowCancelDialog(false)}>
+									<AlertDialogBackdrop />
+									<AlertDialogContent
+										style={{
+											backgroundColor: isDark
+												? "#1f2937"
+												: "#ffffff",
+											borderRadius: 14,
+											padding: 24,
+										}}>
+										<AlertDialogHeader>
+											<Heading
+												size='md'
+												style={{
+													color: isDark
+														? "#f3f4f6"
+														: "#111827",
+												}}>
+												Annuler l'abonnement
+											</Heading>
+										</AlertDialogHeader>
+										<AlertDialogBody>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? "#d1d5db"
+														: "#4b5563",
+													marginTop: 8,
+												}}>
+												Votre abonnement sera résilié
+												immédiatement et votre compte
+												repassera en Standard (gratuit).
+											</Text>
+										</AlertDialogBody>
+										<AlertDialogFooter
+											style={{ marginTop: 20 }}>
+											<HStack
+												space='md'
+												style={{ width: "100%" }}>
+												<Button
+													variant='outline'
+													action='secondary'
+													onPress={() =>
+														setShowCancelDialog(
+															false,
+														)
+													}
+													style={{ flex: 1 }}
+													disabled={cancelLoading}>
+													<ButtonText>
+														Garder
+													</ButtonText>
+												</Button>
+												<Button
+													action='negative'
+													onPress={handleCancel}
+													style={{ flex: 1 }}
+													disabled={cancelLoading}>
+													{cancelLoading ? (
+														<ActivityIndicator
+															color='#fff'
+															size='small'
+														/>
+													) : (
+														<ButtonText>
+															Confirmer
+														</ButtonText>
+													)}
+												</Button>
+											</HStack>
+										</AlertDialogFooter>
+									</AlertDialogContent>
+								</AlertDialog>
 							</VStack>
-							<TouchableOpacity
-								onPress={() =>
-									router.push({
-										pathname: "/cancelsubscription",
-										params: {
-											subscription_id:
-												activeSub.stripe_subscription_id,
-										},
-									})
-								}
-								activeOpacity={0.75}
-								style={{
-									backgroundColor: isDark
-										? "#450a0a"
-										: "#fef2f2",
-									borderRadius: 10,
-									paddingVertical: 12,
-									alignItems: "center",
-									borderWidth: 1,
-									borderColor: isDark ? "#7f1d1d" : "#fecaca",
-								}}>
-								<Text
-									style={{
-										fontWeight: "700",
-										fontSize: 14,
-										color: "#ef4444",
-									}}>
-									Annuler l'abonnement
-								</Text>
-							</TouchableOpacity>
-						</VStack>
-					</Box>
-				)}
+						</Box>
+					)}
 			</VStack>
 		</ScrollView>
 	);
