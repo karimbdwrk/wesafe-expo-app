@@ -87,6 +87,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { useStripePaymentHandler } from "@/services/stripeApi";
 import { POST_JOB } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 import { formatSalary } from "@/constants/salary";
@@ -105,6 +106,13 @@ const WORK_TIME = ["Temps plein", "Temps partiel"];
 const WORK_SCHEDULE = ["Jour", "Nuit", "Variable"];
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+const SPONSORSHIP_PRICES = {
+	"1w": { amountInCents: 999, amountDecimal: 9.99, label: "1 semaine" },
+	"2w": { amountInCents: 1799, amountDecimal: 17.99, label: "2 semaines" },
+	"1m": { amountInCents: 2999, amountDecimal: 29.99, label: "1 mois" },
+};
+
 const STEPS = [
 	{ id: 1, title: "Informations principales" },
 	{ id: 2, title: "Localisation et contrat" },
@@ -117,6 +125,7 @@ const PostJob = () => {
 	const { user, accessToken, userCompany } = useAuth();
 	const { isDark } = useTheme();
 	const { create, getAll, update, trackActivity } = useDataContext();
+	const { initiateAndPresentPayment } = useStripePaymentHandler();
 	const router = useRouter();
 	const toast = useToast();
 
@@ -1076,6 +1085,45 @@ const PostJob = () => {
 				return value;
 			};
 
+			// Paiement Stripe pour annonce sponsorisée
+			let sponsoredCustomerId = null;
+			if (
+				isSponsored &&
+				sponsorshipDuration &&
+				SPONSORSHIP_PRICES[sponsorshipDuration]
+			) {
+				const { amountInCents } =
+					SPONSORSHIP_PRICES[sponsorshipDuration];
+				const paymentResult = await initiateAndPresentPayment(
+					userCompany.id,
+					amountInCents,
+					"sponsored_job",
+				);
+				if (!paymentResult.success) {
+					setLoading(false);
+					return;
+				}
+				sponsoredCustomerId = paymentResult.customerId;
+			}
+
+			// Paiement Stripe one-shot pour annonce Last Minute sans crédits
+			let lastMinuteOneshotCustomerId = null;
+			if (
+				formData.isLastMinute &&
+				(userCompany?.last_minute_credits ?? 0) === 0
+			) {
+				const paymentResult = await initiateAndPresentPayment(
+					userCompany.id,
+					600,
+					"last_minute_oneshot",
+				);
+				if (!paymentResult.success) {
+					setLoading(false);
+					return;
+				}
+				lastMinuteOneshotCustomerId = paymentResult.customerId;
+			}
+
 			await create("jobs", {
 				title: formData.title,
 				category: formData.category,
@@ -1161,6 +1209,23 @@ const PostJob = () => {
 				})(),
 			});
 
+			// Transaction pour annonce sponsorisée
+			if (isSponsored && sponsorshipDuration && sponsoredCustomerId) {
+				const { amountDecimal, label } =
+					SPONSORSHIP_PRICES[sponsorshipDuration];
+				await create("transactions", {
+					company_id: userCompany.id,
+					amount: amountDecimal,
+					currency: "EUR",
+					transaction_type: "payment",
+					credits_added: 0,
+					credits_deducted: 0,
+					description: `Sponsoring de l'annonce "${formData.title}" (${label})`,
+					event_type: "sponsored_job_payment",
+					stripe_customer_id: sponsoredCustomerId,
+				});
+			}
+
 			toast.show({
 				placement: "top",
 				render: ({ id }) => (
@@ -1202,6 +1267,19 @@ const PostJob = () => {
 				});
 				// Mise à jour locale immédiate
 				userCompany.last_minute_credits = newCredits;
+			} else if (formData.isLastMinute && lastMinuteOneshotCustomerId) {
+				// Enregistrer la transaction de paiement one-shot Last Minute
+				await create("transactions", {
+					company_id: userCompany.id,
+					amount: 6.0,
+					currency: "EUR",
+					transaction_type: "payment",
+					credits_added: 0,
+					credits_deducted: 0,
+					description: `Paiement one-shot pour l'annonce Last Minute "${formData.title}"`,
+					event_type: "last_minute_oneshot_payment",
+					stripe_customer_id: lastMinuteOneshotCustomerId,
+				});
 			}
 
 			// Réinitialiser le formulaire
