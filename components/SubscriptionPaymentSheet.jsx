@@ -13,27 +13,53 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { SELECT_SUBSCRIPTION_PLAN } from "@/utils/activityEvents";
 
-const { SUPABASE_API_KEY } = Constants.expoConfig.extra;
+const { SUPABASE_API_KEY, SUPABASE_URL } = Constants.expoConfig.extra;
 
-export default function SubscriptionPaymentSheet({ company_id, email, plan }) {
-	const {
-		verifySubscription,
-		checkSubscription,
-		accessToken,
-		fetchCompanyFromSession,
-	} = useAuth();
+export default function SubscriptionPaymentSheet({
+	company_id,
+	email,
+	plan,
+	interval,
+	onSuccess,
+}) {
+	const { checkSubscription, refreshUser, accessToken } = useAuth();
 	const { trackActivity } = useDataContext();
 
 	const [loading, setLoading] = useState(false);
 
+	const updateCompanySubscriptionStatus = async (newPlan) => {
+		try {
+			await axios.patch(
+				`${SUPABASE_URL}/rest/v1/companies?id=eq.${company_id}`,
+				{ subscription_status: newPlan },
+				{
+					headers: {
+						apikey: SUPABASE_API_KEY,
+						Authorization: `Bearer ${accessToken}`,
+						"Content-Type": "application/json",
+						Prefer: "return=minimal",
+					},
+				},
+			);
+			console.log(
+				"✅ companies.subscription_status mis à jour:",
+				newPlan,
+			);
+		} catch (err) {
+			console.error(
+				"❌ Erreur mise à jour subscription_status:",
+				err.message,
+			);
+		}
+	};
+
 	const fetchPaymentSheetParams = async () => {
+		const payload = { company_id, email, plan, interval };
+		console.log("📤 create-subscription payload:", JSON.stringify(payload));
 		try {
 			const response = await axios.post(
 				"https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/create-subscription",
-				{
-					company_id,
-					email,
-				},
+				payload,
 				{
 					headers: {
 						Authorization: `Bearer ${SUPABASE_API_KEY}`,
@@ -42,14 +68,21 @@ export default function SubscriptionPaymentSheet({ company_id, email, plan }) {
 				},
 			);
 
+			console.log(
+				"📥 create-subscription response:",
+				JSON.stringify(response.data),
+			);
 			const { clientSecret, subscriptionId } = response.data;
 			if (!clientSecret) throw new Error("clientSecret manquant");
 			console.log("✅ clientSecret reçu:", clientSecret);
 			return { clientSecret, subscriptionId };
 		} catch (error) {
+			const errData = error.response?.data;
+			const errStatus = error.response?.status;
 			console.error(
 				"❌ Erreur create-subscription:",
-				error.response?.data || error.message,
+				`status=${errStatus}`,
+				JSON.stringify(errData ?? error.message),
 			);
 			Alert.alert("Erreur", "Impossible de créer la souscription.");
 			return null;
@@ -87,8 +120,10 @@ export default function SubscriptionPaymentSheet({ company_id, email, plan }) {
 			if (error) {
 				Alert.alert("Paiement échoué", error.message);
 			} else {
+				await updateCompanySubscriptionStatus(plan);
+				await refreshUser();
+				if (onSuccess) await onSuccess();
 				Alert.alert("Succès", "Votre abonnement a été activé !");
-				checkSubscription(company_id, accessToken);
 			}
 		} catch (err) {
 			console.error("❌ Erreur Payment Sheet:", err.message);
