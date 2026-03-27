@@ -462,16 +462,38 @@ const DashboardScreen = () => {
 												alignItems: "center",
 												justifyContent: "space-between",
 											}}>
-											<Text
-												size='lg'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}>
-												{company?.name}
-											</Text>
+											<VStack className='mb-2'>
+												<Text
+													size='lg'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+													}}>
+													{company?.name}
+												</Text>
+												{(company?.legal_representative_firstname ||
+													company?.legal_representative_lastname) && (
+													<Text
+														size='xs'
+														style={{
+															fontStyle: "italic",
+															color: isDark
+																? "#9ca3af"
+																: "#6b7280",
+														}}>
+														(
+														{[
+															company?.legal_representative_firstname,
+															company?.legal_representative_lastname,
+														]
+															.filter(Boolean)
+															.join(" ")}
+														)
+													</Text>
+												)}
+											</VStack>
 											{company?.company_status ===
 												"pending" && (
 												<Badge
