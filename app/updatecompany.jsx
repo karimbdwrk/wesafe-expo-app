@@ -34,6 +34,7 @@ import {
 	ToastDescription,
 } from "@/components/ui/toast";
 import { Icon } from "@/components/ui/icon";
+import { width } from "dom-helpers";
 
 const UpdateCompany = () => {
 	const router = useRouter();
@@ -46,6 +47,8 @@ const UpdateCompany = () => {
 	// const [siret, setSiret] = useState("");
 	const [email, setEmail] = useState("");
 	const [description, setDescription] = useState("");
+	const [legalFirstname, setLegalFirstname] = useState("");
+	const [legalLastname, setLegalLastname] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 
@@ -54,6 +57,8 @@ const UpdateCompany = () => {
 	const siretInputRef = useRef(null);
 	const emailInputRef = useRef(null);
 	const descriptionInputRef = useRef(null);
+	const legalFirstnameInputRef = useRef(null);
+	const legalLastnameInputRef = useRef(null);
 
 	// Formater le SIRET avec des espaces : 123 456 789 00013
 	const formatSiret = (value) => {
@@ -99,15 +104,20 @@ const UpdateCompany = () => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon as={AlertCircle} />
-						<VStack>
-							<ToastTitle>Champs obligatoires</ToastTitle>
-							<ToastDescription>
-								Veuillez remplir le nom, le SIRET et l'email de
-								l'entreprise.
-							</ToastDescription>
-						</VStack>
+					<Toast nativeID={id} action='muted' variant='outline'>
+						<HStack space='md' style={{ alignItems: "flex-start" }}>
+							<Icon
+								as={AlertCircle}
+								className='text-red-500 mt-1'
+							/>
+							<VStack>
+								<ToastTitle>Champs obligatoires</ToastTitle>
+								<ToastDescription>
+									Veuillez remplir le nom, le SIRET {"\n"}et
+									l'email de l'entreprise.
+								</ToastDescription>
+							</VStack>
+						</HStack>
 					</Toast>
 				),
 			});
@@ -121,6 +131,8 @@ const UpdateCompany = () => {
 				// siret: siret,
 				email: email,
 				description: description,
+				legal_representative_firstname: legalFirstname,
+				legal_representative_lastname: legalLastname,
 			});
 			console.log("update company :", updateCompany);
 
@@ -128,15 +140,22 @@ const UpdateCompany = () => {
 				placement: "top",
 				duration: 5000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='success' variant='accent'>
-						<Icon as={CheckCircle} />
-						<VStack>
-							<ToastTitle>Entreprise mise à jour !</ToastTitle>
-							<ToastDescription>
-								Les informations ont été enregistrées avec
-								succès.
-							</ToastDescription>
-						</VStack>
+					<Toast nativeID={id} action='muted' variant='outline'>
+						<HStack space='md' style={{ alignItems: "flex-start" }}>
+							<Icon
+								as={CheckCircle}
+								className='text-green-500 mt-1'
+							/>
+							<VStack>
+								<ToastTitle>
+									Entreprise mise à jour !
+								</ToastTitle>
+								<ToastDescription>
+									Les informations ont été enregistrées avec
+									succès.
+								</ToastDescription>
+							</VStack>
+						</HStack>
 					</Toast>
 				),
 			});
@@ -171,7 +190,7 @@ const UpdateCompany = () => {
 					const companyData = await getById(
 						"companies",
 						user.id,
-						"name,siret,email,description",
+						"name,siret,email,description,legal_representative_firstname,legal_representative_lastname",
 					);
 
 					if (companyData) {
@@ -179,6 +198,12 @@ const UpdateCompany = () => {
 						// setSiret(companyData.siret || "");
 						setEmail(companyData.email || "");
 						setDescription(companyData.description || "");
+						setLegalFirstname(
+							companyData.legal_representative_firstname || "",
+						);
+						setLegalLastname(
+							companyData.legal_representative_lastname || "",
+						);
 					}
 				}
 			} catch (error) {
@@ -218,7 +243,8 @@ const UpdateCompany = () => {
 				style={{
 					flex: 1,
 					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
-				}}>
+				}}
+				contentContainerStyle={{ paddingBottom: 100 }}>
 				<VStack space='lg' style={{ padding: 20 }}>
 					{/* Header Card */}
 					<Card
@@ -308,6 +334,96 @@ const UpdateCompany = () => {
 										onChangeText={setName}
 										onFocus={() =>
 											scrollToInput(nameInputRef)
+										}
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}
+									/>
+								</Input>
+							</VStack>
+
+							<Divider
+								style={{
+									backgroundColor: isDark
+										? "#4b5563"
+										: "#e5e7eb",
+								}}
+							/>
+
+							{/* Nom du représentant légal */}
+							<VStack space='sm' ref={legalLastnameInputRef}>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+										fontWeight: "600",
+									}}>
+									Nom du représentant légal
+								</Text>
+								<Input
+									style={{
+										backgroundColor: isDark
+											? "#1f2937"
+											: "#f9fafb",
+										borderColor: isDark
+											? "#4b5563"
+											: "#d1d5db",
+									}}>
+									<InputField
+										type='text'
+										placeholder='Nom'
+										value={legalLastname}
+										onChangeText={setLegalLastname}
+										onFocus={() =>
+											scrollToInput(legalLastnameInputRef)
+										}
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}
+									/>
+								</Input>
+							</VStack>
+
+							<Divider
+								style={{
+									backgroundColor: isDark
+										? "#4b5563"
+										: "#e5e7eb",
+								}}
+							/>
+
+							{/* Prénom du représentant légal */}
+							<VStack space='sm' ref={legalFirstnameInputRef}>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+										fontWeight: "600",
+									}}>
+									Prénom du représentant légal
+								</Text>
+								<Input
+									style={{
+										backgroundColor: isDark
+											? "#1f2937"
+											: "#f9fafb",
+										borderColor: isDark
+											? "#4b5563"
+											: "#d1d5db",
+									}}>
+									<InputField
+										type='text'
+										placeholder='Prénom'
+										value={legalFirstname}
+										onChangeText={setLegalFirstname}
+										onFocus={() =>
+											scrollToInput(
+												legalFirstnameInputRef,
+											)
 										}
 										style={{
 											color: isDark
@@ -481,49 +597,47 @@ const UpdateCompany = () => {
 							</VStack>
 						</VStack>
 					</Card>
-
-					{/* Action Buttons */}
-					<HStack space='md' style={{ justifyContent: "flex-end" }}>
-						<Button
-							variant='outline'
-							onPress={() => router.back()}
-							disabled={isSubmitting}
-							style={{
-								borderColor: isDark ? "#4b5563" : "#d1d5db",
-							}}>
-							<ButtonText
-								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
-								}}>
-								Annuler
-							</ButtonText>
-						</Button>
-						<Button
-							onPress={handleUpdateCompany}
-							disabled={isSubmitting}
-							style={{
-								backgroundColor: "#2563eb",
-							}}>
-							{isSubmitting ? (
-								<ButtonText style={{ color: "#ffffff" }}>
-									Enregistrement...
-								</ButtonText>
-							) : (
-								<>
-									<ButtonIcon
-										as={CheckCircle}
-										size={20}
-										color='#ffffff'
-									/>
-									<ButtonText style={{ color: "#ffffff" }}>
-										Enregistrer
-									</ButtonText>
-								</>
-							)}
-						</Button>
-					</HStack>
 				</VStack>
 			</ScrollView>
+
+			{/* Bouton fixe en bas */}
+			<Box
+				style={{
+					position: "absolute",
+					bottom: 0,
+					left: 0,
+					right: 0,
+					padding: 16,
+					paddingBottom: 32,
+					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					borderTopWidth: 1,
+					borderTopColor: isDark ? "#374151" : "#e5e7eb",
+				}}>
+				<Button
+					onPress={handleUpdateCompany}
+					disabled={isSubmitting}
+					style={{
+						backgroundColor: "#2563eb",
+						width: "100%",
+					}}>
+					{isSubmitting ? (
+						<ButtonText style={{ color: "#ffffff" }}>
+							Enregistrement...
+						</ButtonText>
+					) : (
+						<>
+							<ButtonIcon
+								as={CheckCircle}
+								size={20}
+								color='#ffffff'
+							/>
+							<ButtonText style={{ color: "#ffffff" }}>
+								Enregistrer
+							</ButtonText>
+						</>
+					)}
+				</Button>
+			</Box>
 		</KeyboardAvoidingView>
 	);
 };
