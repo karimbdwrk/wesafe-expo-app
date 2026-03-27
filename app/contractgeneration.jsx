@@ -46,6 +46,8 @@ import {
 } from "lucide-react-native";
 
 import { useTheme } from "@/context/ThemeContext";
+import { useAuth } from "@/context/AuthContext";
+import { useDataContext } from "@/context/DataContext";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -74,6 +76,30 @@ const ContractGenerationScreen = () => {
 	const { isDark } = useTheme();
 	const router = useRouter();
 	const toast = useToast();
+	const { accessToken } = useAuth();
+	const { getById } = useDataContext();
+
+	const [applicationData, setApplicationData] = useState(null);
+
+	useEffect(() => {
+		if (!application_id) return;
+		const fetchApplicationData = async () => {
+			try {
+				const data = await getById(
+					"applications",
+					application_id,
+					"*,jobs(*), profiles(*), companies(*)",
+				);
+				setApplicationData(data);
+				console.log("[ContractGen] Job :", data?.jobs);
+				console.log("[ContractGen] Candidat :", data?.profiles);
+				console.log("[ContractGen] Company :", data?.companies);
+			} catch (err) {
+				console.error("[ContractGen] Erreur fetch application :", err);
+			}
+		};
+		fetchApplicationData();
+	}, [application_id]);
 
 	const [currentStep, setCurrentStep] = useState(1);
 	const [showStartDatePicker, setShowStartDatePicker] = useState(false);
