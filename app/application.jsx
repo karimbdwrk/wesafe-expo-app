@@ -1578,7 +1578,12 @@ const ApplicationScreen = () => {
 							<Button
 								action='positive'
 								onPress={() =>
-									router.push("/contractgeneration")
+									router.push({
+										pathname: "/contractgeneration",
+										params: {
+											application_id: application.id,
+										},
+									})
 								}>
 								<ButtonText>Générer le contrat</ButtonText>
 							</Button>
