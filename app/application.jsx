@@ -1575,6 +1575,13 @@ const ApplicationScreen = () => {
 									</Button>
 								</>
 							)}
+							<Button
+								action='positive'
+								onPress={() =>
+									router.push("/contractgeneration")
+								}>
+								<ButtonText>Générer le contrat</ButtonText>
+							</Button>
 						</VStack>
 					)}
 				</VStack>
