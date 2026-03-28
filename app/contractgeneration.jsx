@@ -110,8 +110,8 @@ const ContractGenerationScreen = () => {
 	}, [application_id]);
 
 	const [currentStep, setCurrentStep] = useState(1);
-	const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-	const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+	const [showContractDatePicker, setShowContractDatePicker] = useState(null);
+	const [tempContractDate, setTempContractDate] = useState(new Date());
 	const [showVacationDatePicker, setShowVacationDatePicker] = useState(null);
 	const [tempVacationDate, setTempVacationDate] = useState(new Date());
 	const [showTimePicker, setShowTimePicker] = useState(null);
@@ -422,7 +422,10 @@ const ContractGenerationScreen = () => {
 			<Card style={cardStyle}>
 				<Text style={labelStyle}>Date de début *</Text>
 				<TouchableOpacity
-					onPress={() => setShowStartDatePicker(true)}
+					onPress={() => {
+						setTempContractDate(formData.start_date || new Date());
+						setShowContractDatePicker("start");
+					}}
 					style={{
 						...inputStyle,
 						borderWidth: 1,
@@ -452,24 +455,18 @@ const ContractGenerationScreen = () => {
 							: "Sélectionner une date"}
 					</Text>
 				</TouchableOpacity>
-				{showStartDatePicker && (
-					<DateTimePicker
-						value={formData.start_date || new Date()}
-						mode='date'
-						display={Platform.OS === "ios" ? "spinner" : "default"}
-						onChange={(_, date) => {
-							setShowStartDatePicker(false);
-							if (date) updateField("start_date", date);
-						}}
-					/>
-				)}
 			</Card>
 
 			{formData.contract_type !== "CDI" && (
 				<Card style={cardStyle}>
 					<Text style={labelStyle}>Date de fin</Text>
 					<TouchableOpacity
-						onPress={() => setShowEndDatePicker(true)}
+						onPress={() => {
+							setTempContractDate(
+								formData.end_date || new Date(),
+							);
+							setShowContractDatePicker("end");
+						}}
 						style={{
 							...inputStyle,
 							borderWidth: 1,
@@ -499,25 +496,25 @@ const ContractGenerationScreen = () => {
 								: "Sélectionner une date"}
 						</Text>
 					</TouchableOpacity>
-					{showEndDatePicker && (
-						<DateTimePicker
-							value={formData.end_date || new Date()}
-							mode='date'
-							display={
-								Platform.OS === "ios" ? "spinner" : "default"
-							}
-							onChange={(_, date) => {
-								setShowEndDatePicker(false);
-								if (date) updateField("end_date", date);
-							}}
-						/>
-					)}
 				</Card>
 			)}
 
 			{/* Durée hebdomadaire */}
 			<Card style={cardStyle}>
-				<Text style={labelStyle}>Nombre d'heures total</Text>
+				<Text style={labelStyle}>
+					{formData.contract_type === "CDI" ||
+					(formData.start_date &&
+						formData.end_date &&
+						formData.end_date >=
+							new Date(
+								new Date(formData.start_date).setMonth(
+									new Date(formData.start_date).getMonth() +
+										1,
+								),
+							))
+						? "Nombre d'heures mensuelles"
+						: "Nombre d'heures au total"}
+				</Text>
 				<Input style={inputStyle}>
 					<InputField
 						placeholder='Ex : 151.67'
@@ -1716,6 +1713,67 @@ const ContractGenerationScreen = () => {
 					</Box>
 				</Box>
 			</KeyboardAvoidingView>
+
+			{/* Actionsheet : date picker contrat (début / fin) */}
+			<Actionsheet
+				isOpen={showContractDatePicker !== null}
+				onClose={() => setShowContractDatePicker(null)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						backgroundColor: isDark ? "#374151" : "#ffffff",
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack
+						style={{
+							width: "100%",
+							padding: 20,
+							paddingBottom: 32,
+						}}
+						space='md'>
+						<Text
+							style={{
+								fontSize: 16,
+								fontWeight: "700",
+								color: isDark ? "#f3f4f6" : "#111827",
+								textAlign: "center",
+							}}>
+							{showContractDatePicker === "start"
+								? "Date de début"
+								: "Date de fin"}
+						</Text>
+						<DateTimePicker
+							value={tempContractDate}
+							mode='date'
+							display='spinner'
+							onChange={(_, date) => {
+								if (date) setTempContractDate(date);
+							}}
+							style={{ width: "100%" }}
+						/>
+						<Button
+							onPress={() => {
+								if (showContractDatePicker === "start") {
+									updateField("start_date", tempContractDate);
+								} else if (showContractDatePicker === "end") {
+									updateField("end_date", tempContractDate);
+								}
+								setShowContractDatePicker(null);
+							}}
+							style={{
+								backgroundColor: "#3b82f6",
+								borderRadius: 12,
+							}}>
+							<ButtonText
+								style={{ color: "#ffffff", fontWeight: "700" }}>
+								Confirmer
+							</ButtonText>
+						</Button>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
 
 			{/* Actionsheet : time picker */}
 			<Actionsheet
