@@ -29,6 +29,13 @@ import {
 	ToastDescription,
 } from "@/components/ui/toast";
 import { Badge, BadgeText } from "@/components/ui/badge";
+import {
+	Actionsheet,
+	ActionsheetContent,
+	ActionsheetDragIndicator,
+	ActionsheetDragIndicatorWrapper,
+	ActionsheetBackdrop,
+} from "@/components/ui/actionsheet";
 
 import {
 	ChevronLeft,
@@ -59,7 +66,8 @@ const STEPS = [
 	{ id: 5, title: "Récapitulatif" },
 ];
 
-const CONTRACT_TYPES = ["CDD", "CDI", "Intérim", "Saisonnier"];
+// const CONTRACT_TYPES = ["CDD", "CDI", "Intérim", "Saisonnier"];
+const CONTRACT_TYPES = ["CDD", "CDI"];
 
 const WEEK_DAYS = [
 	"Lundi",
@@ -104,6 +112,8 @@ const ContractGenerationScreen = () => {
 	const [currentStep, setCurrentStep] = useState(1);
 	const [showStartDatePicker, setShowStartDatePicker] = useState(false);
 	const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+	const [showVacationDatePicker, setShowVacationDatePicker] = useState(null);
+	const [tempVacationDate, setTempVacationDate] = useState(new Date());
 
 	const scrollX = useRef(new Animated.Value(0)).current;
 	const scrollViewRefs = useRef([null, null, null, null, null]);
@@ -127,7 +137,17 @@ const ContractGenerationScreen = () => {
 		start_date: null,
 		end_date: null,
 		total_hours: "",
-		schedule: [],
+		schedule_known: false,
+		week_schedule: {
+			Lundi: { enabled: false, start: "", end: "" },
+			Mardi: { enabled: false, start: "", end: "" },
+			Mercredi: { enabled: false, start: "", end: "" },
+			Jeudi: { enabled: false, start: "", end: "" },
+			Vendredi: { enabled: false, start: "", end: "" },
+			Samedi: { enabled: false, start: "", end: "" },
+			Dimanche: { enabled: false, start: "", end: "" },
+		},
+		vacations: [],
 		// Step 2
 		work_location: "",
 		job_title: "",
@@ -154,13 +174,38 @@ const ContractGenerationScreen = () => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
 	};
 
-	const toggleScheduleDay = (day) => {
+	const updateWeekDay = (day, field, value) => {
+		setFormData((prev) => ({
+			...prev,
+			week_schedule: {
+				...prev.week_schedule,
+				[day]: { ...prev.week_schedule[day], [field]: value },
+			},
+		}));
+	};
+
+	const addVacation = () => {
+		setFormData((prev) => ({
+			...prev,
+			vacations: [
+				...prev.vacations,
+				{ date: null, start_time: "", end_time: "" },
+			],
+		}));
+	};
+
+	const removeVacation = (index) => {
+		setFormData((prev) => ({
+			...prev,
+			vacations: prev.vacations.filter((_, i) => i !== index),
+		}));
+	};
+
+	const updateVacation = (index, field, value) => {
 		setFormData((prev) => {
-			const current = prev.schedule;
-			if (current.includes(day)) {
-				return { ...prev, schedule: current.filter((d) => d !== day) };
-			}
-			return { ...prev, schedule: [...current, day] };
+			const updated = [...prev.vacations];
+			updated[index] = { ...updated[index], [field]: value };
+			return { ...prev, vacations: updated };
 		});
 	};
 
@@ -467,44 +512,325 @@ const ContractGenerationScreen = () => {
 				</Input>
 			</Card>
 
-			{/* Jours de travail */}
+			{/* Planning */}
 			<Card style={cardStyle}>
-				<Text style={labelStyle}>Jours travaillés</Text>
-				<HStack style={{ flexWrap: "wrap", gap: 8 }}>
-					{WEEK_DAYS.map((day) => (
-						<TouchableOpacity
-							key={day}
-							onPress={() => toggleScheduleDay(day)}
-							activeOpacity={0.7}
-							style={{
-								paddingHorizontal: 12,
-								paddingVertical: 6,
-								borderRadius: 16,
-								borderWidth: 1.5,
-								borderColor: formData.schedule.includes(day)
-									? "#3b82f6"
-									: isDark
-										? "#4b5563"
-										: "#d1d5db",
-								backgroundColor: formData.schedule.includes(day)
-									? "#3b82f6"
-									: "transparent",
-							}}>
-							<Text
-								style={{
-									fontSize: 12,
-									fontWeight: "600",
-									color: formData.schedule.includes(day)
-										? "#ffffff"
-										: isDark
-											? "#d1d5db"
-											: "#374151",
-								}}>
-								{day.slice(0, 3)}
-							</Text>
-						</TouchableOpacity>
-					))}
+				<HStack
+					style={{
+						justifyContent: "space-between",
+						alignItems: "center",
+						marginBottom: formData.schedule_known ? 16 : 0,
+					}}>
+					<Text
+						style={{
+							fontSize: 13,
+							fontWeight: "600",
+							color: isDark ? "#d1d5db" : "#374151",
+						}}>
+						Planning connu ?
+					</Text>
+					<Switch
+						value={formData.schedule_known}
+						onValueChange={(v) => updateField("schedule_known", v)}
+					/>
 				</HStack>
+
+				{/* CDI – Semaine type */}
+				{formData.schedule_known &&
+					formData.contract_type === "CDI" && (
+						<VStack space='xs'>
+							{WEEK_DAYS.map((day, idx) => (
+								<VStack key={day}>
+									{idx > 0 && (
+										<Divider
+											style={{
+												marginVertical: 8,
+												backgroundColor: isDark
+													? "#374151"
+													: "#f3f4f6",
+											}}
+										/>
+									)}
+									<HStack
+										style={{
+											justifyContent: "space-between",
+											alignItems: "center",
+											marginBottom: formData
+												.week_schedule[day].enabled
+												? 8
+												: 0,
+										}}>
+										<Text
+											style={{
+												fontSize: 13,
+												fontWeight: "600",
+												color: isDark
+													? "#d1d5db"
+													: "#374151",
+												width: 88,
+											}}>
+											{day}
+										</Text>
+										<Switch
+											value={
+												formData.week_schedule[day]
+													.enabled
+											}
+											onValueChange={(v) =>
+												updateWeekDay(day, "enabled", v)
+											}
+										/>
+									</HStack>
+									{formData.week_schedule[day].enabled && (
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={Clock}
+												size='xs'
+												style={{
+													color: isDark
+														? "#6b7280"
+														: "#9ca3af",
+												}}
+											/>
+											<Input
+												style={{
+													...inputStyle,
+													flex: 1,
+												}}>
+												<InputField
+													placeholder='08:00'
+													value={
+														formData.week_schedule[
+															day
+														].start
+													}
+													onChangeText={(v) =>
+														updateWeekDay(
+															day,
+															"start",
+															v,
+														)
+													}
+													keyboardType='numbers-and-punctuation'
+													style={inputTextStyle}
+												/>
+											</Input>
+											<Text
+												style={{
+													color: isDark
+														? "#6b7280"
+														: "#9ca3af",
+													fontWeight: "600",
+												}}>
+												→
+											</Text>
+											<Input
+												style={{
+													...inputStyle,
+													flex: 1,
+												}}>
+												<InputField
+													placeholder='20:00'
+													value={
+														formData.week_schedule[
+															day
+														].end
+													}
+													onChangeText={(v) =>
+														updateWeekDay(
+															day,
+															"end",
+															v,
+														)
+													}
+													keyboardType='numbers-and-punctuation'
+													style={inputTextStyle}
+												/>
+											</Input>
+										</HStack>
+									)}
+								</VStack>
+							))}
+						</VStack>
+					)}
+
+				{/* CDD – Vacations */}
+				{formData.schedule_known &&
+					formData.contract_type !== "CDI" && (
+						<VStack space='sm'>
+							{formData.vacations.map((vacation, index) => (
+								<Card
+									key={index}
+									style={{
+										backgroundColor: isDark
+											? "#1f2937"
+											: "#f3f4f6",
+										borderRadius: 8,
+										padding: 12,
+										marginBottom: 0,
+									}}>
+									<HStack
+										style={{
+											justifyContent: "space-between",
+											alignItems: "center",
+											marginBottom: 10,
+										}}>
+										<Text
+											style={{
+												fontSize: 12,
+												fontWeight: "700",
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}>
+											Vacation {index + 1}
+										</Text>
+										<TouchableOpacity
+											onPress={() =>
+												removeVacation(index)
+											}
+											activeOpacity={0.7}>
+											<Icon
+												as={Trash2}
+												size='sm'
+												style={{ color: "#ef4444" }}
+											/>
+										</TouchableOpacity>
+									</HStack>
+
+									{/* Date */}
+									<TouchableOpacity
+										onPress={() => {
+											setTempVacationDate(
+												vacation.date || new Date(),
+											);
+											setShowVacationDatePicker(index);
+										}}
+										style={{
+											...inputStyle,
+											borderWidth: 1,
+											borderRadius: 8,
+											padding: 10,
+											flexDirection: "row",
+											alignItems: "center",
+											gap: 8,
+											marginBottom: 8,
+										}}>
+										<Icon
+											as={CalendarDays}
+											size='xs'
+											style={{
+												color: isDark
+													? "#9ca3af"
+													: "#6b7280",
+											}}
+										/>
+										<Text
+											style={{
+												fontSize: 13,
+												color: vacation.date
+													? isDark
+														? "#f3f4f6"
+														: "#111827"
+													: isDark
+														? "#6b7280"
+														: "#9ca3af",
+											}}>
+											{vacation.date
+												? formatDate(vacation.date)
+												: "Date de la vacation"}
+										</Text>
+									</TouchableOpacity>
+									{/* Heures */}
+									<HStack
+										space='sm'
+										style={{ alignItems: "center" }}>
+										<Icon
+											as={Clock}
+											size='xs'
+											style={{
+												color: isDark
+													? "#6b7280"
+													: "#9ca3af",
+											}}
+										/>
+										<Input
+											style={{ ...inputStyle, flex: 1 }}>
+											<InputField
+												placeholder='08:00'
+												value={vacation.start_time}
+												onChangeText={(v) =>
+													updateVacation(
+														index,
+														"start_time",
+														v,
+													)
+												}
+												keyboardType='numbers-and-punctuation'
+												style={inputTextStyle}
+											/>
+										</Input>
+										<Text
+											style={{
+												color: isDark
+													? "#6b7280"
+													: "#9ca3af",
+												fontWeight: "600",
+											}}>
+											→
+										</Text>
+										<Input
+											style={{ ...inputStyle, flex: 1 }}>
+											<InputField
+												placeholder='20:00'
+												value={vacation.end_time}
+												onChangeText={(v) =>
+													updateVacation(
+														index,
+														"end_time",
+														v,
+													)
+												}
+												keyboardType='numbers-and-punctuation'
+												style={inputTextStyle}
+											/>
+										</Input>
+									</HStack>
+								</Card>
+							))}
+
+							<TouchableOpacity
+								onPress={addVacation}
+								activeOpacity={0.7}
+								style={{
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: 8,
+									paddingVertical: 10,
+									borderRadius: 8,
+									borderWidth: 1.5,
+									borderStyle: "dashed",
+									borderColor: isDark ? "#4b5563" : "#d1d5db",
+								}}>
+								<Icon
+									as={Plus}
+									size='sm'
+									style={{
+										color: isDark ? "#6b7280" : "#9ca3af",
+									}}
+								/>
+								<Text
+									style={{
+										fontSize: 13,
+										color: isDark ? "#6b7280" : "#9ca3af",
+									}}>
+									Ajouter une vacation
+								</Text>
+							</TouchableOpacity>
+						</VStack>
+					)}
 			</Card>
 		</ScrollView>
 	);
@@ -813,13 +1139,24 @@ const ContractGenerationScreen = () => {
 								: null,
 						},
 						{
-							label: "Jours travaillés",
-							value:
-								formData.schedule && formData.schedule.length
-									? formData.schedule
-											.map((d) => d.slice(0, 3))
-											.join(", ")
-									: null,
+							label: "Planning",
+							value: !formData.schedule_known
+								? "Non communiqué"
+								: formData.contract_type === "CDI"
+									? Object.entries(formData.week_schedule)
+											.filter(([, v]) => v.enabled)
+											.map(
+												([d, v]) =>
+													`${d.slice(0, 3)}${
+														v.start
+															? ` ${v.start}→${v.end}`
+															: ""
+													}`,
+											)
+											.join(", ") || "Aucun jour"
+									: formData.vacations.length
+										? `${formData.vacations.length} vacation(s)`
+										: "Aucune vacation",
 						},
 					].map(({ label, value }) =>
 						value ? (
@@ -1079,178 +1416,258 @@ const ContractGenerationScreen = () => {
 	);
 
 	return (
-		<KeyboardAvoidingView
-			behavior={Platform.OS === "ios" ? "padding" : "height"}
-			style={{ flex: 1 }}
-			keyboardVerticalOffset={80}>
-			<Box
-				style={{
-					flex: 1,
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
-				}}>
-				{/* ── Progress Bar ── */}
+		<>
+			<KeyboardAvoidingView
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
+				style={{ flex: 1 }}
+				keyboardVerticalOffset={80}>
 				<Box
 					style={{
-						paddingTop: 14,
-						paddingHorizontal: 20,
-						paddingBottom: 14,
-						backgroundColor: isDark ? "#374151" : "#ffffff",
-						borderBottomWidth: 1,
-						borderBottomColor: isDark ? "#4b5563" : "#e5e7eb",
-					}}>
-					<VStack space='sm'>
-						<HStack
-							style={{
-								alignItems: "center",
-								justifyContent: "space-between",
-							}}>
-							<Text
-								style={{
-									fontSize: 14,
-									fontWeight: "600",
-									color: isDark ? "#f3f4f6" : "#111827",
-								}}>
-								{STEPS[currentStep - 1].title}
-							</Text>
-							<Text
-								style={{
-									fontSize: 12,
-									color: isDark ? "#9ca3af" : "#6b7280",
-								}}>
-								Étape {currentStep}/{STEPS.length}
-							</Text>
-						</HStack>
-						<Box
-							style={{
-								width: "100%",
-								height: 8,
-								backgroundColor: isDark ? "#4b5563" : "#e5e7eb",
-								borderRadius: 4,
-								overflow: "hidden",
-							}}>
-							<Animated.View
-								style={{
-									width: progressAnim.interpolate({
-										inputRange: [0, 100],
-										outputRange: ["0%", "100%"],
-									}),
-									height: "100%",
-									backgroundColor: "#3b82f6",
-									borderRadius: 4,
-								}}
-							/>
-						</Box>
-					</VStack>
-				</Box>
-
-				{/* ── Steps Content ── */}
-				<Box style={{ flex: 1, overflow: "hidden" }}>
-					<Animated.View
-						style={{
-							flex: 1,
-							flexDirection: "row",
-							width: SCREEN_WIDTH * STEPS.length,
-							transform: [{ translateX: scrollX }],
-						}}>
-						<Box style={{ width: SCREEN_WIDTH }}>
-							{renderStep1()}
-						</Box>
-						<Box style={{ width: SCREEN_WIDTH }}>
-							{renderStep2()}
-						</Box>
-						<Box style={{ width: SCREEN_WIDTH }}>
-							{renderStep3()}
-						</Box>
-						<Box style={{ width: SCREEN_WIDTH }}>
-							{renderStep4()}
-						</Box>
-						<Box style={{ width: SCREEN_WIDTH }}>
-							{renderStep5()}
-						</Box>
-					</Animated.View>
-				</Box>
-
-				{/* ── Bottom Fixed Navigation ── */}
-				<Box
-					style={{
-						position: "absolute",
-						bottom: 0,
-						left: 0,
-						right: 0,
-						padding: 16,
-						paddingBottom: Platform.OS === "ios" ? 32 : 20,
+						flex: 1,
 						backgroundColor: isDark ? "#1f2937" : "#f9fafb",
-						borderTopWidth: 1,
-						borderTopColor: isDark ? "#374151" : "#e5e7eb",
 					}}>
-					<HStack space='md'>
-						{currentStep > 1 ? (
-							<Button
-								variant='outline'
-								onPress={goToPreviousStep}
+					{/* ── Progress Bar ── */}
+					<Box
+						style={{
+							paddingTop: 14,
+							paddingHorizontal: 20,
+							paddingBottom: 14,
+							backgroundColor: isDark ? "#374151" : "#ffffff",
+							borderBottomWidth: 1,
+							borderBottomColor: isDark ? "#4b5563" : "#e5e7eb",
+						}}>
+						<VStack space='sm'>
+							<HStack
 								style={{
-									flex: 1,
-									borderColor: isDark ? "#4b5563" : "#d1d5db",
+									alignItems: "center",
+									justifyContent: "space-between",
 								}}>
-								<ButtonIcon
-									as={ChevronLeft}
+								<Text
 									style={{
+										fontSize: 14,
+										fontWeight: "600",
 										color: isDark ? "#f3f4f6" : "#111827",
+									}}>
+									{STEPS[currentStep - 1].title}
+								</Text>
+								<Text
+									style={{
+										fontSize: 12,
+										color: isDark ? "#9ca3af" : "#6b7280",
+									}}>
+									Étape {currentStep}/{STEPS.length}
+								</Text>
+							</HStack>
+							<Box
+								style={{
+									width: "100%",
+									height: 8,
+									backgroundColor: isDark
+										? "#4b5563"
+										: "#e5e7eb",
+									borderRadius: 4,
+									overflow: "hidden",
+								}}>
+								<Animated.View
+									style={{
+										width: progressAnim.interpolate({
+											inputRange: [0, 100],
+											outputRange: ["0%", "100%"],
+										}),
+										height: "100%",
+										backgroundColor: "#3b82f6",
+										borderRadius: 4,
 									}}
 								/>
-								<ButtonText
-									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}>
-									Précédent
-								</ButtonText>
-							</Button>
-						) : (
-							<Button
-								variant='outline'
-								onPress={() => router.back()}
-								style={{
-									flex: 1,
-									borderColor: isDark ? "#4b5563" : "#d1d5db",
-								}}>
-								<ButtonText
-									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}>
-									Annuler
-								</ButtonText>
-							</Button>
-						)}
+							</Box>
+						</VStack>
+					</Box>
 
-						{currentStep < STEPS.length ? (
-							<Button
-								onPress={validateStep}
-								style={{ flex: 2, backgroundColor: "#3b82f6" }}>
-								<ButtonText style={{ color: "#ffffff" }}>
-									Suivant
-								</ButtonText>
-								<ButtonIcon
-									as={ChevronRight}
-									style={{ color: "#ffffff" }}
-								/>
-							</Button>
-						) : (
-							<Button
-								onPress={handleSubmit}
-								style={{ flex: 2, backgroundColor: "#16a34a" }}>
-								<ButtonIcon
-									as={CheckCircle}
-									style={{ color: "#ffffff" }}
-								/>
-								<ButtonText style={{ color: "#ffffff" }}>
-									Générer le contrat
-								</ButtonText>
-							</Button>
-						)}
-					</HStack>
+					{/* ── Steps Content ── */}
+					<Box style={{ flex: 1, overflow: "hidden" }}>
+						<Animated.View
+							style={{
+								flex: 1,
+								flexDirection: "row",
+								width: SCREEN_WIDTH * STEPS.length,
+								transform: [{ translateX: scrollX }],
+							}}>
+							<Box style={{ width: SCREEN_WIDTH }}>
+								{renderStep1()}
+							</Box>
+							<Box style={{ width: SCREEN_WIDTH }}>
+								{renderStep2()}
+							</Box>
+							<Box style={{ width: SCREEN_WIDTH }}>
+								{renderStep3()}
+							</Box>
+							<Box style={{ width: SCREEN_WIDTH }}>
+								{renderStep4()}
+							</Box>
+							<Box style={{ width: SCREEN_WIDTH }}>
+								{renderStep5()}
+							</Box>
+						</Animated.View>
+					</Box>
+
+					{/* ── Bottom Fixed Navigation ── */}
+					<Box
+						style={{
+							position: "absolute",
+							bottom: 0,
+							left: 0,
+							right: 0,
+							padding: 16,
+							paddingBottom: Platform.OS === "ios" ? 32 : 20,
+							backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+							borderTopWidth: 1,
+							borderTopColor: isDark ? "#374151" : "#e5e7eb",
+						}}>
+						<HStack space='md'>
+							{currentStep > 1 ? (
+								<Button
+									variant='outline'
+									onPress={goToPreviousStep}
+									style={{
+										flex: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#d1d5db",
+									}}>
+									<ButtonIcon
+										as={ChevronLeft}
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}
+									/>
+									<ButtonText
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										Précédent
+									</ButtonText>
+								</Button>
+							) : (
+								<Button
+									variant='outline'
+									onPress={() => router.back()}
+									style={{
+										flex: 1,
+										borderColor: isDark
+											? "#4b5563"
+											: "#d1d5db",
+									}}>
+									<ButtonText
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}>
+										Annuler
+									</ButtonText>
+								</Button>
+							)}
+
+							{currentStep < STEPS.length ? (
+								<Button
+									onPress={validateStep}
+									style={{
+										flex: 2,
+										backgroundColor: "#3b82f6",
+									}}>
+									<ButtonText style={{ color: "#ffffff" }}>
+										Suivant
+									</ButtonText>
+									<ButtonIcon
+										as={ChevronRight}
+										style={{ color: "#ffffff" }}
+									/>
+								</Button>
+							) : (
+								<Button
+									onPress={handleSubmit}
+									style={{
+										flex: 2,
+										backgroundColor: "#16a34a",
+									}}>
+									<ButtonIcon
+										as={CheckCircle}
+										style={{ color: "#ffffff" }}
+									/>
+									<ButtonText style={{ color: "#ffffff" }}>
+										Générer le contrat
+									</ButtonText>
+								</Button>
+							)}
+						</HStack>
+					</Box>
 				</Box>
-			</Box>
-		</KeyboardAvoidingView>
+			</KeyboardAvoidingView>
+
+			<Actionsheet
+				isOpen={showVacationDatePicker !== null}
+				onClose={() => setShowVacationDatePicker(null)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						backgroundColor: isDark ? "#374151" : "#ffffff",
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack
+						style={{
+							width: "100%",
+							padding: 20,
+							paddingBottom: 32,
+						}}
+						space='md'>
+						<Text
+							style={{
+								fontSize: 16,
+								fontWeight: "700",
+								color: isDark ? "#f3f4f6" : "#111827",
+								textAlign: "center",
+							}}>
+							Date de la vacation
+						</Text>
+						<DateTimePicker
+							value={tempVacationDate}
+							mode='date'
+							display='spinner'
+							onChange={(_, date) => {
+								if (date) setTempVacationDate(date);
+							}}
+							style={{ width: "100%" }}
+						/>
+						<Button
+							onPress={() => {
+								if (showVacationDatePicker !== null) {
+									updateVacation(
+										showVacationDatePicker,
+										"date",
+										tempVacationDate,
+									);
+								}
+								setShowVacationDatePicker(null);
+							}}
+							style={{
+								backgroundColor: "#3b82f6",
+								borderRadius: 12,
+							}}>
+							<ButtonText
+								style={{ color: "#ffffff", fontWeight: "700" }}>
+								Confirmer
+							</ButtonText>
+						</Button>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
+		</>
 	);
 };
 
