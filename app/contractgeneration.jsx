@@ -114,6 +114,8 @@ const ContractGenerationScreen = () => {
 	const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 	const [showVacationDatePicker, setShowVacationDatePicker] = useState(null);
 	const [tempVacationDate, setTempVacationDate] = useState(new Date());
+	const [showTimePicker, setShowTimePicker] = useState(null);
+	const [tempTime, setTempTime] = useState(new Date());
 
 	const scrollX = useRef(new Animated.Value(0)).current;
 	const scrollViewRefs = useRef([null, null, null, null, null]);
@@ -311,6 +313,21 @@ const ContractGenerationScreen = () => {
 	const formatDate = (date) => {
 		if (!date) return "";
 		return date.toLocaleDateString("fr-FR");
+	};
+
+	const parseTimeToDate = (timeStr) => {
+		const d = new Date();
+		if (timeStr) {
+			const [h, m] = timeStr.split(":").map(Number);
+			if (!isNaN(h)) d.setHours(h, isNaN(m) ? 0 : m, 0, 0);
+		}
+		return d;
+	};
+
+	const formatTime = (date) => {
+		const h = String(date.getHours()).padStart(2, "0");
+		const m = String(date.getMinutes()).padStart(2, "0");
+		return `${h}:${m}`;
 	};
 
 	// ─── Styles partagés ───────────────────────────────────────────────────────
@@ -593,29 +610,50 @@ const ContractGenerationScreen = () => {
 														: "#9ca3af",
 												}}
 											/>
-											<Input
+											<TouchableOpacity
+												onPress={() => {
+													setTempTime(
+														new Date(
+															new Date().setHours(
+																8,
+																0,
+																0,
+																0,
+															),
+														),
+													);
+													setShowTimePicker({
+														source: "cdi",
+														day,
+														field: "start",
+													});
+												}}
+												activeOpacity={0.7}
 												style={{
 													...inputStyle,
+													borderWidth: 1,
+													borderRadius: 8,
+													padding: 10,
 													flex: 1,
+													alignItems: "center",
 												}}>
-												<InputField
-													placeholder='08:00'
-													value={
-														formData.week_schedule[
-															day
-														].start
-													}
-													onChangeText={(v) =>
-														updateWeekDay(
-															day,
-															"start",
-															v,
-														)
-													}
-													keyboardType='numbers-and-punctuation'
-													style={inputTextStyle}
-												/>
-											</Input>
+												<Text
+													style={{
+														fontSize: 13,
+														color: formData
+															.week_schedule[day]
+															.start
+															? isDark
+																? "#f3f4f6"
+																: "#111827"
+															: isDark
+																? "#6b7280"
+																: "#9ca3af",
+													}}>
+													{formData.week_schedule[day]
+														.start || "Début"}
+												</Text>
+											</TouchableOpacity>
 											<Text
 												style={{
 													color: isDark
@@ -625,29 +663,50 @@ const ContractGenerationScreen = () => {
 												}}>
 												→
 											</Text>
-											<Input
+											<TouchableOpacity
+												onPress={() => {
+													setTempTime(
+														new Date(
+															new Date().setHours(
+																18,
+																0,
+																0,
+																0,
+															),
+														),
+													);
+													setShowTimePicker({
+														source: "cdi",
+														day,
+														field: "end",
+													});
+												}}
+												activeOpacity={0.7}
 												style={{
 													...inputStyle,
+													borderWidth: 1,
+													borderRadius: 8,
+													padding: 10,
 													flex: 1,
+													alignItems: "center",
 												}}>
-												<InputField
-													placeholder='20:00'
-													value={
-														formData.week_schedule[
-															day
-														].end
-													}
-													onChangeText={(v) =>
-														updateWeekDay(
-															day,
-															"end",
-															v,
-														)
-													}
-													keyboardType='numbers-and-punctuation'
-													style={inputTextStyle}
-												/>
-											</Input>
+												<Text
+													style={{
+														fontSize: 13,
+														color: formData
+															.week_schedule[day]
+															.end
+															? isDark
+																? "#f3f4f6"
+																: "#111827"
+															: isDark
+																? "#6b7280"
+																: "#9ca3af",
+													}}>
+													{formData.week_schedule[day]
+														.end || "Fin"}
+												</Text>
+											</TouchableOpacity>
 										</HStack>
 									)}
 								</VStack>
@@ -755,22 +814,47 @@ const ContractGenerationScreen = () => {
 													: "#9ca3af",
 											}}
 										/>
-										<Input
-											style={{ ...inputStyle, flex: 1 }}>
-											<InputField
-												placeholder='08:00'
-												value={vacation.start_time}
-												onChangeText={(v) =>
-													updateVacation(
-														index,
-														"start_time",
-														v,
-													)
-												}
-												keyboardType='numbers-and-punctuation'
-												style={inputTextStyle}
-											/>
-										</Input>
+										<TouchableOpacity
+											onPress={() => {
+												setTempTime(
+													new Date(
+														new Date().setHours(
+															8,
+															0,
+															0,
+															0,
+														),
+													),
+												);
+												setShowTimePicker({
+													source: "vacation",
+													index,
+													field: "start_time",
+												});
+											}}
+											activeOpacity={0.7}
+											style={{
+												...inputStyle,
+												borderWidth: 1,
+												borderRadius: 8,
+												padding: 10,
+												flex: 1,
+												alignItems: "center",
+											}}>
+											<Text
+												style={{
+													fontSize: 13,
+													color: vacation.start_time
+														? isDark
+															? "#f3f4f6"
+															: "#111827"
+														: isDark
+															? "#6b7280"
+															: "#9ca3af",
+												}}>
+												{vacation.start_time || "Début"}
+											</Text>
+										</TouchableOpacity>
 										<Text
 											style={{
 												color: isDark
@@ -780,22 +864,47 @@ const ContractGenerationScreen = () => {
 											}}>
 											→
 										</Text>
-										<Input
-											style={{ ...inputStyle, flex: 1 }}>
-											<InputField
-												placeholder='20:00'
-												value={vacation.end_time}
-												onChangeText={(v) =>
-													updateVacation(
-														index,
-														"end_time",
-														v,
-													)
-												}
-												keyboardType='numbers-and-punctuation'
-												style={inputTextStyle}
-											/>
-										</Input>
+										<TouchableOpacity
+											onPress={() => {
+												setTempTime(
+													new Date(
+														new Date().setHours(
+															18,
+															0,
+															0,
+															0,
+														),
+													),
+												);
+												setShowTimePicker({
+													source: "vacation",
+													index,
+													field: "end_time",
+												});
+											}}
+											activeOpacity={0.7}
+											style={{
+												...inputStyle,
+												borderWidth: 1,
+												borderRadius: 8,
+												padding: 10,
+												flex: 1,
+												alignItems: "center",
+											}}>
+											<Text
+												style={{
+													fontSize: 13,
+													color: vacation.end_time
+														? isDark
+															? "#f3f4f6"
+															: "#111827"
+														: isDark
+															? "#6b7280"
+															: "#9ca3af",
+												}}>
+												{vacation.end_time || "Fin"}
+											</Text>
+										</TouchableOpacity>
 									</HStack>
 								</Card>
 							))}
@@ -1608,6 +1717,82 @@ const ContractGenerationScreen = () => {
 				</Box>
 			</KeyboardAvoidingView>
 
+			{/* Actionsheet : time picker */}
+			<Actionsheet
+				isOpen={showTimePicker !== null}
+				onClose={() => setShowTimePicker(null)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						backgroundColor: isDark ? "#374151" : "#ffffff",
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack
+						style={{
+							width: "100%",
+							padding: 20,
+							paddingBottom: 32,
+						}}
+						space='md'>
+						<Text
+							style={{
+								fontSize: 16,
+								fontWeight: "700",
+								color: isDark ? "#f3f4f6" : "#111827",
+								textAlign: "center",
+							}}>
+							{showTimePicker?.field === "start" ||
+							showTimePicker?.field === "start_time"
+								? "Heure de début"
+								: "Heure de fin"}
+						</Text>
+						<DateTimePicker
+							value={tempTime}
+							mode='time'
+							display='spinner'
+							is24Hour
+							minuteInterval={5}
+							onChange={(_, time) => {
+								if (time) setTempTime(time);
+							}}
+							style={{ width: "100%" }}
+						/>
+						<Button
+							onPress={() => {
+								if (showTimePicker !== null) {
+									const formatted = formatTime(tempTime);
+									if (showTimePicker.source === "cdi") {
+										updateWeekDay(
+											showTimePicker.day,
+											showTimePicker.field,
+											formatted,
+										);
+									} else {
+										updateVacation(
+											showTimePicker.index,
+											showTimePicker.field,
+											formatted,
+										);
+									}
+								}
+								setShowTimePicker(null);
+							}}
+							style={{
+								backgroundColor: "#3b82f6",
+								borderRadius: 12,
+							}}>
+							<ButtonText
+								style={{ color: "#ffffff", fontWeight: "700" }}>
+								Confirmer
+							</ButtonText>
+						</Button>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
+
+			{/* Actionsheet : date picker vacation */}
 			<Actionsheet
 				isOpen={showVacationDatePicker !== null}
 				onClose={() => setShowVacationDatePicker(null)}>
