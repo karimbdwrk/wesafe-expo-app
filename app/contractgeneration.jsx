@@ -52,6 +52,8 @@ import {
 	AlertCircle,
 } from "lucide-react-native";
 
+import { createSupabaseClient } from "@/lib/supabase";
+
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
@@ -289,25 +291,95 @@ const ContractGenerationScreen = () => {
 		goToNextStep();
 	};
 
-	const handleSubmit = () => {
-		console.log("Contract form data:", formData);
-		toast.show({
-			placement: "top",
-			render: ({ id }) => (
-				<Toast nativeID={id} action='muted' variant='outline'>
-					<HStack space='md' style={{ alignItems: "center" }}>
-						<Icon as={CheckCircle} className='text-green-500' />
-						<VStack>
-							<ToastTitle>Contrat généré avec succès</ToastTitle>
-							{/* <ToastDescription>
-								Les informations ont été enregistrées avec
-								succès.
-							</ToastDescription> */}
-						</VStack>
-					</HStack>
-				</Toast>
-			),
-		});
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const handleSubmit = async () => {
+		setIsSubmitting(true);
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			const formatDateISO = (d) =>
+				d ? d.toISOString().split("T")[0] : null;
+
+			const { error } = await supabase.from("contracts").insert({
+				apply_id: application_id,
+				job_id: applicationData?.jobs?.id ?? null,
+				company_id: applicationData?.companies?.id ?? null,
+				candidate_id: applicationData?.profiles?.id ?? null,
+				contract_type: formData.contract_type,
+				contract_reason: formData.contract_reason || null,
+				start_date: formatDateISO(formData.start_date),
+				end_date: formatDateISO(formData.end_date),
+				total_hours: formData.total_hours
+					? parseFloat(formData.total_hours)
+					: null,
+				schedule: {
+					schedule_known: formData.schedule_known,
+					week_schedule: formData.week_schedule,
+					vacations: formData.vacations,
+				},
+				work_location: formData.work_location,
+				job_title: formData.job_title,
+				job_description: formData.job_description || null,
+				hourly_rate: formData.hourly_rate
+					? parseFloat(formData.hourly_rate)
+					: null,
+				overtime_rate: formData.overtime_rate
+					? parseFloat(formData.overtime_rate)
+					: null,
+				meal_bonus: formData.meal_bonus
+					? parseFloat(formData.meal_bonus)
+					: null,
+				transport_bonus: formData.transport_bonus
+					? parseFloat(formData.transport_bonus)
+					: null,
+				night_bonus: formData.night_bonus
+					? parseFloat(formData.night_bonus)
+					: null,
+				sunday_bonus: formData.sunday_bonus
+					? parseFloat(formData.sunday_bonus)
+					: null,
+				holiday_bonus: formData.holiday_bonus
+					? parseFloat(formData.holiday_bonus)
+					: null,
+				is_night: formData.is_night,
+				is_sunday: formData.is_sunday,
+				is_holiday: formData.is_holiday,
+				equipment_provided: formData.equipment_provided,
+				equipment_details: formData.equipment_details || null,
+				trial_period: formData.trial_period || null,
+				custom_clauses: formData.custom_clauses || null,
+				company_snapshot: applicationData?.companies ?? null,
+				candidate_snapshot: applicationData?.profiles ?? null,
+				status: "draft",
+				generated_at: new Date().toISOString(),
+				isSigned: false,
+				isProSigned: false,
+			});
+
+			if (error) throw error;
+
+			toast.show({
+				placement: "top",
+				render: ({ id }) => (
+					<Toast nativeID={id} action='muted' variant='outline'>
+						<HStack space='md' style={{ alignItems: "center" }}>
+							<Icon as={CheckCircle} className='text-green-500' />
+							<VStack>
+								<ToastTitle>
+									Contrat enregistré avec succès
+								</ToastTitle>
+							</VStack>
+						</HStack>
+					</Toast>
+				),
+			});
+			router.back();
+		} catch (err) {
+			console.error("[ContractGen] Erreur insert :", err);
+			showError("Erreur lors de l'enregistrement du contrat");
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	const formatDate = (date) => {
@@ -1696,16 +1768,21 @@ const ContractGenerationScreen = () => {
 							) : (
 								<Button
 									onPress={handleSubmit}
+									disabled={isSubmitting}
 									style={{
 										flex: 2,
-										backgroundColor: "#16a34a",
+										backgroundColor: isSubmitting
+											? "#6b7280"
+											: "#16a34a",
 									}}>
 									<ButtonIcon
 										as={CheckCircle}
 										style={{ color: "#ffffff" }}
 									/>
 									<ButtonText style={{ color: "#ffffff" }}>
-										Générer le contrat
+										{isSubmitting
+											? "Enregistrement..."
+											: "Générer le contrat"}
 									</ButtonText>
 								</Button>
 							)}
