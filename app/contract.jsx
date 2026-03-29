@@ -1,15 +1,30 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Constants from "expo-constants";
 
-import { View, Image, ScrollView, StyleSheet } from "react-native";
+import { ScrollView } from "react-native";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
+import { Box } from "@/components/ui/box";
+import { Divider } from "@/components/ui/divider";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
-import { Button, ButtonText } from "@/components/ui/button";
+import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { useToast, Toast, ToastTitle } from "@/components/ui/toast";
 import { Icon } from "@/components/ui/icon";
-import { Signature } from "lucide-react-native";
+import {
+	Building2,
+	User,
+	Calendar,
+	MapPin,
+	Banknote,
+	Clock,
+	FileText,
+	CheckCircle,
+	Download,
+	Pen,
+	Signature,
+} from "lucide-react-native";
 import {
 	Modal,
 	ModalBackdrop,
@@ -20,6 +35,7 @@ import {
 } from "@/components/ui/modal";
 
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useDataContext } from "@/context/DataContext";
 import { SEND_CONTRACT_OTP, SIGN_CONTRACT } from "@/utils/activityEvents";
 
@@ -49,6 +65,15 @@ const formatSiret = (value) => {
 	return value;
 };
 
+const formatDateFR = (iso) => {
+	if (!iso) return "\u2014";
+	try {
+		return new Date(iso).toLocaleDateString("fr-FR");
+	} catch {
+		return "\u2014";
+	}
+};
+
 const ContractScreen = () => {
 	const { apply_id } = useLocalSearchParams();
 	const router = useRouter();
@@ -63,6 +88,22 @@ const ContractScreen = () => {
 		trackActivity,
 	} = useDataContext();
 	const toast = useToast();
+	const { isDark } = useTheme();
+
+	// Style constants
+	const bg = isDark ? "#111827" : "#f3f4f6";
+	const cardBg = isDark ? "#1f2937" : "#ffffff";
+	const cardBorder = isDark ? "#374151" : "#e5e7eb";
+	const textPrimary = isDark ? "#f3f4f6" : "#111827";
+	const textSecondary = isDark ? "#9ca3af" : "#6b7280";
+	const cardStyle = {
+		backgroundColor: cardBg,
+		borderRadius: 12,
+		borderWidth: 1,
+		borderColor: cardBorder,
+		padding: 16,
+		marginBottom: 12,
+	};
 
 	const [isSigned, setIsSigned] = useState(false);
 	const [isProSigned, setIsProSigned] = useState(false);
@@ -667,133 +708,626 @@ const ContractScreen = () => {
 		}
 	};
 
+	// Données d'affichage depuis les snapshots du contrat
+	const displayCompany = contract?.company_snapshot;
+	const displayCandidate = contract?.candidate_snapshot;
+	const schedule = contract?.schedule || {};
+	const weekSchedule = schedule.week_schedule || {};
+	const vacations = schedule.vacations || [];
+	const scheduleKnown = schedule.schedule_known || false;
+
+	// Gestion des lieux de travail multiples
+	const wLocType = contract?.work_location_type || "single";
+	let multipleLocations = null;
+	if (wLocType === "multiple" && contract?.work_location) {
+		try {
+			const parsed = JSON.parse(contract.work_location);
+			multipleLocations = Array.isArray(parsed) ? parsed : null;
+		} catch {
+			multipleLocations = null;
+		}
+	}
+
+	// Composant ligne d'information
+	const InfoRow = ({ label, value }) => {
+		if (value === null || value === undefined || value === "") return null;
+		return (
+			<HStack
+				style={{
+					justifyContent: "space-between",
+					paddingVertical: 8,
+					borderBottomWidth: 1,
+					borderBottomColor: cardBorder,
+				}}>
+				<Text style={{ color: textSecondary, fontSize: 13, flex: 1 }}>
+					{label}
+				</Text>
+				<Text
+					style={{
+						color: textPrimary,
+						fontSize: 13,
+						fontWeight: "500",
+						flex: 1.2,
+						textAlign: "right",
+					}}>
+					{String(value)}
+				</Text>
+			</HStack>
+		);
+	};
+
+	// En-tête de section
+	const SectionHeader = ({ icon, title }) => (
+		<HStack space='sm' style={{ alignItems: "center", marginBottom: 14 }}>
+			<Icon as={icon} size='sm' style={{ color: "#3b82f6" }} />
+			<Text
+				style={{
+					fontSize: 15,
+					fontWeight: "700",
+					color: textPrimary,
+				}}>
+				{title}
+			</Text>
+		</HStack>
+	);
+
+	// Config badge statut
+	const statusLabel =
+		contract?.status === "published"
+			? "Publi\u00e9"
+			: contract?.status === "draft"
+				? "Brouillon"
+				: contract?.status || "\u2014";
+	const statusColor =
+		contract?.status === "published" ? "#3b82f6" : "#6b7280";
+	const statusBg = isDark
+		? contract?.status === "published"
+			? "#1e3a5f"
+			: "#374151"
+		: contract?.status === "published"
+			? "#dbeafe"
+			: "#f3f4f6";
+
 	return (
-		<VStack style={{ flex: 1, backgroundColor: "#FFF" }}>
-			<ScrollView contentContainerStyle={styles.container}>
-				<Heading>Contrat de travail</Heading>
-				{/* <Button
-					onPress={() =>
-						sendContractOtp(
-							candidate.email,
-							candidate.firstname,
-							company.name,
-						)
-					}>
-					<ButtonText>Send OTP test</ButtonText>
-				</Button> */}
-				<View style={styles.section}>
-					<Text style={styles.subtitle}>Entreprise :</Text>
-					<Text>{company?.name}</Text>
-					<Text>SIRET : {formatSiret(company?.siret)}</Text>
-					<Text>Adresse : 12 rue de la Sécurité, Paris</Text>
-				</View>
-
-				<View style={styles.section}>
-					<Text style={styles.subtitle}>Candidat :</Text>
-					<Text>
-						{candidate?.firstname} {candidate?.lastname}
-					</Text>
-				</View>
-
-				<View style={styles.section}>
-					<Text style={styles.subtitle}>Poste :</Text>
-					<Text>{job?.id}</Text>
-				</View>
-
-				{/* {isProSigned && (
-					<VStack
-						style={{
-							position: "relative",
-							height: 200,
-							marginBottom: 20,
-						}}>
-						<Text style={styles.subtitle}>
-							Signature entreprise :
-						</Text>
-						<Image
-							source={{ uri: company?.stamp_url }}
+		<Box style={{ flex: 1, backgroundColor: bg }}>
+			<ScrollView
+				contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
+				showsVerticalScrollIndicator={false}>
+				{/* Badges : type contrat + statut + signé */}
+				<HStack
+					space='sm'
+					style={{ marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+					{contract?.contract_type ? (
+						<Box
 							style={{
-								position: "absolute",
-								top: 50,
-								left: 50,
-								width: 100,
-								height: 100,
-								opacity: 0.5,
-							}}
-						/>
-						<Image
-							source={{ uri: company?.signature_url }}
-							style={{
-								position: "absolute",
-								top: 25,
-								left: 25,
-								width: 200,
-								height: 200,
-							}}
-						/>
-					</VStack>
-				)} */}
-
-				<View style={styles.section}>
-					<Text style={styles.subtitle}>Signature du candidat :</Text>
-					{isSigned ? (
-						<Image
-							source={{ uri: candidate?.signature_url }}
-							style={{ width: 200, height: 200 }}
-						/>
-					) : (
-						<Text style={styles.italic}>
-							{role === "pro"
-								? "Le candidat n'a pas encore signé."
-								: "Vous n'avez pas encore signé."}
-						</Text>
-					)}
-				</View>
-
-				<View style={styles.section}>
-					<Text style={styles.subtitle}>
-						Signature et tampon entreprise :
-					</Text>
-					{isProSigned ? (
-						<VStack
-							style={{
-								position: "relative",
-								height: 200,
-								marginBottom: 20,
+								paddingHorizontal: 12,
+								paddingVertical: 4,
+								borderRadius: 20,
+								backgroundColor:
+									contract.contract_type === "CDI"
+										? isDark
+											? "#052e16"
+											: "#dcfce7"
+										: isDark
+											? "#451a03"
+											: "#fef3c7",
 							}}>
-							<Image
-								source={{ uri: company?.stamp_url }}
+							<Text
 								style={{
-									position: "absolute",
-									top: 50,
-									left: 50,
-									width: 100,
-									height: 100,
-									opacity: 0.5,
-								}}
-							/>
-							<Image
-								source={{ uri: company?.signature_url }}
+									fontSize: 12,
+									fontWeight: "700",
+									color:
+										contract.contract_type === "CDI"
+											? "#16a34a"
+											: "#b45309",
+								}}>
+								{contract.contract_type}
+							</Text>
+						</Box>
+					) : null}
+					{contract?.status ? (
+						<Box
+							style={{
+								paddingHorizontal: 12,
+								paddingVertical: 4,
+								borderRadius: 20,
+								backgroundColor: statusBg,
+							}}>
+							<Text
 								style={{
-									position: "absolute",
-									top: 25,
-									left: 25,
-									width: 200,
-									height: 200,
-								}}
-							/>
-						</VStack>
-					) : (
-						<Text style={styles.italic}>
-							{role === "pro"
-								? "Vous n'avez pas encore signé le contrat."
-								: "L'entreprise n'a pas encore signé le contrat."}
-						</Text>
-					)}
-				</View>
+									fontSize: 12,
+									fontWeight: "600",
+									color: statusColor,
+								}}>
+								{statusLabel}
+							</Text>
+						</Box>
+					) : null}
+					{isSigned && isProSigned ? (
+						<Box
+							style={{
+								paddingHorizontal: 12,
+								paddingVertical: 4,
+								borderRadius: 20,
+								backgroundColor: isDark ? "#052e16" : "#dcfce7",
+							}}>
+							<Text
+								style={{
+									fontSize: 12,
+									fontWeight: "600",
+									color: "#16a34a",
+								}}>
+								Sign\u00e9
+							</Text>
+						</Box>
+					) : null}
+				</HStack>
 
-				{role === "candidat" && !isSigned && (
-					<View style={styles.buttonContainer}>
+				{/* Titre et description du poste */}
+				{contract?.job_title ? (
+					<Box style={{ marginBottom: 16 }}>
+						<Text
+							style={{
+								fontSize: 22,
+								fontWeight: "700",
+								color: textPrimary,
+								lineHeight: 30,
+							}}>
+							{contract.job_title}
+						</Text>
+						{contract?.job_description ? (
+							<Text
+								style={{
+									fontSize: 14,
+									color: textSecondary,
+									marginTop: 6,
+									lineHeight: 20,
+								}}>
+								{contract.job_description}
+							</Text>
+						) : null}
+					</Box>
+				) : null}
+
+				{/* Card : Entreprise */}
+				<Box style={cardStyle}>
+					<SectionHeader icon={Building2} title='Entreprise' />
+					<InfoRow
+						label='Raison sociale'
+						value={displayCompany?.name}
+					/>
+					<InfoRow
+						label='SIRET'
+						value={formatSiret(displayCompany?.siret)}
+					/>
+					{displayCompany?.address ? (
+						<InfoRow
+							label='Adresse'
+							value={displayCompany.address}
+						/>
+					) : null}
+					{displayCompany?.email ? (
+						<InfoRow label='Email' value={displayCompany.email} />
+					) : null}
+				</Box>
+
+				{/* Card : Candidat */}
+				<Box style={cardStyle}>
+					<SectionHeader icon={User} title='Candidat' />
+					<InfoRow
+						label='Nom'
+						value={
+							`${displayCandidate?.firstname || ""} ${displayCandidate?.lastname || ""}`.trim() ||
+							null
+						}
+					/>
+					{displayCandidate?.email ? (
+						<InfoRow label='Email' value={displayCandidate.email} />
+					) : null}
+				</Box>
+
+				{/* Card : Informations contractuelles */}
+				<Box style={cardStyle}>
+					<SectionHeader icon={Calendar} title='Contrat' />
+					<InfoRow
+						label='Type de contrat'
+						value={contract?.contract_type}
+					/>
+					{contract?.contract_reason ? (
+						<InfoRow
+							label='Motif de recrutement'
+							value={contract.contract_reason}
+						/>
+					) : null}
+					<InfoRow
+						label='Date de d\u00e9but'
+						value={formatDateFR(contract?.start_date)}
+					/>
+					{contract?.end_date ? (
+						<InfoRow
+							label='Date de fin'
+							value={formatDateFR(contract.end_date)}
+						/>
+					) : null}
+					{contract?.total_hours != null ? (
+						<InfoRow
+							label='Volume horaire'
+							value={`${contract.total_hours}h`}
+						/>
+					) : null}
+					{contract?.trial_period ? (
+						<InfoRow
+							label="P\u00e9riode d'essai"
+							value={contract.trial_period}
+						/>
+					) : null}
+				</Box>
+
+				{/* Card : Lieu de travail */}
+				{contract?.work_location ? (
+					<Box style={cardStyle}>
+						<SectionHeader icon={MapPin} title='Lieu de travail' />
+						{wLocType === "multiple" && multipleLocations ? (
+							<VStack style={{ gap: 6 }}>
+								{multipleLocations.map((loc, i) => (
+									<HStack
+										key={i}
+										style={{
+											alignItems: "center",
+											paddingVertical: 6,
+											borderBottomWidth: 1,
+											borderBottomColor: cardBorder,
+										}}>
+										<Box
+											style={{
+												width: 6,
+												height: 6,
+												borderRadius: 3,
+												backgroundColor: "#3b82f6",
+												marginRight: 10,
+											}}
+										/>
+										<Text
+											style={{
+												color: textPrimary,
+												fontSize: 14,
+											}}>
+											{loc}
+										</Text>
+									</HStack>
+								))}
+							</VStack>
+						) : (
+							<Text
+								style={{
+									color: textPrimary,
+									fontSize: 14,
+									lineHeight: 20,
+								}}>
+								{contract.work_location}
+								{wLocType === "zone" ? "  (Zone)" : ""}
+							</Text>
+						)}
+					</Box>
+				) : null}
+
+				{/* Card : R\u00e9mun\u00e9ration */}
+				<Box style={cardStyle}>
+					<SectionHeader
+						icon={Banknote}
+						title='R\u00e9mun\u00e9ration'
+					/>
+					{contract?.hourly_rate != null ? (
+						<InfoRow
+							label='Taux horaire brut'
+							value={`${contract.hourly_rate} \u20ac/h`}
+						/>
+					) : null}
+					{contract?.overtime_rate != null ? (
+						<InfoRow
+							label='Taux heures suppl\u00e9mentaires'
+							value={`${contract.overtime_rate} \u20ac/h`}
+						/>
+					) : null}
+					{contract?.meal_bonus != null ? (
+						<InfoRow
+							label='Prime de repas'
+							value={`${contract.meal_bonus} \u20ac`}
+						/>
+					) : null}
+					{contract?.transport_bonus != null ? (
+						<InfoRow
+							label='Prime de transport'
+							value={`${contract.transport_bonus} \u20ac`}
+						/>
+					) : null}
+					{contract?.is_night && contract?.night_bonus != null ? (
+						<InfoRow
+							label='Majoration nuit'
+							value={`${contract.night_bonus} \u20ac`}
+						/>
+					) : null}
+					{contract?.is_sunday && contract?.sunday_bonus != null ? (
+						<InfoRow
+							label='Majoration dimanche'
+							value={`${contract.sunday_bonus} \u20ac`}
+						/>
+					) : null}
+					{contract?.is_holiday && contract?.holiday_bonus != null ? (
+						<InfoRow
+							label='Majoration jour f\u00e9ri\u00e9'
+							value={`${contract.holiday_bonus} \u20ac`}
+						/>
+					) : null}
+				</Box>
+
+				{/* Card : Planning */}
+				{scheduleKnown ? (
+					<Box style={cardStyle}>
+						<SectionHeader icon={Clock} title='Planning' />
+						{Object.entries(weekSchedule)
+							.filter(([, v]) => v?.enabled)
+							.map(([day, hours]) => (
+								<HStack
+									key={day}
+									style={{
+										justifyContent: "space-between",
+										paddingVertical: 8,
+										borderBottomWidth: 1,
+										borderBottomColor: cardBorder,
+									}}>
+									<Text
+										style={{
+											color: textSecondary,
+											fontSize: 13,
+											textTransform: "capitalize",
+										}}>
+										{day}
+									</Text>
+									<Text
+										style={{
+											color: textPrimary,
+											fontSize: 13,
+											fontWeight: "500",
+										}}>
+										{hours.start} — {hours.end}
+									</Text>
+								</HStack>
+							))}
+						{vacations.length > 0 ? (
+							<>
+								<Text
+									style={{
+										color: textSecondary,
+										fontSize: 11,
+										fontWeight: "700",
+										marginTop: 12,
+										marginBottom: 6,
+										textTransform: "uppercase",
+										letterSpacing: 0.5,
+									}}>
+									Vacations ponctuelles
+								</Text>
+								{vacations.map((v, i) => (
+									<HStack
+										key={i}
+										style={{
+											justifyContent: "space-between",
+											paddingVertical: 8,
+											borderBottomWidth: 1,
+											borderBottomColor: cardBorder,
+										}}>
+										<Text
+											style={{
+												color: textSecondary,
+												fontSize: 13,
+											}}>
+											{v.date
+												? formatDateFR(v.date)
+												: "\u2014"}
+										</Text>
+										<Text
+											style={{
+												color: textPrimary,
+												fontSize: 13,
+												fontWeight: "500",
+											}}>
+											{v.start_time} — {v.end_time}
+										</Text>
+									</HStack>
+								))}
+							</>
+						) : null}
+						{Object.entries(weekSchedule).filter(
+							([, v]) => v?.enabled,
+						).length === 0 && vacations.length === 0 ? (
+							<Text
+								style={{
+									color: textSecondary,
+									fontSize: 13,
+									fontStyle: "italic",
+								}}>
+								Horaires \u00e0 d\u00e9finir
+							</Text>
+						) : null}
+					</Box>
+				) : null}
+
+				{/* Card : \u00c9quipement & Clauses */}
+				{contract?.equipment_provided || contract?.custom_clauses ? (
+					<Box style={cardStyle}>
+						<SectionHeader
+							icon={FileText}
+							title='Clauses & \u00c9quipement'
+						/>
+						{contract?.equipment_provided ? (
+							<>
+								<HStack
+									style={{
+										alignItems: "center",
+										paddingVertical: 8,
+										borderBottomWidth: 1,
+										borderBottomColor: cardBorder,
+									}}>
+									<Icon
+										as={CheckCircle}
+										size='xs'
+										style={{
+											color: "#16a34a",
+											marginRight: 8,
+										}}
+									/>
+									<Text
+										style={{
+											color: textPrimary,
+											fontSize: 13,
+										}}>
+										\u00c9quipement fourni par l'entreprise
+									</Text>
+								</HStack>
+								{contract?.equipment_details ? (
+									<Text
+										style={{
+											color: textSecondary,
+											fontSize: 13,
+											marginTop: 6,
+											lineHeight: 18,
+										}}>
+										{contract.equipment_details}
+									</Text>
+								) : null}
+							</>
+						) : null}
+						{contract?.custom_clauses ? (
+							<>
+								<Text
+									style={{
+										color: textSecondary,
+										fontSize: 11,
+										fontWeight: "700",
+										marginTop: contract?.equipment_provided
+											? 12
+											: 0,
+										marginBottom: 4,
+										textTransform: "uppercase",
+										letterSpacing: 0.5,
+									}}>
+									Clauses particuli\u00e8res
+								</Text>
+								<Text
+									style={{
+										color: textPrimary,
+										fontSize: 13,
+										lineHeight: 20,
+									}}>
+									{contract.custom_clauses}
+								</Text>
+							</>
+						) : null}
+					</Box>
+				) : null}
+
+				{/* Card : Signatures */}
+				<Box style={cardStyle}>
+					<SectionHeader icon={Signature} title='Signatures' />
+					{/* Candidat */}
+					<HStack
+						style={{
+							justifyContent: "space-between",
+							alignItems: "center",
+							paddingVertical: 12,
+							borderBottomWidth: 1,
+							borderBottomColor: cardBorder,
+						}}>
+						<VStack style={{ gap: 2 }}>
+							<Text
+								style={{
+									color: textSecondary,
+									fontSize: 11,
+									fontWeight: "700",
+									textTransform: "uppercase",
+									letterSpacing: 0.5,
+								}}>
+								Candidat
+							</Text>
+							<Text
+								style={{
+									color: textPrimary,
+									fontSize: 14,
+									fontWeight: "500",
+								}}>
+								{`${displayCandidate?.firstname || ""} ${displayCandidate?.lastname || ""}`.trim() ||
+									"\u2014"}
+							</Text>
+						</VStack>
+						<HStack space='xs' style={{ alignItems: "center" }}>
+							<Icon
+								as={CheckCircle}
+								size='sm'
+								style={{
+									color: isSigned ? "#16a34a" : "#9ca3af",
+								}}
+							/>
+							<Text
+								style={{
+									fontSize: 13,
+									fontWeight: "600",
+									color: isSigned ? "#16a34a" : "#9ca3af",
+								}}>
+								{isSigned ? "Sign\u00e9" : "En attente"}
+							</Text>
+						</HStack>
+					</HStack>
+					{/* Entreprise */}
+					<HStack
+						style={{
+							justifyContent: "space-between",
+							alignItems: "center",
+							paddingVertical: 12,
+						}}>
+						<VStack style={{ gap: 2 }}>
+							<Text
+								style={{
+									color: textSecondary,
+									fontSize: 11,
+									fontWeight: "700",
+									textTransform: "uppercase",
+									letterSpacing: 0.5,
+								}}>
+								Entreprise
+							</Text>
+							<Text
+								style={{
+									color: textPrimary,
+									fontSize: 14,
+									fontWeight: "500",
+								}}>
+								{displayCompany?.name || "\u2014"}
+							</Text>
+						</VStack>
+						<HStack space='xs' style={{ alignItems: "center" }}>
+							<Icon
+								as={CheckCircle}
+								size='sm'
+								style={{
+									color: isProSigned ? "#16a34a" : "#9ca3af",
+								}}
+							/>
+							<Text
+								style={{
+									fontSize: 13,
+									fontWeight: "600",
+									color: isProSigned ? "#16a34a" : "#9ca3af",
+								}}>
+								{isProSigned ? "Sign\u00e9" : "En attente"}
+							</Text>
+						</HStack>
+					</HStack>
+				</Box>
+
+				{/* Action : Candidat — signer */}
+				{role === "candidat" && !isSigned ? (
+					<Box style={{ marginTop: 4, marginBottom: 8 }}>
 						{!candidate?.signature_url ? (
 							<Button
 								onPress={() =>
@@ -801,30 +1335,48 @@ const ContractScreen = () => {
 										pathname: "/signature",
 										params: { type: "profiles" },
 									})
-								}>
-								<ButtonText>
+								}
+								style={{
+									backgroundColor: "#3b82f6",
+									borderRadius: 10,
+									height: 48,
+								}}>
+								<ButtonText
+									style={{
+										color: "#ffffff",
+										fontSize: 15,
+									}}>
 									Enregistrer une signature
 								</ButtonText>
 							</Button>
 						) : (
 							<Button
-								onPress={() =>
-									// sendContractOtp(
-									// 	candidate.email,
-									// 	candidate.firstname,
-									// 	company.name,
-									// 	contractId,
-									// )
-									setShowSignModal(true)
-								}>
-								<ButtonText>Signer le contrat</ButtonText>
+								onPress={() => setShowSignModal(true)}
+								style={{
+									backgroundColor: "#16a34a",
+									borderRadius: 10,
+									height: 48,
+								}}>
+								<ButtonIcon
+									as={Signature}
+									style={{ color: "#ffffff" }}
+								/>
+								<ButtonText
+									style={{
+										color: "#ffffff",
+										fontSize: 15,
+										marginLeft: 6,
+									}}>
+									Signer le contrat
+								</ButtonText>
 							</Button>
 						)}
-					</View>
-				)}
+					</Box>
+				) : null}
 
-				{role === "pro" && isSigned && !isProSigned && (
-					<View style={styles.buttonContainer}>
+				{/* Action : Pro — signer */}
+				{role === "pro" && isSigned && !isProSigned ? (
+					<Box style={{ marginTop: 4, marginBottom: 8 }}>
 						{!company?.signature_url || !company?.stamp_url ? (
 							<Button
 								onPress={() =>
@@ -832,69 +1384,131 @@ const ContractScreen = () => {
 										pathname: "/signature",
 										params: { type: "companies" },
 									})
-								}>
-								<ButtonText>
+								}
+								style={{
+									backgroundColor: "#3b82f6",
+									borderRadius: 10,
+									height: 48,
+								}}>
+								<ButtonText
+									style={{
+										color: "#ffffff",
+										fontSize: 15,
+									}}>
 									Enregistrer signature et tampon
 								</ButtonText>
 							</Button>
 						) : (
 							<Button
-								onPress={() =>
-									// sendContractOtp(
-									// 	user.email,
-									// 	company.name,
-									// 	candidate.firstname,
-									// 	contractId,
-									// )
-									setShowSignModal(true)
-								}>
-								<ButtonText>
+								onPress={() => setShowSignModal(true)}
+								style={{
+									backgroundColor: "#16a34a",
+									borderRadius: 10,
+									height: 48,
+								}}>
+								<ButtonIcon
+									as={Signature}
+									style={{ color: "#ffffff" }}
+								/>
+								<ButtonText
+									style={{
+										color: "#ffffff",
+										fontSize: 15,
+										marginLeft: 6,
+									}}>
 									Signer et tamponner le contrat
 								</ButtonText>
 							</Button>
 						)}
-					</View>
-				)}
+					</Box>
+				) : null}
 
-				{isSigned && isProSigned && (
-					<View style={styles.buttonContainer}>
-						{(!contract || !contract.pdf_url) && (
-							<Button onPress={handleDownloadAndUploadPdf}>
-								<ButtonText>
-									Télécharger et envoyer le PDF
-								</ButtonText>
-							</Button>
-						)}
-						{contract?.pdf_url && (
+				{/* Action : T\u00e9l\u00e9charger PDF */}
+				{isSigned && isProSigned ? (
+					<Box style={{ marginTop: 4, marginBottom: 8 }}>
+						{contract?.pdf_url ? (
 							<Button
 								onPress={() =>
 									downloadAndOpenPdf(contract.pdf_url)
-								}>
-								<ButtonText>
-									Télécharger et envoyer le PDF
+								}
+								style={{
+									backgroundColor: isDark
+										? "#374151"
+										: "#e5e7eb",
+									borderRadius: 10,
+									height: 48,
+								}}>
+								<ButtonIcon
+									as={Download}
+									style={{ color: textPrimary }}
+								/>
+								<ButtonText
+									style={{
+										color: textPrimary,
+										fontSize: 15,
+										marginLeft: 6,
+									}}>
+									T\u00e9l\u00e9charger le PDF
+								</ButtonText>
+							</Button>
+						) : (
+							<Button
+								onPress={handleDownloadAndUploadPdf}
+								style={{
+									backgroundColor: isDark
+										? "#374151"
+										: "#e5e7eb",
+									borderRadius: 10,
+									height: 48,
+								}}>
+								<ButtonIcon
+									as={Download}
+									style={{ color: textPrimary }}
+								/>
+								<ButtonText
+									style={{
+										color: textPrimary,
+										fontSize: 15,
+										marginLeft: 6,
+									}}>
+									G\u00e9n\u00e9rer et t\u00e9l\u00e9charger
+									le PDF
 								</ButtonText>
 							</Button>
 						)}
-					</View>
-				)}
+					</Box>
+				) : null}
 			</ScrollView>
 
+			{/* Modal signature OTP */}
 			<Modal
 				isOpen={showSignModal}
 				onClose={() => setShowSignModal(false)}>
 				<ModalBackdrop />
-				<ModalContent className='max-w-[375px]'>
+				<ModalContent
+					style={{
+						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+						borderRadius: 16,
+						marginHorizontal: 24,
+					}}>
 					<ModalHeader>
-						<Heading size='md'>Confirmer la signature</Heading>
+						<Heading size='md' style={{ color: textPrimary }}>
+							Confirmer la signature
+						</Heading>
 					</ModalHeader>
 					<ModalBody>
-						<Text>
+						<Text
+							style={{
+								fontSize: 14,
+								color: textSecondary,
+								lineHeight: 20,
+							}}>
 							{role === "pro"
-								? "Êtes-vous sûr de vouloir signer et tamponner ce contrat ? Cette action est définitive."
-								: "Êtes-vous sûr de vouloir signer ce contrat ? Cette action est définitive."}
+								? "\u00cates-vous s\u00fbr de vouloir signer et tamponner ce contrat\u00a0? Cette action est d\u00e9finitive."
+								: "\u00cates-vous s\u00fbr de vouloir signer ce contrat\u00a0? Cette action est d\u00e9finitive."}
 						</Text>
 
-						{otpSent && (
+						{otpSent ? (
 							<VStack
 								style={{
 									marginTop: 20,
@@ -909,11 +1523,14 @@ const ContractScreen = () => {
 									onComplete={handleConfirm}
 								/>
 								{error ? (
-									<Text color='$red600' fontSize='$sm'>
+									<Text
+										style={{
+											color: "#ef4444",
+											fontSize: 13,
+										}}>
 										{error}
 									</Text>
 								) : null}
-
 								{canResend ? (
 									<Button
 										variant='link'
@@ -940,26 +1557,22 @@ const ContractScreen = () => {
 										</ButtonText>
 									</Button>
 								) : (
-									<Text className='mt-2 text-sm text-gray-500'>
+									<Text
+										style={{
+											fontSize: 12,
+											color: textSecondary,
+										}}>
 										Renvoyer le code dans {resendTimer}s
 									</Text>
 								)}
 							</VStack>
-						)}
+						) : null}
 
-						{!otpSent && (
+						{!otpSent ? (
 							<Button
 								onPress={async () => {
 									try {
-										console.log(
-											"Bouton envoi OTP cliqué, role:",
-											role,
-										);
 										if (role === "pro") {
-											console.log(
-												"Envoi OTP pour pro, contractId:",
-												contractId,
-											);
 											await sendContractOtp(
 												user.email,
 												company.name,
@@ -967,10 +1580,6 @@ const ContractScreen = () => {
 												contractId,
 											);
 										} else {
-											console.log(
-												"Envoi OTP pour candidat",
-											);
-											// Créer le contrat d'abord pour le candidat (envoie l'OTP automatiquement)
 											await createContract();
 										}
 									} catch (error) {
@@ -993,56 +1602,37 @@ const ContractScreen = () => {
 										});
 									}
 								}}
-								className='mt-4'>
-								<ButtonText>
+								style={{
+									backgroundColor: "#3b82f6",
+									borderRadius: 10,
+									height: 44,
+									marginTop: 16,
+								}}>
+								<ButtonText style={{ color: "#ffffff" }}>
 									Envoyer le code par email
 								</ButtonText>
 							</Button>
-						)}
+						) : null}
 					</ModalBody>
-					<ModalFooter className='w-full gap-3'>
+					<ModalFooter style={{ gap: 10 }}>
 						<Button
 							variant='outline'
-							action='secondary'
 							onPress={() => setShowSignModal(false)}
-							className='flex-1'>
-							<ButtonText>Annuler</ButtonText>
+							style={{
+								flex: 1,
+								borderColor: isDark ? "#4b5563" : "#d1d5db",
+								borderRadius: 10,
+								height: 44,
+							}}>
+							<ButtonText style={{ color: textPrimary }}>
+								Annuler
+							</ButtonText>
 						</Button>
-						{/* {otpSent && (
-							<Button
-								action='positive'
-								onPress={handleConfirm}
-								className='flex-1'>
-								<ButtonText>Confirmer</ButtonText>
-							</Button>
-						)} */}
 					</ModalFooter>
 				</ModalContent>
 			</Modal>
-		</VStack>
+		</Box>
 	);
 };
-
-const styles = StyleSheet.create({
-	container: {
-		paddingHorizontal: 15,
-		paddingTop: 15,
-		paddingBottom: 60,
-		backgroundColor: "#fff",
-	},
-	section: {
-		marginBottom: 25,
-	},
-	subtitle: {
-		fontWeight: "bold",
-		marginBottom: 5,
-	},
-	italic: {
-		fontStyle: "italic",
-	},
-	buttonContainer: {
-		marginTop: 20,
-	},
-});
 
 export default ContractScreen;
