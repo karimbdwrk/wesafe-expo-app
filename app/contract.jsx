@@ -66,11 +66,11 @@ const formatSiret = (value) => {
 };
 
 const formatDateFR = (iso) => {
-	if (!iso) return "\u2014";
+	if (!iso) return "—";
 	try {
 		return new Date(iso).toLocaleDateString("fr-FR");
 	} catch {
-		return "\u2014";
+		return "—";
 	}
 };
 
@@ -719,9 +719,10 @@ const ContractScreen = () => {
 	// Gestion des lieux de travail multiples
 	const wLocType = contract?.work_location_type || "single";
 	let multipleLocations = null;
-	if (wLocType === "multiple" && contract?.work_location) {
+	if (wLocType === "multiple" && contract?.work_locations) {
 		try {
-			const parsed = JSON.parse(contract.work_location);
+			const val = contract.work_locations;
+			const parsed = Array.isArray(val) ? val : JSON.parse(val);
 			multipleLocations = Array.isArray(parsed) ? parsed : null;
 		} catch {
 			multipleLocations = null;
@@ -774,10 +775,10 @@ const ContractScreen = () => {
 	// Config badge statut
 	const statusLabel =
 		contract?.status === "published"
-			? "Publi\u00e9"
+			? "Publié"
 			: contract?.status === "draft"
 				? "Brouillon"
-				: contract?.status || "\u2014";
+				: contract?.status || "—";
 	const statusColor =
 		contract?.status === "published" ? "#3b82f6" : "#6b7280";
 	const statusBg = isDark
@@ -857,7 +858,7 @@ const ContractScreen = () => {
 									fontWeight: "600",
 									color: "#16a34a",
 								}}>
-								Sign\u00e9
+								Signé
 							</Text>
 						</Box>
 					) : null}
@@ -905,9 +906,25 @@ const ContractScreen = () => {
 							label='Adresse'
 							value={displayCompany.address}
 						/>
+					) : displayCompany?.street ||
+					  displayCompany?.postcode ||
+					  displayCompany?.city ? (
+						<InfoRow
+							label='Adresse'
+							value={[
+								displayCompany.street,
+								displayCompany.postcode,
+								displayCompany.city,
+							]
+								.filter(Boolean)
+								.join(", ")}
+						/>
 					) : null}
-					{displayCompany?.email ? (
-						<InfoRow label='Email' value={displayCompany.email} />
+					{displayCompany?.legal_representative ? (
+						<InfoRow
+							label='Représentant légal'
+							value={displayCompany.legal_representative}
+						/>
 					) : null}
 				</Box>
 
@@ -921,8 +938,17 @@ const ContractScreen = () => {
 							null
 						}
 					/>
-					{displayCandidate?.email ? (
-						<InfoRow label='Email' value={displayCandidate.email} />
+					{displayCandidate?.birth_date ? (
+						<InfoRow
+							label='Date de naissance'
+							value={formatDateFR(displayCandidate.birth_date)}
+						/>
+					) : null}
+					{displayCandidate?.address ? (
+						<InfoRow
+							label='Adresse'
+							value={displayCandidate.address}
+						/>
 					) : null}
 				</Box>
 
@@ -933,6 +959,12 @@ const ContractScreen = () => {
 						label='Type de contrat'
 						value={contract?.contract_type}
 					/>
+					{contract?.category ? (
+						<InfoRow
+							label='Classification'
+							value={contract.category}
+						/>
+					) : null}
 					{contract?.contract_reason ? (
 						<InfoRow
 							label='Motif de recrutement'
@@ -940,7 +972,7 @@ const ContractScreen = () => {
 						/>
 					) : null}
 					<InfoRow
-						label='Date de d\u00e9but'
+						label='Date de début'
 						value={formatDateFR(contract?.start_date)}
 					/>
 					{contract?.end_date ? (
@@ -957,14 +989,16 @@ const ContractScreen = () => {
 					) : null}
 					{contract?.trial_period ? (
 						<InfoRow
-							label="P\u00e9riode d'essai"
+							label="Période d'essai"
 							value={contract.trial_period}
 						/>
 					) : null}
 				</Box>
 
 				{/* Card : Lieu de travail */}
-				{contract?.work_location ? (
+				{contract?.work_location ||
+				contract?.work_locations ||
+				contract?.work_location_zone ? (
 					<Box style={cardStyle}>
 						<SectionHeader icon={MapPin} title='Lieu de travail' />
 						{wLocType === "multiple" && multipleLocations ? (
@@ -997,6 +1031,15 @@ const ContractScreen = () => {
 									</HStack>
 								))}
 							</VStack>
+						) : wLocType === "zone" ? (
+							<Text
+								style={{
+									color: textPrimary,
+									fontSize: 14,
+									lineHeight: 20,
+								}}>
+								{contract.work_location_zone}
+							</Text>
 						) : (
 							<Text
 								style={{
@@ -1005,58 +1048,54 @@ const ContractScreen = () => {
 									lineHeight: 20,
 								}}>
 								{contract.work_location}
-								{wLocType === "zone" ? "  (Zone)" : ""}
 							</Text>
 						)}
 					</Box>
 				) : null}
 
-				{/* Card : R\u00e9mun\u00e9ration */}
+				{/* Card : Rémunération */}
 				<Box style={cardStyle}>
-					<SectionHeader
-						icon={Banknote}
-						title='R\u00e9mun\u00e9ration'
-					/>
+					<SectionHeader icon={Banknote} title='Rémunération' />
 					{contract?.hourly_rate != null ? (
 						<InfoRow
 							label='Taux horaire brut'
-							value={`${contract.hourly_rate} \u20ac/h`}
+							value={`${contract.hourly_rate} €/h`}
 						/>
 					) : null}
 					{contract?.overtime_rate != null ? (
 						<InfoRow
-							label='Taux heures suppl\u00e9mentaires'
-							value={`${contract.overtime_rate} \u20ac/h`}
+							label='Taux heures supplémentaires'
+							value={`${contract.overtime_rate} €/h`}
 						/>
 					) : null}
 					{contract?.meal_bonus != null ? (
 						<InfoRow
 							label='Prime de repas'
-							value={`${contract.meal_bonus} \u20ac`}
+							value={`${contract.meal_bonus} €`}
 						/>
 					) : null}
 					{contract?.transport_bonus != null ? (
 						<InfoRow
 							label='Prime de transport'
-							value={`${contract.transport_bonus} \u20ac`}
+							value={`${contract.transport_bonus} €`}
 						/>
 					) : null}
 					{contract?.is_night && contract?.night_bonus != null ? (
 						<InfoRow
 							label='Majoration nuit'
-							value={`${contract.night_bonus} \u20ac`}
+							value={`${contract.night_bonus} €`}
 						/>
 					) : null}
 					{contract?.is_sunday && contract?.sunday_bonus != null ? (
 						<InfoRow
 							label='Majoration dimanche'
-							value={`${contract.sunday_bonus} \u20ac`}
+							value={`${contract.sunday_bonus} €`}
 						/>
 					) : null}
 					{contract?.is_holiday && contract?.holiday_bonus != null ? (
 						<InfoRow
-							label='Majoration jour f\u00e9ri\u00e9'
-							value={`${contract.holiday_bonus} \u20ac`}
+							label='Majoration jour férié'
+							value={`${contract.holiday_bonus} €`}
 						/>
 					) : null}
 				</Box>
@@ -1124,7 +1163,7 @@ const ContractScreen = () => {
 											}}>
 											{v.date
 												? formatDateFR(v.date)
-												: "\u2014"}
+												: "—"}
 										</Text>
 										<Text
 											style={{
@@ -1147,18 +1186,18 @@ const ContractScreen = () => {
 									fontSize: 13,
 									fontStyle: "italic",
 								}}>
-								Horaires \u00e0 d\u00e9finir
+								Horaires à définir
 							</Text>
 						) : null}
 					</Box>
 				) : null}
 
-				{/* Card : \u00c9quipement & Clauses */}
+				{/* Card : Équipement & Clauses */}
 				{contract?.equipment_provided || contract?.custom_clauses ? (
 					<Box style={cardStyle}>
 						<SectionHeader
 							icon={FileText}
-							title='Clauses & \u00c9quipement'
+							title='Clauses & Équipement'
 						/>
 						{contract?.equipment_provided ? (
 							<>
@@ -1182,7 +1221,7 @@ const ContractScreen = () => {
 											color: textPrimary,
 											fontSize: 13,
 										}}>
-										\u00c9quipement fourni par l'entreprise
+										Équipement fourni par l'entreprise
 									</Text>
 								</HStack>
 								{contract?.equipment_details ? (
@@ -1212,7 +1251,7 @@ const ContractScreen = () => {
 										textTransform: "uppercase",
 										letterSpacing: 0.5,
 									}}>
-									Clauses particuli\u00e8res
+									Clauses particulières
 								</Text>
 								<Text
 									style={{
@@ -1226,6 +1265,28 @@ const ContractScreen = () => {
 						) : null}
 					</Box>
 				) : null}
+
+				{/* Card : Mentions légales */}
+				<Box style={cardStyle}>
+					<SectionHeader icon={FileText} title='Mentions légales' />
+					<Text
+						style={{
+							color: textSecondary,
+							fontSize: 13,
+							lineHeight: 20,
+						}}>
+						Convention collective applicable :{"\n"}
+						<Text
+							style={{
+								color: textPrimary,
+								fontWeight: "600",
+								fontSize: 13,
+							}}>
+							Convention collective nationale des entreprises de
+							sécurité privée
+						</Text>
+					</Text>
+				</Box>
 
 				{/* Card : Signatures */}
 				<Box style={cardStyle}>
@@ -1257,7 +1318,7 @@ const ContractScreen = () => {
 									fontWeight: "500",
 								}}>
 								{`${displayCandidate?.firstname || ""} ${displayCandidate?.lastname || ""}`.trim() ||
-									"\u2014"}
+									"—"}
 							</Text>
 						</VStack>
 						<HStack space='xs' style={{ alignItems: "center" }}>
@@ -1274,7 +1335,7 @@ const ContractScreen = () => {
 									fontWeight: "600",
 									color: isSigned ? "#16a34a" : "#9ca3af",
 								}}>
-								{isSigned ? "Sign\u00e9" : "En attente"}
+								{isSigned ? "Signé" : "En attente"}
 							</Text>
 						</HStack>
 					</HStack>
@@ -1302,7 +1363,7 @@ const ContractScreen = () => {
 									fontSize: 14,
 									fontWeight: "500",
 								}}>
-								{displayCompany?.name || "\u2014"}
+								{displayCompany?.name || "—"}
 							</Text>
 						</VStack>
 						<HStack space='xs' style={{ alignItems: "center" }}>
@@ -1319,11 +1380,42 @@ const ContractScreen = () => {
 									fontWeight: "600",
 									color: isProSigned ? "#16a34a" : "#9ca3af",
 								}}>
-								{isProSigned ? "Sign\u00e9" : "En attente"}
+								{isProSigned ? "Signé" : "En attente"}
 							</Text>
 						</HStack>
 					</HStack>
 				</Box>
+
+				{/* Action : Modifier le contrat (pro uniquement, pas encore signé des deux côtés) */}
+				{role === "pro" && !(isSigned && isProSigned) ? (
+					<Box style={{ marginTop: 4, marginBottom: 8 }}>
+						<Button
+							onPress={() =>
+								router.push({
+									pathname: "/contractgeneration",
+									params: { application_id: apply_id },
+								})
+							}
+							style={{
+								backgroundColor: isDark ? "#374151" : "#e5e7eb",
+								borderRadius: 10,
+								height: 48,
+							}}>
+							<ButtonIcon
+								as={Pen}
+								style={{ color: textPrimary }}
+							/>
+							<ButtonText
+								style={{
+									color: textPrimary,
+									fontSize: 15,
+									marginLeft: 6,
+								}}>
+								Modifier le contrat
+							</ButtonText>
+						</Button>
+					</Box>
+				) : null}
 
 				{/* Action : Candidat — signer */}
 				{role === "candidat" && !isSigned ? (
@@ -1423,7 +1515,7 @@ const ContractScreen = () => {
 					</Box>
 				) : null}
 
-				{/* Action : T\u00e9l\u00e9charger PDF */}
+				{/* Action : Télécharger PDF */}
 				{isSigned && isProSigned ? (
 					<Box style={{ marginTop: 4, marginBottom: 8 }}>
 						{contract?.pdf_url ? (
@@ -1448,7 +1540,7 @@ const ContractScreen = () => {
 										fontSize: 15,
 										marginLeft: 6,
 									}}>
-									T\u00e9l\u00e9charger le PDF
+									Télécharger le PDF
 								</ButtonText>
 							</Button>
 						) : (
@@ -1471,8 +1563,7 @@ const ContractScreen = () => {
 										fontSize: 15,
 										marginLeft: 6,
 									}}>
-									G\u00e9n\u00e9rer et t\u00e9l\u00e9charger
-									le PDF
+									Générer et télécharger le PDF
 								</ButtonText>
 							</Button>
 						)}
@@ -1504,8 +1595,8 @@ const ContractScreen = () => {
 								lineHeight: 20,
 							}}>
 							{role === "pro"
-								? "\u00cates-vous s\u00fbr de vouloir signer et tamponner ce contrat\u00a0? Cette action est d\u00e9finitive."
-								: "\u00cates-vous s\u00fbr de vouloir signer ce contrat\u00a0? Cette action est d\u00e9finitive."}
+								? "\u00cates-vous sûr de vouloir signer et tamponner ce contrat ? Cette action est définitive."
+								: "\u00cates-vous sûr de vouloir signer ce contrat ? Cette action est définitive."}
 						</Text>
 
 						{otpSent ? (
