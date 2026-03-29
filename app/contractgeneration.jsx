@@ -99,6 +99,7 @@ const ContractGenerationScreen = () => {
 
 	const [applicationData, setApplicationData] = useState(null);
 	const [existingContractId, setExistingContractId] = useState(null);
+	const [existingContractStatus, setExistingContractStatus] = useState(null);
 
 	useEffect(() => {
 		if (!application_id) return;
@@ -123,17 +124,20 @@ const ContractGenerationScreen = () => {
 					}));
 				};
 
-				// Vérifier si un brouillon existe déjà pour cette candidature
+				// Vérifier si un contrat existe déjà pour cette candidature (draft ou published)
 				const { data: existingContract } = await supabase
 					.from("contracts")
 					.select("*")
 					.eq("apply_id", application_id)
-					.eq("status", "draft")
+					.in("status", ["draft", "published"])
+					.order("created_at", { ascending: false })
+					.limit(1)
 					.maybeSingle();
 
 				if (existingContract) {
-					// Brouillon trouvé → pré-remplir depuis le contrat
+					// Contrat trouvé → pré-remplir depuis le contrat
 					setExistingContractId(existingContract.id);
+					setExistingContractStatus(existingContract.status);
 					const c = existingContract;
 					const schedule = c.schedule || {};
 					const wLocType = c.work_location_type || "single";
@@ -2110,7 +2114,9 @@ const ContractGenerationScreen = () => {
 								fontWeight: "700",
 								color: isDark ? "#f3f4f6" : "#111827",
 							}}>
-							Générer le contrat
+							{existingContractStatus === "published"
+								? "Enregistrer les modifications"
+								: "Générer le contrat"}
 						</Text>
 					</AlertDialogHeader>
 					<AlertDialogBody>
@@ -2140,43 +2146,50 @@ const ContractGenerationScreen = () => {
 							</Text>
 						</Text>
 						<VStack space='sm'>
-							{/* Option Brouillon */}
-							<TouchableOpacity
-								onPress={() => {
-									setShowConfirmDialog(false);
-									handleSubmit("draft");
-								}}
-								activeOpacity={0.7}
-								style={{
-									borderWidth: 1.5,
-									borderColor: isDark ? "#4b5563" : "#d1d5db",
-									borderRadius: 12,
-									padding: 14,
-									backgroundColor: isDark
-										? "#1f2937"
-										: "#f9fafb",
-								}}>
-								<Text
+							{/* Option Brouillon — masquée si contrat déjà publié */}
+							{existingContractStatus !== "published" && (
+								<TouchableOpacity
+									onPress={() => {
+										setShowConfirmDialog(false);
+										handleSubmit("draft");
+									}}
+									activeOpacity={0.7}
 									style={{
-										fontSize: 14,
-										fontWeight: "700",
-										color: isDark ? "#f3f4f6" : "#111827",
-										marginBottom: 4,
+										borderWidth: 1.5,
+										borderColor: isDark
+											? "#4b5563"
+											: "#d1d5db",
+										borderRadius: 12,
+										padding: 14,
+										backgroundColor: isDark
+											? "#1f2937"
+											: "#f9fafb",
 									}}>
-									📝 Enregistrer en brouillon
-								</Text>
-								<Text
-									style={{
-										fontSize: 12,
-										color: isDark ? "#9ca3af" : "#6b7280",
-										lineHeight: 18,
-									}}>
-									Sauvegarder pour compléter ou modifier plus
-									tard. Le candidat ne pourra pas encore le
-									signer.
-								</Text>
-							</TouchableOpacity>
-
+									<Text
+										style={{
+											fontSize: 14,
+											fontWeight: "700",
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+											marginBottom: 4,
+										}}>
+										📝 Enregistrer en brouillon
+									</Text>
+									<Text
+										style={{
+											fontSize: 12,
+											color: isDark
+												? "#9ca3af"
+												: "#6b7280",
+											lineHeight: 18,
+										}}>
+										Sauvegarder pour compléter ou modifier
+										plus tard. Le candidat ne pourra pas
+										encore le signer.
+									</Text>
+								</TouchableOpacity>
+							)}
 							{/* Option Publier */}
 							<TouchableOpacity
 								onPress={() => {
@@ -2200,7 +2213,9 @@ const ContractGenerationScreen = () => {
 										color: "#16a34a",
 										marginBottom: 4,
 									}}>
-									✅ Publier le contrat
+									{existingContractStatus === "published"
+										? "✅ Enregistrer les modifications"
+										: "✅ Publier le contrat"}
 								</Text>
 								<Text
 									style={{
@@ -2208,8 +2223,9 @@ const ContractGenerationScreen = () => {
 										color: isDark ? "#86efac" : "#166534",
 										lineHeight: 18,
 									}}>
-									Finaliser et envoyer au candidat pour
-									signature. Cette action est irréversible.
+									{existingContractStatus === "published"
+										? "Ce contrat est déjà publié. Les modifications seront enregistrées et visibles immédiatement par le candidat."
+										: "Finaliser et envoyer au candidat pour signature. Cette action est irréversible."}
 								</Text>
 							</TouchableOpacity>
 						</VStack>
