@@ -61,6 +61,8 @@ import {
 } from "lucide-react-native";
 
 import { createSupabaseClient } from "@/lib/supabase";
+import { regions } from "@/constants/regions";
+import { departements } from "@/constants/departements";
 
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -170,6 +172,7 @@ const ContractGenerationScreen = () => {
 							wLocType !== "multiple"
 								? c.work_location || ""
 								: "",
+						work_location_name: c.work_location_name || "",
 						work_location_type: wLocType,
 						work_locations: wLocs,
 						job_title: c.job_title || "",
@@ -284,6 +287,7 @@ const ContractGenerationScreen = () => {
 		},
 		vacations: [],
 		// Step 2
+		work_location_name: "",
 		work_location: "",
 		work_location_type: "single",
 		work_locations: [""],
@@ -404,6 +408,29 @@ const ContractGenerationScreen = () => {
 		});
 	};
 
+	const searchAddress = async (query, callback) => {
+		if (!query || query.length < 3) {
+			callback([]);
+			return;
+		}
+		try {
+			const res = await fetch(
+				`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`,
+			);
+			const data = await res.json();
+			callback(
+				(data.features || []).map((item) => ({
+					label: item.properties.label,
+					city: item.properties.city,
+					postcode: item.properties.postcode,
+					street: item.properties.name,
+				})),
+			);
+		} catch {
+			callback([]);
+		}
+	};
+
 	const validateStep = () => {
 		if (currentStep === 1) {
 			if (!formData.contract_type)
@@ -435,6 +462,8 @@ const ContractGenerationScreen = () => {
 				if (!formData.work_location.trim())
 					return showError("Veuillez saisir le lieu de travail");
 			}
+			if (!formData.job_description?.trim())
+				return showError("La description des missions est obligatoire");
 		}
 		if (currentStep === 3) {
 			if (!formData.hourly_rate)
@@ -445,6 +474,44 @@ const ContractGenerationScreen = () => {
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+	// Autocomplete zone / région
+	const [zoneQuery, setZoneQuery] = useState("");
+	const [zoneResults, setZoneResults] = useState([]);
+	const [zoneSelected, setZoneSelected] = useState(null);
+
+	const searchZone = (query) => {
+		if (!query || query.length < 3) {
+			setZoneResults([]);
+			return;
+		}
+		const q = query.toLowerCase();
+		const depMatches = departements
+			.filter(
+				(d) =>
+					d.nom.toLowerCase().includes(q) ||
+					d.code.toLowerCase().includes(q),
+			)
+			.slice(0, 5)
+			.map((d) => ({ label: `${d.nom} (${d.code})`, type: "dep" }));
+		const regMatches = regions
+			.filter((r) => r.nom.toLowerCase().includes(q))
+			.slice(0, 5)
+			.map((r) => ({ label: `Région ${r.nom}`, type: "reg" }));
+		const combined = [...depMatches, ...regMatches].slice(0, 5);
+		setZoneResults(combined);
+	};
+
+	// Autocomplete adresse unique
+	const [singleAddressQuery, setSingleAddressQuery] = useState("");
+	const [singleAddressResults, setSingleAddressResults] = useState([]);
+	const [singleSelectedAddress, setSingleSelectedAddress] = useState(null);
+	// Autocomplete plusieurs adresses
+	const [multiAddressQueries, setMultiAddressQueries] = useState([""]);
+	const [multiAddressResults, setMultiAddressResults] = useState([[]]);
+	const [multiSelectedAddresses, setMultiSelectedAddresses] = useState([
+		null,
+	]);
 
 	const handleSubmit = async (status = "draft") => {
 		setIsSubmitting(true);
@@ -473,6 +540,7 @@ const ContractGenerationScreen = () => {
 							)
 						: formData.work_location,
 				work_location_type: formData.work_location_type,
+				work_location_name: formData.work_location_name || null,
 				job_title: formData.job_title,
 				job_description: formData.job_description || null,
 				hourly_rate: formData.hourly_rate
@@ -1231,7 +1299,19 @@ const ContractGenerationScreen = () => {
 			</Card>
 
 			<Card style={cardStyle}>
-				<Text style={labelStyle}>Lieu de travail *</Text>
+				<Text style={labelStyle}>Nom du lieu (optionnel)</Text>
+				<Input style={{ ...inputStyle, marginBottom: 16 }}>
+					<InputField
+						placeholder='Ex : Centre Commercial Qwartz, Entrepôt Nord...'
+						value={formData.work_location_name}
+						onChangeText={(v) =>
+							updateField("work_location_name", v)
+						}
+						style={inputTextStyle}
+					/>
+				</Input>
+
+				<Text style={labelStyle}>Type de lieu *</Text>
 				<HStack style={{ flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
 					{[
 						{ value: "single", label: "Adresse unique" },
@@ -1240,9 +1320,21 @@ const ContractGenerationScreen = () => {
 					].map(({ value, label }) => (
 						<TouchableOpacity
 							key={value}
-							onPress={() =>
-								updateField("work_location_type", value)
-							}
+							onPress={() => {
+								updateField("work_location_type", value);
+								updateField("work_location", "");
+								updateField("work_locations", [""]);
+								updateField("work_location_name", "");
+								setSingleAddressQuery("");
+								setSingleAddressResults([]);
+								setSingleSelectedAddress(null);
+								setMultiAddressQueries([""]);
+								setMultiAddressResults([[]]);
+								setMultiSelectedAddresses([null]);
+								setZoneQuery("");
+								setZoneResults([]);
+								setZoneSelected(null);
+							}}
 							activeOpacity={0.7}
 							style={{
 								paddingHorizontal: 14,
@@ -1277,72 +1369,304 @@ const ContractGenerationScreen = () => {
 					))}
 				</HStack>
 
-				{/* Adresse unique */}
+				{/* Adresse unique – autocomplete */}
 				{formData.work_location_type === "single" && (
-					<Input style={inputStyle}>
-						<InputField
-							placeholder='Ex : 15 rue de la Paix, 75001 Paris'
-							value={formData.work_location}
-							onChangeText={(v) =>
-								updateField("work_location", v)
-							}
-							style={inputTextStyle}
-						/>
-					</Input>
+					<VStack space='sm'>
+						<Input style={inputStyle}>
+							<InputField
+								placeholder='Rechercher une adresse...'
+								value={singleAddressQuery}
+								onChangeText={(v) => {
+									setSingleAddressQuery(v);
+									updateField("work_location", v);
+									setSingleSelectedAddress(null);
+									searchAddress(v, setSingleAddressResults);
+								}}
+								style={inputTextStyle}
+							/>
+						</Input>
+						{singleAddressResults.length > 0 && (
+							<VStack
+								style={{
+									borderRadius: 8,
+									overflow: "hidden",
+									borderWidth: 1,
+									borderColor: isDark ? "#374151" : "#e5e7eb",
+								}}>
+								{singleAddressResults.map((item, idx) => (
+									<TouchableOpacity
+										key={idx}
+										onPress={() => {
+											setSingleSelectedAddress(item);
+											setSingleAddressQuery("");
+											setSingleAddressResults([]);
+											updateField(
+												"work_location",
+												item.label,
+											);
+										}}
+										activeOpacity={0.7}
+										style={{
+											padding: 12,
+											backgroundColor: isDark
+												? "#1f2937"
+												: "#ffffff",
+											borderBottomWidth:
+												idx <
+												singleAddressResults.length - 1
+													? 1
+													: 0,
+											borderBottomColor: isDark
+												? "#374151"
+												: "#e5e7eb",
+										}}>
+										<Text
+											style={{
+												fontSize: 14,
+												color: isDark
+													? "#e5e7eb"
+													: "#374151",
+											}}>
+											{item.label}
+										</Text>
+									</TouchableOpacity>
+								))}
+							</VStack>
+						)}
+						{singleSelectedAddress && (
+							<HStack
+								style={{
+									padding: 12,
+									borderRadius: 8,
+									backgroundColor: isDark
+										? "#1e3a5f"
+										: "#eff6ff",
+									alignItems: "center",
+									gap: 8,
+								}}>
+								<Icon
+									as={MapPin}
+									size='sm'
+									style={{ color: "#3b82f6" }}
+								/>
+								<Text
+									style={{
+										fontSize: 14,
+										color: isDark ? "#93c5fd" : "#1d4ed8",
+										flex: 1,
+									}}>
+									{singleSelectedAddress.label}
+								</Text>
+							</HStack>
+						)}
+					</VStack>
 				)}
 
-				{/* Plusieurs adresses */}
+				{/* Plusieurs adresses – autocomplete par ligne */}
 				{formData.work_location_type === "multiple" && (
 					<VStack space='sm'>
 						{formData.work_locations.map((addr, i) => (
-							<HStack
-								key={i}
-								space='sm'
-								style={{ alignItems: "center" }}>
-								<Input style={{ ...inputStyle, flex: 1 }}>
-									<InputField
-										placeholder={`Adresse ${i + 1}`}
-										value={addr}
-										onChangeText={(v) => {
-											const updated = [
-												...formData.work_locations,
-											];
-											updated[i] = v;
-											updateField(
-												"work_locations",
-												updated,
-											);
-										}}
-										style={inputTextStyle}
-									/>
-								</Input>
-								{formData.work_locations.length > 1 && (
-									<TouchableOpacity
-										onPress={() =>
-											updateField(
-												"work_locations",
-												formData.work_locations.filter(
-													(_, idx) => idx !== i,
-												),
-											)
-										}
-										activeOpacity={0.7}>
-										<Icon
-											as={Trash2}
-											size='sm'
-											style={{ color: "#ef4444" }}
+							<VStack key={i} space='xs'>
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Input style={{ ...inputStyle, flex: 1 }}>
+										<InputField
+											placeholder={`Rechercher adresse ${i + 1}...`}
+											value={multiAddressQueries[i] ?? ""}
+											onChangeText={(v) => {
+												const uq = [
+													...multiAddressQueries,
+												];
+												uq[i] = v;
+												setMultiAddressQueries(uq);
+												const ul = [
+													...formData.work_locations,
+												];
+												ul[i] = v;
+												updateField(
+													"work_locations",
+													ul,
+												);
+												const us = [
+													...multiSelectedAddresses,
+												];
+												us[i] = null;
+												setMultiSelectedAddresses(us);
+												searchAddress(v, (results) => {
+													const ur = [
+														...multiAddressResults,
+													];
+													ur[i] = results;
+													setMultiAddressResults(ur);
+												});
+											}}
+											style={inputTextStyle}
 										/>
-									</TouchableOpacity>
+									</Input>
+									{formData.work_locations.length > 1 && (
+										<TouchableOpacity
+											onPress={() => {
+												updateField(
+													"work_locations",
+													formData.work_locations.filter(
+														(_, idx) => idx !== i,
+													),
+												);
+												setMultiAddressQueries(
+													multiAddressQueries.filter(
+														(_, idx) => idx !== i,
+													),
+												);
+												setMultiAddressResults(
+													multiAddressResults.filter(
+														(_, idx) => idx !== i,
+													),
+												);
+												setMultiSelectedAddresses(
+													multiSelectedAddresses.filter(
+														(_, idx) => idx !== i,
+													),
+												);
+											}}
+											activeOpacity={0.7}>
+											<Icon
+												as={Trash2}
+												size='sm'
+												style={{ color: "#ef4444" }}
+											/>
+										</TouchableOpacity>
+									)}
+								</HStack>
+								{(multiAddressResults[i] || []).length > 0 && (
+									<VStack
+										style={{
+											borderRadius: 8,
+											overflow: "hidden",
+											borderWidth: 1,
+											borderColor: isDark
+												? "#374151"
+												: "#e5e7eb",
+										}}>
+										{(multiAddressResults[i] || []).map(
+											(item, idx) => (
+												<TouchableOpacity
+													key={idx}
+													onPress={() => {
+														const us = [
+															...multiSelectedAddresses,
+														];
+														us[i] = item;
+														setMultiSelectedAddresses(
+															us,
+														);
+														const uq = [
+															...multiAddressQueries,
+														];
+														uq[i] = "";
+														setMultiAddressQueries(
+															uq,
+														);
+														const ur = [
+															...multiAddressResults,
+														];
+														ur[i] = [];
+														setMultiAddressResults(
+															ur,
+														);
+														const ul = [
+															...formData.work_locations,
+														];
+														ul[i] = item.label;
+														updateField(
+															"work_locations",
+															ul,
+														);
+													}}
+													activeOpacity={0.7}
+													style={{
+														padding: 12,
+														backgroundColor: isDark
+															? "#1f2937"
+															: "#ffffff",
+														borderBottomWidth:
+															idx <
+															(
+																multiAddressResults[
+																	i
+																] || []
+															).length -
+																1
+																? 1
+																: 0,
+														borderBottomColor:
+															isDark
+																? "#374151"
+																: "#e5e7eb",
+													}}>
+													<Text
+														style={{
+															fontSize: 14,
+															color: isDark
+																? "#e5e7eb"
+																: "#374151",
+														}}>
+														{item.label}
+													</Text>
+												</TouchableOpacity>
+											),
+										)}
+									</VStack>
 								)}
-							</HStack>
+								{multiSelectedAddresses[i] && (
+									<HStack
+										style={{
+											padding: 12,
+											borderRadius: 8,
+											backgroundColor: isDark
+												? "#1e3a5f"
+												: "#eff6ff",
+											alignItems: "center",
+											gap: 8,
+										}}>
+										<Icon
+											as={MapPin}
+											size='sm'
+											style={{ color: "#3b82f6" }}
+										/>
+										<Text
+											style={{
+												fontSize: 14,
+												color: isDark
+													? "#93c5fd"
+													: "#1d4ed8",
+												flex: 1,
+											}}>
+											{multiSelectedAddresses[i].label}
+										</Text>
+									</HStack>
+								)}
+							</VStack>
 						))}
 						<TouchableOpacity
-							onPress={() =>
+							onPress={() => {
 								updateField("work_locations", [
 									...formData.work_locations,
 									"",
-								])
-							}
+								]);
+								setMultiAddressQueries([
+									...multiAddressQueries,
+									"",
+								]);
+								setMultiAddressResults([
+									...multiAddressResults,
+									[],
+								]);
+								setMultiSelectedAddresses([
+									...multiSelectedAddresses,
+									null,
+								]);
+							}}
 							activeOpacity={0.7}
 							style={{
 								flexDirection: "row",
@@ -1375,21 +1699,145 @@ const ContractGenerationScreen = () => {
 
 				{/* Zone / Région */}
 				{formData.work_location_type === "zone" && (
-					<Input style={inputStyle}>
-						<InputField
-							placeholder='Ex : Département 59, Région Hauts-de-France...'
-							value={formData.work_location}
-							onChangeText={(v) =>
-								updateField("work_location", v)
-							}
-							style={inputTextStyle}
-						/>
-					</Input>
+					<VStack space='sm'>
+						<Input style={inputStyle}>
+							<InputField
+								placeholder='Rechercher un département ou une région...'
+								value={zoneQuery}
+								onChangeText={(v) => {
+									setZoneQuery(v);
+									updateField("work_location", v);
+									setZoneSelected(null);
+									searchZone(v);
+								}}
+								style={inputTextStyle}
+							/>
+						</Input>
+						{zoneResults.length > 0 && (
+							<VStack
+								style={{
+									borderRadius: 8,
+									overflow: "hidden",
+									borderWidth: 1,
+									borderColor: isDark ? "#374151" : "#e5e7eb",
+								}}>
+								{zoneResults.map((item, idx) => (
+									<TouchableOpacity
+										key={idx}
+										onPress={() => {
+											setZoneSelected(item);
+											setZoneQuery("");
+											setZoneResults([]);
+											updateField(
+												"work_location",
+												item.label,
+											);
+										}}
+										activeOpacity={0.7}
+										style={{
+											padding: 12,
+											backgroundColor: isDark
+												? "#1f2937"
+												: "#ffffff",
+											borderBottomWidth:
+												idx < zoneResults.length - 1
+													? 1
+													: 0,
+											borderBottomColor: isDark
+												? "#374151"
+												: "#e5e7eb",
+										}}>
+										<HStack
+											style={{
+												alignItems: "center",
+												gap: 8,
+											}}>
+											<Text
+												style={{
+													fontSize: 10,
+													fontWeight: "700",
+													color:
+														item.type === "reg"
+															? "#8b5cf6"
+															: "#3b82f6",
+													paddingHorizontal: 6,
+													paddingVertical: 2,
+													borderRadius: 4,
+													backgroundColor:
+														item.type === "reg"
+															? isDark
+																? "#3b1f6f"
+																: "#ede9fe"
+															: isDark
+																? "#1e3a5f"
+																: "#dbeafe",
+												}}>
+												{item.type === "reg"
+													? "RÉG"
+													: "DEP"}
+											</Text>
+											<Text
+												style={{
+													fontSize: 14,
+													color: isDark
+														? "#e5e7eb"
+														: "#374151",
+												}}>
+												{item.label}
+											</Text>
+										</HStack>
+									</TouchableOpacity>
+								))}
+							</VStack>
+						)}
+						{zoneSelected && (
+							<HStack
+								style={{
+									padding: 12,
+									borderRadius: 8,
+									backgroundColor: isDark
+										? zoneSelected.type === "reg"
+											? "#3b1f6f"
+											: "#1e3a5f"
+										: zoneSelected.type === "reg"
+											? "#ede9fe"
+											: "#eff6ff",
+									alignItems: "center",
+									gap: 8,
+								}}>
+								<Icon
+									as={MapPin}
+									size='sm'
+									style={{
+										color:
+											zoneSelected.type === "reg"
+												? "#8b5cf6"
+												: "#3b82f6",
+									}}
+								/>
+								<Text
+									style={{
+										fontSize: 14,
+										color:
+											zoneSelected.type === "reg"
+												? isDark
+													? "#c4b5fd"
+													: "#7c3aed"
+												: isDark
+													? "#93c5fd"
+													: "#1d4ed8",
+										flex: 1,
+									}}>
+									{zoneSelected.label}
+								</Text>
+							</HStack>
+						)}
+					</VStack>
 				)}
 			</Card>
 
 			<Card style={cardStyle}>
-				<Text style={labelStyle}>Description des missions</Text>
+				<Text style={labelStyle}>Description des missions *</Text>
 				<Textarea
 					style={{ ...inputStyle, minHeight: 120, marginBottom: 30 }}>
 					<TextareaInput
