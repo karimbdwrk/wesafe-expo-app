@@ -414,6 +414,17 @@ const ContractGenerationScreen = () => {
 				return showError("Veuillez choisir un type de contrat");
 			if (!formData.start_date)
 				return showError("Veuillez saisir une date de début");
+			if (formData.contract_type === "CDD" && !formData.end_date)
+				return showError("La date de fin est obligatoire pour un CDD");
+			if (
+				formData.contract_type === "CDD" &&
+				!formData.contract_reason?.trim()
+			)
+				return showError(
+					"Le motif de recours est obligatoire pour un CDD",
+				);
+			if (!formData.total_hours || formData.total_hours.trim() === "")
+				return showError("Le nombre d'heures est obligatoire");
 		}
 		if (currentStep === 2) {
 			if (!formData.job_title.trim())
@@ -501,10 +512,14 @@ const ContractGenerationScreen = () => {
 
 			let error;
 			if (existingContractId) {
-				// Brouillon existant → mise à jour
+				// Brouillon existant → mise à jour (on rafraîchit aussi les snapshots)
 				({ error } = await supabase
 					.from("contracts")
-					.update(editablePayload)
+					.update({
+						...editablePayload,
+						company_snapshot: applicationData?.companies ?? null,
+						candidate_snapshot: applicationData?.profiles ?? null,
+					})
 					.eq("id", existingContractId));
 			} else {
 				// Nouveau contrat → insertion
@@ -656,7 +671,10 @@ const ContractGenerationScreen = () => {
 			{(formData.contract_type === "CDD" ||
 				formData.contract_type === "Intérim") && (
 				<Card style={cardStyle}>
-					<Text style={labelStyle}>Motif de recours</Text>
+					<Text style={labelStyle}>
+						Motif de recours
+						{formData.contract_type === "CDD" ? " *" : ""}
+					</Text>
 					<Textarea style={{ ...inputStyle, minHeight: 80 }}>
 						<TextareaInput
 							placeholder="Ex : Remplacement d'un salarié absent, accroissement temporaire..."
@@ -711,7 +729,10 @@ const ContractGenerationScreen = () => {
 
 			{formData.contract_type !== "CDI" && (
 				<Card style={cardStyle}>
-					<Text style={labelStyle}>Date de fin</Text>
+					<Text style={labelStyle}>
+						Date de fin
+						{formData.contract_type === "CDD" ? " *" : ""}
+					</Text>
 					<TouchableOpacity
 						onPress={() => {
 							setTempContractDate(
@@ -764,8 +785,8 @@ const ContractGenerationScreen = () => {
 										1,
 								),
 							))
-						? "Nombre d'heures mensuelles"
-						: "Nombre d'heures au total"}
+						? "Nombre d'heures mensuelles *"
+						: "Nombre d'heures au total *"}
 				</Text>
 				<Input style={inputStyle}>
 					<InputField
