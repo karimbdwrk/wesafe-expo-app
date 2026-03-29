@@ -926,6 +926,12 @@ const ContractScreen = () => {
 							value={formatDateFR(displayCandidate.birth_date)}
 						/>
 					) : null}
+					{displayCandidate?.social_security_number ? (
+						<InfoRow
+							label='N° Sécurité sociale'
+							value={displayCandidate.social_security_number}
+						/>
+					) : null}
 					{displayCandidate?.address ? (
 						<InfoRow
 							label='Adresse'
@@ -1314,7 +1320,7 @@ const ContractScreen = () => {
 						</VStack>
 						<HStack space='xs' style={{ alignItems: "center" }}>
 							<Icon
-								as={CheckCircle}
+								as={Clock}
 								size='sm'
 								style={{
 									color: isSigned ? "#16a34a" : "#9ca3af",
@@ -1359,7 +1365,7 @@ const ContractScreen = () => {
 						</VStack>
 						<HStack space='xs' style={{ alignItems: "center" }}>
 							<Icon
-								as={CheckCircle}
+								as={Clock}
 								size='sm'
 								style={{
 									color: isProSigned ? "#16a34a" : "#9ca3af",
