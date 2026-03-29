@@ -555,6 +555,37 @@ const DashboardScreen = () => {
 												</Badge>
 											)}
 										</HStack>
+										{(company?.street ||
+											company?.postcode ||
+											company?.city) && (
+											<VStack
+												space='0.5'
+												className='mb-2'>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													{company.street}
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? "#9ca3af"
+															: "#6b7280",
+													}}>
+													{[
+														company.postcode,
+														company.city,
+													]
+														.filter(Boolean)
+														.join(" ")}
+												</Text>
+											</VStack>
+										)}
 										{company?.siret && (
 											<Text
 												size='sm'
