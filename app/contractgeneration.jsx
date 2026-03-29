@@ -206,6 +206,8 @@ const ContractGenerationScreen = () => {
 		vacations: [],
 		// Step 2
 		work_location: "",
+		work_location_type: "single",
+		work_locations: [""],
 		job_title: "",
 		job_description: "",
 		// Step 3
@@ -333,8 +335,16 @@ const ContractGenerationScreen = () => {
 		if (currentStep === 2) {
 			if (!formData.job_title.trim())
 				return showError("Veuillez saisir l'intitulé du poste");
-			if (!formData.work_location.trim())
-				return showError("Veuillez saisir le lieu de travail");
+			if (formData.work_location_type === "multiple") {
+				if (
+					formData.work_locations.length === 0 ||
+					formData.work_locations.every((a) => !a.trim())
+				)
+					return showError("Veuillez saisir au moins une adresse");
+			} else {
+				if (!formData.work_location.trim())
+					return showError("Veuillez saisir le lieu de travail");
+			}
 		}
 		if (currentStep === 3) {
 			if (!formData.hourly_rate)
@@ -370,7 +380,13 @@ const ContractGenerationScreen = () => {
 					week_schedule: formData.week_schedule,
 					vacations: formData.vacations,
 				},
-				work_location: formData.work_location,
+				work_location:
+					formData.work_location_type === "multiple"
+						? JSON.stringify(
+								formData.work_locations.filter((a) => a.trim()),
+							)
+						: formData.work_location,
+				work_location_type: formData.work_location_type,
 				job_title: formData.job_title,
 				job_description: formData.job_description || null,
 				hourly_rate: formData.hourly_rate
@@ -1088,14 +1104,160 @@ const ContractGenerationScreen = () => {
 
 			<Card style={cardStyle}>
 				<Text style={labelStyle}>Lieu de travail *</Text>
-				<Input style={inputStyle}>
-					<InputField
-						placeholder="Ex : Centre commercial Grand Place, Villeneuve-d'Ascq"
-						value={formData.work_location}
-						onChangeText={(v) => updateField("work_location", v)}
-						style={inputTextStyle}
-					/>
-				</Input>
+				<HStack style={{ flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+					{[
+						{ value: "single", label: "Adresse unique" },
+						{ value: "multiple", label: "Plusieurs adresses" },
+						{ value: "zone", label: "Zone / Région" },
+					].map(({ value, label }) => (
+						<TouchableOpacity
+							key={value}
+							onPress={() =>
+								updateField("work_location_type", value)
+							}
+							activeOpacity={0.7}
+							style={{
+								paddingHorizontal: 14,
+								paddingVertical: 7,
+								borderRadius: 20,
+								borderWidth: 1.5,
+								borderColor:
+									formData.work_location_type === value
+										? "#3b82f6"
+										: isDark
+											? "#4b5563"
+											: "#d1d5db",
+								backgroundColor:
+									formData.work_location_type === value
+										? "#3b82f6"
+										: "transparent",
+							}}>
+							<Text
+								style={{
+									fontSize: 12,
+									fontWeight: "600",
+									color:
+										formData.work_location_type === value
+											? "#ffffff"
+											: isDark
+												? "#d1d5db"
+												: "#374151",
+								}}>
+								{label}
+							</Text>
+						</TouchableOpacity>
+					))}
+				</HStack>
+
+				{/* Adresse unique */}
+				{formData.work_location_type === "single" && (
+					<Input style={inputStyle}>
+						<InputField
+							placeholder='Ex : 15 rue de la Paix, 75001 Paris'
+							value={formData.work_location}
+							onChangeText={(v) =>
+								updateField("work_location", v)
+							}
+							style={inputTextStyle}
+						/>
+					</Input>
+				)}
+
+				{/* Plusieurs adresses */}
+				{formData.work_location_type === "multiple" && (
+					<VStack space='sm'>
+						{formData.work_locations.map((addr, i) => (
+							<HStack
+								key={i}
+								space='sm'
+								style={{ alignItems: "center" }}>
+								<Input style={{ ...inputStyle, flex: 1 }}>
+									<InputField
+										placeholder={`Adresse ${i + 1}`}
+										value={addr}
+										onChangeText={(v) => {
+											const updated = [
+												...formData.work_locations,
+											];
+											updated[i] = v;
+											updateField(
+												"work_locations",
+												updated,
+											);
+										}}
+										style={inputTextStyle}
+									/>
+								</Input>
+								{formData.work_locations.length > 1 && (
+									<TouchableOpacity
+										onPress={() =>
+											updateField(
+												"work_locations",
+												formData.work_locations.filter(
+													(_, idx) => idx !== i,
+												),
+											)
+										}
+										activeOpacity={0.7}>
+										<Icon
+											as={Trash2}
+											size='sm'
+											style={{ color: "#ef4444" }}
+										/>
+									</TouchableOpacity>
+								)}
+							</HStack>
+						))}
+						<TouchableOpacity
+							onPress={() =>
+								updateField("work_locations", [
+									...formData.work_locations,
+									"",
+								])
+							}
+							activeOpacity={0.7}
+							style={{
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "center",
+								gap: 8,
+								paddingVertical: 10,
+								borderRadius: 8,
+								borderWidth: 1.5,
+								borderStyle: "dashed",
+								borderColor: isDark ? "#4b5563" : "#d1d5db",
+							}}>
+							<Icon
+								as={Plus}
+								size='sm'
+								style={{
+									color: isDark ? "#6b7280" : "#9ca3af",
+								}}
+							/>
+							<Text
+								style={{
+									fontSize: 13,
+									color: isDark ? "#6b7280" : "#9ca3af",
+								}}>
+								Ajouter une adresse
+							</Text>
+						</TouchableOpacity>
+					</VStack>
+				)}
+
+				{/* Zone / Région */}
+				{formData.work_location_type === "zone" && (
+					<Input style={inputStyle}>
+						<InputField
+							placeholder='Ex : Département 59, Région Hauts-de-France...'
+							value={formData.work_location}
+							onChangeText={(v) =>
+								updateField("work_location", v)
+							}
+							style={inputTextStyle}
+						/>
+					</Input>
+				)}
 			</Card>
 
 			<Card style={cardStyle}>
@@ -1442,7 +1604,15 @@ const ContractGenerationScreen = () => {
 				<VStack space='sm'>
 					{[
 						{ label: "Intitulé", value: formData.job_title },
-						{ label: "Lieu", value: formData.work_location },
+						{
+							label: "Lieu",
+							value:
+								formData.work_location_type === "multiple"
+									? formData.work_locations
+											.filter((a) => a.trim())
+											.join(", ") || null
+									: formData.work_location || null,
+						},
 						{
 							label: "Description",
 							value: formData.job_description,
