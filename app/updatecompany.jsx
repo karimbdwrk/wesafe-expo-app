@@ -730,28 +730,42 @@ const UpdateCompany = () => {
 										}}>
 										<HStack
 											space='sm'
-											style={{ alignItems: "center" }}>
+											style={{
+												alignItems: "flex-start",
+											}}>
 											<Icon
 												as={MapPin}
 												size={14}
 												color='#3b82f6'
+												style={{ marginTop: 4 }}
 											/>
-											<Text
-												style={{
-													fontSize: 14,
-													color: isDark
-														? "#93c5fd"
-														: "#1d4ed8",
-													flexShrink: 1,
-												}}>
-												{[
-													selectedAddress.street,
-													selectedAddress.postcode,
-													selectedAddress.city,
-												]
-													.filter(Boolean)
-													.join(", ")}
-											</Text>
+											<VStack>
+												<Text
+													style={{
+														fontSize: 14,
+														color: isDark
+															? "#93c5fd"
+															: "#1d4ed8",
+														flexShrink: 1,
+													}}>
+													{selectedAddress.street}
+												</Text>
+												<Text
+													style={{
+														fontSize: 14,
+														color: isDark
+															? "#93c5fd"
+															: "#1d4ed8",
+														flexShrink: 1,
+													}}>
+													{[
+														selectedAddress.postcode,
+														selectedAddress.city,
+													]
+														.filter(Boolean)
+														.join(" ")}
+												</Text>
+											</VStack>
 										</HStack>
 									</Box>
 								)}
