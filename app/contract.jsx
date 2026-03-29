@@ -998,9 +998,21 @@ const ContractScreen = () => {
 				{/* Card : Lieu de travail */}
 				{contract?.work_location ||
 				contract?.work_locations ||
-				contract?.work_location_zone ? (
+				contract?.work_location_zone ||
+				contract?.work_location_name ? (
 					<Box style={cardStyle}>
 						<SectionHeader icon={MapPin} title='Lieu de travail' />
+						{contract?.work_location_name ? (
+							<Text
+								style={{
+									fontSize: 14,
+									fontWeight: "600",
+									color: textPrimary,
+									marginBottom: 8,
+								}}>
+								{contract.work_location_name}
+							</Text>
+						) : null}
 						{wLocType === "multiple" && multipleLocations ? (
 							<VStack style={{ gap: 6 }}>
 								{multipleLocations.map((loc, i) => (
