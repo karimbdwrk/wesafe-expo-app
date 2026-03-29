@@ -719,10 +719,11 @@ const ContractScreen = () => {
 	// Gestion des lieux de travail multiples
 	const wLocType = contract?.work_location_type || "single";
 	let multipleLocations = null;
-	if (wLocType === "multiple" && contract?.work_locations) {
+	if (wLocType === "multiple" && contract?.work_location) {
 		try {
-			const val = contract.work_locations;
-			const parsed = Array.isArray(val) ? val : JSON.parse(val);
+			const parsed = Array.isArray(contract.work_location)
+				? contract.work_location
+				: JSON.parse(contract.work_location);
 			multipleLocations = Array.isArray(parsed) ? parsed : null;
 		} catch {
 			multipleLocations = null;
@@ -996,10 +997,7 @@ const ContractScreen = () => {
 				</Box>
 
 				{/* Card : Lieu de travail */}
-				{contract?.work_location ||
-				contract?.work_locations ||
-				contract?.work_location_zone ||
-				contract?.work_location_name ? (
+				{contract?.work_location || contract?.work_location_name ? (
 					<Box style={cardStyle}>
 						<SectionHeader icon={MapPin} title='Lieu de travail' />
 						{contract?.work_location_name ? (
@@ -1050,7 +1048,7 @@ const ContractScreen = () => {
 									fontSize: 14,
 									lineHeight: 20,
 								}}>
-								{contract.work_location_zone}
+								{contract.work_location}
 							</Text>
 						) : (
 							<Text
