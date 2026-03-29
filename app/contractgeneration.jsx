@@ -30,6 +30,14 @@ import {
 } from "@/components/ui/toast";
 import { Badge, BadgeText } from "@/components/ui/badge";
 import {
+	AlertDialog,
+	AlertDialogBackdrop,
+	AlertDialogContent,
+	AlertDialogHeader,
+	AlertDialogBody,
+	AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
+import {
 	Actionsheet,
 	ActionsheetContent,
 	ActionsheetDragIndicator,
@@ -101,9 +109,53 @@ const ContractGenerationScreen = () => {
 					"*,jobs(*), profiles(*), companies(*)",
 				);
 				setApplicationData(data);
-				console.log("[ContractGen] Job :", data?.jobs);
-				console.log("[ContractGen] Candidat :", data?.profiles);
-				console.log("[ContractGen] Company :", data?.companies);
+
+				const job = data?.jobs;
+				if (!job) return;
+
+				// Mapping contract_type stocké en lowercase vers les valeurs du form
+				const mapContractType = (v) => {
+					if (!v) return "";
+					const upper = v.toUpperCase();
+					if (upper === "CDI" || upper === "CDD") return upper;
+					return "";
+				};
+
+				// Conversion d'une chaîne ISO date → objet Date
+				const isoToDate = (iso) => (iso ? new Date(iso) : null);
+
+				// Vacations : s'assurer que vacation.date est un objet Date
+				const parseVacations = (raw) => {
+					if (!raw || !Array.isArray(raw)) return [];
+					return raw.map((v) => ({
+						date: v.date ? new Date(v.date) : null,
+						start_time: v.start_time || "",
+						end_time: v.end_time || "",
+					}));
+				};
+
+				const vacations = parseVacations(job.vacations);
+				const contractType = mapContractType(job.contract_type);
+				const workLocation = [job.city, job.postcode]
+					.filter(Boolean)
+					.join(", ");
+
+				setFormData((prev) => ({
+					...prev,
+					contract_type: contractType || prev.contract_type,
+					start_date: isoToDate(job.start_date) ?? prev.start_date,
+					end_date: isoToDate(job.end_date) ?? prev.end_date,
+					job_title: job.title || prev.job_title,
+					// job_description: job.description || prev.job_description,
+					work_location: workLocation || prev.work_location,
+					hourly_rate: job.salary_hourly
+						? String(job.salary_hourly)
+						: prev.hourly_rate,
+					...(vacations.length > 0 && {
+						schedule_known: true,
+						vacations,
+					}),
+				}));
 			} catch (err) {
 				console.error("[ContractGen] Erreur fetch application :", err);
 			}
@@ -168,7 +220,7 @@ const ContractGenerationScreen = () => {
 		is_sunday: false,
 		is_holiday: false,
 		// Step 4
-		equipment_provided: true,
+		equipment_provided: false,
 		equipment_details: "",
 		trial_period: "",
 		custom_clauses: "",
@@ -292,6 +344,7 @@ const ContractGenerationScreen = () => {
 	};
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
 	const handleSubmit = async () => {
 		setIsSubmitting(true);
@@ -1047,7 +1100,8 @@ const ContractGenerationScreen = () => {
 
 			<Card style={cardStyle}>
 				<Text style={labelStyle}>Description des missions</Text>
-				<Textarea style={{ ...inputStyle, minHeight: 120 }}>
+				<Textarea
+					style={{ ...inputStyle, minHeight: 120, marginBottom: 30 }}>
 					<TextareaInput
 						placeholder='Détaillez les missions et responsabilités du poste...'
 						value={formData.job_description}
@@ -1185,7 +1239,7 @@ const ContractGenerationScreen = () => {
 					style={{
 						alignItems: "center",
 						justifyContent: "space-between",
-						marginBottom: 12,
+						// marginBottom: 12,
 					}}>
 					<Text style={labelStyle}>
 						Équipement fourni par l'employeur
@@ -1207,6 +1261,7 @@ const ContractGenerationScreen = () => {
 							style={{
 								fontSize: 12,
 								color: isDark ? "#9ca3af" : "#6b7280",
+								marginTop: 12,
 								marginBottom: 6,
 							}}>
 							Détail de l'équipement
@@ -1729,26 +1784,7 @@ const ContractGenerationScreen = () => {
 										Précédent
 									</ButtonText>
 								</Button>
-							) : (
-								<Button
-									variant='outline'
-									onPress={() => router.back()}
-									style={{
-										flex: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
-									}}>
-									<ButtonText
-										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
-										}}>
-										Annuler
-									</ButtonText>
-								</Button>
-							)}
+							) : null}
 
 							{currentStep < STEPS.length ? (
 								<Button
@@ -1790,6 +1826,87 @@ const ContractGenerationScreen = () => {
 					</Box>
 				</Box>
 			</KeyboardAvoidingView>
+
+			{/* Alert Dialog : confirmation génération contrat */}
+			<AlertDialog
+				isOpen={showConfirmDialog}
+				onClose={() => setShowConfirmDialog(false)}>
+				<AlertDialogBackdrop />
+				<AlertDialogContent
+					style={{
+						backgroundColor: isDark ? "#374151" : "#ffffff",
+						borderRadius: 16,
+						margin: 24,
+					}}>
+					<AlertDialogHeader>
+						<Text
+							style={{
+								fontSize: 17,
+								fontWeight: "700",
+								color: isDark ? "#f3f4f6" : "#111827",
+							}}>
+							Générer le contrat
+						</Text>
+					</AlertDialogHeader>
+					<AlertDialogBody>
+						<Text
+							style={{
+								fontSize: 14,
+								color: isDark ? "#9ca3af" : "#6b7280",
+								lineHeight: 20,
+							}}>
+							Voulez-vous confirmer la génération du contrat pour{" "}
+							<Text
+								style={{
+									fontWeight: "700",
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								{applicationData?.profiles?.firstname}{" "}
+								{applicationData?.profiles?.lastname}
+							</Text>{" "}
+							au poste de{" "}
+							<Text
+								style={{
+									fontWeight: "700",
+									color: isDark ? "#f3f4f6" : "#111827",
+								}}>
+								{formData.job_title}
+							</Text>
+							 ? Cette action est irréversible.
+						</Text>
+					</AlertDialogBody>
+					<AlertDialogFooter style={{ gap: 10, paddingTop: 16 }}>
+						<Button
+							variant='outline'
+							onPress={() => setShowConfirmDialog(false)}
+							style={{
+								flex: 1,
+								borderColor: isDark ? "#4b5563" : "#d1d5db",
+							}}>
+							<ButtonText
+								style={{
+									color: isDark ? "#f3f4f6" : "#374151",
+								}}>
+								Annuler
+							</ButtonText>
+						</Button>
+						<Button
+							onPress={() => {
+								setShowConfirmDialog(false);
+								handleSubmit();
+							}}
+							style={{
+								flex: 1,
+								backgroundColor: "#16a34a",
+							}}>
+							<ButtonText
+								style={{ color: "#ffffff", fontWeight: "700" }}>
+								Confirmer
+							</ButtonText>
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 
 			{/* Actionsheet : date picker contrat (début / fin) */}
 			<Actionsheet
