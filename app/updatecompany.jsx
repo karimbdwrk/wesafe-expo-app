@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ScrollView, Platform, KeyboardAvoidingView } from "react-native";
+import {
+	ScrollView,
+	Platform,
+	KeyboardAvoidingView,
+	TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
@@ -11,6 +16,7 @@ import {
 	CheckCircle,
 	AlertCircle,
 	Mail,
+	MapPin,
 } from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
@@ -49,6 +55,12 @@ const UpdateCompany = () => {
 	const [description, setDescription] = useState("");
 	const [legalFirstname, setLegalFirstname] = useState("");
 	const [legalLastname, setLegalLastname] = useState("");
+	const [street, setStreet] = useState("");
+	const [postcode, setPostcode] = useState("");
+	const [city, setCity] = useState("");
+	const [addressQuery, setAddressQuery] = useState("");
+	const [addressResults, setAddressResults] = useState([]);
+	const [selectedAddress, setSelectedAddress] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 
@@ -59,6 +71,7 @@ const UpdateCompany = () => {
 	const descriptionInputRef = useRef(null);
 	const legalFirstnameInputRef = useRef(null);
 	const legalLastnameInputRef = useRef(null);
+	const addressInputRef = useRef(null);
 
 	// Formater le SIRET avec des espaces : 123 456 789 00013
 	const formatSiret = (value) => {
@@ -98,6 +111,29 @@ const UpdateCompany = () => {
 		}
 	};
 
+	const searchAddress = async (query) => {
+		if (!query || query.length < 3) {
+			setAddressResults([]);
+			return;
+		}
+		try {
+			const res = await fetch(
+				`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`,
+			);
+			const data = await res.json();
+			const results = (data.features || []).map((item) => ({
+				label: item.properties.label,
+				city: item.properties.city,
+				postcode: item.properties.postcode,
+				street: item.properties.name,
+			}));
+			console.log("Address search results:", results);
+			setAddressResults(results);
+		} catch (e) {
+			console.error("searchAddress error:", e);
+		}
+	};
+
 	const handleUpdateCompany = async () => {
 		if (!name || !email) {
 			toast.show({
@@ -130,6 +166,9 @@ const UpdateCompany = () => {
 				name: name,
 				// siret: siret,
 				email: email,
+				street: street,
+				postcode: postcode,
+				city: city,
 				description: description,
 				legal_representative_firstname: legalFirstname,
 				legal_representative_lastname: legalLastname,
@@ -190,13 +229,28 @@ const UpdateCompany = () => {
 					const companyData = await getById(
 						"companies",
 						user.id,
-						"name,siret,email,description,legal_representative_firstname,legal_representative_lastname",
+						"name,siret,email,street,postcode,city,description,legal_representative_firstname,legal_representative_lastname",
 					);
 
 					if (companyData) {
 						setName(companyData.name || "");
 						// setSiret(companyData.siret || "");
 						setEmail(companyData.email || "");
+						const savedAddress = companyData.street || "";
+						const savedPostcode = companyData.postcode || "";
+						const savedCity = companyData.city || "";
+						setStreet(savedAddress);
+						setPostcode(savedPostcode);
+						setCity(savedCity);
+						setAddressQuery("");
+						if (savedAddress) {
+							setSelectedAddress({
+								label: savedAddress,
+								street: savedAddress,
+								postcode: savedPostcode,
+								city: savedCity,
+							});
+						}
 						setDescription(companyData.description || "");
 						setLegalFirstname(
 							companyData.legal_representative_firstname || "",
@@ -543,6 +597,164 @@ const UpdateCompany = () => {
 										}}
 									/>
 								</Input>
+							</VStack>
+
+							<Divider
+								style={{
+									backgroundColor: isDark
+										? "#4b5563"
+										: "#e5e7eb",
+								}}
+							/>
+
+							{/* Adresse */}
+							<VStack space='sm' ref={addressInputRef}>
+								<Text
+									size='sm'
+									style={{
+										color: isDark ? "#f3f4f6" : "#111827",
+										fontWeight: "600",
+									}}>
+									Adresse
+								</Text>
+								<Input
+									style={{
+										backgroundColor: isDark
+											? "#1f2937"
+											: "#f9fafb",
+										borderColor: isDark
+											? "#4b5563"
+											: "#d1d5db",
+									}}>
+									<InputSlot style={{ paddingLeft: 12 }}>
+										<InputIcon
+											as={MapPin}
+											size={20}
+											color={
+												isDark ? "#9ca3af" : "#6b7280"
+											}
+										/>
+									</InputSlot>
+									<InputField
+										type='text'
+										placeholder='Rechercher une adresse...'
+										value={addressQuery}
+										onChangeText={(text) => {
+											setAddressQuery(text);
+											if (!text) {
+												setStreet("");
+												setPostcode("");
+												setCity("");
+												setSelectedAddress(null);
+											}
+											searchAddress(text);
+										}}
+										onFocus={() =>
+											scrollToInput(addressInputRef)
+										}
+										autoCapitalize='none'
+										style={{
+											color: isDark
+												? "#f3f4f6"
+												: "#111827",
+										}}
+									/>
+								</Input>
+								{addressResults.length > 0 && (
+									<Box
+										style={{
+											backgroundColor: isDark
+												? "#1f2937"
+												: "#ffffff",
+											borderRadius: 8,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#4b5563"
+												: "#d1d5db",
+											overflow: "hidden",
+										}}>
+										{addressResults.map((item, i) => (
+											<TouchableOpacity
+												key={i}
+												onPress={() => {
+													setStreet(
+														item.street || "",
+													);
+													setPostcode(
+														item.postcode || "",
+													);
+													setCity(item.city || "");
+													setAddressQuery("");
+													setSelectedAddress(item);
+													setAddressResults([]);
+												}}
+												style={{
+													paddingHorizontal: 14,
+													paddingVertical: 12,
+													borderBottomWidth:
+														i <
+														addressResults.length -
+															1
+															? 1
+															: 0,
+													borderBottomColor: isDark
+														? "#374151"
+														: "#e5e7eb",
+												}}>
+												<Text
+													style={{
+														color: isDark
+															? "#f3f4f6"
+															: "#111827",
+														fontSize: 14,
+													}}>
+													{item.label}
+												</Text>
+											</TouchableOpacity>
+										))}
+									</Box>
+								)}
+								{selectedAddress && (
+									<Box
+										style={{
+											backgroundColor: isDark
+												? "#1e3a5f"
+												: "#eff6ff",
+											borderRadius: 10,
+											borderWidth: 1,
+											borderColor: isDark
+												? "#2563eb"
+												: "#bfdbfe",
+											padding: 12,
+											marginTop: 4,
+										}}>
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={MapPin}
+												size={14}
+												color='#3b82f6'
+											/>
+											<Text
+												style={{
+													fontSize: 14,
+													color: isDark
+														? "#93c5fd"
+														: "#1d4ed8",
+													flexShrink: 1,
+												}}>
+												{[
+													selectedAddress.street,
+													selectedAddress.postcode,
+													selectedAddress.city,
+												]
+													.filter(Boolean)
+													.join(", ")}
+											</Text>
+										</HStack>
+									</Box>
+								)}
 							</VStack>
 
 							<Divider
