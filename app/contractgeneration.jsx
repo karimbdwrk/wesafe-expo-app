@@ -356,7 +356,7 @@ const ContractGenerationScreen = () => {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-	const handleSubmit = async () => {
+	const handleSubmit = async (status = "draft") => {
 		setIsSubmitting(true);
 		try {
 			const supabase = createSupabaseClient(accessToken);
@@ -419,7 +419,7 @@ const ContractGenerationScreen = () => {
 				custom_clauses: formData.custom_clauses || null,
 				company_snapshot: applicationData?.companies ?? null,
 				candidate_snapshot: applicationData?.profiles ?? null,
-				status: "draft",
+				status: status,
 				generated_at: new Date().toISOString(),
 				isSigned: false,
 				isProSigned: false,
@@ -435,7 +435,9 @@ const ContractGenerationScreen = () => {
 							<Icon as={CheckCircle} className='text-green-500' />
 							<VStack>
 								<ToastTitle>
-									Contrat enregistré avec succès
+									{status === "published"
+										? "Contrat publié avec succès"
+										: "Brouillon enregistré"}
 								</ToastTitle>
 							</VStack>
 						</HStack>
@@ -1973,7 +1975,7 @@ const ContractGenerationScreen = () => {
 								</Button>
 							) : (
 								<Button
-									onPress={handleSubmit}
+									onPress={() => setShowConfirmDialog(true)}
 									disabled={isSubmitting}
 									style={{
 										flex: 2,
@@ -2024,8 +2026,9 @@ const ContractGenerationScreen = () => {
 								fontSize: 14,
 								color: isDark ? "#9ca3af" : "#6b7280",
 								lineHeight: 20,
+								marginBottom: 16,
 							}}>
-							Voulez-vous confirmer la génération du contrat pour{" "}
+							Contrat pour{" "}
 							<Text
 								style={{
 									fontWeight: "700",
@@ -2034,7 +2037,7 @@ const ContractGenerationScreen = () => {
 								{applicationData?.profiles?.firstname}{" "}
 								{applicationData?.profiles?.lastname}
 							</Text>{" "}
-							au poste de{" "}
+							— poste{" "}
 							<Text
 								style={{
 									fontWeight: "700",
@@ -2042,10 +2045,78 @@ const ContractGenerationScreen = () => {
 								}}>
 								{formData.job_title}
 							</Text>
-							 ? Cette action est irréversible.
 						</Text>
+						<VStack space='sm'>
+							{/* Option Brouillon */}
+							<TouchableOpacity
+								onPress={() => {
+									setShowConfirmDialog(false);
+									handleSubmit("draft");
+								}}
+								activeOpacity={0.7}
+								style={{
+									borderWidth: 1.5,
+									borderColor: isDark ? "#4b5563" : "#d1d5db",
+									borderRadius: 12,
+									padding: 14,
+									backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+								}}>
+								<Text
+									style={{
+										fontSize: 14,
+										fontWeight: "700",
+										color: isDark ? "#f3f4f6" : "#111827",
+										marginBottom: 4,
+									}}>
+									📝 Enregistrer en brouillon
+								</Text>
+								<Text
+									style={{
+										fontSize: 12,
+										color: isDark ? "#9ca3af" : "#6b7280",
+										lineHeight: 18,
+									}}>
+									Sauvegarder pour compléter ou modifier plus tard.{" "}
+									Le candidat ne pourra pas encore le signer.
+								</Text>
+							</TouchableOpacity>
+
+							{/* Option Publier */}
+							<TouchableOpacity
+								onPress={() => {
+									setShowConfirmDialog(false);
+									handleSubmit("published");
+								}}
+								activeOpacity={0.7}
+								style={{
+									borderWidth: 1.5,
+									borderColor: "#16a34a",
+									borderRadius: 12,
+									padding: 14,
+									backgroundColor: isDark ? "#052e16" : "#f0fdf4",
+								}}>
+								<Text
+									style={{
+										fontSize: 14,
+										fontWeight: "700",
+										color: "#16a34a",
+										marginBottom: 4,
+									}}>
+									✅ Publier le contrat
+								</Text>
+								<Text
+									style={{
+										fontSize: 12,
+										color: isDark ? "#86efac" : "#166534",
+										lineHeight: 18,
+									}}>
+									Finaliser et envoyer au candidat pour signature.{" "}
+									Cette action est irréversible.
+								</Text>
+							</TouchableOpacity>
+						</VStack>
 					</AlertDialogBody>
-					<AlertDialogFooter style={{ gap: 10, paddingTop: 16 }}>
+					<AlertDialogFooter style={{ paddingTop: 12 }}>
 						<Button
 							variant='outline'
 							onPress={() => setShowConfirmDialog(false)}
@@ -2058,20 +2129,6 @@ const ContractGenerationScreen = () => {
 									color: isDark ? "#f3f4f6" : "#374151",
 								}}>
 								Annuler
-							</ButtonText>
-						</Button>
-						<Button
-							onPress={() => {
-								setShowConfirmDialog(false);
-								handleSubmit();
-							}}
-							style={{
-								flex: 1,
-								backgroundColor: "#16a34a",
-							}}>
-							<ButtonText
-								style={{ color: "#ffffff", fontWeight: "700" }}>
-								Confirmer
 							</ButtonText>
 						</Button>
 					</AlertDialogFooter>
