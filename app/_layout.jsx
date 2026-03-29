@@ -486,7 +486,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='contract'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Mon contrat",
+								}}
 							/>
 							<Stack.Screen
 								name='contractgeneration'
