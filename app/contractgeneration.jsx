@@ -98,11 +98,14 @@ const ContractGenerationScreen = () => {
 	const { getById } = useDataContext();
 
 	const [applicationData, setApplicationData] = useState(null);
+	const [existingContractId, setExistingContractId] = useState(null);
 
 	useEffect(() => {
 		if (!application_id) return;
 		const fetchApplicationData = async () => {
 			try {
+				const supabase = createSupabaseClient(accessToken);
+
 				const data = await getById(
 					"applications",
 					application_id,
@@ -110,21 +113,7 @@ const ContractGenerationScreen = () => {
 				);
 				setApplicationData(data);
 
-				const job = data?.jobs;
-				if (!job) return;
-
-				// Mapping contract_type stocké en lowercase vers les valeurs du form
-				const mapContractType = (v) => {
-					if (!v) return "";
-					const upper = v.toUpperCase();
-					if (upper === "CDI" || upper === "CDD") return upper;
-					return "";
-				};
-
-				// Conversion d'une chaîne ISO date → objet Date
 				const isoToDate = (iso) => (iso ? new Date(iso) : null);
-
-				// Vacations : s'assurer que vacation.date est un objet Date
 				const parseVacations = (raw) => {
 					if (!raw || !Array.isArray(raw)) return [];
 					return raw.map((v) => ({
@@ -132,6 +121,97 @@ const ContractGenerationScreen = () => {
 						start_time: v.start_time || "",
 						end_time: v.end_time || "",
 					}));
+				};
+
+				// Vérifier si un brouillon existe déjà pour cette candidature
+				const { data: existingContract } = await supabase
+					.from("contracts")
+					.select("*")
+					.eq("apply_id", application_id)
+					.eq("status", "draft")
+					.maybeSingle();
+
+				if (existingContract) {
+					// Brouillon trouvé → pré-remplir depuis le contrat
+					setExistingContractId(existingContract.id);
+					const c = existingContract;
+					const schedule = c.schedule || {};
+					const wLocType = c.work_location_type || "single";
+					const wLocs =
+						wLocType === "multiple"
+							? (() => {
+									try {
+										return (
+											JSON.parse(c.work_location) || [""]
+										);
+									} catch {
+										return [""];
+									}
+								})()
+							: [""];
+
+					setFormData((prev) => ({
+						...prev,
+						contract_type: c.contract_type || "",
+						contract_reason: c.contract_reason || "",
+						start_date: isoToDate(c.start_date),
+						end_date: isoToDate(c.end_date),
+						total_hours:
+							c.total_hours != null ? String(c.total_hours) : "",
+						schedule_known: schedule.schedule_known ?? false,
+						week_schedule:
+							schedule.week_schedule ?? prev.week_schedule,
+						vacations: parseVacations(schedule.vacations),
+						work_location:
+							wLocType !== "multiple"
+								? c.work_location || ""
+								: "",
+						work_location_type: wLocType,
+						work_locations: wLocs,
+						job_title: c.job_title || "",
+						job_description: c.job_description || "",
+						hourly_rate:
+							c.hourly_rate != null ? String(c.hourly_rate) : "",
+						meal_bonus:
+							c.meal_bonus != null ? String(c.meal_bonus) : "",
+						transport_bonus:
+							c.transport_bonus != null
+								? String(c.transport_bonus)
+								: "",
+						night_bonus:
+							c.night_bonus != null ? String(c.night_bonus) : "",
+						sunday_bonus:
+							c.sunday_bonus != null
+								? String(c.sunday_bonus)
+								: "",
+						holiday_bonus:
+							c.holiday_bonus != null
+								? String(c.holiday_bonus)
+								: "",
+						overtime_rate:
+							c.overtime_rate != null
+								? String(c.overtime_rate)
+								: "",
+						is_night: c.is_night ?? false,
+						is_sunday: c.is_sunday ?? false,
+						is_holiday: c.is_holiday ?? false,
+						equipment_provided: c.equipment_provided ?? false,
+						equipment_details: c.equipment_details || "",
+						trial_period: c.trial_period || "",
+						custom_clauses: c.custom_clauses || "",
+					}));
+					return; // Ne pas écraser avec les données du job
+				}
+
+				// Pas de brouillon → pré-remplir depuis le job
+				const job = data?.jobs;
+				if (!job) return;
+
+				const mapContractType = (v) => {
+					if (!v) return "";
+					const upper = v.toUpperCase();
+					if (upper === "CDI" || upper === "CDD") return upper;
+					return "";
 				};
 
 				const vacations = parseVacations(job.vacations);
@@ -146,7 +226,6 @@ const ContractGenerationScreen = () => {
 					start_date: isoToDate(job.start_date) ?? prev.start_date,
 					end_date: isoToDate(job.end_date) ?? prev.end_date,
 					job_title: job.title || prev.job_title,
-					// job_description: job.description || prev.job_description,
 					work_location: workLocation || prev.work_location,
 					hourly_rate: job.salary_hourly
 						? String(job.salary_hourly)
@@ -363,11 +442,7 @@ const ContractGenerationScreen = () => {
 			const formatDateISO = (d) =>
 				d ? d.toISOString().split("T")[0] : null;
 
-			const { error } = await supabase.from("contracts").insert({
-				apply_id: application_id,
-				job_id: applicationData?.jobs?.id ?? null,
-				company_id: applicationData?.companies?.id ?? null,
-				candidate_id: applicationData?.profiles?.id ?? null,
+			const editablePayload = {
 				contract_type: formData.contract_type,
 				contract_reason: formData.contract_reason || null,
 				start_date: formatDateISO(formData.start_date),
@@ -417,13 +492,31 @@ const ContractGenerationScreen = () => {
 				equipment_details: formData.equipment_details || null,
 				trial_period: formData.trial_period || null,
 				custom_clauses: formData.custom_clauses || null,
-				company_snapshot: applicationData?.companies ?? null,
-				candidate_snapshot: applicationData?.profiles ?? null,
 				status: status,
-				generated_at: new Date().toISOString(),
-				isSigned: false,
-				isProSigned: false,
-			});
+			};
+
+			let error;
+			if (existingContractId) {
+				// Brouillon existant → mise à jour
+				({ error } = await supabase
+					.from("contracts")
+					.update(editablePayload)
+					.eq("id", existingContractId));
+			} else {
+				// Nouveau contrat → insertion
+				({ error } = await supabase.from("contracts").insert({
+					...editablePayload,
+					apply_id: application_id,
+					job_id: applicationData?.jobs?.id ?? null,
+					company_id: applicationData?.companies?.id ?? null,
+					candidate_id: applicationData?.profiles?.id ?? null,
+					company_snapshot: applicationData?.companies ?? null,
+					candidate_snapshot: applicationData?.profiles ?? null,
+					generated_at: new Date().toISOString(),
+					isSigned: false,
+					isProSigned: false,
+				}));
+			}
 
 			if (error) throw error;
 
@@ -2059,7 +2152,9 @@ const ContractGenerationScreen = () => {
 									borderColor: isDark ? "#4b5563" : "#d1d5db",
 									borderRadius: 12,
 									padding: 14,
-									backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+									backgroundColor: isDark
+										? "#1f2937"
+										: "#f9fafb",
 								}}>
 								<Text
 									style={{
@@ -2076,8 +2171,9 @@ const ContractGenerationScreen = () => {
 										color: isDark ? "#9ca3af" : "#6b7280",
 										lineHeight: 18,
 									}}>
-									Sauvegarder pour compléter ou modifier plus tard.{" "}
-									Le candidat ne pourra pas encore le signer.
+									Sauvegarder pour compléter ou modifier plus
+									tard. Le candidat ne pourra pas encore le
+									signer.
 								</Text>
 							</TouchableOpacity>
 
@@ -2093,7 +2189,9 @@ const ContractGenerationScreen = () => {
 									borderColor: "#16a34a",
 									borderRadius: 12,
 									padding: 14,
-									backgroundColor: isDark ? "#052e16" : "#f0fdf4",
+									backgroundColor: isDark
+										? "#052e16"
+										: "#f0fdf4",
 								}}>
 								<Text
 									style={{
@@ -2110,8 +2208,8 @@ const ContractGenerationScreen = () => {
 										color: isDark ? "#86efac" : "#166534",
 										lineHeight: 18,
 									}}>
-									Finaliser et envoyer au candidat pour signature.{" "}
-									Cette action est irréversible.
+									Finaliser et envoyer au candidat pour
+									signature. Cette action est irréversible.
 								</Text>
 							</TouchableOpacity>
 						</VStack>
