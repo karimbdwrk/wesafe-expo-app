@@ -220,9 +220,6 @@ const ContractGenerationScreen = () => {
 
 				const vacations = parseVacations(job.vacations);
 				const contractType = mapContractType(job.contract_type);
-				const workLocation = [job.city, job.postcode]
-					.filter(Boolean)
-					.join(", ");
 
 				setFormData((prev) => ({
 					...prev,
@@ -230,7 +227,6 @@ const ContractGenerationScreen = () => {
 					start_date: isoToDate(job.start_date) ?? prev.start_date,
 					end_date: isoToDate(job.end_date) ?? prev.end_date,
 					job_title: job.title || prev.job_title,
-					work_location: workLocation || prev.work_location,
 					hourly_rate: job.salary_hourly
 						? String(job.salary_hourly)
 						: prev.hourly_rate,
