@@ -95,7 +95,7 @@ const ContractGenerationScreen = () => {
 	const router = useRouter();
 	const toast = useToast();
 	const { accessToken } = useAuth();
-	const { getById } = useDataContext();
+	const { getById, updateApplicationStatus } = useDataContext();
 
 	const [applicationData, setApplicationData] = useState(null);
 	const [existingContractId, setExistingContractId] = useState(null);
@@ -523,6 +523,18 @@ const ContractGenerationScreen = () => {
 			}
 
 			if (error) throw error;
+
+			// Si c'est la première publication (pas encore published avant)
+			if (
+				status === "published" &&
+				existingContractStatus !== "published"
+			) {
+				await updateApplicationStatus(
+					application_id,
+					"contract_sent",
+					"company",
+				);
+			}
 
 			toast.show({
 				placement: "top",
