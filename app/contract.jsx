@@ -2,7 +2,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import Constants from "expo-constants";
 
 import { ScrollView } from "react-native";
-import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
+import { View } from "react-native";
+import {
+	useRouter,
+	useLocalSearchParams,
+	useFocusEffect,
+	Stack,
+} from "expo-router";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Box } from "@/components/ui/box";
@@ -792,59 +798,34 @@ const ContractScreen = () => {
 
 	return (
 		<Box style={{ flex: 1, backgroundColor: bg }}>
+			<Stack.Screen
+				options={{
+					headerRight: () =>
+						contract?.status ? (
+							<View
+								style={{
+									paddingHorizontal: 10,
+									paddingVertical: 4,
+									borderRadius: 20,
+									backgroundColor: statusBg,
+								}}>
+								<Text
+									style={{
+										fontSize: 12,
+										fontWeight: "600",
+										color: statusColor,
+									}}>
+									{statusLabel}
+								</Text>
+							</View>
+						) : null,
+				}}
+			/>
 			<ScrollView
 				contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
 				showsVerticalScrollIndicator={false}>
 				{/* Badges : type contrat + statut + signé */}
-				<HStack
-					space='sm'
-					style={{ marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
-					{contract?.contract_type ? (
-						<Box
-							style={{
-								paddingHorizontal: 12,
-								paddingVertical: 4,
-								borderRadius: 20,
-								backgroundColor:
-									contract.contract_type === "CDI"
-										? isDark
-											? "#052e16"
-											: "#dcfce7"
-										: isDark
-											? "#451a03"
-											: "#fef3c7",
-							}}>
-							<Text
-								style={{
-									fontSize: 12,
-									fontWeight: "700",
-									color:
-										contract.contract_type === "CDI"
-											? "#16a34a"
-											: "#b45309",
-								}}>
-								{contract.contract_type}
-							</Text>
-						</Box>
-					) : null}
-					{contract?.status ? (
-						<Box
-							style={{
-								paddingHorizontal: 12,
-								paddingVertical: 4,
-								borderRadius: 20,
-								backgroundColor: statusBg,
-							}}>
-							<Text
-								style={{
-									fontSize: 12,
-									fontWeight: "600",
-									color: statusColor,
-								}}>
-								{statusLabel}
-							</Text>
-						</Box>
-					) : null}
+				<HStack space='sm' style={{ flexWrap: "wrap", gap: 8 }}>
 					{isSigned && isProSigned ? (
 						<Box
 							style={{
