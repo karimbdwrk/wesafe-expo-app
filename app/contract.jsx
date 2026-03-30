@@ -14,7 +14,8 @@ import { Box } from "@/components/ui/box";
 import { Divider } from "@/components/ui/divider";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
-import { useToast, Toast, ToastTitle } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import { Icon } from "@/components/ui/icon";
 import {
 	Building2,
@@ -28,6 +29,7 @@ import {
 	Download,
 	Pen,
 	Signature,
+	AlertCircle,
 } from "lucide-react-native";
 import {
 	Modal,
@@ -220,13 +222,14 @@ const ContractScreen = () => {
 			toast.show({
 				placement: "top",
 				render: ({ id }) => (
-					<Toast
-						nativeID={"toast-" + id}
-						className='px-5 py-3 gap-4 bg-error-500'>
-						<ToastTitle className='text-white'>
-							{errorMessage}
-						</ToastTitle>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title={errorMessage}
+					/>
 				),
 			});
 		}
@@ -450,13 +453,14 @@ const ContractScreen = () => {
 			toast.show({
 				placement: "top",
 				render: ({ id }) => (
-					<Toast
-						nativeID={"toast-" + id}
-						className='px-5 py-3 gap-4 bg-error-500'>
-						<ToastTitle className='text-white'>
-							Erreur lors de la création du contrat
-						</ToastTitle>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title='Erreur lors de la création du contrat'
+					/>
 				),
 			});
 			return null;
@@ -485,18 +489,16 @@ const ContractScreen = () => {
 				toast.show({
 					placement: "top",
 					render: ({ id }) => (
-						<Toast
-							nativeID={"toast-" + id}
-							className='px-5 py-3 gap-4 shadow-soft-1 items-center flex-row'>
-							<Icon
-								as={Signature}
-								size='xl'
-								className='text-typography-white'
-							/>
-							<ToastTitle size='sm'>
-								Contrat signé et tamponné !
-							</ToastTitle>
-						</Toast>
+						<CustomToast
+							id={id}
+							icon={Signature}
+							color={
+								isDark
+									? Colors.dark.success
+									: Colors.light.success
+							}
+							title='Contrat signé et tamponné !'
+						/>
 					),
 				});
 				await createNotification({
@@ -539,16 +541,16 @@ const ContractScreen = () => {
 				toast.show({
 					placement: "top",
 					render: ({ id }) => (
-						<Toast
-							nativeID={"toast-" + id}
-							className='px-5 py-3 gap-4 shadow-soft-1 items-center flex-row'>
-							<Icon
-								as={Signature}
-								size='xl'
-								className='text-typography-white'
-							/>
-							<ToastTitle size='sm'>Contrat signé !</ToastTitle>
-						</Toast>
+						<CustomToast
+							id={id}
+							icon={Signature}
+							color={
+								isDark
+									? Colors.dark.success
+									: Colors.light.success
+							}
+							title='Contrat signé !'
+						/>
 					),
 				});
 				await createNotification({
@@ -1778,14 +1780,17 @@ const ContractScreen = () => {
 										toast.show({
 											placement: "top",
 											render: ({ id }) => (
-												<Toast
-													nativeID={"toast-" + id}
-													className='px-5 py-3 gap-4 bg-error-500'>
-													<ToastTitle className='text-white'>
-														Erreur lors de l'envoi
-														du code
-													</ToastTitle>
-												</Toast>
+												<CustomToast
+													id={id}
+													icon={AlertCircle}
+													color={
+														isDark
+															? Colors.dark.danger
+															: Colors.light
+																	.danger
+													}
+													title="Erreur lors de l'envoi du code"
+												/>
 											),
 										});
 									}

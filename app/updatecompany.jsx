@@ -22,6 +22,7 @@ import {
 import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
@@ -33,12 +34,8 @@ import { Textarea, TextareaInput } from "@/components/ui/textarea";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Divider } from "@/components/ui/divider";
-import {
-	useToast,
-	Toast,
-	ToastTitle,
-	ToastDescription,
-} from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import { Icon } from "@/components/ui/icon";
 import { width } from "dom-helpers";
 
@@ -140,21 +137,13 @@ const UpdateCompany = () => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='muted' variant='outline'>
-						<HStack space='md' style={{ alignItems: "flex-start" }}>
-							<Icon
-								as={AlertCircle}
-								className='text-red-500 mt-1'
-							/>
-							<VStack>
-								<ToastTitle>Champs obligatoires</ToastTitle>
-								<ToastDescription>
-									Veuillez remplir le nom, le SIRET {"\n"}et
-									l'email de l'entreprise.
-								</ToastDescription>
-							</VStack>
-						</HStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={isDark ? Colors.dark.danger : Colors.light.danger}
+						title="Champs obligatoires"
+						description="Veuillez remplir le nom, le SIRET et l'email de l'entreprise."
+					/>
 				),
 			});
 			return;
@@ -179,23 +168,13 @@ const UpdateCompany = () => {
 				placement: "top",
 				duration: 5000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='muted' variant='outline'>
-						<HStack space='md' style={{ alignItems: "flex-start" }}>
-							<Icon
-								as={CheckCircle}
-								className='text-green-500 mt-1'
-							/>
-							<VStack>
-								<ToastTitle>
-									Entreprise mise à jour !
-								</ToastTitle>
-								<ToastDescription>
-									Les informations ont été enregistrées avec
-									succès.
-								</ToastDescription>
-							</VStack>
-						</HStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={CheckCircle}
+						color={isDark ? Colors.dark.success : Colors.light.success}
+						title="Entreprise mise à jour !"
+						description="Les informations ont été enregistrées avec succès."
+					/>
 				),
 			});
 			trackActivity("update_profile");
@@ -206,15 +185,13 @@ const UpdateCompany = () => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon as={AlertCircle} />
-						<VStack>
-							<ToastTitle>Erreur</ToastTitle>
-							<ToastDescription>
-								Impossible de mettre à jour l'entreprise.
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={isDark ? Colors.dark.danger : Colors.light.danger}
+						title="Erreur"
+						description="Impossible de mettre à jour l'entreprise."
+					/>
 				),
 			});
 		} finally {
@@ -266,16 +243,13 @@ const UpdateCompany = () => {
 					placement: "top",
 					duration: 4000,
 					render: ({ id }) => (
-						<Toast nativeID={id} action='error' variant='accent'>
-							<Icon as={AlertCircle} />
-							<VStack>
-								<ToastTitle>Erreur</ToastTitle>
-								<ToastDescription>
-									Impossible de charger les données de
-									l'entreprise.
-								</ToastDescription>
-							</VStack>
-						</Toast>
+						<CustomToast
+							id={id}
+							icon={AlertCircle}
+							color={isDark ? Colors.dark.danger : Colors.light.danger}
+							title="Erreur"
+							description="Impossible de charger les données de l'entreprise."
+						/>
 					),
 				});
 			} finally {

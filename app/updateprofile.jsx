@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ScrollView, View, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+	ScrollView,
+	View,
+	TouchableOpacity,
+	ActivityIndicator,
+} from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -44,12 +49,8 @@ import {
 	SelectDragIndicator,
 	SelectItem,
 } from "@/components/ui/select";
-import {
-	useToast,
-	Toast,
-	ToastTitle,
-	ToastDescription,
-} from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import { Icon } from "@/components/ui/icon";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/services/twilioApi";
 
@@ -59,7 +60,9 @@ const UpdateProfile = () => {
 	const { update, getById, getAll, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const bg = isDark ? Colors.dark.background : Colors.light.background;
-	const cardBg = isDark ? Colors.dark.cardBackground : Colors.light.cardBackground;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
 	const cardBorder = isDark ? Colors.dark.border : Colors.light.border;
 	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
 	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
@@ -72,6 +75,7 @@ const UpdateProfile = () => {
 	const [birthday, setBirthday] = useState(new Date());
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [postcode, setPostcode] = useState("");
+	const [postcodeSearch, setPostcodeSearch] = useState("");
 	const [city, setCity] = useState("");
 	const [department, setDepartment] = useState("");
 	const [region, setRegion] = useState("");
@@ -114,6 +118,7 @@ const UpdateProfile = () => {
 					profile.birthday ? new Date(profile.birthday) : new Date(),
 				);
 				setPostcode(profile.postcode || "");
+				setPostcodeSearch(profile.postcode || "");
 				setCity(profile.city || "");
 				setDepartment(profile.department || "");
 				setRegion(profile.region || "");
@@ -176,15 +181,15 @@ const UpdateProfile = () => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon as={AlertCircle} />
-						<VStack>
-							<ToastTitle>Champs obligatoires</ToastTitle>
-							<ToastDescription>
-								Veuillez remplir votre prénom et nom.
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title='Champs obligatoires'
+						description='Veuillez remplir votre prénom et nom.'
+					/>
 				),
 			});
 			return;
@@ -214,7 +219,9 @@ const UpdateProfile = () => {
 					? `+33${phone.replace(/\s/g, "").replace(/^0/, "")}`
 					: null,
 				phone_status: phone
-					? (phoneVerified ? "verified" : "pending")
+					? phoneVerified
+						? "verified"
+						: "pending"
 					: null,
 			});
 
@@ -222,16 +229,15 @@ const UpdateProfile = () => {
 				placement: "top",
 				duration: 5000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='success' variant='accent'>
-						<Icon as={CheckCircle} />
-						<VStack>
-							<ToastTitle>Profil mis à jour !</ToastTitle>
-							<ToastDescription>
-								Les informations ont été enregistrées avec
-								succès.
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={CheckCircle}
+						color={
+							isDark ? Colors.dark.success : Colors.light.success
+						}
+						title='Profil mis à jour !'
+						description='Les informations ont été enregistrées avec succès.'
+					/>
 				),
 			});
 			trackActivity("update_profile");
@@ -242,15 +248,15 @@ const UpdateProfile = () => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon as={AlertCircle} />
-						<VStack>
-							<ToastTitle>Erreur</ToastTitle>
-							<ToastDescription>
-								Impossible de mettre à jour le profil.
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title='Erreur'
+						description='Impossible de mettre à jour le profil.'
+					/>
 				),
 			});
 		} finally {
@@ -272,7 +278,8 @@ const UpdateProfile = () => {
 				setOtpError(null);
 				// Démarrer le cooldown 60s
 				setResendCooldown(60);
-				if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+				if (resendTimerRef.current)
+					clearInterval(resendTimerRef.current);
 				resendTimerRef.current = setInterval(() => {
 					setResendCooldown((prev) => {
 						if (prev <= 1) {
@@ -283,7 +290,11 @@ const UpdateProfile = () => {
 					});
 				}, 1000);
 			} else {
-				console.warn("[send-otp] erreur serveur :", res?.error, res?.detail);
+				console.warn(
+					"[send-otp] erreur serveur :",
+					res?.error,
+					res?.detail,
+				);
 				setOtpError("server");
 			}
 		} catch (err) {
@@ -312,7 +323,13 @@ const UpdateProfile = () => {
 			} else {
 				// code incorrect
 				setOtpError("wrong_code");
-				console.warn("[verify-otp] échec :", res?.error, res?.detail, "status:", res?.status);
+				console.warn(
+					"[verify-otp] échec :",
+					res?.error,
+					res?.detail,
+					"status:",
+					res?.status,
+				);
 			}
 		} catch (err) {
 			console.warn("[verify-otp] exception :", err?.message || err);
@@ -362,20 +379,35 @@ const UpdateProfile = () => {
 				`&phone=eq.${encoded}&id=neq.${user.id}`,
 				1,
 				1,
-			).then(({ data }) => {
-				console.warn("[phone check] query pour", e164, "→ résultat brut :", data);
-				if (data?.length > 0) {
-					console.warn(`[phone check] ❌ Numéro ${e164} déjà utilisé par profil id=${data[0].id}`);
-					setPhoneStatus("taken");
-				} else {
-					console.warn(`[phone check] ✅ Numéro ${e164} disponible`);
-					setPhoneStatus("available");
-				}
-			}).catch((err) => {
-				console.warn("[phone check] erreur requête :", err?.message || err);
-			}).finally(() => {
-				setPhoneChecking(false);
-			});
+			)
+				.then(({ data }) => {
+					console.warn(
+						"[phone check] query pour",
+						e164,
+						"→ résultat brut :",
+						data,
+					);
+					if (data?.length > 0) {
+						console.warn(
+							`[phone check] ❌ Numéro ${e164} déjà utilisé par profil id=${data[0].id}`,
+						);
+						setPhoneStatus("taken");
+					} else {
+						console.warn(
+							`[phone check] ✅ Numéro ${e164} disponible`,
+						);
+						setPhoneStatus("available");
+					}
+				})
+				.catch((err) => {
+					console.warn(
+						"[phone check] erreur requête :",
+						err?.message || err,
+					);
+				})
+				.finally(() => {
+					setPhoneChecking(false);
+				});
 		}
 	};
 
@@ -388,9 +420,7 @@ const UpdateProfile = () => {
 					justifyContent: "center",
 					alignItems: "center",
 				}}>
-				<Text style={{ color: textPrimary }}>
-					Chargement...
-				</Text>
+				<Text style={{ color: textPrimary }}>Chargement...</Text>
 			</Box>
 		);
 	}
@@ -401,8 +431,8 @@ const UpdateProfile = () => {
 				style={{ flex: 1 }}
 				contentContainerStyle={{ paddingBottom: 100 }}>
 				<VStack space='lg' style={{ padding: 20 }}>
-				{/* Header Card */}
-				{/* <Card
+					{/* Header Card */}
+					{/* <Card
 					style={{
 						backgroundColor: cardBg,
 						borderRadius: 12,
@@ -440,457 +470,15 @@ const UpdateProfile = () => {
 					</HStack>
 				</Card> */}
 
-				{/* Form Card */}
-				<Card
-					style={{
-						backgroundColor: cardBg,
-						borderRadius: 12,
-						padding: 20,
-					}}>
-					<VStack space='lg'>
-						{/* Prénom */}
-						<VStack space='sm'>
-							<Text
-								size='sm'
-								style={{
-									color: textPrimary,
-									fontWeight: "600",
-								}}>
-								Prénom *
-							</Text>
-							<Input
-								style={{
-									backgroundColor: bg,
-									borderColor: cardBorder,
-								}}>
-								<InputSlot style={{ paddingLeft: 12 }}>
-									<InputIcon
-										as={User}
-										size={20}
-										color={textSecondary}
-									/>
-								</InputSlot>
-								<InputField
-									type='text'
-									placeholder='Entrez votre prénom'
-									value={firstname}
-									onChangeText={setFirstname}
-									style={{
-										color: textPrimary,
-									}}
-								/>
-							</Input>
-						</VStack>
-
-						<Divider
-							style={{
-								backgroundColor: cardBorder,
-							}}
-						/>
-
-						{/* Nom */}
-						<VStack space='sm'>
-							<Text
-								size='sm'
-								style={{
-									color: textPrimary,
-									fontWeight: "600",
-								}}>
-								Nom *
-							</Text>
-							<Input
-								style={{
-									backgroundColor: bg,
-									borderColor: cardBorder,
-								}}>
-								<InputSlot style={{ paddingLeft: 12 }}>
-									<InputIcon
-										as={User}
-										size={20}
-										color={textSecondary}
-									/>
-								</InputSlot>
-								<InputField
-									type='text'
-									placeholder='Entrez votre nom'
-									value={lastname}
-									onChangeText={setLastname}
-									style={{
-										color: textPrimary,
-									}}
-								/>
-							</Input>
-						</VStack>
-
-						<Divider
-							style={{
-								backgroundColor: cardBorder,
-							}}
-						/>
-
-						{/* Téléphone */}
-						<VStack space='sm'>
-							<Text
-								size='sm'
-								style={{
-									color: textPrimary,
-									fontWeight: "600",
-								}}>
-								Téléphone
-							</Text>
-							<HStack space='sm'>
-								{/* Indicateur pays — bloqué +33 */}
-								<Box
-									style={{
-										height: 36,
-										paddingHorizontal: 14,
-										borderRadius: 8,
-										borderWidth: 1,
-										borderColor: cardBorder,
-										backgroundColor: cardBg,
-										flexDirection: "row",
-										alignItems: "center",
-										gap: 6,
-									}}>
-									<Text
-										style={{
-											color: textPrimary,
-											fontWeight: "600",
-											fontSize: 14,
-										}}>
-										+33
-									</Text>
-								</Box>
-								{/* Numéro */}
-								<Input
-									style={{
-										flex: 1,
-										backgroundColor: bg,
-										borderColor: (() => {
-											const digits = phone.replace(/\s/g, "");
-											if (!digits) return cardBorder;
-											if (phoneStatus === "taken") return isDark ? Colors.dark.danger : Colors.light.danger;
-											if (phoneStatus === "available") return isDark ? Colors.dark.success : Colors.light.success;
-											const startsOk = /^0[67]/.test(digits);
-											if (!startsOk && digits.length >= 2) return isDark ? Colors.dark.danger : Colors.light.danger;
-											return cardBorder;
-										})(),
-										borderWidth: (() => {
-											const digits = phone.replace(/\s/g, "");
-											if (phoneStatus === "taken" || phoneStatus === "available") return 1.5;
-											const startsOk = /^0[67]/.test(digits);
-											if (!startsOk && digits.length >= 2) return 1.5;
-											return 1;
-										})(),
-									}}>
-									<InputField
-										keyboardType='phone-pad'
-										placeholder='06 12 34 56 78'
-										value={phone}
-										onChangeText={handlePhoneChange}
-										maxLength={14}
-										style={{ color: textPrimary }}
-									/>
-									{phoneChecking && (
-										<InputSlot style={{ paddingRight: 12 }}>
-											<ActivityIndicator size='small' color={textSecondary} />
-										</InputSlot>
-									)}
-								</Input>
-							</HStack>
-							{phoneChecking ? null : phoneVerified ? (
-								<HStack space='xs' style={{ alignItems: "center", marginTop: 6 }}>
-									<Icon as={CheckCircle} size='sm' style={{ color: isDark ? Colors.dark.success : Colors.light.success }} />
-									<Text style={{ fontSize: 12, color: isDark ? Colors.dark.success : Colors.light.success }}>Numéro vérifié</Text>
-								</HStack>
-							) : phoneStatus === "available" ? (
-								<VStack space='sm' style={{ marginTop: 6 }}>
-									{!otpSent ? (
-										<>
-											<Text style={{ fontSize: 12, color: isDark ? Colors.dark.success : Colors.light.success }}>✓ Numéro disponible</Text>
-											<TouchableOpacity
-												onPress={handleSendOtp}
-												disabled={otpSending}
-												style={{
-													alignSelf: "flex-start",
-													paddingHorizontal: 16,
-													paddingVertical: 8,
-													borderRadius: 8,
-													backgroundColor: tint,
-													opacity: otpSending ? 0.6 : 1,
-													flexDirection: "row",
-													alignItems: "center",
-													gap: 6,
-												}}>
-												{otpSending ? (
-													<ActivityIndicator size='small' color='#fff' />
-												) : null}
-												<Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>
-													{otpSending ? "Envoi en cours…" : "Valider par SMS"}
-												</Text>
-											</TouchableOpacity>
-										</>
-									) : (
-										<>
-											<Text style={{ fontSize: 12, color: textSecondary }}>
-												Code envoyé par SMS — saisissez-le ci-dessous
-											</Text>
-											<HStack space='sm' style={{ alignItems: "center" }}>
-												<Input style={{
-													flex: 1,
-													backgroundColor: bg,
-													borderColor: cardBorder,
-												}}>
-													<InputField
-														keyboardType='number-pad'
-														placeholder='Code OTP'
-														value={otpInput}
-														onChangeText={(v) => { setOtpInput(v); setOtpError(null); }}
-														maxLength={6}
-														style={{ color: textPrimary, letterSpacing: 4 }}
-													/>
-												</Input>
-												<TouchableOpacity
-													onPress={handleVerifyOtp}
-													disabled={otpVerifying || otpInput.length < 4}
-													style={{
-														paddingHorizontal: 16,
-														paddingVertical: 10,
-														borderRadius: 8,
-														backgroundColor: tint,
-														opacity: (otpVerifying || otpInput.length < 4) ? 0.5 : 1,
-														flexDirection: "row",
-														alignItems: "center",
-														gap: 6,
-													}}>
-													{otpVerifying ? (
-														<ActivityIndicator size='small' color='#fff' />
-													) : null}
-													<Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>
-														Vérifier
-													</Text>
-												</TouchableOpacity>
-											</HStack>
-											{otpError === "wrong_code" && (
-												<Text style={{ fontSize: 12, color: isDark ? Colors.dark.danger : Colors.light.danger, marginTop: 4 }}>
-													Code incorrect, vérifiez votre SMS
-												</Text>
-											)}
-											{otpError === "expired" && (
-												<Text style={{ fontSize: 12, color: isDark ? Colors.dark.warning : Colors.light.warning, marginTop: 4 }}>
-													Code expiré — cliquez sur "Renvoyer le code"
-												</Text>
-											)}
-											{otpError === "server" && (
-												<Text style={{ fontSize: 12, color: isDark ? Colors.dark.danger : Colors.light.danger, marginTop: 4 }}>
-													Erreur serveur, réessayez
-												</Text>
-											)}
-											<TouchableOpacity
-												onPress={handleSendOtp}
-												disabled={otpSending || resendCooldown > 0}>
-												<Text style={{ fontSize: 11, color: textSecondary, marginTop: 2 }}>
-													{resendCooldown > 0
-														? `Renvoyer dans ${resendCooldown}s`
-														: "Renvoyer le code"}
-												</Text>
-											</TouchableOpacity>
-										</>
-									)}
-								</VStack>
-							) : phoneStatus === "taken" ? (
-								<Text style={{ fontSize: 12, color: isDark ? Colors.dark.danger : Colors.light.danger, marginTop: 4 }}>
-									✕ Ce numéro est déjà utilisé
-								</Text>
-							) : (() => {
-								const digits = phone.replace(/\s/g, "");
-								if (!digits) return null;
-								if (/^0[67]/.test(digits)) return null;
-								if (digits.length >= 2) {
-									return (
-										<Text style={{ fontSize: 12, color: isDark ? Colors.dark.danger : Colors.light.danger, marginTop: 4 }}>
-											Le numéro doit commencer par 06 ou 07
-										</Text>
-									);
-								}
-								return null;
-							})()}
-						</VStack>
-
-						<Divider
-							style={{
-								backgroundColor: cardBorder,
-							}}
-						/>
-
-						{/* Genre */}
-						<VStack space='sm'>
-							<Text
-								size='sm'
-								style={{
-									color: textPrimary,
-									fontWeight: "600",
-								}}>
-								Genre
-							</Text>
-							<Select
-								selectedValue={gender}
-								onValueChange={setGender}>
-								<SelectTrigger
-									variant='outline'
-									size='md'
-									style={{
-										backgroundColor: bg,
-										borderColor: cardBorder,
-									}}>
-									<SelectInput
-										placeholder='Sélectionnez votre genre'
-										value={
-											gender === "male"
-												? "Homme"
-												: gender === "female"
-													? "Femme"
-													: gender === "other"
-														? "Autre"
-														: ""
-										}
-										style={{
-											color: textPrimary,
-										}}
-									/>
-									<SelectIcon as={ChevronDown} />
-								</SelectTrigger>
-								<SelectPortal>
-									<SelectBackdrop />
-									<SelectContent>
-										<SelectDragIndicatorWrapper>
-											<SelectDragIndicator />
-										</SelectDragIndicatorWrapper>
-										<SelectItem
-											label='Homme'
-											value='male'
-										/>
-										<SelectItem
-											label='Femme'
-											value='female'
-										/>
-										<SelectItem
-											label='Autre'
-											value='other'
-										/>
-									</SelectContent>
-								</SelectPortal>
-							</Select>
-						</VStack>
-
-						<Divider
-							style={{
-								backgroundColor: cardBorder,
-							}}
-						/>
-
-						{/* Date de naissance */}
-						<VStack space='sm'>
-							<Pressable onPress={() => setShowDatePicker(true)}>
-								<VStack space='sm'>
-									<Text
-										size='sm'
-										style={{
-											color: textPrimary,
-											fontWeight: "600",
-											marginBottom: 6,
-										}}>
-										Date de naissance
-									</Text>
-									<Input
-										// isDisabled
-										isReadOnly
-										pointerEvents='none'
-										style={{
-											backgroundColor: bg,
-											borderColor: cardBorder,
-										}}>
-										<InputSlot style={{ paddingLeft: 12 }}>
-											<InputIcon
-												as={Calendar}
-												size={20}
-												color={
-													textSecondary
-												}
-											/>
-										</InputSlot>
-										<InputField
-											value={birthday.toLocaleDateString(
-												"fr-FR",
-											)}
-											editable={false}
-											style={{
-												color: textPrimary,
-											}}
-										/>
-									</Input>
-								</VStack>
-							</Pressable>
-							<DateTimePickerModal
-								isVisible={showDatePicker}
-								mode='date'
-								date={birthday}
-								onConfirm={handleConfirmDate}
-								onCancel={handleCancelDate}
-								maximumDate={new Date()}
-								locale='fr_FR'
-								cancelTextIOS='Annuler'
-								confirmTextIOS='Confirmer'
-							/>
-						</VStack>
-						<Divider
-							style={{
-								backgroundColor: cardBorder,
-							}}
-						/>
-
-						{/* Code Postal */}
-						<VStack space='sm'>
-							<Text
-								size='sm'
-								style={{
-									color: textPrimary,
-									fontWeight: "600",
-								}}>
-								Code Postal
-							</Text>
-							<Input
-								style={{
-									backgroundColor: bg,
-									borderColor: cardBorder,
-								}}>
-								<InputSlot style={{ paddingLeft: 12 }}>
-									<InputIcon
-										as={MapPin}
-										size={20}
-										color={textSecondary}
-									/>
-								</InputSlot>
-								<InputField
-									type='text'
-									placeholder='Entrez votre code postal'
-									value={postcode}
-									defaultValue={postcode}
-									onChangeText={(text) => {
-										setPostcode(text);
-										searchCities(text);
-									}}
-									keyboardType='numeric'
-									maxLength={5}
-									style={{
-										color: textPrimary,
-									}}
-								/>
-							</Input>
-						</VStack>
-
-						{/* Ville */}
-						{cities.length > 0 && (
+					{/* Form Card */}
+					<Card
+						style={{
+							backgroundColor: cardBg,
+							borderRadius: 12,
+							padding: 20,
+						}}>
+						<VStack space='lg'>
+							{/* Prénom */}
 							<VStack space='sm'>
 								<Text
 									size='sm'
@@ -898,335 +486,958 @@ const UpdateProfile = () => {
 										color: textPrimary,
 										fontWeight: "600",
 									}}>
-									Sélectionnez votre ville
+									Prénom *
 								</Text>
-								<VStack space='xs'>
-									{cities.map((cityData) => (
-										<TouchableOpacity
-											key={cityData.code}
-											onPress={() =>
-												selectCity(cityData)
-											}>
-											<Box
-												style={{
-													padding: 12,
-													backgroundColor:
-														city === cityData.nom
-															? isDark
-																? Colors.dark.background
-																: "#dbeafe"
-															: cardBg,
-													borderRadius: 8,
-													borderWidth: 1,
-													borderColor:
-														city === cityData.nom
-															? tint
-															: cardBorder,
-												}}>
-												<Text
-													style={{
-														color: textPrimary,
-													}}>
-													{cityData.nom} (
-													{cityData.codeDepartement})
-												</Text>
-											</Box>
-										</TouchableOpacity>
-									))}
-								</VStack>
-							</VStack>
-						)}
-
-						{city && (
-							<>
-								<Divider
+								<Input
 									style={{
-										backgroundColor: cardBorder,
-									}}
-								/>
-
-								{/* Ville sélectionnée */}
-								<VStack space='sm'>
-									<Text
-										size='sm'
+										backgroundColor: bg,
+										borderColor: cardBorder,
+									}}>
+									<InputSlot style={{ paddingLeft: 12 }}>
+										<InputIcon
+											as={User}
+											size={20}
+											color={textSecondary}
+										/>
+									</InputSlot>
+									<InputField
+										type='text'
+										placeholder='Entrez votre prénom'
+										value={firstname}
+										onChangeText={setFirstname}
 										style={{
 											color: textPrimary,
-											fontWeight: "600",
-										}}>
-										Ville
-									</Text>
-									<Text
-										style={{
-											color: textSecondary,
-										}}>
-										{city}
-									</Text>
-								</VStack>
+										}}
+									/>
+								</Input>
+							</VStack>
 
-								{/* Département */}
-								<VStack space='sm'>
-									<Text
-										size='sm'
-										style={{
-											color: textPrimary,
-											fontWeight: "600",
-										}}>
-										Département
-									</Text>
-									<Text
-										style={{
-											color: textSecondary,
-										}}>
-										{department} ({departmentCode})
-									</Text>
-								</VStack>
+							<Divider
+								style={{
+									backgroundColor: cardBorder,
+								}}
+							/>
 
-								{/* Région */}
-								<VStack space='sm'>
-									<Text
-										size='sm'
-										style={{
-											color: textPrimary,
-											fontWeight: "600",
-										}}>
-										Région
-									</Text>
-									<Text
-										style={{
-											color: textSecondary,
-										}}>
-										{region}
-									</Text>
-								</VStack>
-							</>
-						)}
-
-						<Divider
-							style={{
-								backgroundColor: cardBorder,
-							}}
-						/>
-
-						{/* Ancien militaire */}
-						<HStack
-							space='md'
-							style={{
-								alignItems: "center",
-								justifyContent: "space-between",
-							}}>
-							<HStack space='sm' style={{ alignItems: "center" }}>
-								<Icon
-									as={Shield}
-									size={20}
-									color={textSecondary}
-								/>
+							{/* Nom */}
+							<VStack space='sm'>
 								<Text
 									size='sm'
 									style={{
 										color: textPrimary,
 										fontWeight: "600",
 									}}>
-									Ancien militaire
+									Nom *
 								</Text>
-							</HStack>
-							<Switch
-								value={formerSoldier}
-								onValueChange={setFormerSoldier}
+								<Input
+									style={{
+										backgroundColor: bg,
+										borderColor: cardBorder,
+									}}>
+									<InputSlot style={{ paddingLeft: 12 }}>
+										<InputIcon
+											as={User}
+											size={20}
+											color={textSecondary}
+										/>
+									</InputSlot>
+									<InputField
+										type='text'
+										placeholder='Entrez votre nom'
+										value={lastname}
+										onChangeText={setLastname}
+										style={{
+											color: textPrimary,
+										}}
+									/>
+								</Input>
+							</VStack>
+
+							<Divider
+								style={{
+									backgroundColor: cardBorder,
+								}}
 							/>
-						</HStack>
 
-						<Divider
-							style={{
-								backgroundColor: cardBorder,
-							}}
-						/>
+							{/* Téléphone */}
+							<VStack space='sm'>
+								<Text
+									size='sm'
+									style={{
+										color: textPrimary,
+										fontWeight: "600",
+									}}>
+									Téléphone
+								</Text>
+								<HStack space='sm'>
+									{/* Indicateur pays — bloqué +33 */}
+									<Box
+										style={{
+											height: 36,
+											paddingHorizontal: 14,
+											borderRadius: 8,
+											borderWidth: 1,
+											borderColor: cardBorder,
+											backgroundColor: cardBg,
+											flexDirection: "row",
+											alignItems: "center",
+											gap: 6,
+										}}>
+										<Text
+											style={{
+												color: textPrimary,
+												fontWeight: "600",
+												fontSize: 14,
+											}}>
+											+33
+										</Text>
+									</Box>
+									{/* Numéro */}
+									<Input
+										style={{
+											flex: 1,
+											backgroundColor: bg,
+											borderColor: (() => {
+												const digits = phone.replace(
+													/\s/g,
+													"",
+												);
+												if (!digits) return cardBorder;
+												if (phoneStatus === "taken")
+													return isDark
+														? Colors.dark.danger
+														: Colors.light.danger;
+												if (phoneStatus === "available")
+													return isDark
+														? Colors.dark.success
+														: Colors.light.success;
+												const startsOk = /^0[67]/.test(
+													digits,
+												);
+												if (
+													!startsOk &&
+													digits.length >= 2
+												)
+													return isDark
+														? Colors.dark.danger
+														: Colors.light.danger;
+												return cardBorder;
+											})(),
+											borderWidth: (() => {
+												const digits = phone.replace(
+													/\s/g,
+													"",
+												);
+												if (
+													phoneStatus === "taken" ||
+													phoneStatus === "available"
+												)
+													return 1.5;
+												const startsOk = /^0[67]/.test(
+													digits,
+												);
+												if (
+													!startsOk &&
+													digits.length >= 2
+												)
+													return 1.5;
+												return 1;
+											})(),
+										}}>
+										<InputField
+											keyboardType='phone-pad'
+											placeholder='06 12 34 56 78'
+											value={phone}
+											onChangeText={handlePhoneChange}
+											maxLength={14}
+											style={{ color: textPrimary }}
+										/>
+										{phoneChecking && (
+											<InputSlot
+												style={{ paddingRight: 12 }}>
+												<ActivityIndicator
+													size='small'
+													color={textSecondary}
+												/>
+											</InputSlot>
+										)}
+									</Input>
+								</HStack>
+								{phoneChecking ? null : phoneVerified ? (
+									<HStack
+										space='xs'
+										style={{
+											alignItems: "center",
+											marginTop: 6,
+										}}>
+										<Icon
+											as={CheckCircle}
+											size='sm'
+											style={{
+												color: isDark
+													? Colors.dark.success
+													: Colors.light.success,
+											}}
+										/>
+										<Text
+											style={{
+												fontSize: 12,
+												color: isDark
+													? Colors.dark.success
+													: Colors.light.success,
+											}}>
+											Numéro vérifié
+										</Text>
+									</HStack>
+								) : phoneStatus === "available" ? (
+									<VStack space='sm' style={{ marginTop: 6 }}>
+										{!otpSent ? (
+											<>
+												<Text
+													style={{
+														fontSize: 12,
+														color: isDark
+															? Colors.dark
+																	.success
+															: Colors.light
+																	.success,
+													}}>
+													✓ Numéro disponible
+												</Text>
+												<TouchableOpacity
+													onPress={handleSendOtp}
+													disabled={otpSending}
+													style={{
+														alignSelf: "flex-start",
+														paddingHorizontal: 16,
+														paddingVertical: 8,
+														borderRadius: 8,
+														backgroundColor: tint,
+														opacity: otpSending
+															? 0.6
+															: 1,
+														flexDirection: "row",
+														alignItems: "center",
+														gap: 6,
+													}}>
+													{otpSending ? (
+														<ActivityIndicator
+															size='small'
+															color='#fff'
+														/>
+													) : null}
+													<Text
+														style={{
+															color: "#fff",
+															fontSize: 14,
+															fontWeight: "600",
+														}}>
+														{otpSending
+															? "Envoi en cours…"
+															: "Valider par SMS"}
+													</Text>
+												</TouchableOpacity>
+											</>
+										) : (
+											<>
+												<Text
+													style={{
+														fontSize: 12,
+														color: textSecondary,
+													}}>
+													Code envoyé par SMS —
+													saisissez-le ci-dessous
+												</Text>
+												<HStack
+													space='sm'
+													style={{
+														alignItems: "center",
+													}}>
+													<Input
+														style={{
+															flex: 1,
+															backgroundColor: bg,
+															borderColor:
+																cardBorder,
+														}}>
+														<InputField
+															keyboardType='number-pad'
+															placeholder='Code OTP'
+															value={otpInput}
+															onChangeText={(
+																v,
+															) => {
+																setOtpInput(v);
+																setOtpError(
+																	null,
+																);
+															}}
+															maxLength={6}
+															style={{
+																color: textPrimary,
+																letterSpacing: 4,
+															}}
+														/>
+													</Input>
+													<TouchableOpacity
+														onPress={
+															handleVerifyOtp
+														}
+														disabled={
+															otpVerifying ||
+															otpInput.length < 4
+														}
+														style={{
+															paddingHorizontal: 16,
+															paddingVertical: 10,
+															borderRadius: 8,
+															backgroundColor:
+																tint,
+															opacity:
+																otpVerifying ||
+																otpInput.length <
+																	4
+																	? 0.5
+																	: 1,
+															flexDirection:
+																"row",
+															alignItems:
+																"center",
+															gap: 6,
+														}}>
+														{otpVerifying ? (
+															<ActivityIndicator
+																size='small'
+																color='#fff'
+															/>
+														) : null}
+														<Text
+															style={{
+																color: "#fff",
+																fontSize: 14,
+																fontWeight:
+																	"600",
+															}}>
+															Vérifier
+														</Text>
+													</TouchableOpacity>
+												</HStack>
+												{otpError === "wrong_code" && (
+													<Text
+														style={{
+															fontSize: 12,
+															color: isDark
+																? Colors.dark
+																		.danger
+																: Colors.light
+																		.danger,
+															marginTop: 4,
+														}}>
+														Code incorrect, vérifiez
+														votre SMS
+													</Text>
+												)}
+												{otpError === "expired" && (
+													<Text
+														style={{
+															fontSize: 12,
+															color: isDark
+																? Colors.dark
+																		.warning
+																: Colors.light
+																		.warning,
+															marginTop: 4,
+														}}>
+														Code expiré — cliquez
+														sur "Renvoyer le code"
+													</Text>
+												)}
+												{otpError === "server" && (
+													<Text
+														style={{
+															fontSize: 12,
+															color: isDark
+																? Colors.dark
+																		.danger
+																: Colors.light
+																		.danger,
+															marginTop: 4,
+														}}>
+														Erreur serveur,
+														réessayez
+													</Text>
+												)}
+												<TouchableOpacity
+													onPress={handleSendOtp}
+													disabled={
+														otpSending ||
+														resendCooldown > 0
+													}>
+													<Text
+														style={{
+															fontSize: 11,
+															color: textSecondary,
+															marginTop: 2,
+														}}>
+														{resendCooldown > 0
+															? `Renvoyer dans ${resendCooldown}s`
+															: "Renvoyer le code"}
+													</Text>
+												</TouchableOpacity>
+											</>
+										)}
+									</VStack>
+								) : phoneStatus === "taken" ? (
+									<Text
+										style={{
+											fontSize: 12,
+											color: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
+											marginTop: 4,
+										}}>
+										✕ Ce numéro est déjà utilisé
+									</Text>
+								) : (
+									(() => {
+										const digits = phone.replace(/\s/g, "");
+										if (!digits) return null;
+										if (/^0[67]/.test(digits)) return null;
+										if (digits.length >= 2) {
+											return (
+												<Text
+													style={{
+														fontSize: 12,
+														color: isDark
+															? Colors.dark.danger
+															: Colors.light
+																	.danger,
+														marginTop: 4,
+													}}>
+													Le numéro doit commencer par
+													06 ou 07
+												</Text>
+											);
+										}
+										return null;
+									})()
+								)}
+							</VStack>
 
-						{/* Permis de conduire */}
-						<VStack space='sm'>
-							<Text
-								size='sm'
+							<Divider
 								style={{
-									color: textPrimary,
-									fontWeight: "600",
-								}}>
-								Permis de conduire
-							</Text>
-							<Input
+									backgroundColor: cardBorder,
+								}}
+							/>
+
+							{/* Genre */}
+							<VStack space='sm'>
+								<Text
+									size='sm'
+									style={{
+										color: textPrimary,
+										fontWeight: "600",
+									}}>
+									Genre
+								</Text>
+								<Select
+									selectedValue={gender}
+									onValueChange={setGender}>
+									<SelectTrigger
+										variant='outline'
+										size='md'
+										style={{
+											backgroundColor: bg,
+											borderColor: cardBorder,
+										}}>
+										<SelectInput
+											placeholder='Sélectionnez votre genre'
+											value={
+												gender === "male"
+													? "Homme"
+													: gender === "female"
+														? "Femme"
+														: gender === "other"
+															? "Autre"
+															: ""
+											}
+											style={{
+												color: textPrimary,
+											}}
+										/>
+										<SelectIcon as={ChevronDown} />
+									</SelectTrigger>
+									<SelectPortal>
+										<SelectBackdrop />
+										<SelectContent>
+											<SelectDragIndicatorWrapper>
+												<SelectDragIndicator />
+											</SelectDragIndicatorWrapper>
+											<SelectItem
+												label='Homme'
+												value='male'
+											/>
+											<SelectItem
+												label='Femme'
+												value='female'
+											/>
+											<SelectItem
+												label='Autre'
+												value='other'
+											/>
+										</SelectContent>
+									</SelectPortal>
+								</Select>
+							</VStack>
+
+							<Divider
 								style={{
-									backgroundColor: bg,
-									borderColor: cardBorder,
+									backgroundColor: cardBorder,
+								}}
+							/>
+
+							{/* Date de naissance */}
+							<VStack space='sm'>
+								<Pressable
+									onPress={() => setShowDatePicker(true)}>
+									<VStack space='sm'>
+										<Text
+											size='sm'
+											style={{
+												color: textPrimary,
+												fontWeight: "600",
+												marginBottom: 6,
+											}}>
+											Date de naissance
+										</Text>
+										<Input
+											// isDisabled
+											isReadOnly
+											pointerEvents='none'
+											style={{
+												backgroundColor: bg,
+												borderColor: cardBorder,
+											}}>
+											<InputSlot
+												style={{ paddingLeft: 12 }}>
+												<InputIcon
+													as={Calendar}
+													size={20}
+													color={textSecondary}
+												/>
+											</InputSlot>
+											<InputField
+												value={birthday.toLocaleDateString(
+													"fr-FR",
+												)}
+												editable={false}
+												style={{
+													color: textPrimary,
+												}}
+											/>
+										</Input>
+									</VStack>
+								</Pressable>
+								<DateTimePickerModal
+									isVisible={showDatePicker}
+									mode='date'
+									date={birthday}
+									onConfirm={handleConfirmDate}
+									onCancel={handleCancelDate}
+									maximumDate={new Date()}
+									locale='fr_FR'
+									cancelTextIOS='Annuler'
+									confirmTextIOS='Confirmer'
+								/>
+							</VStack>
+							<Divider
+								style={{
+									backgroundColor: cardBorder,
+								}}
+							/>
+
+							{/* Code Postal */}
+							<VStack space='sm'>
+								<Text
+									size='sm'
+									style={{
+										color: textPrimary,
+										fontWeight: "600",
+									}}>
+									Code Postal
+								</Text>
+								<Input
+									style={{
+										backgroundColor: bg,
+										borderColor: cardBorder,
+									}}>
+									<InputSlot style={{ paddingLeft: 12 }}>
+										<InputIcon
+											as={MapPin}
+											size={20}
+											color={textSecondary}
+										/>
+									</InputSlot>
+									<InputField
+										type='text'
+										placeholder='Entrez votre code postal'
+										value={postcodeSearch}
+										onChangeText={(text) => {
+											setPostcodeSearch(text);
+											searchCities(text);
+										}}
+										keyboardType='numeric'
+										maxLength={5}
+										style={{
+											color: textPrimary,
+										}}
+									/>
+								</Input>
+							</VStack>
+
+							{/* Ville */}
+							{cities.length > 0 && (
+								<VStack space='sm'>
+									<Text
+										size='sm'
+										style={{
+											color: textPrimary,
+											fontWeight: "600",
+										}}>
+										Sélectionnez votre ville
+									</Text>
+									<VStack space='xs'>
+										{cities.map((cityData) => (
+											<TouchableOpacity
+												key={cityData.code}
+												onPress={() =>
+													selectCity(cityData)
+												}>
+												<Box
+													style={{
+														padding: 12,
+														backgroundColor:
+															city ===
+															cityData.nom
+																? isDark
+																	? Colors
+																			.dark
+																			.background
+																	: "#dbeafe"
+																: cardBg,
+														borderRadius: 8,
+														borderWidth: 1,
+														borderColor:
+															city ===
+															cityData.nom
+																? tint
+																: cardBorder,
+													}}>
+													<Text
+														style={{
+															color: textPrimary,
+														}}>
+														{cityData.nom} (
+														{
+															cityData.codeDepartement
+														}
+														)
+													</Text>
+												</Box>
+											</TouchableOpacity>
+										))}
+									</VStack>
+								</VStack>
+							)}
+
+							{city && (
+								<>
+									<Divider
+										style={{
+											backgroundColor: cardBorder,
+										}}
+									/>
+
+									{/* Ville sélectionnée */}
+									<VStack space='sm'>
+										<Text
+											size='sm'
+											style={{
+												color: textPrimary,
+												fontWeight: "600",
+											}}>
+											Ville
+										</Text>
+										<Text
+											style={{
+												color: textSecondary,
+											}}>
+											{`${city} (${postcode})`}
+										</Text>
+									</VStack>
+									<VStack space='sm'>
+										<Text
+											size='sm'
+											style={{
+												color: textPrimary,
+												fontWeight: "600",
+											}}>
+											Département
+										</Text>
+										<Text
+											style={{
+												color: textSecondary,
+											}}>
+											{department} ({departmentCode})
+										</Text>
+									</VStack>
+
+									{/* Région */}
+									<VStack space='sm'>
+										<Text
+											size='sm'
+											style={{
+												color: textPrimary,
+												fontWeight: "600",
+											}}>
+											Région
+										</Text>
+										<Text
+											style={{
+												color: textSecondary,
+											}}>
+											{region}
+										</Text>
+									</VStack>
+								</>
+							)}
+
+							<Divider
+								style={{
+									backgroundColor: cardBorder,
+								}}
+							/>
+
+							{/* Ancien militaire */}
+							<HStack
+								space='md'
+								style={{
+									alignItems: "center",
+									justifyContent: "space-between",
 								}}>
-								<InputSlot style={{ paddingLeft: 12 }}>
-									<InputIcon
-										as={Car}
+								<HStack
+									space='sm'
+									style={{ alignItems: "center" }}>
+									<Icon
+										as={Shield}
 										size={20}
 										color={textSecondary}
 									/>
-								</InputSlot>
-								<InputField
-									type='text'
-									placeholder='Ex: B, A, C'
-									value={drivingLicenses}
-									onChangeText={setDrivingLicenses}
+									<Text
+										size='sm'
+										style={{
+											color: textPrimary,
+											fontWeight: "600",
+										}}>
+										Ancien militaire
+									</Text>
+								</HStack>
+								<Switch
+									value={formerSoldier}
+									onValueChange={setFormerSoldier}
+								/>
+							</HStack>
+
+							<Divider
+								style={{
+									backgroundColor: cardBorder,
+								}}
+							/>
+
+							{/* Permis de conduire */}
+							<VStack space='sm'>
+								<Text
+									size='sm'
 									style={{
 										color: textPrimary,
-									}}
-								/>
-							</Input>
-							<Text
-								size='xs'
-								style={{
-									color: textSecondary,
-								}}>
-								Séparez par des virgules (ex: B, A, C)
-							</Text>
-						</VStack>
-
-						<Divider
-							style={{
-								backgroundColor: cardBorder,
-							}}
-						/>
-
-						{/* Langues */}
-						<VStack space='sm'>
-							<Text
-								size='sm'
-								style={{
-									color: textPrimary,
-									fontWeight: "600",
-								}}>
-								Langues parlées
-							</Text>
-							<Input
-								style={{
-									backgroundColor: bg,
-									borderColor: cardBorder,
-								}}>
-								<InputSlot style={{ paddingLeft: 12 }}>
-									<InputIcon
-										as={Languages}
-										size={20}
-										color={textSecondary}
+										fontWeight: "600",
+									}}>
+									Permis de conduire
+								</Text>
+								<Input
+									style={{
+										backgroundColor: bg,
+										borderColor: cardBorder,
+									}}>
+									<InputSlot style={{ paddingLeft: 12 }}>
+										<InputIcon
+											as={Car}
+											size={20}
+											color={textSecondary}
+										/>
+									</InputSlot>
+									<InputField
+										type='text'
+										placeholder='Ex: B, A, C'
+										value={drivingLicenses}
+										onChangeText={setDrivingLicenses}
+										style={{
+											color: textPrimary,
+										}}
 									/>
-								</InputSlot>
-								<InputField
-									type='text'
-									placeholder='Ex: Français, Anglais, Espagnol'
-									value={languages}
-									onChangeText={setLanguages}
+								</Input>
+								<Text
+									size='xs'
+									style={{
+										color: textSecondary,
+									}}>
+									Séparez par des virgules (ex: B, A, C)
+								</Text>
+							</VStack>
+
+							<Divider
+								style={{
+									backgroundColor: cardBorder,
+								}}
+							/>
+
+							{/* Langues */}
+							<VStack space='sm'>
+								<Text
+									size='sm'
 									style={{
 										color: textPrimary,
-									}}
-								/>
-							</Input>
-							<Text
-								size='xs'
-								style={{
-									color: textSecondary,
-								}}>
-								Séparez par des virgules
-							</Text>
-						</VStack>
-
-						<Divider
-							style={{
-								backgroundColor: cardBorder,
-							}}
-						/>
-
-						{/* Taille */}
-						<VStack space='sm'>
-							<Text
-								size='sm'
-								style={{
-									color: textPrimary,
-									fontWeight: "600",
-								}}>
-								Taille
-							</Text>
-							<Input
-								style={{
-									backgroundColor: bg,
-									borderColor: cardBorder,
-								}}>
-								<InputSlot style={{ paddingLeft: 12 }}>
-									<InputIcon
-										as={Ruler}
-										size={20}
-										color={textSecondary}
+										fontWeight: "600",
+									}}>
+									Langues parlées
+								</Text>
+								<Input
+									style={{
+										backgroundColor: bg,
+										borderColor: cardBorder,
+									}}>
+									<InputSlot style={{ paddingLeft: 12 }}>
+										<InputIcon
+											as={Languages}
+											size={20}
+											color={textSecondary}
+										/>
+									</InputSlot>
+									<InputField
+										type='text'
+										placeholder='Ex: Français, Anglais, Espagnol'
+										value={languages}
+										onChangeText={setLanguages}
+										style={{
+											color: textPrimary,
+										}}
 									/>
-								</InputSlot>
-								<InputField
-									type='text'
-									placeholder='Votre taille en cm'
-									value={height}
-									onChangeText={setHeight}
-									keyboardType='numeric'
+								</Input>
+								<Text
+									size='xs'
+									style={{
+										color: textSecondary,
+									}}>
+									Séparez par des virgules
+								</Text>
+							</VStack>
+
+							<Divider
+								style={{
+									backgroundColor: cardBorder,
+								}}
+							/>
+
+							{/* Taille */}
+							<VStack space='sm'>
+								<Text
+									size='sm'
 									style={{
 										color: textPrimary,
-									}}
-								/>
-							</Input>
-							<Text
-								size='xs'
-								style={{
-									color: textSecondary,
-								}}>
-								En centimètres (ex: 175)
-							</Text>
-						</VStack>
-
-						<Divider
-							style={{
-								backgroundColor: cardBorder,
-							}}
-						/>
-
-						{/* Poids */}
-						<VStack space='sm'>
-							<Text
-								size='sm'
-								style={{
-									color: textPrimary,
-									fontWeight: "600",
-								}}>
-								Poids
-							</Text>
-							<Input
-								style={{
-									backgroundColor: bg,
-									borderColor: cardBorder,
-								}}>
-								<InputSlot style={{ paddingLeft: 12 }}>
-									<InputIcon
-										as={Ruler}
-										size={20}
-										color={textSecondary}
+										fontWeight: "600",
+									}}>
+									Taille
+								</Text>
+								<Input
+									style={{
+										backgroundColor: bg,
+										borderColor: cardBorder,
+									}}>
+									<InputSlot style={{ paddingLeft: 12 }}>
+										<InputIcon
+											as={Ruler}
+											size={20}
+											color={textSecondary}
+										/>
+									</InputSlot>
+									<InputField
+										type='text'
+										placeholder='Votre taille en cm'
+										value={height}
+										onChangeText={setHeight}
+										keyboardType='numeric'
+										style={{
+											color: textPrimary,
+										}}
 									/>
-								</InputSlot>
-								<InputField
-									type='text'
-									placeholder='Votre poids en kg'
-									value={weight}
-									onChangeText={setWeight}
-									keyboardType='numeric'
+								</Input>
+								<Text
+									size='xs'
+									style={{
+										color: textSecondary,
+									}}>
+									En centimètres (ex: 175)
+								</Text>
+							</VStack>
+
+							<Divider
+								style={{
+									backgroundColor: cardBorder,
+								}}
+							/>
+
+							{/* Poids */}
+							<VStack space='sm'>
+								<Text
+									size='sm'
 									style={{
 										color: textPrimary,
-									}}
-								/>
-							</Input>
-							<Text
-								size='xs'
-								style={{
-									color: textSecondary,
-								}}>
-								En kilogrammes (ex: 70)
-							</Text>
+										fontWeight: "600",
+									}}>
+									Poids
+								</Text>
+								<Input
+									style={{
+										backgroundColor: bg,
+										borderColor: cardBorder,
+									}}>
+									<InputSlot style={{ paddingLeft: 12 }}>
+										<InputIcon
+											as={Ruler}
+											size={20}
+											color={textSecondary}
+										/>
+									</InputSlot>
+									<InputField
+										type='text'
+										placeholder='Votre poids en kg'
+										value={weight}
+										onChangeText={setWeight}
+										keyboardType='numeric'
+										style={{
+											color: textPrimary,
+										}}
+									/>
+								</Input>
+								<Text
+									size='xs'
+									style={{
+										color: textSecondary,
+									}}>
+									En kilogrammes (ex: 70)
+								</Text>
+							</VStack>
 						</VStack>
-					</VStack>
-				</Card>
-
+					</Card>
 				</VStack>
 			</ScrollView>
 			{/* Bouton fixe bas de page */}
@@ -1258,11 +1469,16 @@ const UpdateProfile = () => {
 						height: 52,
 					}}>
 					{isSubmitting ? (
-						<ActivityIndicator size="small" color={tint} />
+						<ActivityIndicator size='small' color={tint} />
 					) : (
 						<>
 							<CheckCircle size={20} color={tint} />
-							<Text style={{ color: tint, fontSize: 15, fontWeight: "600" }}>
+							<Text
+								style={{
+									color: tint,
+									fontSize: 15,
+									fontWeight: "600",
+								}}>
 								Enregistrer
 							</Text>
 						</>

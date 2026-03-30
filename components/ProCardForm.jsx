@@ -29,12 +29,8 @@ import {
 	SelectDragIndicatorWrapper,
 	SelectItem,
 } from "@/components/ui/select";
-import {
-	useToast,
-	Toast,
-	ToastTitle,
-	ToastDescription,
-} from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import {
 	ChevronDownIcon,
 	CheckCircle,
@@ -51,6 +47,7 @@ import { useDataContext } from "@/context/DataContext";
 import { CREATE_PROCARD } from "@/utils/activityEvents";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const DOCUMENTS_BUCKET = "professional-cards";
@@ -190,15 +187,13 @@ const ProCardForm = ({ procards }) => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon as={AlertCircle} />
-						<VStack>
-							<ToastTitle>Permission refusée</ToastTitle>
-							<ToastDescription>
-								Accès à la galerie requis
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={isDark ? Colors.dark.danger : Colors.light.danger}
+						title="Permission refusée"
+						description="Accès à la galerie requis"
+					/>
 				),
 			});
 			return;
@@ -222,15 +217,13 @@ const ProCardForm = ({ procards }) => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon as={AlertCircle} />
-						<VStack>
-							<ToastTitle>Permission refusée</ToastTitle>
-							<ToastDescription>
-								Accès à la caméra requis
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={isDark ? Colors.dark.danger : Colors.light.danger}
+						title="Permission refusée"
+						description="Accès à la caméra requis"
+					/>
 				),
 			});
 			return;
@@ -312,15 +305,13 @@ const ProCardForm = ({ procards }) => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='warning' variant='accent'>
-						<Icon as={AlertCircle} />
-						<VStack>
-							<ToastTitle>Champs manquants</ToastTitle>
-							<ToastDescription>
-								Veuillez remplir tous les champs
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={isDark ? Colors.dark.warning : Colors.light.warning}
+						title="Champs manquants"
+						description="Veuillez remplir tous les champs"
+					/>
 				),
 			});
 			return;
@@ -348,15 +339,13 @@ const ProCardForm = ({ procards }) => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='success' variant='accent'>
-						<Icon as={CheckCircle} />
-						<VStack>
-							<ToastTitle>Carte ajoutée</ToastTitle>
-							<ToastDescription>
-								Votre carte professionnelle a été enregistrée
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={CheckCircle}
+						color={isDark ? Colors.dark.success : Colors.light.success}
+						title="Carte ajoutée"
+						description="Votre carte professionnelle a été enregistrée"
+					/>
 				),
 			});
 
@@ -378,15 +367,13 @@ const ProCardForm = ({ procards }) => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon as={AlertCircle} />
-						<VStack>
-							<ToastTitle>Erreur</ToastTitle>
-							<ToastDescription>
-								Une erreur est survenue
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={isDark ? Colors.dark.danger : Colors.light.danger}
+						title="Erreur"
+						description="Une erreur est survenue"
+					/>
 				),
 			});
 		} finally {

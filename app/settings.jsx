@@ -11,7 +11,8 @@ import { Divider } from "@/components/ui/divider";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Switch } from "@/components/ui/switch";
-import { useToast, Toast, ToastTitle } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import {
 	Bell,
 	Moon,
@@ -27,6 +28,7 @@ import {
 	Mail,
 	Trash2,
 	AlertTriangle,
+	CheckCircle,
 } from "lucide-react-native";
 import {
 	AlertDialog,
@@ -53,9 +55,12 @@ const Settings = () => {
 		toast.show({
 			placement: "top",
 			render: ({ id }) => (
-				<Toast nativeID={id} action='success' variant='solid'>
-					<ToastTitle>{message}</ToastTitle>
-				</Toast>
+				<CustomToast
+					id={id}
+					icon={CheckCircle}
+					color={isDark ? Colors.dark.success : Colors.light.success}
+					title={message}
+				/>
 			),
 		});
 	};

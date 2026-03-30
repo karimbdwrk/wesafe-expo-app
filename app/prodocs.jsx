@@ -25,12 +25,8 @@ import { Heading } from "@/components/ui/heading";
 import { Divider } from "@/components/ui/divider";
 import { Pressable } from "@/components/ui/pressable";
 import { Input, InputField } from "@/components/ui/input";
-import {
-	useToast,
-	Toast,
-	ToastTitle,
-	ToastDescription,
-} from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import {
 	CheckCircle,
 	Clock,
@@ -53,6 +49,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { SUBMIT_PRODOC } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { createSupabaseClient } from "@/lib/supabase";
 import { CNAPS_CARDS } from "@/constants/cnapscards";
 import { DIPLOMAS as DIPLOMAS_CONST } from "@/constants/diplomas";
@@ -379,17 +376,13 @@ const ProDocs = ({ navigation }) => {
 				placement: "top",
 				duration: 3000,
 				render: ({ id }) => (
-					<Toast
-						nativeID={id}
-						action='warning'
-						variant='solid'
-						style={{ backgroundColor: isDark ? "#111827" : "#f9fafb" }}>
-						<Icon as={AlertCircle} size='lg' style={{ color: "#f59e0b" }} />
-						<VStack space='xs' style={{ flex: 1, marginLeft: 8 }}>
-							<ToastTitle style={{ color: isDark ? "#f9fafb" : "#111827" }}>Document déjà soumis</ToastTitle>
-							<ToastDescription style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Ce document est déjà dans votre dossier.</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={isDark ? Colors.dark.warning : Colors.light.warning}
+						title="Document déjà soumis"
+						description="Ce document est déjà dans votre dossier."
+					/>
 				),
 			});
 			return;
@@ -470,17 +463,13 @@ const ProDocs = ({ navigation }) => {
 				placement: "top",
 				duration: 5000,
 				render: ({ id }) => (
-					<Toast
-						nativeID={id}
-						action='success'
-						variant='solid'
-						style={{ backgroundColor: isDark ? "#111827" : "#f9fafb" }}>
-						<Icon as={CheckCircle} size='lg' style={{ color: "#10b981" }} />
-						<VStack space='xs' style={{ flex: 1, marginLeft: 8 }}>
-							<ToastTitle style={{ color: isDark ? "#f9fafb" : "#111827" }}>Document soumis !</ToastTitle>
-							<ToastDescription style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Votre document est en cours de vérification.</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={CheckCircle}
+						color={isDark ? Colors.dark.success : Colors.light.success}
+						title="Document soumis !"
+						description="Votre document est en cours de vérification."
+					/>
 				),
 			});
 		} catch (e) {
@@ -489,17 +478,13 @@ const ProDocs = ({ navigation }) => {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast
-						nativeID={id}
-						action='error'
-						variant='solid'
-						style={{ backgroundColor: isDark ? "#111827" : "#f9fafb" }}>
-						<Icon as={AlertCircle} size='lg' style={{ color: "#ef4444" }} />
-						<VStack space='xs' style={{ flex: 1, marginLeft: 8 }}>
-							<ToastTitle style={{ color: isDark ? "#f9fafb" : "#111827" }}>Erreur lors de l'envoi</ToastTitle>
-							<ToastDescription style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Veuillez réessayer.</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={isDark ? Colors.dark.danger : Colors.light.danger}
+						title="Erreur lors de l'envoi"
+						description="Veuillez réessayer."
+					/>
 				),
 			});
 		} finally {

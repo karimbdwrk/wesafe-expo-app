@@ -39,12 +39,8 @@ import {
 	MenuSeparator,
 } from "@/components/ui/menu";
 import { Icon } from "@/components/ui/icon";
-import {
-	useToast,
-	Toast,
-	ToastTitle,
-	ToastDescription,
-} from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 
 import {
 	AlertTriangle,
@@ -675,25 +671,17 @@ export default function TabLayout({ theme = "light" }) {
 								toast.show({
 									placement: "top",
 									render: ({ id }) => (
-										<Toast
-											nativeID={"toast-" + id}
-											className='px-5 py-3 gap-4 shadow-soft-1 items-center flex-row'>
-											<Icon
-												as={AlertTriangle}
-												size='xl'
-												className='text-typography-white'
-											/>
-											<VStack>
-												<ToastTitle size='sm'>
-													Entreprise pas encore
-													validéee
-												</ToastTitle>
-												<ToastDescription size='xs'>
-													Votre entreprise est en
-													cours de validation.
-												</ToastDescription>
-											</VStack>
-										</Toast>
+										<CustomToast
+											id={id}
+											icon={AlertTriangle}
+											color={
+												isDark
+													? Colors.dark.warning
+													: Colors.light.warning
+											}
+											title='Entreprise pas encore validée'
+											description='Votre entreprise est en cours de validation.'
+										/>
 									),
 								});
 							}}>

@@ -25,7 +25,8 @@ import { Icon } from "@/components/ui/icon";
 import { Divider } from "@/components/ui/divider";
 import { Input, InputField } from "@/components/ui/input";
 import { Textarea, TextareaInput } from "@/components/ui/textarea";
-import { useToast, Toast, ToastTitle } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import {
 	Select,
 	SelectTrigger,
@@ -83,6 +84,8 @@ import {
 	Zap,
 	Sparkles,
 	CalendarDays,
+	AlertCircle,
+	CheckCircle,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -644,11 +647,12 @@ const PostJob = () => {
 		toast.show({
 			placement: "top",
 			render: ({ id }) => (
-				<Toast
-					nativeID={"toast-" + id}
-					className='px-5 py-3 gap-4 bg-error-500'>
-					<ToastTitle className='text-white'>{message}</ToastTitle>
-				</Toast>
+				<CustomToast
+					id={id}
+					icon={AlertCircle}
+					color={isDark ? Colors.dark.danger : Colors.light.danger}
+					title={message}
+				/>
 			),
 		});
 	};
@@ -1230,13 +1234,14 @@ const PostJob = () => {
 			toast.show({
 				placement: "top",
 				render: ({ id }) => (
-					<Toast
-						nativeID={"toast-" + id}
-						className='px-5 py-3 gap-4 bg-success-500'>
-						<ToastTitle className='text-white'>
-							Annonce publiée avec succés
-						</ToastTitle>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={CheckCircle}
+						color={
+							isDark ? Colors.dark.success : Colors.light.success
+						}
+						title='Annonce publiée avec succès'
+					/>
 				),
 			});
 
@@ -1404,7 +1409,9 @@ const PostJob = () => {
 								flexDirection: "row",
 								alignItems: "center",
 								gap: 4,
-								backgroundColor: isDark ? Colors.dark.background : "#fef9c3",
+								backgroundColor: isDark
+									? Colors.dark.background
+									: "#fef9c3",
 								borderRadius: 20,
 								paddingHorizontal: 10,
 								paddingVertical: 5,
@@ -1430,7 +1437,9 @@ const PostJob = () => {
 			<Box
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.background,
 				}}>
 				{/* Progress Bar */}
 				<Box
@@ -1438,9 +1447,13 @@ const PostJob = () => {
 						paddingTop: 15,
 						paddingHorizontal: 20,
 						paddingBottom: 15,
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 						borderBottomWidth: 1,
-						borderBottomColor: isDark ? Colors.dark.border : Colors.light.border,
+						borderBottomColor: isDark
+							? Colors.dark.border
+							: Colors.light.border,
 					}}>
 					<VStack space='sm'>
 						<HStack
@@ -1453,14 +1466,18 @@ const PostJob = () => {
 								size='sm'
 								style={{
 									fontWeight: "600",
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								{STEPS[currentStep - 1].title}
 							</Text>
 							<Text
 								size='xs'
 								style={{
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 								}}>
 								Étape {currentStep}/{STEPS.length}
 							</Text>
@@ -1470,7 +1487,9 @@ const PostJob = () => {
 							style={{
 								width: "100%",
 								height: 8,
-								backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+								backgroundColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 								borderRadius: 4,
 								overflow: "hidden",
 							}}>
@@ -1506,7 +1525,10 @@ const PostJob = () => {
 												color:
 													remaining === 0
 														? Colors.dark.danger
-														: isDark ? Colors.dark.muted : Colors.light.muted,
+														: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 											}}
 										/>
 										<Text
@@ -1515,7 +1537,10 @@ const PostJob = () => {
 												color:
 													remaining === 0
 														? Colors.dark.danger
-														: isDark ? Colors.dark.muted : Colors.light.muted,
+														: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 											}}>
 											{remaining === 0
 												? "Aucune annonce gratuite restante"
@@ -1555,9 +1580,13 @@ const PostJob = () => {
 								style={{
 									padding: 24,
 									borderRadius: 16,
-									backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+									backgroundColor: isDark
+										? Colors.dark.background
+										: Colors.light.cardBackground,
 									borderWidth: 1,
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 									width: "100%",
 									alignItems: "center",
 									gap: 12,
@@ -1570,7 +1599,9 @@ const PostJob = () => {
 								<Heading
 									size='md'
 									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 										textAlign: "center",
 									}}>
 									Quota atteint
@@ -1578,7 +1609,9 @@ const PostJob = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 									}}>
 									Vous avez utilisé vos{" "}
@@ -1635,7 +1668,10 @@ const PostJob = () => {
 									onPress={() =>
 										router.push("/subscription")
 									}>
-									<ButtonText style={{ color: Colors.light.cardBackground }}>
+									<ButtonText
+										style={{
+											color: Colors.light.cardBackground,
+										}}>
 										Voir les abonnements
 									</ButtonText>
 								</Button>
@@ -1689,10 +1725,15 @@ const PostJob = () => {
 											style={{
 												padding: 20,
 												paddingBottom: 40,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												{/* Dernière minute */}
@@ -1710,7 +1751,13 @@ const PostJob = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark ? Colors.dark.text : Colors.light.text,
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 															}}>
 															Offre dernière
 															minute
@@ -1718,7 +1765,13 @@ const PostJob = () => {
 														<Text
 															size='xs'
 															style={{
-																color: isDark ? Colors.dark.muted : Colors.light.muted,
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															Visible avec un
 															badge urgence
@@ -1737,8 +1790,13 @@ const PostJob = () => {
 															)
 														}
 														trackColor={{
-															false: isDark ? Colors.dark.border : Colors.light.border,
-															true: Colors.light.tint,
+															false: isDark
+																? Colors.dark
+																		.border
+																: Colors.light
+																		.border,
+															true: Colors.light
+																.tint,
 														}}
 													/>
 												</HStack>
@@ -1753,8 +1811,12 @@ const PostJob = () => {
 															borderColor:
 																(userCompany?.last_minute_credits ??
 																	0) > 0
-																	? Colors.light.warning
-																	: Colors.dark.danger,
+																	? Colors
+																			.light
+																			.warning
+																	: Colors
+																			.dark
+																			.danger,
 															backgroundColor:
 																(userCompany?.last_minute_credits ??
 																	0) > 0
@@ -1777,7 +1839,9 @@ const PostJob = () => {
 																	as={Zap}
 																	size='xs'
 																	style={{
-																		color: Colors.light.warning,
+																		color: Colors
+																			.light
+																			.warning,
 																		marginTop: 2,
 																	}}
 																/>
@@ -1816,14 +1880,22 @@ const PostJob = () => {
 																		as={Zap}
 																		size='xs'
 																		style={{
-																			color: Colors.dark.danger,
+																			color: Colors
+																				.dark
+																				.danger,
 																			marginTop: 2,
 																		}}
 																	/>
 																	<Text
 																		size='xs'
 																		style={{
-																			color: isDark ? Colors.dark.danger : Colors.light.danger,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.danger
+																				: Colors
+																						.light
+																						.danger,
 																			flex: 1,
 																		}}>
 																		Aucun
@@ -1838,7 +1910,13 @@ const PostJob = () => {
 																			style={{
 																				fontWeight:
 																					"700",
-																				color: isDark ? Colors.dark.danger : Colors.light.danger,
+																				color: isDark
+																					? Colors
+																							.dark
+																							.danger
+																					: Colors
+																							.light
+																							.danger,
 																			}}>
 																			5 €
 																		</Text>{" "}
@@ -1860,7 +1938,9 @@ const PostJob = () => {
 																	<Text
 																		size='xs'
 																		style={{
-																			color: Colors.light.tint,
+																			color: Colors
+																				.light
+																				.tint,
 																			fontWeight:
 																				"600",
 																			textDecorationLine:
@@ -1887,7 +1967,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Titre du poste *
 													</Text>
@@ -1897,9 +1981,21 @@ const PostJob = () => {
 															size='md'
 															style={{
 																backgroundColor:
-																	isDark ? Colors.dark.background : Colors.light.cardBackground,
+																	isDark
+																		? Colors
+																				.dark
+																				.background
+																		: Colors
+																				.light
+																				.cardBackground,
 																borderColor:
-																	isDark ? Colors.dark.border : Colors.light.border,
+																	isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 															}}>
 															<InputField
 																placeholder='Ex: Agent de sécurité H/F'
@@ -1921,7 +2017,13 @@ const PostJob = () => {
 																	)
 																}
 																style={{
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}
 															/>
 														</Input>
@@ -1934,7 +2036,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Catégorie *
 													</Text>
@@ -1958,21 +2064,45 @@ const PostJob = () => {
 																borderWidth: 1,
 																borderColor:
 																	formData.category
-																		? Colors.light.tint
-																		: isDark ? Colors.dark.border : Colors.light.border,
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.border
+																			: Colors
+																					.light
+																					.border,
 																backgroundColor:
 																	formData.category
 																		? isDark
-																			? Colors.dark.tint
+																			? Colors
+																					.dark
+																					.tint
 																			: "#dbeafe"
-																		: isDark ? Colors.dark.background : Colors.light.cardBackground,
+																		: isDark
+																			? Colors
+																					.dark
+																					.background
+																			: Colors
+																					.light
+																					.cardBackground,
 															}}>
 															<Text
 																style={{
 																	flex: 1,
 																	color: formData.category
-																		? Colors.light.tint
-																		: isDark ? Colors.dark.muted : Colors.light.muted,
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 																	fontWeight:
 																		formData.category
 																			? "600"
@@ -1989,8 +2119,16 @@ const PostJob = () => {
 																size='sm'
 																style={{
 																	color: formData.category
-																		? Colors.light.tint
-																		: isDark ? Colors.dark.muted : Colors.light.muted,
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 																}}
 															/>
 														</Box>
@@ -2003,7 +2141,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Description du poste *
 													</Text>
@@ -2015,9 +2157,21 @@ const PostJob = () => {
 															size='md'
 															style={{
 																backgroundColor:
-																	isDark ? Colors.dark.background : Colors.light.cardBackground,
+																	isDark
+																		? Colors
+																				.dark
+																				.background
+																		: Colors
+																				.light
+																				.cardBackground,
 																borderColor:
-																	isDark ? Colors.dark.border : Colors.light.border,
+																	isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 																minHeight: 120,
 															}}>
 															<TextareaInput
@@ -2040,7 +2194,13 @@ const PostJob = () => {
 																	)
 																}
 																style={{
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}
 															/>
 														</Textarea>
@@ -2053,10 +2213,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -2068,13 +2233,21 @@ const PostJob = () => {
 														as={FileText}
 														size='lg'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}
 													/>
 													<Heading
 														size='md'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Missions principales
 													</Heading>
@@ -2082,7 +2255,10 @@ const PostJob = () => {
 
 												<Divider
 													style={{
-														backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+														backgroundColor: isDark
+															? Colors.dark.border
+															: Colors.light
+																	.border,
 													}}
 												/>
 
@@ -2095,9 +2271,21 @@ const PostJob = () => {
 															size='md'
 															style={{
 																backgroundColor:
-																	isDark ? Colors.dark.background : Colors.light.cardBackground,
+																	isDark
+																		? Colors
+																				.dark
+																				.background
+																		: Colors
+																				.light
+																				.cardBackground,
 																borderColor:
-																	isDark ? Colors.dark.border : Colors.light.border,
+																	isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 															}}>
 															<InputField
 																placeholder='Ajouter une mission...'
@@ -2118,7 +2306,13 @@ const PostJob = () => {
 																}
 																returnKeyType='done'
 																style={{
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}
 															/>
 														</Input>
@@ -2128,12 +2322,15 @@ const PostJob = () => {
 														onPress={addMission}
 														style={{
 															backgroundColor:
-																Colors.light.tint,
+																Colors.light
+																	.tint,
 														}}>
 														<ButtonIcon
 															as={Plus}
 															style={{
-																color: Colors.light.cardBackground,
+																color: Colors
+																	.light
+																	.cardBackground,
 															}}
 														/>
 													</Button>
@@ -2158,7 +2355,13 @@ const PostJob = () => {
 																			"center",
 																		padding: 8,
 																		backgroundColor:
-																			isDark ? Colors.dark.background : Colors.light.background,
+																			isDark
+																				? Colors
+																						.dark
+																						.background
+																				: Colors
+																						.light
+																						.background,
 																		borderRadius: 8,
 																	}}>
 																	<Box
@@ -2167,14 +2370,22 @@ const PostJob = () => {
 																			height: 6,
 																			borderRadius: 3,
 																			backgroundColor:
-																				Colors.light.tint,
+																				Colors
+																					.light
+																					.tint,
 																		}}
 																	/>
 																	<Text
 																		size='sm'
 																		style={{
 																			flex: 1,
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}>
 																		{
 																			mission
@@ -2194,7 +2405,9 @@ const PostJob = () => {
 																			}
 																			size='sm'
 																			style={{
-																				color: Colors.dark.danger,
+																				color: Colors
+																					.dark
+																					.danger,
 																			}}
 																		/>
 																	</Button>
@@ -2210,10 +2423,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -2225,13 +2443,21 @@ const PostJob = () => {
 														as={Users}
 														size='lg'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}
 													/>
 													<Heading
 														size='md'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Profil recherché
 													</Heading>
@@ -2239,7 +2465,10 @@ const PostJob = () => {
 
 												<Divider
 													style={{
-														backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+														backgroundColor: isDark
+															? Colors.dark.border
+															: Colors.light
+																	.border,
 													}}
 												/>
 
@@ -2252,9 +2481,21 @@ const PostJob = () => {
 															size='md'
 															style={{
 																backgroundColor:
-																	isDark ? Colors.dark.background : Colors.light.cardBackground,
+																	isDark
+																		? Colors
+																				.dark
+																				.background
+																		: Colors
+																				.light
+																				.cardBackground,
 																borderColor:
-																	isDark ? Colors.dark.border : Colors.light.border,
+																	isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 															}}>
 															<InputField
 																placeholder='Ajouter une compétence...'
@@ -2275,7 +2516,13 @@ const PostJob = () => {
 																}
 																returnKeyType='done'
 																style={{
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}
 															/>
 														</Input>
@@ -2285,12 +2532,15 @@ const PostJob = () => {
 														onPress={addProfile}
 														style={{
 															backgroundColor:
-																Colors.light.tint,
+																Colors.light
+																	.tint,
 														}}>
 														<ButtonIcon
 															as={Plus}
 															style={{
-																color: Colors.light.cardBackground,
+																color: Colors
+																	.light
+																	.cardBackground,
 															}}
 														/>
 													</Button>
@@ -2315,7 +2565,13 @@ const PostJob = () => {
 																			"center",
 																		padding: 8,
 																		backgroundColor:
-																			isDark ? Colors.dark.background : Colors.light.background,
+																			isDark
+																				? Colors
+																						.dark
+																						.background
+																				: Colors
+																						.light
+																						.background,
 																		borderRadius: 8,
 																	}}>
 																	<Box
@@ -2324,14 +2580,22 @@ const PostJob = () => {
 																			height: 6,
 																			borderRadius: 3,
 																			backgroundColor:
-																				Colors.light.success,
+																				Colors
+																					.light
+																					.success,
 																		}}
 																	/>
 																	<Text
 																		size='sm'
 																		style={{
 																			flex: 1,
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}>
 																		{
 																			profile
@@ -2351,7 +2615,9 @@ const PostJob = () => {
 																			}
 																			size='sm'
 																			style={{
-																				color: Colors.dark.danger,
+																				color: Colors
+																					.dark
+																					.danger,
 																			}}
 																		/>
 																	</Button>
@@ -2367,10 +2633,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -2382,14 +2653,22 @@ const PostJob = () => {
 														as={GraduationCap}
 														size='lg'
 														style={{
-															color: isDark ? Colors.dark.tint : Colors.light.tint,
+															color: isDark
+																? Colors.dark
+																		.tint
+																: Colors.light
+																		.tint,
 														}}
 													/>
 													<Text
 														size='md'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Diplômes requis
 													</Text>
@@ -2416,16 +2695,32 @@ const PostJob = () => {
 																formData
 																	.diplomas_required
 																	.length > 0
-																	? Colors.light.tint
-																	: isDark ? Colors.dark.border : Colors.light.border,
+																	? Colors
+																			.light
+																			.tint
+																	: isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 															backgroundColor:
 																formData
 																	.diplomas_required
 																	.length > 0
 																	? isDark
-																		? Colors.dark.tint
+																		? Colors
+																				.dark
+																				.tint
 																		: "#dbeafe"
-																	: isDark ? Colors.dark.background : Colors.light.cardBackground,
+																	: isDark
+																		? Colors
+																				.dark
+																				.background
+																		: Colors
+																				.light
+																				.cardBackground,
 														}}>
 														<Text
 															style={{
@@ -2435,8 +2730,16 @@ const PostJob = () => {
 																		.diplomas_required
 																		.length >
 																	0
-																		? Colors.light.tint
-																		: isDark ? Colors.dark.muted : Colors.light.muted,
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 																fontWeight:
 																	formData
 																		.diplomas_required
@@ -2460,8 +2763,16 @@ const PostJob = () => {
 																		.diplomas_required
 																		.length >
 																	0
-																		? Colors.light.tint
-																		: isDark ? Colors.dark.muted : Colors.light.muted,
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 															}}
 														/>
 													</Box>
@@ -2485,7 +2796,9 @@ const PostJob = () => {
 																		paddingVertical: 3,
 																		borderRadius: 6,
 																		backgroundColor:
-																			Colors.light.tint,
+																			Colors
+																				.light
+																				.tint,
 																		marginBottom: 4,
 																	}}>
 																	<Text
@@ -2493,7 +2806,9 @@ const PostJob = () => {
 																			fontSize: 11,
 																			fontWeight:
 																				"800",
-																			color: Colors.light.cardBackground,
+																			color: Colors
+																				.light
+																				.cardBackground,
 																		}}>
 																		{
 																			acronym
@@ -2511,10 +2826,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -2526,14 +2846,22 @@ const PostJob = () => {
 														as={Award}
 														size='lg'
 														style={{
-															color: isDark ? Colors.dark.tint : Colors.light.tint,
+															color: isDark
+																? Colors.dark
+																		.tint
+																: Colors.light
+																		.tint,
 														}}
 													/>
 													<Text
 														size='md'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Certifications requises
 													</Text>
@@ -2560,16 +2888,32 @@ const PostJob = () => {
 																formData
 																	.certifications_required
 																	.length > 0
-																	? Colors.light.tint
-																	: isDark ? Colors.dark.border : Colors.light.border,
+																	? Colors
+																			.light
+																			.tint
+																	: isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 															backgroundColor:
 																formData
 																	.certifications_required
 																	.length > 0
 																	? isDark
-																		? Colors.dark.tint
+																		? Colors
+																				.dark
+																				.tint
 																		: "#dbeafe"
-																	: isDark ? Colors.dark.background : Colors.light.cardBackground,
+																	: isDark
+																		? Colors
+																				.dark
+																				.background
+																		: Colors
+																				.light
+																				.cardBackground,
 														}}>
 														<Text
 															style={{
@@ -2579,8 +2923,16 @@ const PostJob = () => {
 																		.certifications_required
 																		.length >
 																	0
-																		? Colors.light.tint
-																		: isDark ? Colors.dark.muted : Colors.light.muted,
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 																fontWeight:
 																	formData
 																		.certifications_required
@@ -2604,8 +2956,16 @@ const PostJob = () => {
 																		.certifications_required
 																		.length >
 																	0
-																		? Colors.light.tint
-																		: isDark ? Colors.dark.muted : Colors.light.muted,
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 															}}
 														/>
 													</Box>
@@ -2630,7 +2990,9 @@ const PostJob = () => {
 																		paddingVertical: 3,
 																		borderRadius: 6,
 																		backgroundColor:
-																			Colors.light.tint,
+																			Colors
+																				.light
+																				.tint,
 																		marginBottom: 4,
 																	}}>
 																	<Text
@@ -2638,7 +3000,9 @@ const PostJob = () => {
 																			fontSize: 11,
 																			fontWeight:
 																				"800",
-																			color: Colors.light.cardBackground,
+																			color: Colors
+																				.light
+																				.cardBackground,
 																		}}>
 																		{
 																			acronym
@@ -2681,10 +3045,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -2696,13 +3065,21 @@ const PostJob = () => {
 														as={MapPin}
 														size='lg'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}
 													/>
 													<Heading
 														size='md'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Localisation
 													</Heading>
@@ -2710,7 +3087,10 @@ const PostJob = () => {
 
 												<Divider
 													style={{
-														backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+														backgroundColor: isDark
+															? Colors.dark.border
+															: Colors.light
+																	.border,
 													}}
 												/>
 
@@ -2720,7 +3100,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Code postal *
 													</Text>
@@ -2733,9 +3117,21 @@ const PostJob = () => {
 															style={{
 																flex: 1,
 																backgroundColor:
-																	isDark ? Colors.dark.background : Colors.light.cardBackground,
+																	isDark
+																		? Colors
+																				.dark
+																				.background
+																		: Colors
+																				.light
+																				.cardBackground,
 																borderColor:
-																	isDark ? Colors.dark.border : Colors.light.border,
+																	isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 															}}>
 															<InputField
 																placeholder='Entrez le code postal'
@@ -2796,7 +3192,13 @@ const PostJob = () => {
 																	)
 																}
 																style={{
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}
 															/>
 														</Input>
@@ -2813,8 +3215,16 @@ const PostJob = () => {
 																backgroundColor:
 																	postcodeInput.length ===
 																	5
-																		? Colors.light.tint
-																		: isDark ? Colors.dark.border : Colors.light.border,
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.border
+																			: Colors
+																					.light
+																					.border,
 																borderRadius: 8,
 																paddingHorizontal: 16,
 																paddingVertical: 10,
@@ -2828,8 +3238,16 @@ const PostJob = () => {
 																	color:
 																		postcodeInput.length ===
 																		5
-																			? Colors.light.cardBackground
-																			: isDark ? Colors.dark.muted : Colors.light.muted,
+																			? Colors
+																					.light
+																					.cardBackground
+																			: isDark
+																				? Colors
+																						.dark
+																						.muted
+																				: Colors
+																						.light
+																						.muted,
 																	fontWeight:
 																		"600",
 																}}>
@@ -2847,7 +3265,13 @@ const PostJob = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark ? Colors.dark.text : Colors.light.text,
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 															}}>
 															Sélectionnez la
 															ville
@@ -2871,20 +3295,42 @@ const PostJob = () => {
 																					formData.city ===
 																					cityData.nom
 																						? isDark
-																							? Colors.dark.background
+																							? Colors
+																									.dark
+																									.background
 																							: "#dbeafe"
-																						: isDark ? Colors.dark.background : Colors.light.background,
+																						: isDark
+																							? Colors
+																									.dark
+																									.background
+																							: Colors
+																									.light
+																									.background,
 																				borderRadius: 8,
 																				borderWidth: 1,
 																				borderColor:
 																					formData.city ===
 																					cityData.nom
-																						? Colors.light.tint
-																						: isDark ? Colors.dark.border : Colors.light.border,
+																						? Colors
+																								.light
+																								.tint
+																						: isDark
+																							? Colors
+																									.dark
+																									.border
+																							: Colors
+																									.light
+																									.border,
 																			}}>
 																			<Text
 																				style={{
-																					color: isDark ? Colors.dark.text : Colors.light.text,
+																					color: isDark
+																						? Colors
+																								.dark
+																								.text
+																						: Colors
+																								.light
+																								.text,
 																				}}>
 																				{
 																					cityData.nom
@@ -2910,7 +3356,13 @@ const PostJob = () => {
 														<Divider
 															style={{
 																backgroundColor:
-																	isDark ? Colors.dark.border : Colors.light.border,
+																	isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 															}}
 														/>
 
@@ -2920,7 +3372,13 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}>
 																Ville
 																sélectionnée
@@ -2930,16 +3388,26 @@ const PostJob = () => {
 																	padding: 12,
 																	backgroundColor:
 																		isDark
-																			? Colors.dark.background
+																			? Colors
+																					.dark
+																					.background
 																			: "#dbeafe",
 																	borderRadius: 8,
 																	borderWidth: 1,
 																	borderColor:
-																		Colors.light.tint,
+																		Colors
+																			.light
+																			.tint,
 																}}>
 																<Text
 																	style={{
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																		fontWeight:
 																			"600",
 																	}}>
@@ -2961,7 +3429,13 @@ const PostJob = () => {
 																<Text
 																	size='sm'
 																	style={{
-																		color: isDark ? Colors.dark.muted : Colors.light.muted,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 																	}}>
 																	{
 																		formData.department
@@ -2975,7 +3449,13 @@ const PostJob = () => {
 																<Text
 																	size='sm'
 																	style={{
-																		color: isDark ? Colors.dark.muted : Colors.light.muted,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 																	}}>
 																	{
 																		formData.region
@@ -2990,10 +3470,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<HStack
 												space='md'
@@ -3008,14 +3493,22 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Offre dernière minute
 													</Text>
 													<Text
 														size='xs'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 														}}>
 														Visible avec un badge
 														urgence
@@ -3032,7 +3525,10 @@ const PostJob = () => {
 														)
 													}
 													trackColor={{
-														false: isDark ? Colors.dark.border : Colors.light.border,
+														false: isDark
+															? Colors.dark.border
+															: Colors.light
+																	.border,
 														true: Colors.light.tint,
 													}}
 												/>
@@ -3049,8 +3545,10 @@ const PostJob = () => {
 														borderColor:
 															(userCompany?.last_minute_credits ??
 																0) > 0
-																? Colors.light.warning
-																: Colors.dark.danger,
+																? Colors.light
+																		.warning
+																: Colors.dark
+																		.danger,
 														backgroundColor:
 															(userCompany?.last_minute_credits ??
 																0) > 0
@@ -3073,7 +3571,9 @@ const PostJob = () => {
 																as={Zap}
 																size='xs'
 																style={{
-																	color: Colors.light.warning,
+																	color: Colors
+																		.light
+																		.warning,
 																	marginTop: 2,
 																}}
 															/>
@@ -3111,14 +3611,22 @@ const PostJob = () => {
 																	as={Zap}
 																	size='xs'
 																	style={{
-																		color: Colors.dark.danger,
+																		color: Colors
+																			.dark
+																			.danger,
 																		marginTop: 2,
 																	}}
 																/>
 																<Text
 																	size='xs'
 																	style={{
-																		color: isDark ? Colors.dark.danger : Colors.light.danger,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.danger
+																			: Colors
+																					.light
+																					.danger,
 																		flex: 1,
 																	}}>
 																	Aucun crédit
@@ -3131,7 +3639,13 @@ const PostJob = () => {
 																		style={{
 																			fontWeight:
 																				"700",
-																			color: isDark ? Colors.dark.danger : Colors.light.danger,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.danger
+																				: Colors
+																						.light
+																						.danger,
 																		}}>
 																		5 €
 																	</Text>{" "}
@@ -3153,7 +3667,9 @@ const PostJob = () => {
 																<Text
 																	size='xs'
 																	style={{
-																		color: Colors.light.tint,
+																		color: Colors
+																			.light
+																			.tint,
 																		fontWeight:
 																			"600",
 																		textDecorationLine:
@@ -3176,17 +3692,24 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<Text
 													size='sm'
 													style={{
 														fontWeight: "600",
-														color: isDark ? Colors.dark.text : Colors.light.text,
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													Type de contrat *
 												</Text>
@@ -3219,15 +3742,31 @@ const PostJob = () => {
 																		borderColor:
 																			formData.contract_type ===
 																			type
-																				? Colors.light.tint
-																				: isDark ? Colors.dark.border : Colors.light.border,
+																				? Colors
+																						.light
+																						.tint
+																				: isDark
+																					? Colors
+																							.dark
+																							.border
+																					: Colors
+																							.light
+																							.border,
 																		backgroundColor:
 																			formData.contract_type ===
 																			type
 																				? isDark
-																					? Colors.dark.tint
+																					? Colors
+																							.dark
+																							.tint
 																					: "#dbeafe"
-																				: isDark ? Colors.dark.background : Colors.light.background,
+																				: isDark
+																					? Colors
+																							.dark
+																							.background
+																					: Colors
+																							.light
+																							.background,
 																		alignItems:
 																			"center",
 																		justifyContent:
@@ -3241,8 +3780,16 @@ const PostJob = () => {
 																			color:
 																				formData.contract_type ===
 																				type
-																					? Colors.light.tint
-																					: isDark ? Colors.dark.text : Colors.light.text,
+																					? Colors
+																							.light
+																							.tint
+																					: isDark
+																						? Colors
+																								.dark
+																								.text
+																						: Colors
+																								.light
+																								.text,
 																		}}>
 																		{type}
 																	</Text>
@@ -3258,10 +3805,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -3273,13 +3825,21 @@ const PostJob = () => {
 														as={CalendarDays}
 														size='lg'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}
 													/>
 													<Heading
 														size='md'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Dates
 													</Heading>
@@ -3287,7 +3847,10 @@ const PostJob = () => {
 
 												<Divider
 													style={{
-														backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+														backgroundColor: isDark
+															? Colors.dark.border
+															: Colors.light
+																	.border,
 													}}
 												/>
 
@@ -3300,7 +3863,13 @@ const PostJob = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark ? Colors.dark.text : Colors.light.text,
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 															}}>
 															Mode de
 															planification *
@@ -3324,15 +3893,31 @@ const PostJob = () => {
 																		borderColor:
 																			formData.date_mode ===
 																			"dates"
-																				? Colors.light.tint
-																				: isDark ? Colors.dark.border : Colors.light.border,
+																				? Colors
+																						.light
+																						.tint
+																				: isDark
+																					? Colors
+																							.dark
+																							.border
+																					: Colors
+																							.light
+																							.border,
 																		backgroundColor:
 																			formData.date_mode ===
 																			"dates"
 																				? isDark
-																					? Colors.dark.tint
+																					? Colors
+																							.dark
+																							.tint
 																					: "#dbeafe"
-																				: isDark ? Colors.dark.background : Colors.light.background,
+																				: isDark
+																					? Colors
+																							.dark
+																							.background
+																					: Colors
+																							.light
+																							.background,
 																		alignItems:
 																			"center",
 																	}}>
@@ -3346,8 +3931,16 @@ const PostJob = () => {
 																			color:
 																				formData.date_mode ===
 																				"dates"
-																					? Colors.light.tint
-																					: isDark ? Colors.dark.text : Colors.light.text,
+																					? Colors
+																							.light
+																							.tint
+																					: isDark
+																						? Colors
+																								.dark
+																								.text
+																						: Colors
+																								.light
+																								.text,
 																		}}>
 																		Dates
 																		début/fin
@@ -3372,15 +3965,31 @@ const PostJob = () => {
 																		borderColor:
 																			formData.date_mode ===
 																			"vacations"
-																				? Colors.light.tint
-																				: isDark ? Colors.dark.border : Colors.light.border,
+																				? Colors
+																						.light
+																						.tint
+																				: isDark
+																					? Colors
+																							.dark
+																							.border
+																					: Colors
+																							.light
+																							.border,
 																		backgroundColor:
 																			formData.date_mode ===
 																			"vacations"
 																				? isDark
-																					? Colors.dark.tint
+																					? Colors
+																							.dark
+																							.tint
 																					: "#dbeafe"
-																				: isDark ? Colors.dark.background : Colors.light.background,
+																				: isDark
+																					? Colors
+																							.dark
+																							.background
+																					: Colors
+																							.light
+																							.background,
 																		alignItems:
 																			"center",
 																	}}>
@@ -3394,8 +4003,16 @@ const PostJob = () => {
 																			color:
 																				formData.date_mode ===
 																				"vacations"
-																					? Colors.light.tint
-																					: isDark ? Colors.dark.text : Colors.light.text,
+																					? Colors
+																							.light
+																							.tint
+																					: isDark
+																						? Colors
+																								.dark
+																								.text
+																						: Colors
+																								.light
+																								.text,
 																		}}>
 																		Vacations
 																	</Text>
@@ -3422,7 +4039,13 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}>
 																{formData.contract_type ===
 																"CDI"
@@ -3444,14 +4067,30 @@ const PostJob = () => {
 																		borderWidth: 1,
 																		borderColor:
 																			formData.start_date_asap
-																				? Colors.light.tint
-																				: isDark ? Colors.dark.border : Colors.light.border,
+																				? Colors
+																						.light
+																						.tint
+																				: isDark
+																					? Colors
+																							.dark
+																							.border
+																					: Colors
+																							.light
+																							.border,
 																		backgroundColor:
 																			formData.start_date_asap
 																				? isDark
-																					? Colors.dark.tint
+																					? Colors
+																							.dark
+																							.tint
 																					: "#dbeafe"
-																				: isDark ? Colors.dark.background : Colors.light.background,
+																				: isDark
+																					? Colors
+																							.dark
+																							.background
+																					: Colors
+																							.light
+																							.background,
 																	}}>
 																	<Text
 																		size='sm'
@@ -3459,8 +4098,16 @@ const PostJob = () => {
 																			fontWeight:
 																				"600",
 																			color: formData.start_date_asap
-																				? Colors.light.tint
-																				: isDark ? Colors.dark.text : Colors.light.muted,
+																				? Colors
+																						.light
+																						.tint
+																				: isDark
+																					? Colors
+																							.dark
+																							.text
+																					: Colors
+																							.light
+																							.muted,
 																		}}>
 																		Dès que
 																		possible
@@ -3487,8 +4134,16 @@ const PostJob = () => {
 																			)
 																		}
 																		trackColor={{
-																			false: isDark ? Colors.dark.border : Colors.light.border,
-																			true: Colors.light.tint,
+																			false: isDark
+																				? Colors
+																						.dark
+																						.border
+																				: Colors
+																						.light
+																						.border,
+																			true: Colors
+																				.light
+																				.tint,
 																		}}
 																	/>
 																</HStack>
@@ -3509,9 +4164,21 @@ const PostJob = () => {
 																			pointerEvents:
 																				"none",
 																			backgroundColor:
-																				isDark ? Colors.dark.background : Colors.light.cardBackground,
+																				isDark
+																					? Colors
+																							.dark
+																							.background
+																					: Colors
+																							.light
+																							.cardBackground,
 																			borderColor:
-																				isDark ? Colors.dark.border : Colors.light.border,
+																				isDark
+																					? Colors
+																							.dark
+																							.border
+																					: Colors
+																							.light
+																							.border,
 																		}}>
 																		<InputField
 																			value={formatDate(
@@ -3522,8 +4189,16 @@ const PostJob = () => {
 																			}
 																			style={{
 																				color: formData.start_date
-																					? isDark ? Colors.dark.text : Colors.light.text
-																					: Colors.dark.muted,
+																					? isDark
+																						? Colors
+																								.dark
+																								.text
+																						: Colors
+																								.light
+																								.text
+																					: Colors
+																							.dark
+																							.muted,
 																			}}
 																		/>
 																	</Input>
@@ -3540,7 +4215,13 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	Date de fin
 																	*
@@ -3560,9 +4241,21 @@ const PostJob = () => {
 																			pointerEvents:
 																				"none",
 																			backgroundColor:
-																				isDark ? Colors.dark.background : Colors.light.cardBackground,
+																				isDark
+																					? Colors
+																							.dark
+																							.background
+																					: Colors
+																							.light
+																							.cardBackground,
 																			borderColor:
-																				isDark ? Colors.dark.border : Colors.light.border,
+																				isDark
+																					? Colors
+																							.dark
+																							.border
+																					: Colors
+																							.light
+																							.border,
 																		}}>
 																		<InputField
 																			value={formatDate(
@@ -3573,8 +4266,16 @@ const PostJob = () => {
 																			}
 																			style={{
 																				color: formData.end_date
-																					? isDark ? Colors.dark.text : Colors.light.text
-																					: Colors.dark.muted,
+																					? isDark
+																						? Colors
+																								.dark
+																								.text
+																						: Colors
+																								.light
+																								.text
+																					: Colors
+																							.dark
+																							.muted,
 																			}}
 																		/>
 																	</Input>
@@ -3602,7 +4303,13 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	Vacations (
 																	{
@@ -3619,7 +4326,9 @@ const PostJob = () => {
 																	<Text
 																		size='xs'
 																		style={{
-																			color: Colors.dark.danger,
+																			color: Colors
+																				.dark
+																				.danger,
 																			fontWeight:
 																				"500",
 																		}}>
@@ -3639,16 +4348,34 @@ const PostJob = () => {
 																		borderRadius: 10,
 																		borderWidth: 1,
 																		borderColor:
-																			isDark ? Colors.dark.border : Colors.light.border,
+																			isDark
+																				? Colors
+																						.dark
+																						.border
+																				: Colors
+																						.light
+																						.border,
 																		backgroundColor:
-																			isDark ? Colors.dark.background : Colors.light.background,
+																			isDark
+																				? Colors
+																						.dark
+																						.background
+																				: Colors
+																						.light
+																						.background,
 																	}}>
 																	<Text
 																		size='sm'
 																		style={{
 																			fontWeight:
 																				"600",
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}>
 																		Nouvelle
 																		vacation
@@ -3661,7 +4388,13 @@ const PostJob = () => {
 																			style={{
 																				fontWeight:
 																					"500",
-																				color: isDark ? Colors.dark.muted : Colors.light.muted,
+																				color: isDark
+																					? Colors
+																							.dark
+																							.muted
+																					: Colors
+																							.light
+																							.muted,
 																			}}>
 																			Date
 																			*
@@ -3681,9 +4414,21 @@ const PostJob = () => {
 																					pointerEvents:
 																						"none",
 																					backgroundColor:
-																						isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+																						isDark
+																							? Colors
+																									.dark
+																									.cardBackground
+																							: Colors
+																									.light
+																									.cardBackground,
 																					borderColor:
-																						isDark ? Colors.dark.border : Colors.light.border,
+																						isDark
+																							? Colors
+																									.dark
+																									.border
+																							: Colors
+																									.light
+																									.border,
 																				}}>
 																				<InputField
 																					value={
@@ -3699,8 +4444,16 @@ const PostJob = () => {
 																					}
 																					style={{
 																						color: currentVacation.date
-																							? isDark ? Colors.dark.text : Colors.light.text
-																							: Colors.dark.muted,
+																							? isDark
+																								? Colors
+																										.dark
+																										.text
+																								: Colors
+																										.light
+																										.text
+																							: Colors
+																									.dark
+																									.muted,
 																					}}
 																				/>
 																			</Input>
@@ -3719,7 +4472,13 @@ const PostJob = () => {
 																				style={{
 																					fontWeight:
 																						"500",
-																					color: isDark ? Colors.dark.muted : Colors.light.muted,
+																					color: isDark
+																						? Colors
+																								.dark
+																								.muted
+																						: Colors
+																								.light
+																								.muted,
 																				}}>
 																				Heure
 																				début
@@ -3730,9 +4489,21 @@ const PostJob = () => {
 																				size='md'
 																				style={{
 																					backgroundColor:
-																						isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+																						isDark
+																							? Colors
+																									.dark
+																									.cardBackground
+																							: Colors
+																									.light
+																									.cardBackground,
 																					borderColor:
-																						isDark ? Colors.dark.border : Colors.light.border,
+																						isDark
+																							? Colors
+																									.dark
+																									.border
+																							: Colors
+																									.light
+																									.border,
 																				}}>
 																				<InputField
 																					placeholder='HH:MM'
@@ -3752,7 +4523,13 @@ const PostJob = () => {
 																						5
 																					}
 																					style={{
-																						color: isDark ? Colors.dark.text : Colors.light.text,
+																						color: isDark
+																							? Colors
+																									.dark
+																									.text
+																							: Colors
+																									.light
+																									.text,
 																					}}
 																				/>
 																			</Input>
@@ -3767,7 +4544,13 @@ const PostJob = () => {
 																				style={{
 																					fontWeight:
 																						"500",
-																					color: isDark ? Colors.dark.muted : Colors.light.muted,
+																					color: isDark
+																						? Colors
+																								.dark
+																								.muted
+																						: Colors
+																								.light
+																								.muted,
 																				}}>
 																				Heure
 																				fin
@@ -3778,9 +4561,21 @@ const PostJob = () => {
 																				size='md'
 																				style={{
 																					backgroundColor:
-																						isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+																						isDark
+																							? Colors
+																									.dark
+																									.cardBackground
+																							: Colors
+																									.light
+																									.cardBackground,
 																					borderColor:
-																						isDark ? Colors.dark.border : Colors.light.border,
+																						isDark
+																							? Colors
+																									.dark
+																									.border
+																							: Colors
+																									.light
+																									.border,
 																				}}>
 																				<InputField
 																					placeholder='HH:MM'
@@ -3800,7 +4595,13 @@ const PostJob = () => {
 																						5
 																					}
 																					style={{
-																						color: isDark ? Colors.dark.text : Colors.light.text,
+																						color: isDark
+																							? Colors
+																									.dark
+																									.text
+																							: Colors
+																									.light
+																									.text,
 																					}}
 																				/>
 																			</Input>
@@ -3814,19 +4615,25 @@ const PostJob = () => {
 																		}
 																		style={{
 																			backgroundColor:
-																				Colors.light.tint,
+																				Colors
+																					.light
+																					.tint,
 																		}}>
 																		<ButtonIcon
 																			as={
 																				Plus
 																			}
 																			style={{
-																				color: Colors.light.cardBackground,
+																				color: Colors
+																					.light
+																					.cardBackground,
 																			}}
 																		/>
 																		<ButtonText
 																			style={{
-																				color: Colors.light.cardBackground,
+																				color: Colors
+																					.light
+																					.cardBackground,
 																			}}>
 																			Ajouter
 																		</ButtonText>
@@ -3865,14 +4672,20 @@ const PostJob = () => {
 																										? "#431407"
 																										: "#fff7ed"
 																									: isDark
-																										? Colors.dark.tint
+																										? Colors
+																												.dark
+																												.tint
 																										: "#dbeafe",
 																							borderRadius: 8,
 																							borderWidth: 1,
 																							borderColor:
 																								isWarned
-																									? Colors.light.warning
-																									: Colors.light.tint,
+																									? Colors
+																											.light
+																											.warning
+																									: Colors
+																											.light
+																											.tint,
 																						}}>
 																						<VStack
 																							style={{
@@ -3884,8 +4697,16 @@ const PostJob = () => {
 																									fontWeight:
 																										"700",
 																									color: isWarned
-																										? Colors.light.warning
-																										: isDark ? Colors.dark.tint : Colors.light.tint,
+																										? Colors
+																												.light
+																												.warning
+																										: isDark
+																											? Colors
+																													.dark
+																													.tint
+																											: Colors
+																													.light
+																													.tint,
 																								}}>
 																								{formatDate(
 																									vacation.date,
@@ -3896,7 +4717,13 @@ const PostJob = () => {
 																								style={{
 																									color: isWarned
 																										? "#fb923c"
-																										: isDark ? Colors.dark.tint : Colors.light.tint,
+																										: isDark
+																											? Colors
+																													.dark
+																													.tint
+																											: Colors
+																													.light
+																													.tint,
 																								}}>
 																								{
 																									vacation.start_time
@@ -3921,7 +4748,9 @@ const PostJob = () => {
 																								}
 																								size='sm'
 																								style={{
-																									color: Colors.dark.danger,
+																									color: Colors
+																										.dark
+																										.danger,
 																								}}
 																							/>
 																						</Button>
@@ -3930,7 +4759,9 @@ const PostJob = () => {
 																						<Text
 																							size='xs'
 																							style={{
-																								color: Colors.light.warning,
+																								color: Colors
+																									.light
+																									.warning,
 																								fontStyle:
 																									"italic",
 																								paddingHorizontal: 12,
@@ -3969,17 +4800,27 @@ const PostJob = () => {
 											<Card
 												style={{
 													padding: 20,
-													backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+													backgroundColor: isDark
+														? Colors.dark
+																.cardBackground
+														: Colors.light
+																.cardBackground,
 													borderRadius: 12,
 													borderWidth: 1,
-													borderColor: isDark ? Colors.dark.border : Colors.light.border,
+													borderColor: isDark
+														? Colors.dark.border
+														: Colors.light.border,
 												}}>
 												<VStack space='md'>
 													<Text
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Temps de travail *
 													</Text>
@@ -4012,15 +4853,31 @@ const PostJob = () => {
 																			borderColor:
 																				formData.work_time ===
 																				time
-																					? Colors.light.tint
-																					: isDark ? Colors.dark.border : Colors.light.border,
+																					? Colors
+																							.light
+																							.tint
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
 																			backgroundColor:
 																				formData.work_time ===
 																				time
 																					? isDark
-																						? Colors.dark.tint
+																						? Colors
+																								.dark
+																								.tint
 																						: "#dbeafe"
-																					: isDark ? Colors.dark.background : Colors.light.background,
+																					: isDark
+																						? Colors
+																								.dark
+																								.background
+																						: Colors
+																								.light
+																								.background,
 																			alignItems:
 																				"center",
 																			justifyContent:
@@ -4034,8 +4891,16 @@ const PostJob = () => {
 																				color:
 																					formData.work_time ===
 																					time
-																						? Colors.light.tint
-																						: isDark ? Colors.dark.text : Colors.light.text,
+																						? Colors
+																								.light
+																								.tint
+																						: isDark
+																							? Colors
+																									.dark
+																									.text
+																							: Colors
+																									.light
+																									.text,
 																			}}>
 																			{
 																				time
@@ -4058,17 +4923,27 @@ const PostJob = () => {
 											<Card
 												style={{
 													padding: 20,
-													backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+													backgroundColor: isDark
+														? Colors.dark
+																.cardBackground
+														: Colors.light
+																.cardBackground,
 													borderRadius: 12,
 													borderWidth: 1,
-													borderColor: isDark ? Colors.dark.border : Colors.light.border,
+													borderColor: isDark
+														? Colors.dark.border
+														: Colors.light.border,
 												}}>
 												<VStack space='md'>
 													<Text
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Horaires de travail
 													</Text>
@@ -4106,15 +4981,31 @@ const PostJob = () => {
 																			borderColor:
 																				formData.work_schedule ===
 																				schedule
-																					? Colors.light.tint
-																					: isDark ? Colors.dark.border : Colors.light.border,
+																					? Colors
+																							.light
+																							.tint
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
 																			backgroundColor:
 																				formData.work_schedule ===
 																				schedule
 																					? isDark
-																						? Colors.dark.tint
+																						? Colors
+																								.dark
+																								.tint
 																						: "#dbeafe"
-																					: isDark ? Colors.dark.background : Colors.light.background,
+																					: isDark
+																						? Colors
+																								.dark
+																								.background
+																						: Colors
+																								.light
+																								.background,
 																			alignItems:
 																				"center",
 																			justifyContent:
@@ -4128,8 +5019,16 @@ const PostJob = () => {
 																				color:
 																					formData.work_schedule ===
 																					schedule
-																						? Colors.light.tint
-																						: isDark ? Colors.dark.text : Colors.light.text,
+																						? Colors
+																								.light
+																								.tint
+																						: isDark
+																							? Colors
+																									.dark
+																									.text
+																							: Colors
+																									.light
+																									.text,
 																			}}>
 																			{
 																				schedule
@@ -4161,7 +5060,13 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	Heure de
 																	début
@@ -4218,7 +5123,13 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	Heure de fin
 																</Text>
@@ -4268,10 +5179,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -4283,13 +5199,21 @@ const PostJob = () => {
 														as={BadgeEuro}
 														size='lg'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}
 													/>
 													<Heading
 														size='md'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Rémunération
 													</Heading>
@@ -4297,7 +5221,10 @@ const PostJob = () => {
 
 												<Divider
 													style={{
-														backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+														backgroundColor: isDark
+															? Colors.dark.border
+															: Colors.light
+																	.border,
 													}}
 												/>
 
@@ -4307,7 +5234,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Type de rémunération *
 													</Text>
@@ -4391,18 +5322,46 @@ const PostJob = () => {
 																						borderWidth: 2,
 																						borderColor:
 																							isDisabled
-																								? isDark ? Colors.dark.border : Colors.light.border
+																								? isDark
+																									? Colors
+																											.dark
+																											.border
+																									: Colors
+																											.light
+																											.border
 																								: isSelected
-																									? Colors.light.tint
-																									: isDark ? Colors.dark.border : Colors.light.border,
+																									? Colors
+																											.light
+																											.tint
+																									: isDark
+																										? Colors
+																												.dark
+																												.border
+																										: Colors
+																												.light
+																												.border,
 																						backgroundColor:
 																							isDisabled
-																								? isDark ? Colors.dark.background : Colors.light.background
+																								? isDark
+																									? Colors
+																											.dark
+																											.background
+																									: Colors
+																											.light
+																											.background
 																								: isSelected
 																									? isDark
-																										? Colors.dark.tint
+																										? Colors
+																												.dark
+																												.tint
 																										: "#dbeafe"
-																									: isDark ? Colors.dark.background : Colors.light.background,
+																									: isDark
+																										? Colors
+																												.dark
+																												.background
+																										: Colors
+																												.light
+																												.background,
 																						opacity:
 																							isDisabled
 																								? 0.45
@@ -4420,10 +5379,24 @@ const PostJob = () => {
 																								"600",
 																							fontSize: 14,
 																							color: isDisabled
-																								? isDark ? Colors.dark.muted : Colors.light.muted
+																								? isDark
+																									? Colors
+																											.dark
+																											.muted
+																									: Colors
+																											.light
+																											.muted
 																								: isSelected
-																									? Colors.light.tint
-																									: isDark ? Colors.dark.text : Colors.light.text,
+																									? Colors
+																											.light
+																											.tint
+																									: isDark
+																										? Colors
+																												.dark
+																												.text
+																										: Colors
+																												.light
+																												.text,
 																						}}>
 																						{
 																							opt.label
@@ -4433,7 +5406,13 @@ const PostJob = () => {
 																						<Text
 																							size='xs'
 																							style={{
-																								color: isDark ? Colors.dark.muted : Colors.light.muted,
+																								color: isDark
+																									? Colors
+																											.dark
+																											.muted
+																									: Colors
+																											.light
+																											.muted,
 																								fontStyle:
 																									"italic",
 																							}}>
@@ -4471,7 +5450,13 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	Taux horaire
 																	(€) *
@@ -4481,9 +5466,21 @@ const PostJob = () => {
 																	size='md'
 																	style={{
 																		backgroundColor:
-																			isDark ? Colors.dark.background : Colors.light.cardBackground,
+																			isDark
+																				? Colors
+																						.dark
+																						.background
+																				: Colors
+																						.light
+																						.cardBackground,
 																		borderColor:
-																			isDark ? Colors.dark.border : Colors.light.border,
+																			isDark
+																				? Colors
+																						.dark
+																						.border
+																				: Colors
+																						.light
+																						.border,
 																	}}>
 																	<InputField
 																		placeholder='Ex: 15.50'
@@ -4507,7 +5504,13 @@ const PostJob = () => {
 																		}
 																		keyboardType='decimal-pad'
 																		style={{
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}
 																	/>
 																</Input>
@@ -4527,7 +5530,13 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	Période de
 																	travail *
@@ -4551,15 +5560,31 @@ const PostJob = () => {
 																				borderColor:
 																					formData.work_hours_type ===
 																					"semaine"
-																						? Colors.light.tint
-																						: isDark ? Colors.dark.border : Colors.light.border,
+																						? Colors
+																								.light
+																								.tint
+																						: isDark
+																							? Colors
+																									.dark
+																									.border
+																							: Colors
+																									.light
+																									.border,
 																				backgroundColor:
 																					formData.work_hours_type ===
 																					"semaine"
 																						? isDark
-																							? Colors.dark.tint
+																							? Colors
+																									.dark
+																									.tint
 																							: "#dbeafe"
-																						: isDark ? Colors.dark.background : Colors.light.background,
+																						: isDark
+																							? Colors
+																									.dark
+																									.background
+																							: Colors
+																									.light
+																									.background,
 																				alignItems:
 																					"center",
 																			}}>
@@ -4570,8 +5595,16 @@ const PostJob = () => {
 																					color:
 																						formData.work_hours_type ===
 																						"semaine"
-																							? Colors.light.tint
-																							: isDark ? Colors.dark.text : Colors.light.text,
+																							? Colors
+																									.light
+																									.tint
+																							: isDark
+																								? Colors
+																										.dark
+																										.text
+																								: Colors
+																										.light
+																										.text,
 																				}}>
 																				Par
 																				semaine
@@ -4596,15 +5629,31 @@ const PostJob = () => {
 																				borderColor:
 																					formData.work_hours_type ===
 																					"jour"
-																						? Colors.light.tint
-																						: isDark ? Colors.dark.border : Colors.light.border,
+																						? Colors
+																								.light
+																								.tint
+																						: isDark
+																							? Colors
+																									.dark
+																									.border
+																							: Colors
+																									.light
+																									.border,
 																				backgroundColor:
 																					formData.work_hours_type ===
 																					"jour"
 																						? isDark
-																							? Colors.dark.tint
+																							? Colors
+																									.dark
+																									.tint
 																							: "#dbeafe"
-																						: isDark ? Colors.dark.background : Colors.light.background,
+																						: isDark
+																							? Colors
+																									.dark
+																									.background
+																							: Colors
+																									.light
+																									.background,
 																				alignItems:
 																					"center",
 																			}}>
@@ -4615,8 +5664,16 @@ const PostJob = () => {
 																					color:
 																						formData.work_hours_type ===
 																						"jour"
-																							? Colors.light.tint
-																							: isDark ? Colors.dark.text : Colors.light.text,
+																							? Colors
+																									.light
+																									.tint
+																							: isDark
+																								? Colors
+																										.dark
+																										.text
+																								: Colors
+																										.light
+																										.text,
 																				}}>
 																				Par
 																				jour
@@ -4646,7 +5703,13 @@ const PostJob = () => {
 																		style={{
 																			fontWeight:
 																				"600",
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}>
 																		Heures/semaine
 																		*
@@ -4656,9 +5719,21 @@ const PostJob = () => {
 																		size='md'
 																		style={{
 																			backgroundColor:
-																				isDark ? Colors.dark.background : Colors.light.cardBackground,
+																				isDark
+																					? Colors
+																							.dark
+																							.background
+																					: Colors
+																							.light
+																							.cardBackground,
 																			borderColor:
-																				isDark ? Colors.dark.border : Colors.light.border,
+																				isDark
+																					? Colors
+																							.dark
+																							.border
+																					: Colors
+																							.light
+																							.border,
 																		}}>
 																		<InputField
 																			placeholder='Ex: 35'
@@ -4682,7 +5757,13 @@ const PostJob = () => {
 																			}
 																			keyboardType='decimal-pad'
 																			style={{
-																				color: isDark ? Colors.dark.text : Colors.light.text,
+																				color: isDark
+																					? Colors
+																							.dark
+																							.text
+																					: Colors
+																							.light
+																							.text,
 																			}}
 																		/>
 																	</Input>
@@ -4708,7 +5789,13 @@ const PostJob = () => {
 																		style={{
 																			fontWeight:
 																				"600",
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}>
 																		{!(
 																			formData.contract_type ===
@@ -4724,9 +5811,21 @@ const PostJob = () => {
 																		size='md'
 																		style={{
 																			backgroundColor:
-																				isDark ? Colors.dark.background : Colors.light.cardBackground,
+																				isDark
+																					? Colors
+																							.dark
+																							.background
+																					: Colors
+																							.light
+																							.cardBackground,
 																			borderColor:
-																				isDark ? Colors.dark.border : Colors.light.border,
+																				isDark
+																					? Colors
+																							.dark
+																							.border
+																					: Colors
+																							.light
+																							.border,
 																		}}>
 																		<InputField
 																			placeholder='Ex: 7'
@@ -4750,7 +5849,13 @@ const PostJob = () => {
 																			}
 																			keyboardType='decimal-pad'
 																			style={{
-																				color: isDark ? Colors.dark.text : Colors.light.text,
+																				color: isDark
+																					? Colors
+																							.dark
+																							.text
+																					: Colors
+																							.light
+																							.text,
 																			}}
 																		/>
 																	</Input>
@@ -4769,18 +5874,28 @@ const PostJob = () => {
 																		padding: 16,
 																		backgroundColor:
 																			isDark
-																				? Colors.dark.tint
+																				? Colors
+																						.dark
+																						.tint
 																				: "#dbeafe",
 																		borderRadius: 10,
 																		borderWidth: 1,
 																		borderColor:
-																			Colors.light.tint,
+																			Colors
+																				.light
+																				.tint,
 																	}}>
 																	<VStack space='xs'>
 																		<Text
 																			size='sm'
 																			style={{
-																				color: isDark ? Colors.dark.tint : Colors.light.tint,
+																				color: isDark
+																					? Colors
+																							.dark
+																							.tint
+																					: Colors
+																							.light
+																							.tint,
 																				fontWeight:
 																					"500",
 																			}}>
@@ -4793,7 +5908,9 @@ const PostJob = () => {
 																				fontSize: 24,
 																				fontWeight:
 																					"700",
-																				color: Colors.light.tint,
+																				color: Colors
+																					.light
+																					.tint,
 																			}}>
 																			{formData.work_hours_type ===
 																			"jour"
@@ -4826,7 +5943,13 @@ const PostJob = () => {
 																		<Text
 																			size='xs'
 																			style={{
-																				color: isDark ? Colors.dark.tint : Colors.light.tint,
+																				color: isDark
+																					? Colors
+																							.dark
+																							.tint
+																					: Colors
+																							.light
+																							.tint,
 																			}}>
 																			{formData.work_hours_type ===
 																			"jour"
@@ -4851,7 +5974,13 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}>
 																Salaire mensuel
 																brut (€) *
@@ -4861,10 +5990,28 @@ const PostJob = () => {
 																size='md'
 																style={{
 																	backgroundColor:
-																		isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+																		isDark
+																			? Colors
+																					.dark
+																					.cardBackground
+																			: Colors
+																					.light
+																					.cardBackground,
 																	borderColor:
-																		isDark ? Colors.dark.border : Colors.light.border,
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																		isDark
+																			? Colors
+																					.dark
+																					.border
+																			: Colors
+																					.light
+																					.border,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}>
 																<InputField
 																	placeholder='Ex: 2500'
@@ -4892,7 +6039,13 @@ const PostJob = () => {
 																	}
 																	keyboardType='numeric'
 																	style={{
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}
 																/>
 															</Input>
@@ -4912,7 +6065,13 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}>
 																Salaire annuel
 																brut (€) *
@@ -4922,10 +6081,28 @@ const PostJob = () => {
 																size='md'
 																style={{
 																	backgroundColor:
-																		isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+																		isDark
+																			? Colors
+																					.dark
+																					.cardBackground
+																			: Colors
+																					.light
+																					.cardBackground,
 																	borderColor:
-																		isDark ? Colors.dark.border : Colors.light.border,
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																		isDark
+																			? Colors
+																					.dark
+																					.border
+																			: Colors
+																					.light
+																					.border,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}>
 																<InputField
 																	placeholder='Ex: 35000'
@@ -4953,7 +6130,13 @@ const PostJob = () => {
 																	}
 																	keyboardType='numeric'
 																	style={{
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}
 																/>
 															</Input>
@@ -4978,7 +6161,13 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	Salaire min.
 																	(€) *
@@ -4988,10 +6177,28 @@ const PostJob = () => {
 																	size='md'
 																	style={{
 																		backgroundColor:
-																			isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+																			isDark
+																				? Colors
+																						.dark
+																						.cardBackground
+																				: Colors
+																						.light
+																						.cardBackground,
 																		borderColor:
-																			isDark ? Colors.dark.border : Colors.light.border,
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																			isDark
+																				? Colors
+																						.dark
+																						.border
+																				: Colors
+																						.light
+																						.border,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	<InputField
 																		placeholder='Ex: 2000'
@@ -5019,7 +6226,13 @@ const PostJob = () => {
 																		}
 																		keyboardType='numeric'
 																		style={{
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}
 																	/>
 																</Input>
@@ -5035,7 +6248,13 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	Salaire max.
 																	(€) *
@@ -5045,10 +6264,28 @@ const PostJob = () => {
 																	size='md'
 																	style={{
 																		backgroundColor:
-																			isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+																			isDark
+																				? Colors
+																						.dark
+																						.cardBackground
+																				: Colors
+																						.light
+																						.cardBackground,
 																		borderColor:
-																			isDark ? Colors.dark.border : Colors.light.border,
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																			isDark
+																				? Colors
+																						.dark
+																						.border
+																				: Colors
+																						.light
+																						.border,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	<InputField
 																		placeholder='Ex: 2800'
@@ -5076,7 +6313,13 @@ const PostJob = () => {
 																		}
 																		keyboardType='numeric'
 																		style={{
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}
 																	/>
 																</Input>
@@ -5102,7 +6345,13 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	Salaire min.
 																	(€) *
@@ -5112,10 +6361,28 @@ const PostJob = () => {
 																	size='md'
 																	style={{
 																		backgroundColor:
-																			isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+																			isDark
+																				? Colors
+																						.dark
+																						.cardBackground
+																				: Colors
+																						.light
+																						.cardBackground,
 																		borderColor:
-																			isDark ? Colors.dark.border : Colors.light.border,
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																			isDark
+																				? Colors
+																						.dark
+																						.border
+																				: Colors
+																						.light
+																						.border,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	<InputField
 																		placeholder='Ex: 30000'
@@ -5143,7 +6410,13 @@ const PostJob = () => {
 																		}
 																		keyboardType='numeric'
 																		style={{
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}
 																	/>
 																</Input>
@@ -5159,7 +6432,13 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	Salaire max.
 																	(€) *
@@ -5169,10 +6448,28 @@ const PostJob = () => {
 																	size='md'
 																	style={{
 																		backgroundColor:
-																			isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+																			isDark
+																				? Colors
+																						.dark
+																						.cardBackground
+																				: Colors
+																						.light
+																						.cardBackground,
 																		borderColor:
-																			isDark ? Colors.dark.border : Colors.light.border,
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																			isDark
+																				? Colors
+																						.dark
+																						.border
+																				: Colors
+																						.light
+																						.border,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	<InputField
 																		placeholder='Ex: 40000'
@@ -5200,7 +6497,13 @@ const PostJob = () => {
 																		}
 																		keyboardType='numeric'
 																		style={{
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}
 																	/>
 																</Input>
@@ -5218,12 +6521,15 @@ const PostJob = () => {
 																padding: 16,
 																backgroundColor:
 																	isDark
-																		? Colors.dark.tint
+																		? Colors
+																				.dark
+																				.tint
 																		: "#dbeafe",
 																borderRadius: 10,
 																borderWidth: 1,
 																borderColor:
-																	Colors.light.tint,
+																	Colors.light
+																		.tint,
 															}}>
 															<VStack
 																space='xs'
@@ -5234,7 +6540,13 @@ const PostJob = () => {
 																<Text
 																	size='sm'
 																	style={{
-																		color: isDark ? Colors.dark.tint : Colors.light.tint,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.tint
+																			: Colors
+																					.light
+																					.tint,
 																		fontWeight:
 																			"500",
 																		textAlign:
@@ -5250,7 +6562,13 @@ const PostJob = () => {
 																<Text
 																	size='xs'
 																	style={{
-																		color: isDark ? Colors.dark.tint : Colors.light.tint,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.tint
+																			: Colors
+																					.light
+																					.tint,
 																		textAlign:
 																			"center",
 																	}}>
@@ -5297,10 +6615,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -5312,14 +6635,22 @@ const PostJob = () => {
 														as={FileText}
 														size='lg'
 														style={{
-															color: isDark ? Colors.dark.tint : Colors.light.tint,
+															color: isDark
+																? Colors.dark
+																		.tint
+																: Colors.light
+																		.tint,
 														}}
 													/>
 													<Text
 														size='md'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Permis de conduire
 													</Text>
@@ -5346,16 +6677,32 @@ const PostJob = () => {
 																formData
 																	.driving_licenses
 																	.length > 0
-																	? Colors.light.tint
-																	: isDark ? Colors.dark.border : Colors.light.border,
+																	? Colors
+																			.light
+																			.tint
+																	: isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 															backgroundColor:
 																formData
 																	.driving_licenses
 																	.length > 0
 																	? isDark
-																		? Colors.dark.tint
+																		? Colors
+																				.dark
+																				.tint
 																		: "#dbeafe"
-																	: isDark ? Colors.dark.background : Colors.light.cardBackground,
+																	: isDark
+																		? Colors
+																				.dark
+																				.background
+																		: Colors
+																				.light
+																				.cardBackground,
 														}}>
 														<Text
 															style={{
@@ -5365,8 +6712,16 @@ const PostJob = () => {
 																		.driving_licenses
 																		.length >
 																	0
-																		? Colors.light.tint
-																		: isDark ? Colors.dark.muted : Colors.light.muted,
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 																fontWeight:
 																	formData
 																		.driving_licenses
@@ -5397,8 +6752,16 @@ const PostJob = () => {
 																		.driving_licenses
 																		.length >
 																	0
-																		? Colors.light.tint
-																		: isDark ? Colors.dark.muted : Colors.light.muted,
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 															}}
 														/>
 													</Box>
@@ -5422,7 +6785,9 @@ const PostJob = () => {
 																		paddingVertical: 3,
 																		borderRadius: 6,
 																		backgroundColor:
-																			Colors.light.tint,
+																			Colors
+																				.light
+																				.tint,
 																		marginBottom: 4,
 																	}}>
 																	<Text
@@ -5430,7 +6795,9 @@ const PostJob = () => {
 																			fontSize: 11,
 																			fontWeight:
 																				"800",
-																			color: Colors.light.cardBackground,
+																			color: Colors
+																				.light
+																				.cardBackground,
 																		}}>
 																		{
 																			acronym
@@ -5448,10 +6815,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -5463,14 +6835,22 @@ const PostJob = () => {
 														as={Users}
 														size='lg'
 														style={{
-															color: isDark ? Colors.dark.tint : Colors.light.tint,
+															color: isDark
+																? Colors.dark
+																		.tint
+																: Colors.light
+																		.tint,
 														}}
 													/>
 													<Text
 														size='md'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Langues demandées
 													</Text>
@@ -5484,9 +6864,21 @@ const PostJob = () => {
 															size='md'
 															style={{
 																backgroundColor:
-																	isDark ? Colors.dark.background : Colors.light.cardBackground,
+																	isDark
+																		? Colors
+																				.dark
+																				.background
+																		: Colors
+																				.light
+																				.cardBackground,
 																borderColor:
-																	isDark ? Colors.dark.border : Colors.light.border,
+																	isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 															}}>
 															<InputField
 																placeholder='Ex: Anglais, Espagnol'
@@ -5503,7 +6895,13 @@ const PostJob = () => {
 																	)
 																}
 																style={{
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}
 															/>
 														</Input>
@@ -5513,12 +6911,15 @@ const PostJob = () => {
 														onPress={addLanguage}
 														style={{
 															backgroundColor:
-																Colors.light.tint,
+																Colors.light
+																	.tint,
 														}}>
 														<ButtonIcon
 															as={Plus}
 															style={{
-																color: Colors.light.cardBackground,
+																color: Colors
+																	.light
+																	.cardBackground,
 															}}
 														/>
 													</Button>
@@ -5544,7 +6945,13 @@ const PostJob = () => {
 																			"center",
 																		padding: 8,
 																		backgroundColor:
-																			isDark ? Colors.dark.background : Colors.light.background,
+																			isDark
+																				? Colors
+																						.dark
+																						.background
+																				: Colors
+																						.light
+																						.background,
 																		borderRadius: 8,
 																	}}>
 																	<Box
@@ -5553,14 +6960,22 @@ const PostJob = () => {
 																			height: 6,
 																			borderRadius: 3,
 																			backgroundColor:
-																				Colors.light.tint,
+																				Colors
+																					.light
+																					.tint,
 																		}}
 																	/>
 																	<Text
 																		size='sm'
 																		style={{
 																			flex: 1,
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}>
 																		{
 																			language
@@ -5580,7 +6995,9 @@ const PostJob = () => {
 																			}
 																			size='sm'
 																			style={{
-																				color: Colors.dark.danger,
+																				color: Colors
+																					.dark
+																					.danger,
 																			}}
 																		/>
 																	</Button>
@@ -5596,10 +7013,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -5611,14 +7033,22 @@ const PostJob = () => {
 														as={BadgeEuro}
 														size='lg'
 														style={{
-															color: isDark ? Colors.dark.tint : Colors.light.tint,
+															color: isDark
+																? Colors.dark
+																		.tint
+																: Colors.light
+																		.tint,
 														}}
 													/>
 													<Text
 														size='md'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Remboursements
 													</Text>
@@ -5634,9 +7064,21 @@ const PostJob = () => {
 															size='md'
 															style={{
 																backgroundColor:
-																	isDark ? Colors.dark.background : Colors.light.cardBackground,
+																	isDark
+																		? Colors
+																				.dark
+																				.background
+																		: Colors
+																				.light
+																				.cardBackground,
 																borderColor:
-																	isDark ? Colors.dark.border : Colors.light.border,
+																	isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 															}}>
 															<InputField
 																placeholder='Ex: Frais de transport'
@@ -5653,7 +7095,13 @@ const PostJob = () => {
 																	)
 																}
 																style={{
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}
 															/>
 														</Input>
@@ -5665,12 +7113,15 @@ const PostJob = () => {
 														}
 														style={{
 															backgroundColor:
-																Colors.light.tint,
+																Colors.light
+																	.tint,
 														}}>
 														<ButtonIcon
 															as={Plus}
 															style={{
-																color: Colors.light.cardBackground,
+																color: Colors
+																	.light
+																	.cardBackground,
 															}}
 														/>
 													</Button>
@@ -5696,7 +7147,13 @@ const PostJob = () => {
 																			"center",
 																		padding: 8,
 																		backgroundColor:
-																			isDark ? Colors.dark.background : Colors.light.background,
+																			isDark
+																				? Colors
+																						.dark
+																						.background
+																				: Colors
+																						.light
+																						.background,
 																		borderRadius: 8,
 																	}}>
 																	<Box
@@ -5705,14 +7162,22 @@ const PostJob = () => {
 																			height: 6,
 																			borderRadius: 3,
 																			backgroundColor:
-																				Colors.light.tint,
+																				Colors
+																					.light
+																					.tint,
 																		}}
 																	/>
 																	<Text
 																		size='sm'
 																		style={{
 																			flex: 1,
-																			color: isDark ? Colors.dark.text : Colors.light.text,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}>
 																		{
 																			reimbursement
@@ -5732,7 +7197,9 @@ const PostJob = () => {
 																			}
 																			size='sm'
 																			style={{
-																				color: Colors.dark.danger,
+																				color: Colors
+																					.dark
+																					.danger,
 																			}}
 																		/>
 																	</Button>
@@ -5748,10 +7215,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -5763,13 +7235,21 @@ const PostJob = () => {
 														as={Timer}
 														size='lg'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}
 													/>
 													<Heading
 														size='md'
 														style={{
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Options
 													</Heading>
@@ -5777,7 +7257,10 @@ const PostJob = () => {
 
 												<Divider
 													style={{
-														backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+														backgroundColor: isDark
+															? Colors.dark.border
+															: Colors.light
+																	.border,
 													}}
 												/>
 
@@ -5795,14 +7278,26 @@ const PostJob = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark ? Colors.dark.text : Colors.light.text,
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 															}}>
 															Panier repas
 														</Text>
 														<Text
 															size='xs'
 															style={{
-																color: isDark ? Colors.dark.muted : Colors.light.muted,
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															Panier repas fourni
 														</Text>
@@ -5820,8 +7315,13 @@ const PostJob = () => {
 															)
 														}
 														trackColor={{
-															false: isDark ? Colors.dark.border : Colors.light.border,
-															true: Colors.light.tint,
+															false: isDark
+																? Colors.dark
+																		.border
+																: Colors.light
+																		.border,
+															true: Colors.light
+																.tint,
 														}}
 													/>
 												</HStack>
@@ -5840,14 +7340,26 @@ const PostJob = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark ? Colors.dark.text : Colors.light.text,
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 															}}>
 															Hébergement
 														</Text>
 														<Text
 															size='xs'
 															style={{
-																color: isDark ? Colors.dark.muted : Colors.light.muted,
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															Hébergement fourni
 														</Text>
@@ -5865,8 +7377,13 @@ const PostJob = () => {
 															)
 														}
 														trackColor={{
-															false: isDark ? Colors.dark.border : Colors.light.border,
-															true: Colors.light.tint,
+															false: isDark
+																? Colors.dark
+																		.border
+																: Colors.light
+																		.border,
+															true: Colors.light
+																.tint,
 														}}
 													/>
 												</HStack>
@@ -5906,21 +7423,27 @@ const PostJob = () => {
 											<Icon
 												as={FileText}
 												size='lg'
-												style={{ color: Colors.light.tint }}
+												style={{
+													color: Colors.light.tint,
+												}}
 											/>
 											<VStack style={{ flex: 1 }}>
 												<Text
 													size='md'
 													style={{
 														fontWeight: "700",
-														color: isDark ? Colors.dark.tint : Colors.light.tint,
+														color: isDark
+															? Colors.dark.tint
+															: Colors.light.tint,
 													}}>
 													Vérifiez votre annonce
 												</Text>
 												<Text
 													size='sm'
 													style={{
-														color: isDark ? Colors.dark.tint : Colors.light.tint,
+														color: isDark
+															? Colors.dark.tint
+															: Colors.light.tint,
 													}}>
 													Relisez les informations
 													avant de publier
@@ -5933,10 +7456,14 @@ const PostJob = () => {
 									<Card
 										style={{
 											padding: 20,
-											backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+											backgroundColor: isDark
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
 											borderRadius: 12,
 											borderWidth: 1,
-											borderColor: isDark ? Colors.dark.border : Colors.light.border,
+											borderColor: isDark
+												? Colors.dark.border
+												: Colors.light.border,
 										}}>
 										<VStack space='md'>
 											<HStack
@@ -5947,20 +7474,27 @@ const PostJob = () => {
 												<Icon
 													as={Briefcase}
 													size='md'
-													style={{ color: Colors.light.tint }}
+													style={{
+														color: Colors.light
+															.tint,
+													}}
 												/>
 												<Text
 													size='md'
 													style={{
 														fontWeight: "700",
-														color: isDark ? Colors.dark.text : Colors.light.text,
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													Informations principales
 												</Text>
 											</HStack>
 											<Divider
 												style={{
-													backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+													backgroundColor: isDark
+														? Colors.dark.border
+														: Colors.light.border,
 												}}
 											/>
 											<VStack space='sm'>
@@ -5972,7 +7506,11 @@ const PostJob = () => {
 													<Text
 														size='sm'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 															flex: 1,
 														}}>
 														Titre
@@ -5981,7 +7519,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 															flex: 2,
 															textAlign: "right",
 														}}>
@@ -5996,7 +7538,11 @@ const PostJob = () => {
 													<Text
 														size='sm'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 															flex: 1,
 														}}>
 														Catégorie
@@ -6005,7 +7551,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 															flex: 2,
 															textAlign: "right",
 														}}>
@@ -6032,7 +7582,13 @@ const PostJob = () => {
 														<Text
 															size='sm'
 															style={{
-																color: isDark ? Colors.dark.muted : Colors.light.muted,
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 																flex: 1,
 															}}>
 															Type
@@ -6054,7 +7610,9 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: Colors.light.warning,
+																	color: Colors
+																		.light
+																		.warning,
 																	textAlign:
 																		"right",
 																}}>
@@ -6069,20 +7627,34 @@ const PostJob = () => {
 													<Divider
 														style={{
 															backgroundColor:
-																isDark ? Colors.dark.border : Colors.light.border,
+																isDark
+																	? Colors
+																			.dark
+																			.border
+																	: Colors
+																			.light
+																			.border,
 														}}
 													/>
 													<Text
 														size='xs'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 														}}>
 														Description
 													</Text>
 													<Text
 														size='sm'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 														}}>
 														{formData.description}
 													</Text>
@@ -6093,13 +7665,23 @@ const PostJob = () => {
 													<Divider
 														style={{
 															backgroundColor:
-																isDark ? Colors.dark.border : Colors.light.border,
+																isDark
+																	? Colors
+																			.dark
+																			.border
+																	: Colors
+																			.light
+																			.border,
 														}}
 													/>
 													<Text
 														size='xs'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 														}}>
 														Missions
 													</Text>
@@ -6119,7 +7701,9 @@ const PostJob = () => {
 																			height: 6,
 																			borderRadius: 3,
 																			backgroundColor:
-																				Colors.light.tint,
+																				Colors
+																					.light
+																					.tint,
 																			marginTop: 6,
 																		}}
 																	/>
@@ -6127,7 +7711,13 @@ const PostJob = () => {
 																		size='sm'
 																		style={{
 																			flex: 1,
-																			color: isDark ? Colors.dark.muted : Colors.light.muted,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.muted
+																				: Colors
+																						.light
+																						.muted,
 																		}}>
 																		{m}
 																	</Text>
@@ -6143,13 +7733,23 @@ const PostJob = () => {
 													<Divider
 														style={{
 															backgroundColor:
-																isDark ? Colors.dark.border : Colors.light.border,
+																isDark
+																	? Colors
+																			.dark
+																			.border
+																	: Colors
+																			.light
+																			.border,
 														}}
 													/>
 													<Text
 														size='xs'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 														}}>
 														Profil recherché
 													</Text>
@@ -6169,7 +7769,9 @@ const PostJob = () => {
 																			height: 6,
 																			borderRadius: 3,
 																			backgroundColor:
-																				Colors.light.success,
+																				Colors
+																					.light
+																					.success,
 																			marginTop: 6,
 																		}}
 																	/>
@@ -6177,7 +7779,13 @@ const PostJob = () => {
 																		size='sm'
 																		style={{
 																			flex: 1,
-																			color: isDark ? Colors.dark.muted : Colors.light.muted,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.muted
+																				: Colors
+																						.light
+																						.muted,
 																		}}>
 																		{p}
 																	</Text>
@@ -6194,10 +7802,14 @@ const PostJob = () => {
 									<Card
 										style={{
 											padding: 20,
-											backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+											backgroundColor: isDark
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
 											borderRadius: 12,
 											borderWidth: 1,
-											borderColor: isDark ? Colors.dark.border : Colors.light.border,
+											borderColor: isDark
+												? Colors.dark.border
+												: Colors.light.border,
 										}}>
 										<VStack space='md'>
 											<HStack
@@ -6208,20 +7820,27 @@ const PostJob = () => {
 												<Icon
 													as={MapPin}
 													size='md'
-													style={{ color: Colors.light.tint }}
+													style={{
+														color: Colors.light
+															.tint,
+													}}
 												/>
 												<Text
 													size='md'
 													style={{
 														fontWeight: "700",
-														color: isDark ? Colors.dark.text : Colors.light.text,
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													Localisation & Contrat
 												</Text>
 											</HStack>
 											<Divider
 												style={{
-													backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+													backgroundColor: isDark
+														? Colors.dark.border
+														: Colors.light.border,
 												}}
 											/>
 											<VStack space='sm'>
@@ -6233,7 +7852,11 @@ const PostJob = () => {
 													<Text
 														size='sm'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 															flex: 1,
 														}}>
 														Ville
@@ -6242,7 +7865,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 															flex: 2,
 															textAlign: "right",
 														}}>
@@ -6260,7 +7887,13 @@ const PostJob = () => {
 														<Text
 															size='sm'
 															style={{
-																color: isDark ? Colors.dark.muted : Colors.light.muted,
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 																flex: 1,
 															}}>
 															Département
@@ -6270,7 +7903,13 @@ const PostJob = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark ? Colors.dark.text : Colors.light.text,
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 																flex: 2,
 																textAlign:
 																	"right",
@@ -6289,7 +7928,11 @@ const PostJob = () => {
 													<Text
 														size='sm'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 															flex: 1,
 														}}>
 														Contrat
@@ -6298,7 +7941,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 															flex: 2,
 															textAlign: "right",
 														}}>
@@ -6314,7 +7961,11 @@ const PostJob = () => {
 													<Text
 														size='sm'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 															flex: 1,
 														}}>
 														Temps de travail
@@ -6323,7 +7974,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 															flex: 2,
 															textAlign: "right",
 														}}>
@@ -6339,7 +7994,11 @@ const PostJob = () => {
 													<Text
 														size='sm'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 															flex: 1,
 														}}>
 														Horaires
@@ -6348,7 +8007,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 															flex: 2,
 															textAlign: "right",
 														}}>
@@ -6370,7 +8033,13 @@ const PostJob = () => {
 														<Text
 															size='sm'
 															style={{
-																color: isDark ? Colors.dark.muted : Colors.light.muted,
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 																flex: 1,
 															}}>
 															Date de début
@@ -6380,7 +8049,13 @@ const PostJob = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark ? Colors.dark.text : Colors.light.text,
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 																flex: 2,
 																textAlign:
 																	"right",
@@ -6402,7 +8077,13 @@ const PostJob = () => {
 														<Text
 															size='sm'
 															style={{
-																color: isDark ? Colors.dark.muted : Colors.light.muted,
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 																flex: 1,
 															}}>
 															Date de fin
@@ -6412,7 +8093,13 @@ const PostJob = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark ? Colors.dark.text : Colors.light.text,
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 																flex: 2,
 																textAlign:
 																	"right",
@@ -6433,7 +8120,13 @@ const PostJob = () => {
 														<Text
 															size='sm'
 															style={{
-																color: isDark ? Colors.dark.muted : Colors.light.muted,
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 																flex: 1,
 															}}>
 															Horaire
@@ -6443,7 +8136,13 @@ const PostJob = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark ? Colors.dark.text : Colors.light.text,
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 																flex: 2,
 																textAlign:
 																	"right",
@@ -6472,13 +8171,25 @@ const PostJob = () => {
 															<Divider
 																style={{
 																	backgroundColor:
-																		isDark ? Colors.dark.border : Colors.light.border,
+																		isDark
+																			? Colors
+																					.dark
+																					.border
+																			: Colors
+																					.light
+																					.border,
 																}}
 															/>
 															<Text
 																size='xs'
 																style={{
-																	color: isDark ? Colors.dark.muted : Colors.light.muted,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
 																}}>
 																Vacations
 															</Text>
@@ -6498,7 +8209,13 @@ const PostJob = () => {
 																			<Text
 																				size='sm'
 																				style={{
-																					color: isDark ? Colors.dark.muted : Colors.light.muted,
+																					color: isDark
+																						? Colors
+																								.dark
+																								.muted
+																						: Colors
+																								.light
+																								.muted,
 																					flex: 0.4,
 																				}}>
 																				{`${i + 1}.`}
@@ -6508,7 +8225,13 @@ const PostJob = () => {
 																				style={{
 																					fontWeight:
 																						"600",
-																					color: isDark ? Colors.dark.text : Colors.light.text,
+																					color: isDark
+																						? Colors
+																								.dark
+																								.text
+																						: Colors
+																								.light
+																								.text,
 																					flex: 2.6,
 																					textAlign:
 																						"right",
@@ -6529,10 +8252,14 @@ const PostJob = () => {
 									<Card
 										style={{
 											padding: 20,
-											backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+											backgroundColor: isDark
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
 											borderRadius: 12,
 											borderWidth: 1,
-											borderColor: isDark ? Colors.dark.border : Colors.light.border,
+											borderColor: isDark
+												? Colors.dark.border
+												: Colors.light.border,
 										}}>
 										<VStack space='md'>
 											<HStack
@@ -6543,20 +8270,27 @@ const PostJob = () => {
 												<Icon
 													as={BadgeEuro}
 													size='md'
-													style={{ color: Colors.light.tint }}
+													style={{
+														color: Colors.light
+															.tint,
+													}}
 												/>
 												<Text
 													size='md'
 													style={{
 														fontWeight: "700",
-														color: isDark ? Colors.dark.text : Colors.light.text,
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													Rémunération
 												</Text>
 											</HStack>
 											<Divider
 												style={{
-													backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+													backgroundColor: isDark
+														? Colors.dark.border
+														: Colors.light.border,
 												}}
 											/>
 											<VStack space='sm'>
@@ -6568,7 +8302,11 @@ const PostJob = () => {
 													<Text
 														size='sm'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 															flex: 1,
 														}}>
 														Salaire
@@ -6577,7 +8315,11 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 															flex: 2,
 															textAlign: "right",
 														}}>
@@ -6594,7 +8336,13 @@ const PostJob = () => {
 														<Text
 															size='sm'
 															style={{
-																color: isDark ? Colors.dark.muted : Colors.light.muted,
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 																flex: 1,
 															}}>
 															Heures
@@ -6604,7 +8352,13 @@ const PostJob = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark ? Colors.dark.text : Colors.light.text,
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 																flex: 2,
 																textAlign:
 																	"right",
@@ -6632,10 +8386,15 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -6647,21 +8406,29 @@ const PostJob = () => {
 														as={GraduationCap}
 														size='md'
 														style={{
-															color: Colors.light.tint,
+															color: Colors.light
+																.tint,
 														}}
 													/>
 													<Text
 														size='md'
 														style={{
 															fontWeight: "700",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														Compétences & Avantages
 													</Text>
 												</HStack>
 												<Divider
 													style={{
-														backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+														backgroundColor: isDark
+															? Colors.dark.border
+															: Colors.light
+																	.border,
 													}}
 												/>
 												<VStack space='sm'>
@@ -6677,7 +8444,13 @@ const PostJob = () => {
 															<Text
 																size='sm'
 																style={{
-																	color: isDark ? Colors.dark.muted : Colors.light.muted,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
 																	flex: 1,
 																}}>
 																Diplômes requis
@@ -6687,7 +8460,13 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																	flex: 2,
 																	textAlign:
 																		"right",
@@ -6711,7 +8490,13 @@ const PostJob = () => {
 															<Text
 																size='sm'
 																style={{
-																	color: isDark ? Colors.dark.muted : Colors.light.muted,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
 																	flex: 1,
 																}}>
 																Certifications
@@ -6721,7 +8506,13 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																	flex: 2,
 																	textAlign:
 																		"right",
@@ -6744,7 +8535,13 @@ const PostJob = () => {
 															<Text
 																size='sm'
 																style={{
-																	color: isDark ? Colors.dark.muted : Colors.light.muted,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
 																	flex: 1,
 																}}>
 																Permis
@@ -6754,7 +8551,13 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																	flex: 2,
 																	textAlign:
 																		"right",
@@ -6777,7 +8580,13 @@ const PostJob = () => {
 															<Text
 																size='sm'
 																style={{
-																	color: isDark ? Colors.dark.muted : Colors.light.muted,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
 																	flex: 1,
 																}}>
 																Langues
@@ -6787,7 +8596,13 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																	flex: 2,
 																	textAlign:
 																		"right",
@@ -6810,7 +8625,13 @@ const PostJob = () => {
 															<Text
 																size='sm'
 																style={{
-																	color: isDark ? Colors.dark.muted : Colors.light.muted,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
 																	flex: 1,
 																}}>
 																Remboursements
@@ -6820,7 +8641,13 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																	flex: 2,
 																	textAlign:
 																		"right",
@@ -6841,7 +8668,13 @@ const PostJob = () => {
 															<Text
 																size='sm'
 																style={{
-																	color: isDark ? Colors.dark.muted : Colors.light.muted,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
 																	flex: 1,
 																}}>
 																Avantages
@@ -6851,7 +8684,13 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																	flex: 2,
 																	textAlign:
 																		"right",
@@ -6878,14 +8717,19 @@ const PostJob = () => {
 										<Card
 											style={{
 												padding: 20,
-												backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderRadius: 12,
 												borderWidth: 1,
 												borderColor: isSponsored
 													? isDark
 														? "#92400e"
 														: "#fde68a"
-													: isDark ? Colors.dark.border : Colors.light.border,
+													: isDark
+														? Colors.dark.border
+														: Colors.light.border,
 											}}>
 											<VStack space='md'>
 												<HStack
@@ -6918,7 +8762,13 @@ const PostJob = () => {
 															<Sparkles
 																size={16}
 																color={
-																	isDark ? Colors.dark.warning : Colors.light.warning
+																	isDark
+																		? Colors
+																				.dark
+																				.warning
+																		: Colors
+																				.light
+																				.warning
 																}
 															/>
 														</Box>
@@ -6929,7 +8779,13 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"700",
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}>
 																Sponsoriser
 																l'annonce
@@ -6937,7 +8793,13 @@ const PostJob = () => {
 															<Text
 																size='xs'
 																style={{
-																	color: isDark ? Colors.dark.muted : Colors.light.muted,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
 																}}>
 																Votre annonce
 																apparaîtra en
@@ -6972,8 +8834,13 @@ const PostJob = () => {
 															}
 														}}
 														trackColor={{
-															false: isDark ? Colors.dark.border : Colors.light.border,
-															true: Colors.light.warning,
+															false: isDark
+																? Colors.dark
+																		.border
+																: Colors.light
+																		.border,
+															true: Colors.light
+																.warning,
 														}}
 														thumbColor='#ffffff'
 													/>
@@ -6984,13 +8851,25 @@ const PostJob = () => {
 														<Divider
 															style={{
 																backgroundColor:
-																	isDark ? Colors.dark.border : Colors.light.border,
+																	isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 															}}
 														/>
 														<Text
 															size='sm'
 															style={{
-																color: isDark ? Colors.dark.muted : Colors.light.muted,
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 																fontWeight:
 																	"600",
 															}}>
@@ -7039,14 +8918,28 @@ const PostJob = () => {
 																			borderWidth: 1.5,
 																			borderColor:
 																				active
-																					? Colors.light.warning
-																					: isDark ? Colors.dark.border : Colors.light.border,
+																					? Colors
+																							.light
+																							.warning
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
 																			backgroundColor:
 																				active
 																					? isDark
 																						? "#451a03"
 																						: "#fefce8"
-																					: isDark ? Colors.dark.background : Colors.light.background,
+																					: isDark
+																						? Colors
+																								.dark
+																								.background
+																						: Colors
+																								.light
+																								.background,
 																		}}>
 																		<Text
 																			size='sm'
@@ -7056,8 +8949,20 @@ const PostJob = () => {
 																						? "700"
 																						: "500",
 																				color: active
-																					? isDark ? Colors.dark.warning : Colors.light.warning
-																					: isDark ? Colors.dark.muted : Colors.light.muted,
+																					? isDark
+																						? Colors
+																								.dark
+																								.warning
+																						: Colors
+																								.light
+																								.warning
+																					: isDark
+																						? Colors
+																								.dark
+																								.muted
+																						: Colors
+																								.light
+																								.muted,
 																			}}>
 																			{
 																				opt.label
@@ -7069,8 +8974,20 @@ const PostJob = () => {
 																				fontWeight:
 																					"700",
 																				color: active
-																					? isDark ? Colors.dark.warning : Colors.light.warning
-																					: isDark ? Colors.dark.muted : Colors.light.muted,
+																					? isDark
+																						? Colors
+																								.dark
+																								.warning
+																						: Colors
+																								.light
+																								.warning
+																					: isDark
+																						? Colors
+																								.dark
+																								.muted
+																						: Colors
+																								.light
+																								.muted,
 																				marginTop: 2,
 																			}}>
 																			{
@@ -7101,9 +9018,13 @@ const PostJob = () => {
 						paddingHorizontal: 20,
 						paddingVertical: 16,
 						paddingBottom: 40,
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 						borderTopWidth: 1,
-						borderTopColor: isDark ? Colors.dark.border : Colors.light.border,
+						borderTopColor: isDark
+							? Colors.dark.border
+							: Colors.light.border,
 					}}>
 					<HStack space='md'>
 						{currentStep > 1 && (
@@ -7113,17 +9034,23 @@ const PostJob = () => {
 								onPress={goToPreviousStep}
 								style={{
 									flex: 1,
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 								}}>
 								<ButtonIcon
 									as={ChevronLeft}
 									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}
 								/>
 								<ButtonText
 									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Précédent
 								</ButtonText>
@@ -7144,20 +9071,30 @@ const PostJob = () => {
 								<>
 									<ButtonIcon
 										as={Save}
-										style={{ color: Colors.light.cardBackground }}
+										style={{
+											color: Colors.light.cardBackground,
+										}}
 									/>
-									<ButtonText style={{ color: Colors.light.cardBackground }}>
+									<ButtonText
+										style={{
+											color: Colors.light.cardBackground,
+										}}>
 										{loading ? "Publication..." : "Publier"}
 									</ButtonText>
 								</>
 							) : (
 								<>
-									<ButtonText style={{ color: Colors.light.cardBackground }}>
+									<ButtonText
+										style={{
+											color: Colors.light.cardBackground,
+										}}>
 										Suivant
 									</ButtonText>
 									<ButtonIcon
 										as={ChevronRight}
-										style={{ color: Colors.light.cardBackground }}
+										style={{
+											color: Colors.light.cardBackground,
+										}}
 									/>
 								</>
 							)}
@@ -7172,7 +9109,9 @@ const PostJob = () => {
 					<AlertDialogBackdrop />
 					<AlertDialogContent
 						style={{
-							backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground,
 							borderRadius: 16,
 							margin: 20,
 						}}>
@@ -7201,7 +9140,9 @@ const PostJob = () => {
 								<Heading
 									size='md'
 									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 										textAlign: "center",
 									}}>
 									Publier l'annonce ?
@@ -7212,7 +9153,9 @@ const PostJob = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									textAlign: "center",
 									lineHeight: 20,
 								}}>
@@ -7231,12 +9174,16 @@ const PostJob = () => {
 									size='lg'
 									style={{
 										flex: 1,
-										borderColor: isDark ? Colors.dark.border : Colors.light.border,
+										borderColor: isDark
+											? Colors.dark.border
+											: Colors.light.border,
 									}}
 									onPress={() => setShowConfirmModal(false)}>
 									<ButtonText
 										style={{
-											color: isDark ? Colors.dark.text : Colors.light.muted,
+											color: isDark
+												? Colors.dark.text
+												: Colors.light.muted,
 										}}>
 										Annuler
 									</ButtonText>
@@ -7254,9 +9201,14 @@ const PostJob = () => {
 									}}>
 									<ButtonIcon
 										as={Save}
-										style={{ color: Colors.light.cardBackground }}
+										style={{
+											color: Colors.light.cardBackground,
+										}}
 									/>
-									<ButtonText style={{ color: Colors.light.cardBackground }}>
+									<ButtonText
+										style={{
+											color: Colors.light.cardBackground,
+										}}>
 										{loading ? "Publication..." : "Publier"}
 									</ButtonText>
 								</Button>
@@ -7273,7 +9225,9 @@ const PostJob = () => {
 					<ActionsheetContent
 						style={{
 							paddingBottom: 32,
-							backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground,
 						}}>
 						<ActionsheetDragIndicatorWrapper>
 							<ActionsheetDragIndicator />
@@ -7289,7 +9243,9 @@ const PostJob = () => {
 								style={{
 									fontWeight: "600",
 									fontSize: 16,
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Date de début
 							</Text>
@@ -7300,7 +9256,11 @@ const PostJob = () => {
 								onChange={handleStartDateChange}
 								minimumDate={new Date()}
 								style={{ width: "100%" }}
-								textColor={isDark ? Colors.dark.text : Colors.light.text}
+								textColor={
+									isDark
+										? Colors.dark.text
+										: Colors.light.text
+								}
 							/>
 							<Button
 								size='md'
@@ -7310,7 +9270,10 @@ const PostJob = () => {
 									width: "100%",
 									marginTop: 8,
 								}}>
-								<ButtonText style={{ color: Colors.light.cardBackground }}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
 									Confirmer
 								</ButtonText>
 							</Button>
@@ -7326,7 +9289,9 @@ const PostJob = () => {
 					<ActionsheetContent
 						style={{
 							paddingBottom: 32,
-							backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground,
 						}}>
 						<ActionsheetDragIndicatorWrapper>
 							<ActionsheetDragIndicator />
@@ -7342,7 +9307,9 @@ const PostJob = () => {
 								style={{
 									fontWeight: "600",
 									fontSize: 16,
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Date de fin
 							</Text>
@@ -7357,7 +9324,11 @@ const PostJob = () => {
 								onChange={handleEndDateChange}
 								minimumDate={formData.start_date || new Date()}
 								style={{ width: "100%" }}
-								textColor={isDark ? Colors.dark.text : Colors.light.text}
+								textColor={
+									isDark
+										? Colors.dark.text
+										: Colors.light.text
+								}
 							/>
 							<Button
 								size='md'
@@ -7367,7 +9338,10 @@ const PostJob = () => {
 									width: "100%",
 									marginTop: 8,
 								}}>
-								<ButtonText style={{ color: Colors.light.cardBackground }}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
 									Confirmer
 								</ButtonText>
 							</Button>
@@ -7382,7 +9356,9 @@ const PostJob = () => {
 					<ActionsheetBackdrop />
 					<ActionsheetContent
 						style={{
-							backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground,
 							maxHeight: "80%",
 							paddingBottom: 32,
 						}}>
@@ -7396,7 +9372,9 @@ const PostJob = () => {
 								style={{
 									fontWeight: "700",
 									fontSize: 17,
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 									paddingHorizontal: 4,
 									marginBottom: 8,
 								}}>
@@ -7447,7 +9425,11 @@ const PostJob = () => {
 															letterSpacing: 0.8,
 															textTransform:
 																"uppercase",
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 															paddingHorizontal: 4,
 														}}>
 														{CATEGORY_GROUP_LABELS[
@@ -7478,14 +9460,30 @@ const PostJob = () => {
 																			borderWidth: 2,
 																			borderColor:
 																				isSelected
-																					? Colors.light.tint
-																					: isDark ? Colors.dark.border : Colors.light.border,
+																					? Colors
+																							.light
+																							.tint
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
 																			backgroundColor:
 																				isSelected
 																					? isDark
-																						? Colors.dark.tint
+																						? Colors
+																								.dark
+																								.tint
 																						: "#dbeafe"
-																					: isDark ? Colors.dark.cardBackground : Colors.light.background,
+																					: isDark
+																						? Colors
+																								.dark
+																								.cardBackground
+																						: Colors
+																								.light
+																								.background,
 																		}}>
 																		<HStack
 																			space='sm'
@@ -7500,8 +9498,16 @@ const PostJob = () => {
 																					borderRadius: 6,
 																					backgroundColor:
 																						isSelected
-																							? Colors.light.tint
-																							: isDark ? Colors.dark.border : Colors.light.border,
+																							? Colors
+																									.light
+																									.tint
+																							: isDark
+																								? Colors
+																										.dark
+																										.border
+																								: Colors
+																										.light
+																										.border,
 																				}}>
 																				<Text
 																					style={{
@@ -7509,8 +9515,16 @@ const PostJob = () => {
 																						fontWeight:
 																							"800",
 																						color: isSelected
-																							? Colors.light.cardBackground
-																							: isDark ? Colors.dark.muted : Colors.light.muted,
+																							? Colors
+																									.light
+																									.cardBackground
+																							: isDark
+																								? Colors
+																										.dark
+																										.muted
+																								: Colors
+																										.light
+																										.muted,
 																					}}>
 																					{
 																						cat.acronym
@@ -7522,8 +9536,16 @@ const PostJob = () => {
 																					flex: 1,
 																					fontSize: 14,
 																					color: isSelected
-																						? Colors.light.tint
-																						: isDark ? Colors.dark.text : Colors.light.text,
+																						? Colors
+																								.light
+																								.tint
+																						: isDark
+																							? Colors
+																									.dark
+																									.text
+																							: Colors
+																									.light
+																									.text,
 																					fontWeight:
 																						isSelected
 																							? "600"
@@ -7556,7 +9578,9 @@ const PostJob = () => {
 					<ActionsheetBackdrop />
 					<ActionsheetContent
 						style={{
-							backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground,
 							maxHeight: "80%",
 							paddingBottom: 32,
 						}}>
@@ -7577,7 +9601,9 @@ const PostJob = () => {
 									style={{
 										fontWeight: "700",
 										fontSize: 17,
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Permis de conduire
 								</Text>
@@ -7636,7 +9662,11 @@ const PostJob = () => {
 															letterSpacing: 0.8,
 															textTransform:
 																"uppercase",
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 															paddingHorizontal: 4,
 														}}>
 														{DL_GROUP_LABELS[
@@ -7681,14 +9711,30 @@ const PostJob = () => {
 																			borderWidth: 2,
 																			borderColor:
 																				isSel
-																					? Colors.light.tint
-																					: isDark ? Colors.dark.border : Colors.light.border,
+																					? Colors
+																							.light
+																							.tint
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
 																			backgroundColor:
 																				isSel
 																					? isDark
-																						? Colors.dark.tint
+																						? Colors
+																								.dark
+																								.tint
 																						: "#dbeafe"
-																					: isDark ? Colors.dark.cardBackground : Colors.light.background,
+																					: isDark
+																						? Colors
+																								.dark
+																								.cardBackground
+																						: Colors
+																								.light
+																								.background,
 																		}}>
 																		<HStack
 																			space='sm'
@@ -7703,8 +9749,16 @@ const PostJob = () => {
 																					borderRadius: 6,
 																					backgroundColor:
 																						isSel
-																							? Colors.light.tint
-																							: isDark ? Colors.dark.border : Colors.light.border,
+																							? Colors
+																									.light
+																									.tint
+																							: isDark
+																								? Colors
+																										.dark
+																										.border
+																								: Colors
+																										.light
+																										.border,
 																				}}>
 																				<Text
 																					style={{
@@ -7712,8 +9766,16 @@ const PostJob = () => {
 																						fontWeight:
 																							"800",
 																						color: isSel
-																							? Colors.light.cardBackground
-																							: isDark ? Colors.dark.muted : Colors.light.muted,
+																							? Colors
+																									.light
+																									.cardBackground
+																							: isDark
+																								? Colors
+																										.dark
+																										.muted
+																								: Colors
+																										.light
+																										.muted,
 																					}}>
 																					{
 																						dl.acronym
@@ -7725,8 +9787,16 @@ const PostJob = () => {
 																					flex: 1,
 																					fontSize: 14,
 																					color: isSel
-																						? Colors.light.tint
-																						: isDark ? Colors.dark.text : Colors.light.text,
+																						? Colors
+																								.light
+																								.tint
+																						: isDark
+																							? Colors
+																									.dark
+																									.text
+																							: Colors
+																									.light
+																									.text,
 																					fontWeight:
 																						isSel
 																							? "600"
@@ -7756,7 +9826,10 @@ const PostJob = () => {
 								onPress={() =>
 									setShowDrivingLicenseSheet(false)
 								}>
-								<ButtonText style={{ color: Colors.light.cardBackground }}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
 									Confirmer
 								</ButtonText>
 							</Button>
@@ -7771,7 +9844,9 @@ const PostJob = () => {
 					<ActionsheetBackdrop />
 					<ActionsheetContent
 						style={{
-							backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground,
 							maxHeight: "80%",
 							paddingBottom: 32,
 						}}>
@@ -7792,7 +9867,9 @@ const PostJob = () => {
 									style={{
 										fontWeight: "700",
 										fontSize: 17,
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Diplômes requis
 								</Text>
@@ -7854,7 +9931,11 @@ const PostJob = () => {
 															letterSpacing: 0.8,
 															textTransform:
 																"uppercase",
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 															paddingHorizontal: 4,
 														}}>
 														{DIPLOMA_GROUP_LABELS[
@@ -7899,14 +9980,30 @@ const PostJob = () => {
 																			borderWidth: 2,
 																			borderColor:
 																				isSel
-																					? Colors.light.tint
-																					: isDark ? Colors.dark.border : Colors.light.border,
+																					? Colors
+																							.light
+																							.tint
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
 																			backgroundColor:
 																				isSel
 																					? isDark
-																						? Colors.dark.tint
+																						? Colors
+																								.dark
+																								.tint
 																						: "#dbeafe"
-																					: isDark ? Colors.dark.cardBackground : Colors.light.background,
+																					: isDark
+																						? Colors
+																								.dark
+																								.cardBackground
+																						: Colors
+																								.light
+																								.background,
 																		}}>
 																		<HStack
 																			space='sm'
@@ -7921,8 +10018,16 @@ const PostJob = () => {
 																					borderRadius: 6,
 																					backgroundColor:
 																						isSel
-																							? Colors.light.tint
-																							: isDark ? Colors.dark.border : Colors.light.border,
+																							? Colors
+																									.light
+																									.tint
+																							: isDark
+																								? Colors
+																										.dark
+																										.border
+																								: Colors
+																										.light
+																										.border,
 																				}}>
 																				<Text
 																					style={{
@@ -7930,8 +10035,16 @@ const PostJob = () => {
 																						fontWeight:
 																							"800",
 																						color: isSel
-																							? Colors.light.cardBackground
-																							: isDark ? Colors.dark.muted : Colors.light.muted,
+																							? Colors
+																									.light
+																									.cardBackground
+																							: isDark
+																								? Colors
+																										.dark
+																										.muted
+																								: Colors
+																										.light
+																										.muted,
 																					}}>
 																					{
 																						d.acronym
@@ -7943,8 +10056,16 @@ const PostJob = () => {
 																					flex: 1,
 																					fontSize: 14,
 																					color: isSel
-																						? Colors.light.tint
-																						: isDark ? Colors.dark.text : Colors.light.text,
+																						? Colors
+																								.light
+																								.tint
+																						: isDark
+																							? Colors
+																									.dark
+																									.text
+																							: Colors
+																									.light
+																									.text,
 																					fontWeight:
 																						isSel
 																							? "600"
@@ -7972,7 +10093,10 @@ const PostJob = () => {
 									marginTop: 8,
 								}}
 								onPress={() => setShowDiplomaSheet(false)}>
-								<ButtonText style={{ color: Colors.light.cardBackground }}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
 									Confirmer
 								</ButtonText>
 							</Button>
@@ -7987,7 +10111,9 @@ const PostJob = () => {
 					<ActionsheetBackdrop />
 					<ActionsheetContent
 						style={{
-							backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground,
 							maxHeight: "80%",
 							paddingBottom: 32,
 						}}>
@@ -8008,7 +10134,9 @@ const PostJob = () => {
 									style={{
 										fontWeight: "700",
 										fontSize: 17,
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Certifications requises
 								</Text>
@@ -8073,7 +10201,11 @@ const PostJob = () => {
 															letterSpacing: 0.8,
 															textTransform:
 																"uppercase",
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 															paddingHorizontal: 4,
 														}}>
 														{CERTIF_GROUP_LABELS[
@@ -8118,14 +10250,30 @@ const PostJob = () => {
 																			borderWidth: 2,
 																			borderColor:
 																				isSel
-																					? Colors.light.tint
-																					: isDark ? Colors.dark.border : Colors.light.border,
+																					? Colors
+																							.light
+																							.tint
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
 																			backgroundColor:
 																				isSel
 																					? isDark
-																						? Colors.dark.tint
+																						? Colors
+																								.dark
+																								.tint
 																						: "#dbeafe"
-																					: isDark ? Colors.dark.cardBackground : Colors.light.background,
+																					: isDark
+																						? Colors
+																								.dark
+																								.cardBackground
+																						: Colors
+																								.light
+																								.background,
 																		}}>
 																		<HStack
 																			space='sm'
@@ -8140,8 +10288,16 @@ const PostJob = () => {
 																					borderRadius: 6,
 																					backgroundColor:
 																						isSel
-																							? Colors.light.tint
-																							: isDark ? Colors.dark.border : Colors.light.border,
+																							? Colors
+																									.light
+																									.tint
+																							: isDark
+																								? Colors
+																										.dark
+																										.border
+																								: Colors
+																										.light
+																										.border,
 																				}}>
 																				<Text
 																					style={{
@@ -8149,8 +10305,16 @@ const PostJob = () => {
 																						fontWeight:
 																							"800",
 																						color: isSel
-																							? Colors.light.cardBackground
-																							: isDark ? Colors.dark.muted : Colors.light.muted,
+																							? Colors
+																									.light
+																									.cardBackground
+																							: isDark
+																								? Colors
+																										.dark
+																										.muted
+																								: Colors
+																										.light
+																										.muted,
 																					}}>
 																					{
 																						c.acronym
@@ -8162,8 +10326,16 @@ const PostJob = () => {
 																					flex: 1,
 																					fontSize: 14,
 																					color: isSel
-																						? Colors.light.tint
-																						: isDark ? Colors.dark.text : Colors.light.text,
+																						? Colors
+																								.light
+																								.tint
+																						: isDark
+																							? Colors
+																									.dark
+																									.text
+																							: Colors
+																									.light
+																									.text,
 																					fontWeight:
 																						isSel
 																							? "600"
@@ -8193,7 +10365,10 @@ const PostJob = () => {
 								onPress={() =>
 									setShowCertificationSheet(false)
 								}>
-								<ButtonText style={{ color: Colors.light.cardBackground }}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
 									Confirmer
 								</ButtonText>
 							</Button>
@@ -8209,7 +10384,9 @@ const PostJob = () => {
 					<ActionsheetContent
 						style={{
 							paddingBottom: 32,
-							backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground,
 						}}>
 						<ActionsheetDragIndicatorWrapper>
 							<ActionsheetDragIndicator />
@@ -8225,7 +10402,9 @@ const PostJob = () => {
 								style={{
 									fontWeight: "600",
 									fontSize: 16,
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Date de la vacation
 							</Text>
@@ -8236,7 +10415,11 @@ const PostJob = () => {
 								onChange={handleVacationDateChange}
 								minimumDate={new Date()}
 								style={{ width: "100%" }}
-								textColor={isDark ? Colors.dark.text : Colors.light.text}
+								textColor={
+									isDark
+										? Colors.dark.text
+										: Colors.light.text
+								}
 							/>
 							<Button
 								size='md'
@@ -8246,7 +10429,10 @@ const PostJob = () => {
 									width: "100%",
 									marginTop: 8,
 								}}>
-								<ButtonText style={{ color: Colors.light.cardBackground }}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
 									Confirmer
 								</ButtonText>
 							</Button>

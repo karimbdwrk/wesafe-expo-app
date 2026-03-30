@@ -19,12 +19,8 @@ import { Icon } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
 import { Divider } from "@/components/ui/divider";
 import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
-import {
-	useToast,
-	Toast,
-	ToastTitle,
-	ToastDescription,
-} from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import {
 	CheckCircle,
 	Clock,
@@ -39,6 +35,7 @@ import {
 import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const DOCUMENTS_BUCKET = "ssiap-diplomas";
@@ -241,17 +238,13 @@ export default function SSIAPDiploma({ navigation }) {
 					placement: "top",
 					duration: 4000,
 					render: ({ id }) => (
-						<Toast nativeID={id} action='success' variant='accent'>
-							<Icon as={CheckCircle} />
-							<VStack>
-								<ToastTitle>
-									Diplôme SSIAP 1 enregistré
-								</ToastTitle>
-								<ToastDescription>
-									Votre diplôme a été enregistré avec succès
-								</ToastDescription>
-							</VStack>
-						</Toast>
+						<CustomToast
+							id={id}
+							icon={CheckCircle}
+							color={isDark ? Colors.dark.success : Colors.light.success}
+							title="Diplôme SSIAP 1 enregistré"
+							description="Votre diplôme a été enregistré avec succès"
+						/>
 					),
 				});
 			}
@@ -261,15 +254,13 @@ export default function SSIAPDiploma({ navigation }) {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon as={AlertCircle} />
-						<VStack>
-							<ToastTitle>Erreur</ToastTitle>
-							<ToastDescription>
-								Une erreur est survenue lors de l'enregistrement
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={isDark ? Colors.dark.danger : Colors.light.danger}
+						title="Erreur"
+						description="Une erreur est survenue lors de l'enregistrement"
+					/>
 				),
 			});
 		}
@@ -293,17 +284,13 @@ export default function SSIAPDiploma({ navigation }) {
 					placement: "top",
 					duration: 4000,
 					render: ({ id }) => (
-						<Toast nativeID={id} action='success' variant='accent'>
-							<Icon as={CheckCircle} />
-							<VStack>
-								<ToastTitle>
-									Diplôme SSIAP 2 enregistré
-								</ToastTitle>
-								<ToastDescription>
-									Votre diplôme a été enregistré avec succès
-								</ToastDescription>
-							</VStack>
-						</Toast>
+						<CustomToast
+							id={id}
+							icon={CheckCircle}
+							color={isDark ? Colors.dark.success : Colors.light.success}
+							title="Diplôme SSIAP 2 enregistré"
+							description="Votre diplôme a été enregistré avec succès"
+						/>
 					),
 				});
 			}
@@ -313,15 +300,13 @@ export default function SSIAPDiploma({ navigation }) {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon as={AlertCircle} />
-						<VStack>
-							<ToastTitle>Erreur</ToastTitle>
-							<ToastDescription>
-								Une erreur est survenue lors de l'enregistrement
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={isDark ? Colors.dark.danger : Colors.light.danger}
+						title="Erreur"
+						description="Une erreur est survenue lors de l'enregistrement"
+					/>
 				),
 			});
 		}
@@ -345,17 +330,13 @@ export default function SSIAPDiploma({ navigation }) {
 					placement: "top",
 					duration: 4000,
 					render: ({ id }) => (
-						<Toast nativeID={id} action='success' variant='accent'>
-							<Icon as={CheckCircle} />
-							<VStack>
-								<ToastTitle>
-									Diplôme SSIAP 3 enregistré
-								</ToastTitle>
-								<ToastDescription>
-									Votre diplôme a été enregistré avec succès
-								</ToastDescription>
-							</VStack>
-						</Toast>
+						<CustomToast
+							id={id}
+							icon={CheckCircle}
+							color={isDark ? Colors.dark.success : Colors.light.success}
+							title="Diplôme SSIAP 3 enregistré"
+							description="Votre diplôme a été enregistré avec succès"
+						/>
 					),
 				});
 			}
@@ -365,15 +346,13 @@ export default function SSIAPDiploma({ navigation }) {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon as={AlertCircle} />
-						<VStack>
-							<ToastTitle>Erreur</ToastTitle>
-							<ToastDescription>
-								Une erreur est survenue lors de l'enregistrement
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={isDark ? Colors.dark.danger : Colors.light.danger}
+						title="Erreur"
+						description="Une erreur est survenue lors de l'enregistrement"
+					/>
 				),
 			});
 		}

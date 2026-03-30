@@ -18,12 +18,8 @@ import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { Divider } from "@/components/ui/divider";
 import { Input, InputField, InputIcon } from "@/components/ui/input";
-import {
-	useToast,
-	Toast,
-	ToastTitle,
-	ToastDescription,
-} from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import {
 	CheckCircle,
 	Clock,
@@ -51,6 +47,7 @@ import { useDataContext } from "@/context/DataContext";
 import { SUBMIT_ID_DOCUMENT } from "@/utils/activityEvents";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const DOCUMENTS_BUCKET = "identity-documents";
@@ -339,24 +336,15 @@ export default function IDDocumentVerification({ navigation }) {
 				placement: "top",
 				duration: 5000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='success' variant='accent'>
-						<Icon
-							as={CheckCircle}
-							size='lg'
-							className='mr-2'
-							style={{ color: "#10b981" }}
-						/>
-						<VStack space='xs' style={{ flex: 1 }}>
-							<ToastTitle>
-								Documents soumis avec succès !
-							</ToastTitle>
-							<ToastDescription>
-								Vos documents sont en cours de vérification.
-								Vous recevrez une notification dès que la
-								vérification sera terminée.
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={CheckCircle}
+						color={
+							isDark ? Colors.dark.success : Colors.light.success
+						}
+						title='Documents soumis avec succès !'
+						description='Vos documents sont en cours de vérification.'
+					/>
 				),
 			});
 		} catch (error) {
@@ -365,23 +353,15 @@ export default function IDDocumentVerification({ navigation }) {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon
-							as={AlertCircle}
-							size='lg'
-							className='mr-2'
-							style={{ color: "#ef4444" }}
-						/>
-						<VStack space='xs' style={{ flex: 1 }}>
-							<ToastTitle>
-								Erreur lors de la soumission
-							</ToastTitle>
-							<ToastDescription>
-								Une erreur est survenue lors de l'envoi de vos
-								documents. Veuillez réessayer.
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title='Erreur lors de la soumission'
+						description="Une erreur est survenue lors de l'envoi de vos documents. Veuillez réessayer."
+					/>
 				),
 			});
 		} finally {
@@ -828,7 +808,9 @@ export default function IDDocumentVerification({ navigation }) {
 								<Card
 									style={{
 										padding: 20,
-										backgroundColor: isDark ? "#374151" : "#ffffff",
+										backgroundColor: isDark
+											? "#374151"
+											: "#ffffff",
 										borderRadius: 12,
 										shadowColor: "#000",
 										shadowOffset: { width: 0, height: 2 },
@@ -901,7 +883,9 @@ export default function IDDocumentVerification({ navigation }) {
 												</Text>
 												<TouchableOpacity
 													onPress={() => {
-														setSelectedNationality(null);
+														setSelectedNationality(
+															null,
+														);
 														setNationalityQuery("");
 													}}>
 													<Icon
@@ -1001,7 +985,9 @@ export default function IDDocumentVerification({ navigation }) {
 																		fontSize: 20,
 																		width: 32,
 																	}}>
-																	{country.flag}
+																	{
+																		country.flag
+																	}
 																</Text>
 																<Text
 																	style={{
@@ -1010,7 +996,9 @@ export default function IDDocumentVerification({ navigation }) {
 																			? "#f3f4f6"
 																			: "#111827",
 																	}}>
-																	{country.name}
+																	{
+																		country.name
+																	}
 																</Text>
 																<Text
 																	size='xs'
@@ -1021,7 +1009,9 @@ export default function IDDocumentVerification({ navigation }) {
 																		fontWeight:
 																			"600",
 																	}}>
-																	{country.code}
+																	{
+																		country.code
+																	}
 																</Text>
 															</HStack>
 														</TouchableOpacity>
@@ -1031,7 +1021,8 @@ export default function IDDocumentVerification({ navigation }) {
 										)}
 
 										{nationalityQuery.length >= 3 &&
-											nationalitySuggestions.length === 0 &&
+											nationalitySuggestions.length ===
+												0 &&
 											!loadingNationalities &&
 											!selectedNationality && (
 												<Text
@@ -1048,7 +1039,6 @@ export default function IDDocumentVerification({ navigation }) {
 									</VStack>
 								</Card>
 							)}
-
 
 							{/* Upload Blocks */}
 							<VStack space='md'>

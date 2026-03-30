@@ -22,12 +22,8 @@ import { Divider } from "@/components/ui/divider";
 import { Input, InputField } from "@/components/ui/input";
 import { Textarea, TextareaInput } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import {
-	useToast,
-	Toast,
-	ToastTitle,
-	ToastDescription,
-} from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import { Badge, BadgeText } from "@/components/ui/badge";
 import {
 	AlertDialog,
@@ -65,6 +61,7 @@ import { regions } from "@/constants/regions";
 import { departements } from "@/constants/departements";
 
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 
@@ -392,18 +389,12 @@ const ContractGenerationScreen = () => {
 		toast.show({
 			placement: "top",
 			render: ({ id }) => (
-				<Toast nativeID={id} action='muted' variant='outline'>
-					<HStack space='md' style={{ alignItems: "center" }}>
-						<Icon as={AlertCircle} className='text-red-500' />
-						<VStack>
-							<ToastTitle>{message}</ToastTitle>
-							{/* <ToastDescription>
-                                Veuillez remplir le nom, le SIRET {"\n"}et
-                                l'email de l'entreprise.
-                            </ToastDescription> */}
-						</VStack>
-					</HStack>
-				</Toast>
+				<CustomToast
+					id={id}
+					icon={AlertCircle}
+					color={isDark ? Colors.dark.danger : Colors.light.danger}
+					title={message}
+				/>
 			),
 		});
 	};
@@ -618,18 +609,12 @@ const ContractGenerationScreen = () => {
 			toast.show({
 				placement: "top",
 				render: ({ id }) => (
-					<Toast nativeID={id} action='muted' variant='outline'>
-						<HStack space='md' style={{ alignItems: "center" }}>
-							<Icon as={CheckCircle} className='text-green-500' />
-							<VStack>
-								<ToastTitle>
-									{status === "published"
-										? "Contrat publié avec succès"
-										: "Brouillon enregistré"}
-								</ToastTitle>
-							</VStack>
-						</HStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={CheckCircle}
+						color={isDark ? Colors.dark.success : Colors.light.success}
+						title={status === "published" ? "Contrat publié avec succès" : "Brouillon enregistré"}
+					/>
 				),
 			});
 			router.back();

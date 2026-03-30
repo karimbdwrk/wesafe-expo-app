@@ -40,12 +40,8 @@ import {
 	SelectDragIndicatorWrapper,
 	SelectItem,
 } from "@/components/ui/select";
-import {
-	useToast,
-	Toast,
-	ToastTitle,
-	ToastDescription,
-} from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import {
 	Plus,
 	Calendar,
@@ -55,9 +51,13 @@ import {
 	Trash2,
 	ChevronDownIcon,
 	X,
+	CheckCircle,
+	AlertCircle,
+	AlertTriangle,
 } from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
+import Colors from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -183,14 +183,15 @@ const CurriculumScreen = () => {
 				placement: "top",
 				duration: 3000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='success' variant='solid'>
-						<VStack space='xs'>
-							<ToastTitle>Succès</ToastTitle>
-							<ToastDescription>
-								Expérience supprimée
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={CheckCircle}
+						color={
+							isDark ? Colors.dark.success : Colors.light.success
+						}
+						title='Succès'
+						description='Expérience supprimée'
+					/>
 				),
 			});
 			setShowDeleteDialog(false);
@@ -202,14 +203,15 @@ const CurriculumScreen = () => {
 				placement: "top",
 				duration: 3000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='solid'>
-						<VStack space='xs'>
-							<ToastTitle>Erreur</ToastTitle>
-							<ToastDescription>
-								Impossible de supprimer
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title='Erreur'
+						description='Impossible de supprimer'
+					/>
 				),
 			});
 		} finally {
@@ -224,14 +226,15 @@ const CurriculumScreen = () => {
 				placement: "top",
 				duration: 3000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='warning' variant='solid'>
-						<VStack space='xs'>
-							<ToastTitle>Attention</ToastTitle>
-							<ToastDescription>
-								Veuillez remplir les champs obligatoires
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertTriangle}
+						color={
+							isDark ? Colors.dark.warning : Colors.light.warning
+						}
+						title='Attention'
+						description='Veuillez remplir les champs obligatoires'
+					/>
 				),
 			});
 			return;
@@ -257,14 +260,17 @@ const CurriculumScreen = () => {
 					placement: "top",
 					duration: 3000,
 					render: ({ id }) => (
-						<Toast nativeID={id} action='success' variant='solid'>
-							<VStack space='xs'>
-								<ToastTitle>Succès</ToastTitle>
-								<ToastDescription>
-									Expérience modifiée
-								</ToastDescription>
-							</VStack>
-						</Toast>
+						<CustomToast
+							id={id}
+							icon={CheckCircle}
+							color={
+								isDark
+									? Colors.dark.success
+									: Colors.light.success
+							}
+							title='Succès'
+							description='Expérience modifiée'
+						/>
 					),
 				});
 			} else {
@@ -274,14 +280,17 @@ const CurriculumScreen = () => {
 					placement: "top",
 					duration: 3000,
 					render: ({ id }) => (
-						<Toast nativeID={id} action='success' variant='solid'>
-							<VStack space='xs'>
-								<ToastTitle>Succès</ToastTitle>
-								<ToastDescription>
-									Expérience ajoutée
-								</ToastDescription>
-							</VStack>
-						</Toast>
+						<CustomToast
+							id={id}
+							icon={CheckCircle}
+							color={
+								isDark
+									? Colors.dark.success
+									: Colors.light.success
+							}
+							title='Succès'
+							description='Expérience ajoutée'
+						/>
 					),
 				});
 			}
@@ -294,14 +303,15 @@ const CurriculumScreen = () => {
 				placement: "top",
 				duration: 3000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='solid'>
-						<VStack space='xs'>
-							<ToastTitle>Erreur</ToastTitle>
-							<ToastDescription>
-								Une erreur est survenue
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title='Erreur'
+						description='Une erreur est survenue'
+					/>
 				),
 			});
 		} finally {

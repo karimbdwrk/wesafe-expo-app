@@ -27,12 +27,8 @@ import {
 	ActionsheetItem,
 	ActionsheetItemText,
 } from "@/components/ui/actionsheet";
-import {
-	useToast,
-	Toast,
-	ToastTitle,
-	ToastDescription,
-} from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import {
 	CheckCircle,
 	Clock,
@@ -48,6 +44,7 @@ import {
 
 import { useDataContext } from "@/context/DataContext";
 import { SUBMIT_KBIS_DOCUMENT } from "@/utils/activityEvents";
+import Colors from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -250,22 +247,15 @@ export default function KBISDocumentVerification() {
 				placement: "top",
 				duration: 5000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='success' variant='accent'>
-						<Icon
-							as={CheckCircle}
-							size='lg'
-							className='mr-2'
-							style={{ color: "#10b981" }}
-						/>
-						<VStack space='xs' style={{ flex: 1 }}>
-							<ToastTitle>KBIS soumis avec succès !</ToastTitle>
-							<ToastDescription>
-								Votre KBIS est en cours de vérification. Vous
-								recevrez une notification dès que la
-								vérification sera terminée.
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={CheckCircle}
+						color={
+							isDark ? Colors.dark.success : Colors.light.success
+						}
+						title='KBIS soumis avec succès !'
+						description='Votre KBIS est en cours de vérification.'
+					/>
 				),
 			});
 		} catch (error) {
@@ -274,23 +264,15 @@ export default function KBISDocumentVerification() {
 				placement: "top",
 				duration: 4000,
 				render: ({ id }) => (
-					<Toast nativeID={id} action='error' variant='accent'>
-						<Icon
-							as={AlertCircle}
-							size='lg'
-							className='mr-2'
-							style={{ color: "#ef4444" }}
-						/>
-						<VStack space='xs' style={{ flex: 1 }}>
-							<ToastTitle>
-								Erreur lors de la soumission
-							</ToastTitle>
-							<ToastDescription>
-								Une erreur est survenue lors de l'envoi de votre
-								KBIS. Veuillez réessayer.
-							</ToastDescription>
-						</VStack>
-					</Toast>
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title='Erreur lors de la soumission'
+						description="Une erreur est survenue lors de l'envoi de votre KBIS. Veuillez réessayer."
+					/>
 				),
 			});
 		} finally {
