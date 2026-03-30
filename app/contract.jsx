@@ -1408,7 +1408,7 @@ const ContractScreen = () => {
 									fontSize: 15,
 									marginLeft: 6,
 								}}>
-								Modifier le contrat
+								Modifier ou finaliser le contrat
 							</ButtonText>
 						</Button>
 					</Box>
