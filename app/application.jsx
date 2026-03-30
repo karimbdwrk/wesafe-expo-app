@@ -211,6 +211,7 @@ const ApplicationScreen = () => {
 	const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
 	const [contractGenerated, setContractGenerated] = useState(false);
+	const [draftContractExists, setDraftContractExists] = useState(false);
 	const presenceIntervalRef = React.useRef(null);
 	const hasAutoOpenedMessaging = React.useRef(false);
 	const hasLoadedOnce = React.useRef(false);
@@ -236,6 +237,21 @@ const ApplicationScreen = () => {
 	useEffect(() => {
 		console.log("application data:", application);
 	}, [application]);
+
+	const loadContractStatus = async () => {
+		if (!apply_id || !accessToken) return;
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			const { data } = await supabase
+				.from("contracts")
+				.select("id, status")
+				.eq("apply_id", apply_id)
+				.eq("status", "draft");
+			setDraftContractExists(Array.isArray(data) && data.length > 0);
+		} catch (err) {
+			console.error("Error loading contract status:", err);
+		}
+	};
 
 	const loadApplicationStatus = async () => {
 		const data = await getAll(
@@ -353,6 +369,7 @@ const ApplicationScreen = () => {
 			// Ne pas afficher le spinner si on a déjà chargé les données (retour depuis contract)
 			loadData(!hasLoadedOnce.current);
 			loadApplicationStatus();
+			loadContractStatus();
 			loadUnreadMessagesCount();
 			markApplicationNotificationsAsRead();
 			resetApplicationNotification();
@@ -1357,92 +1374,9 @@ const ApplicationScreen = () => {
 						</VStack>
 					</Card>
 
-					{/* Messagerie Card */}
-					{currentStatus !== "applied" && currentStatus !== "" && (
-						<Card
-							style={{
-								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
-								borderRadius: 12,
-								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
-							}}>
-							<Button
-								variant='link'
-								style={{ padding: 0 }}
-								onPress={() => setShowMessaging(true)}>
-								<HStack
-									space='md'
-									style={{
-										alignItems: "center",
-										width: "100%",
-									}}>
-									<Box
-										style={{
-											width: 48,
-											height: 48,
-											borderRadius: 24,
-											backgroundColor: "#fef3c7",
-											justifyContent: "center",
-											alignItems: "center",
-										}}>
-										<Icon
-											as={MessageCircle}
-											size='xl'
-											style={{ color: "#f59e0b" }}
-										/>
-									</Box>
-									<VStack style={{ flex: 1 }} space='xs'>
-										<Text
-											size='lg'
-											style={{
-												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}>
-											Messagerie
-										</Text>
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
-											}}>
-											Échanger avec{" "}
-											{role === "pro"
-												? "le candidat"
-												: "le recruteur"}
-										</Text>
-									</VStack>
-									{unreadMessagesCount > 0 && (
-										<Badge
-											size='md'
-											variant='solid'
-											action='error'
-											style={{ marginRight: 8 }}>
-											<BadgeText>
-												{unreadMessagesCount}
-											</BadgeText>
-										</Badge>
-									)}
-									<Icon
-										as={ChevronRight}
-										size='lg'
-										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
-										}}
-									/>
-								</HStack>
-							</Button>
-						</Card>
-					)}
-
 					{/* Contrat Card */}
-					{contractGenerated && (
+					{(contractGenerated ||
+						(role === "pro" && draftContractExists)) && (
 						<Card
 							style={{
 								padding: 20,
@@ -1506,10 +1440,13 @@ const ApplicationScreen = () => {
 													: "#6b7280",
 											}}>
 											{role === "pro"
-												? currentStatus ===
-													"contract_signed_pro"
-													? "Voir le contrat"
-													: "Voir & signer le contrat"
+												? draftContractExists &&
+													!contractGenerated
+													? "Brouillon — finaliser le contrat"
+													: currentStatus ===
+														  "contract_signed_pro"
+														? "Voir le contrat"
+														: "Voir & signer le contrat"
 												: currentStatus ===
 															"contract_signed_candidate" ||
 													  currentStatus ===
@@ -1556,21 +1493,25 @@ const ApplicationScreen = () => {
 							)}
 							{currentStatus === "selected" && (
 								<>
-									<Button
-										action='positive'
-										onPress={() =>
-											router.push({
-												pathname: "/contractgeneration",
-												params: {
-													application_id:
-														application.id,
-												},
-											})
-										}>
-										<ButtonText>
-											Générer le contrat
-										</ButtonText>
-									</Button>
+									{!draftContractExists &&
+										!contractGenerated && (
+											<Button
+												action='positive'
+												onPress={() =>
+													router.push({
+														pathname:
+															"/contractgeneration",
+														params: {
+															application_id:
+																application.id,
+														},
+													})
+												}>
+												<ButtonText>
+													Générer le contrat
+												</ButtonText>
+											</Button>
+										)}
 									<Button
 										variant='outline'
 										action='negative'
@@ -1585,6 +1526,58 @@ const ApplicationScreen = () => {
 					)}
 				</VStack>
 			</ScrollView>
+
+			{/* Bouton flottant Messagerie */}
+			{currentStatus !== "applied" && currentStatus !== "" && (
+				<TouchableOpacity
+					onPress={() => setShowMessaging(true)}
+					style={{
+						position: "absolute",
+						bottom: 30,
+						right: 20,
+						width: 56,
+						height: 56,
+						borderRadius: 28,
+						backgroundColor: "#2563eb",
+						justifyContent: "center",
+						alignItems: "center",
+						shadowColor: "#000",
+						shadowOffset: { width: 0, height: 3 },
+						shadowOpacity: 0.25,
+						shadowRadius: 5,
+						elevation: 6,
+					}}>
+					<Icon
+						as={MessageCircle}
+						size='xl'
+						style={{ color: "#ffffff" }}
+					/>
+					{unreadMessagesCount > 0 && (
+						<Box
+							style={{
+								position: "absolute",
+								top: -4,
+								right: -4,
+								backgroundColor: "#dc2626",
+								borderRadius: 10,
+								minWidth: 20,
+								height: 20,
+								justifyContent: "center",
+								alignItems: "center",
+								paddingHorizontal: 4,
+							}}>
+							<Text
+								style={{
+									color: "#ffffff",
+									fontSize: 11,
+									fontWeight: "bold",
+								}}>
+								{unreadMessagesCount}
+							</Text>
+						</Box>
+					)}
+				</TouchableOpacity>
+			)}
 
 			{/* Modal de confirmation pour sélectionner */}
 			<Modal
