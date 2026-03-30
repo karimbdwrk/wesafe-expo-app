@@ -15,6 +15,7 @@ import { ChevronLeft, ChevronRight, Info } from "lucide-react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -219,7 +220,7 @@ const ApplicationsProScreen = () => {
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 			}}>
 			<ScrollView
 				ref={scrollRef}
@@ -286,7 +287,7 @@ const ApplicationsProScreen = () => {
 						left: 0,
 						right: 0,
 						bottom: 0,
-						backgroundColor: isDark ? "#23272f" : "#fff",
+						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 						shadowColor: "#000",
 						shadowOffset: { width: 0, height: -2 },
 						shadowOpacity: 0.08,
@@ -307,17 +308,17 @@ const ApplicationsProScreen = () => {
 							onPress={handlePrev}
 							variant='outline'
 							style={{
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark ? Colors.dark.border : Colors.light.border,
 								borderRadius: 12,
 							}}>
 							<ButtonIcon
 								as={ChevronLeft}
-								color={isDark ? "#f3f4f6" : "#111827"}
+								color={isDark ? Colors.dark.text : Colors.light.text}
 							/>
 						</Button>
 						<Text
 							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: isDark ? Colors.dark.text : Colors.light.text,
 								fontWeight: "600",
 								fontSize: 16,
 							}}>
@@ -328,12 +329,12 @@ const ApplicationsProScreen = () => {
 							onPress={handleNext}
 							variant='outline'
 							style={{
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark ? Colors.dark.border : Colors.light.border,
 								borderRadius: 12,
 							}}>
 							<ButtonIcon
 								as={ChevronRight}
-								color={isDark ? "#f3f4f6" : "#111827"}
+								color={isDark ? Colors.dark.text : Colors.light.text}
 							/>
 						</Button>
 					</HStack>

@@ -18,6 +18,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { createSupabaseClient } from "@/lib/supabase";
 
 const ApplicationsBlock = () => {
@@ -91,10 +92,10 @@ const ApplicationsBlock = () => {
 	return (
 		<Box
 			style={{
-				backgroundColor: isDark ? "#1f2937" : "#ffffff",
+				backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
 				borderRadius: 12,
 				borderWidth: 1,
-				borderColor: isDark ? "#374151" : "#e5e7eb",
+				borderColor: isDark ? Colors.dark.border : Colors.light.border,
 				padding: 14,
 			}}>
 			<VStack space='sm'>
@@ -108,7 +109,7 @@ const ApplicationsBlock = () => {
 						size='md'
 						style={{
 							fontWeight: "700",
-							color: isDark ? "#f3f4f6" : "#111827",
+							color: isDark ? Colors.dark.text : Colors.light.text,
 						}}>
 						Candidatures actives
 					</Text>
@@ -118,14 +119,14 @@ const ApplicationsBlock = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: isDark ? Colors.dark.tint : Colors.light.tint,
 									fontWeight: "500",
 								}}>
 								Voir tout
 							</Text>
 							<ChevronRight
 								size={14}
-								color={isDark ? "#60a5fa" : "#2563eb"}
+								color={isDark ? Colors.dark.tint : Colors.light.tint}
 							/>
 						</HStack>
 					</TouchableOpacity>
@@ -146,19 +147,19 @@ const ApplicationsBlock = () => {
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
-								<CheckCircle size={14} color='#3b82f6' />
+								<CheckCircle size={14} color={Colors.light.tint} />
 							</Box>
 							<Text
 								size='sm'
 								style={{
 									flex: 1,
-									color: isDark ? "#d1d5db" : "#374151",
+									color: isDark ? Colors.dark.muted : Colors.light.muted,
 								}}>
 								<Text
 									size='sm'
 									style={{
 										fontWeight: "700",
-										color: "#3b82f6",
+										color: Colors.light.tint,
 									}}>
 									{selectedCount}
 								</Text>{" "}
@@ -182,19 +183,19 @@ const ApplicationsBlock = () => {
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
-								<FileText size={14} color='#f59e0b' />
+								<FileText size={14} color={Colors.dark.warning} />
 							</Box>
 							<Text
 								size='sm'
 								style={{
 									flex: 1,
-									color: isDark ? "#d1d5db" : "#374151",
+									color: isDark ? Colors.dark.muted : Colors.light.muted,
 								}}>
 								<Text
 									size='sm'
 									style={{
 										fontWeight: "700",
-										color: "#f59e0b",
+										color: Colors.light.warning,
 									}}>
 									{contractCount}
 								</Text>{" "}
@@ -216,19 +217,19 @@ const ApplicationsBlock = () => {
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
-								<MessageCircle size={14} color='#3b82f6' />
+								<MessageCircle size={14} color={Colors.light.tint} />
 							</Box>
 							<Text
 								size='sm'
 								style={{
 									flex: 1,
-									color: isDark ? "#d1d5db" : "#374151",
+									color: isDark ? Colors.dark.muted : Colors.light.muted,
 								}}>
 								<Text
 									size='sm'
 									style={{
 										fontWeight: "700",
-										color: "#3b82f6",
+										color: Colors.light.tint,
 									}}>
 									{totalUnread}
 								</Text>{" "}
@@ -248,13 +249,13 @@ const ApplicationsBlock = () => {
 // const STATUS_CONFIG = {
 // 	selected: {
 // 		label: "Profil sélectionné",
-// 		color: "#3b82f6",
+// 		color: Colors.light.tint,
 // 		bg: { dark: "#1e3a5f", light: "#eff6ff" },
 // 		icon: CheckCircle,
 // 	},
 // 	contract_sent: {
 // 		label: "Contrat envoyé",
-// 		color: "#f59e0b",
+// 		color: Colors.light.warning,
 // 		bg: { dark: "#451a03", light: "#fefce8" },
 // 		icon: FileText,
 // 	},

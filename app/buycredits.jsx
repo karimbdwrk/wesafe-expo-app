@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ScrollView, Alert, ActivityIndicator } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { BUY_CREDITS } from "@/utils/activityEvents";
@@ -93,7 +94,7 @@ const BuyCreditsScreen = () => {
 		<ScrollView
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 			}}
 			contentContainerStyle={{ padding: 20 }}>
 			<VStack space='xl'>
@@ -102,14 +103,14 @@ const BuyCreditsScreen = () => {
 					<Heading
 						size='2xl'
 						style={{
-							color: isDark ? "#f3f4f6" : "#111827",
+							color: isDark ? Colors.dark.text : Colors.light.text,
 						}}>
 						Crédits Last Minute
 					</Heading>
 					<Text
 						size='md'
 						style={{
-							color: isDark ? "#9ca3af" : "#6b7280",
+							color: isDark ? Colors.dark.muted : Colors.light.muted,
 						}}>
 						Achetez des crédits pour publier vos annonces en mode
 						Last Minute
@@ -119,11 +120,11 @@ const BuyCreditsScreen = () => {
 				{/* Current Credits Card */}
 				<Card
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 						borderRadius: 12,
 						padding: 20,
 						borderWidth: 1,
-						borderColor: isDark ? "#4b5563" : "#e5e7eb",
+						borderColor: isDark ? Colors.dark.border : Colors.light.border,
 					}}>
 					<VStack space='md'>
 						<HStack space='md' style={{ alignItems: "center" }}>
@@ -139,21 +140,21 @@ const BuyCreditsScreen = () => {
 								<Icon
 									as={Coins}
 									size='xl'
-									style={{ color: "#2563eb" }}
+									style={{ color: Colors.light.tint }}
 								/>
 							</Box>
 							<VStack style={{ flex: 1 }}>
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 									}}>
 									Vos crédits disponibles
 								</Text>
 								<Heading
 									size='2xl'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark ? Colors.dark.text : Colors.light.text,
 									}}>
 									{loading ? "..." : credits}
 								</Heading>
@@ -165,11 +166,11 @@ const BuyCreditsScreen = () => {
 				{/* Pack Card */}
 				<Card
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 						borderRadius: 12,
 						padding: 20,
 						borderWidth: 2,
-						borderColor: "#3b82f6",
+						borderColor: Colors.light.tint,
 					}}>
 					<VStack space='lg'>
 						<HStack
@@ -181,7 +182,7 @@ const BuyCreditsScreen = () => {
 							<Heading
 								size='xl'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark ? Colors.dark.text : Colors.light.text,
 								}}>
 								Pack de 10 crédits
 							</Heading>
@@ -196,12 +197,12 @@ const BuyCreditsScreen = () => {
 								<Icon
 									as={Check}
 									size='sm'
-									style={{ color: "#10b981" }}
+									style={{ color: Colors.light.success }}
 								/>
 								<Text
 									size='md'
 									style={{
-										color: isDark ? "#d1d5db" : "#374151",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 									}}>
 									10 publications Last Minute
 								</Text>
@@ -210,12 +211,12 @@ const BuyCreditsScreen = () => {
 								<Icon
 									as={Check}
 									size='sm'
-									style={{ color: "#10b981" }}
+									style={{ color: Colors.light.success }}
 								/>
 								<Text
 									size='md'
 									style={{
-										color: isDark ? "#d1d5db" : "#374151",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 									}}>
 									3€ par annonce au lieu de 5€
 								</Text>
@@ -224,12 +225,12 @@ const BuyCreditsScreen = () => {
 								<Icon
 									as={Check}
 									size='sm'
-									style={{ color: "#10b981" }}
+									style={{ color: Colors.light.success }}
 								/>
 								<Text
 									size='md'
 									style={{
-										color: isDark ? "#d1d5db" : "#374151",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 									}}>
 									Économisez 20€ sur ce pack
 								</Text>
@@ -239,7 +240,7 @@ const BuyCreditsScreen = () => {
 						<Box
 							style={{
 								borderTopWidth: 1,
-								borderTopColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderTopColor: isDark ? Colors.dark.border : Colors.light.border,
 								paddingTop: 16,
 							}}>
 							<HStack
@@ -251,7 +252,7 @@ const BuyCreditsScreen = () => {
 								<Text
 									size='lg'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 										fontWeight: "500",
 									}}>
 									Prix total
@@ -259,7 +260,7 @@ const BuyCreditsScreen = () => {
 								<Heading
 									size='2xl'
 									style={{
-										color: "#3b82f6",
+										color: Colors.light.tint,
 									}}>
 									30€
 								</Heading>
@@ -272,7 +273,7 @@ const BuyCreditsScreen = () => {
 							onPress={handleBuyCredits}
 							isDisabled={loading || !companyId}
 							style={{
-								backgroundColor: "#3b82f6",
+								backgroundColor: Colors.light.tint,
 								borderRadius: 8,
 							}}>
 							{loading && <ButtonSpinner />}
@@ -303,7 +304,7 @@ const BuyCreditsScreen = () => {
 						<Text
 							size='sm'
 							style={{
-								color: isDark ? "#93c5fd" : "#2563eb",
+								color: isDark ? Colors.dark.tint : Colors.light.tint,
 								fontWeight: "600",
 							}}>
 							💡 À propos des crédits Last Minute
@@ -311,7 +312,7 @@ const BuyCreditsScreen = () => {
 						<Text
 							size='sm'
 							style={{
-								color: isDark ? "#bfdbfe" : "#1e40af",
+								color: isDark ? "#bfdbfe" : Colors.light.tint,
 								lineHeight: 20,
 							}}>
 							Les crédits Last Minute vous permettent de publier

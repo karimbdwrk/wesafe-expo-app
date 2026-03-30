@@ -34,6 +34,7 @@ import { useDataContext } from "@/context/DataContext";
 import { MARK_ALL_NOTIFICATIONS_READ, VIEW_NOTIFICATION } from "@/utils/activityEvents";
 import { useNotifications } from "@/context/NotificationsContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 import { createClient } from "@supabase/supabase-js";
 import Constants from "expo-constants";
@@ -263,7 +264,7 @@ const Notifications = () => {
 		<ScrollView
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 			}}>
 			<Stack.Screen
 				options={{
@@ -280,14 +281,12 @@ const Notifications = () => {
 											paddingHorizontal: 10,
 											paddingVertical: 6,
 											borderRadius: 8,
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#f3f4f6",
+											backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 										}}>
-										<CheckCheck size={14} color='#2563eb' />
+										<CheckCheck size={14} color={Colors.light.tint} />
 										<RNText
 											style={{
-												color: "#2563eb",
+												color: Colors.light.tint,
 												fontSize: 12,
 												fontWeight: "600",
 											}}>
@@ -302,7 +301,7 @@ const Notifications = () => {
 				{/* Header Card */}
 				{/* <Card
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 						borderRadius: 12,
 						padding: 20,
 					}}>
@@ -320,7 +319,7 @@ const Notifications = () => {
 									width: 48,
 									height: 48,
 									borderRadius: 24,
-									backgroundColor: "#2563eb",
+									backgroundColor: Colors.light.tint,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
@@ -330,14 +329,14 @@ const Notifications = () => {
 								<Heading
 									size='lg'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark ? Colors.dark.text : Colors.light.text,
 									}}>
 									Notifications
 								</Heading>
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 										marginTop: 2,
 									}}>
 									{unreadCount > 0
@@ -353,9 +352,7 @@ const Notifications = () => {
 										paddingHorizontal: 12,
 										paddingVertical: 8,
 										borderRadius: 8,
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f3f4f6",
+										backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 									}}>
 									<HStack
 										space='xs'
@@ -363,12 +360,12 @@ const Notifications = () => {
 										<Icon
 											as={CheckCheck}
 											size={16}
-											color='#2563eb'
+											color={Colors.light.tint}
 										/>
 										<Text
 											size='xs'
 											style={{
-												color: "#2563eb",
+												color: Colors.light.tint,
 												fontWeight: "600",
 											}}>
 											Tout lire
@@ -393,9 +390,7 @@ const Notifications = () => {
 								<Card
 									style={{
 										backgroundColor: notification.is_read
-											? isDark
-												? "#374151"
-												: "#ffffff"
+											? isDark ? Colors.dark.cardBackground : Colors.light.cardBackground
 											: isDark
 												? "#1e3a5f"
 												: "#eff6ff",
@@ -404,7 +399,7 @@ const Notifications = () => {
 										borderWidth: notification.is_read
 											? 0
 											: 1,
-										borderColor: "#2563eb",
+										borderColor: Colors.light.tint,
 									}}>
 									<HStack
 										space='md'
@@ -417,9 +412,7 @@ const Notifications = () => {
 												borderRadius: 20,
 												backgroundColor:
 													notification.is_read
-														? isDark
-															? "#1f2937"
-															: "#f3f4f6"
+														? isDark ? Colors.dark.background : Colors.light.background
 														: "#dbeafe",
 												justifyContent: "center",
 												alignItems: "center",
@@ -432,9 +425,7 @@ const Notifications = () => {
 												size={20}
 												color={
 													notification.is_read
-														? isDark
-															? "#9ca3af"
-															: "#6b7280"
+														? isDark ? Colors.dark.muted : Colors.light.muted
 														: "#2563eb"
 												}
 											/>
@@ -473,9 +464,7 @@ const Notifications = () => {
 														size='sm'
 														style={{
 															fontWeight: "700",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
+															color: isDark ? Colors.dark.text : Colors.light.text,
 														}}>
 														{notification.title}
 													</Text>
@@ -485,9 +474,7 @@ const Notifications = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark
-																	? "#d1d5db"
-																	: "#374151",
+																color: isDark ? Colors.dark.muted : Colors.light.muted,
 															}}>
 															{notification.body}
 														</Text>
@@ -496,9 +483,7 @@ const Notifications = () => {
 												<Text
 													size='xs'
 													style={{
-														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+														color: isDark ? Colors.dark.muted : Colors.light.muted,
 														marginLeft: 8,
 													}}>
 													{formatDate(
@@ -510,9 +495,7 @@ const Notifications = () => {
 												<Text
 													size='sm'
 													style={{
-														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+														color: isDark ? Colors.dark.muted : Colors.light.muted,
 														lineHeight: 18,
 													}}>
 													{notification.message}
@@ -527,7 +510,7 @@ const Notifications = () => {
 				) : (
 					<Card
 						style={{
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 							borderRadius: 12,
 							padding: 40,
 						}}>
@@ -541,30 +524,28 @@ const Notifications = () => {
 									width: 80,
 									height: 80,
 									borderRadius: 40,
-									backgroundColor: isDark
-										? "#1f2937"
-										: "#f3f4f6",
+									backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
 								<Icon
 									as={MailOpen}
 									size={40}
-									color={isDark ? "#6b7280" : "#9ca3af"}
+									color={isDark ? Colors.dark.muted : Colors.light.muted}
 								/>
 							</Box>
 							<VStack space='xs' style={{ alignItems: "center" }}>
 								<Heading
 									size='md'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark ? Colors.dark.text : Colors.light.text,
 									}}>
 									Aucune notification
 								</Heading>
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 										textAlign: "center",
 									}}>
 									Vous êtes à jour !

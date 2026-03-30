@@ -68,6 +68,7 @@ import { useImage } from "@/context/ImageContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useNotifications } from "@/context/NotificationsContext";
 import { createSupabaseClient } from "@/lib/supabase";
+import Colors from "@/constants/Colors";
 
 import LogoUploader from "@/components/LogoUploader";
 import { OPEN_SUPPORT_CHAT, SIGN_OUT } from "@/utils/activityEvents";
@@ -242,10 +243,10 @@ const DashboardScreen = () => {
 			<Card
 				style={{
 					padding: 16,
-					backgroundColor: isDark ? "#374151" : "#ffffff",
+					backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 					borderRadius: 12,
 					borderWidth: 1,
-					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+					borderColor: isDark ? Colors.dark.border : Colors.light.border,
 				}}>
 				<HStack
 					style={{
@@ -260,7 +261,7 @@ const DashboardScreen = () => {
 								width: 40,
 								height: 40,
 								borderRadius: 20,
-								backgroundColor: isDark ? "#1f2937" : "#f3f4f6",
+								backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 								justifyContent: "center",
 								alignItems: "center",
 							}}>
@@ -268,7 +269,7 @@ const DashboardScreen = () => {
 								as={icon}
 								size='lg'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: isDark ? Colors.dark.tint : Colors.light.tint,
 								}}
 							/>
 						</Box>
@@ -277,7 +278,7 @@ const DashboardScreen = () => {
 								size='md'
 								style={{
 									fontWeight: "600",
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark ? Colors.dark.text : Colors.light.text,
 								}}>
 								{title}
 							</Text>
@@ -285,7 +286,7 @@ const DashboardScreen = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 									}}>
 									{subtitle}
 								</Text>
@@ -305,7 +306,7 @@ const DashboardScreen = () => {
 							as={ChevronRight}
 							size='lg'
 							style={{
-								color: isDark ? "#9ca3af" : "#6b7280",
+								color: isDark ? Colors.dark.muted : Colors.light.muted,
 							}}
 						/>
 					</HStack>
@@ -329,7 +330,7 @@ const DashboardScreen = () => {
 								as={ScanLine}
 								size='xl'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: isDark ? Colors.dark.tint : Colors.light.tint,
 								}}
 							/>
 						</TouchableOpacity>
@@ -339,7 +340,7 @@ const DashboardScreen = () => {
 			<ScrollView
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 				}}
 				showsVerticalScrollIndicator={false}>
 				<Box style={{ padding: 20, paddingBottom: 40 }}>
@@ -370,9 +371,7 @@ const DashboardScreen = () => {
 									{company?.reject_message ? (
 										<Text
 											style={{
-												color: isDark
-													? "#fca5a5"
-													: "#dc2626",
+												color: isDark ? Colors.dark.danger : Colors.light.danger,
 												fontSize: 13,
 											}}>
 											{company.reject_message}
@@ -387,20 +386,16 @@ const DashboardScreen = () => {
 							<Card
 								style={{
 									padding: 16,
-									backgroundColor: isDark
-										? "#1c1917"
-										: "#f9fafb",
+									backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 									borderRadius: 12,
 									borderWidth: 1,
-									borderColor: isDark ? "#44403c" : "#d1d5db",
+									borderColor: isDark ? Colors.dark.border : Colors.light.border,
 								}}>
 								<VStack space='xs'>
 									<Text
 										style={{
 											fontWeight: "700",
-											color: isDark
-												? "#d1d5db"
-												: "#374151",
+											color: isDark ? Colors.dark.muted : Colors.light.muted,
 											fontSize: 14,
 										}}>
 										Votre compte a été suspendu
@@ -408,9 +403,7 @@ const DashboardScreen = () => {
 									{company?.suspend_message ? (
 										<Text
 											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												color: isDark ? Colors.dark.muted : Colors.light.muted,
 												fontSize: 13,
 											}}>
 											{company.suspend_message}
@@ -418,9 +411,7 @@ const DashboardScreen = () => {
 									) : (
 										<Text
 											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												color: isDark ? Colors.dark.muted : Colors.light.muted,
 												fontSize: 13,
 											}}>
 											Contactez le support pour plus
@@ -435,10 +426,10 @@ const DashboardScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark ? Colors.dark.border : Colors.light.border,
 							}}>
 							<VStack space='lg'>
 								{/* Logo Section - Centré et cliquable */}
@@ -467,9 +458,7 @@ const DashboardScreen = () => {
 													size='lg'
 													style={{
 														fontWeight: "600",
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
+														color: isDark ? Colors.dark.text : Colors.light.text,
 													}}>
 													{company?.name}
 												</Text>
@@ -479,9 +468,7 @@ const DashboardScreen = () => {
 														size='xs'
 														style={{
 															fontStyle: "italic",
-															color: isDark
-																? "#9ca3af"
-																: "#6b7280",
+															color: isDark ? Colors.dark.muted : Colors.light.muted,
 														}}>
 														(
 														{[
@@ -564,18 +551,14 @@ const DashboardScreen = () => {
 												<Text
 													size='sm'
 													style={{
-														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+														color: isDark ? Colors.dark.muted : Colors.light.muted,
 													}}>
 													{company.street}
 												</Text>
 												<Text
 													size='sm'
 													style={{
-														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+														color: isDark ? Colors.dark.muted : Colors.light.muted,
 													}}>
 													{[
 														company.postcode,
@@ -590,9 +573,7 @@ const DashboardScreen = () => {
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: isDark ? Colors.dark.muted : Colors.light.muted,
 												}}>
 												SIRET:{" "}
 												{formatSiret(company.siret)}
@@ -607,9 +588,7 @@ const DashboardScreen = () => {
 										<Text
 											size='sm'
 											style={{
-												color: isDark
-													? "#d1d5db"
-													: "#374151",
+												color: isDark ? Colors.dark.muted : Colors.light.muted,
 											}}>
 											{company.description}
 										</Text>
@@ -639,9 +618,7 @@ const DashboardScreen = () => {
 												size='sm'
 												style={{
 													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+													color: isDark ? Colors.dark.text : Colors.light.text,
 												}}>
 												Statut d'abonnement
 											</Text>
@@ -672,9 +649,7 @@ const DashboardScreen = () => {
 											as={ChevronRight}
 											size='sm'
 											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												color: isDark ? Colors.dark.muted : Colors.light.muted,
 											}}
 										/>
 									</HStack>
@@ -702,9 +677,7 @@ const DashboardScreen = () => {
 												size='sm'
 												style={{
 													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+													color: isDark ? Colors.dark.text : Colors.light.text,
 												}}>
 												Crédits LastMinute
 											</Text>
@@ -727,9 +700,7 @@ const DashboardScreen = () => {
 											as={ChevronRight}
 											size='sm'
 											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												color: isDark ? Colors.dark.muted : Colors.light.muted,
 											}}
 										/>
 									</HStack>
@@ -743,7 +714,7 @@ const DashboardScreen = () => {
 								size='lg'
 								style={{
 									fontWeight: "600",
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark ? Colors.dark.text : Colors.light.text,
 								}}>
 								Actions rapides
 							</Text>
@@ -970,7 +941,7 @@ const DashboardScreen = () => {
 						<AlertDialogBackdrop />
 						<AlertDialogContent
 							style={{
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 								borderRadius: 12,
 								padding: 24,
 							}}>
@@ -978,7 +949,7 @@ const DashboardScreen = () => {
 								<Heading
 									size='lg'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark ? Colors.dark.text : Colors.light.text,
 									}}>
 									Déconnexion
 								</Heading>
@@ -986,7 +957,7 @@ const DashboardScreen = () => {
 							<AlertDialogBody>
 								<Text
 									style={{
-										color: isDark ? "#d1d5db" : "#4b5563",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 										marginTop: 8,
 									}}>
 									Êtes-vous sûr de vouloir vous déconnecter ?
@@ -1034,9 +1005,7 @@ const DashboardScreen = () => {
 						<ActionsheetDragIndicatorWrapper>
 							<ActionsheetDragIndicator
 								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#d1d5db",
+									backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
 								}}
 							/>
 						</ActionsheetDragIndicatorWrapper>
@@ -1048,23 +1017,21 @@ const DashboardScreen = () => {
 								paddingHorizontal: 20,
 								paddingVertical: 10,
 								borderBottomWidth: 1,
-								borderBottomColor: isDark
-									? "#374151"
-									: "#e5e7eb",
+								borderBottomColor: isDark ? Colors.dark.border : Colors.light.border,
 							}}>
 							<VStack space='xs'>
 								<Text
 									style={{
 										fontSize: 16,
 										fontWeight: "700",
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark ? Colors.dark.text : Colors.light.text,
 									}}>
 									Support WeSafe
 								</Text>
 								<Text
 									style={{
 										fontSize: 11,
-										color: isDark ? "#6b7280" : "#9ca3af",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 										fontStyle: "italic",
 										letterSpacing: 0.2,
 									}}>
@@ -1081,9 +1048,7 @@ const DashboardScreen = () => {
 									width: 32,
 									height: 32,
 									borderRadius: 16,
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
+									backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
@@ -1091,7 +1056,7 @@ const DashboardScreen = () => {
 									style={{
 										fontSize: 16,
 										fontWeight: "700",
-										color: isDark ? "#f3f4f6" : "#374151",
+										color: isDark ? Colors.dark.text : Colors.light.muted,
 										lineHeight: 18,
 									}}>
 									✕

@@ -33,19 +33,32 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { CATEGORY } from "@/constants/categories";
 
-// Palette de couleurs pour les catégories
-const CAT_COLORS = [
-	"#2563eb",
-	"#7c3aed",
-	"#059669",
-	"#d97706",
-	"#dc2626",
-	"#0891b2",
-	"#9333ea",
-	"#65a30d",
-];
+// Dégradé de gris pour les catégories (sobre)
+const getCatColors = (isDark) =>
+	isDark
+		? [
+				"#e2e8f0",
+				"#cbd5e1",
+				"#94a3b8",
+				"#b0c1d0",
+				"#f1f5f9",
+				"#a8b4be",
+				"#d1d5db",
+				"#9ca3af",
+			]
+		: [
+				"#1e293b",
+				"#334155",
+				"#475569",
+				"#64748b",
+				"#374151",
+				"#4b5563",
+				"#6b7280",
+				"#0f172a",
+			];
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -152,10 +165,12 @@ const KpiCard = ({
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#ffffff",
+				backgroundColor: isDark
+					? Colors.dark.cardBackground
+					: Colors.light.cardBackground,
 				borderRadius: 16,
 				borderWidth: 1,
-				borderColor: isDark ? "#374151" : "#e5e7eb",
+				borderColor: isDark ? Colors.dark.border : Colors.light.border,
 				padding: 16,
 				minWidth: "47%",
 			}}>
@@ -176,7 +191,7 @@ const KpiCard = ({
 				<Text
 					size='xs'
 					style={{
-						color: isDark ? "#9ca3af" : "#6b7280",
+						color: isDark ? Colors.dark.muted : Colors.light.muted,
 						fontWeight: "600",
 						flex: 1,
 						lineHeight: 16,
@@ -186,7 +201,9 @@ const KpiCard = ({
 				{onPress ? (
 					<ChevronRight
 						size={14}
-						color={isDark ? "#4b5563" : "#d1d5db"}
+						color={
+							isDark ? Colors.dark.border : Colors.light.border
+						}
 					/>
 				) : null}
 			</HStack>
@@ -194,7 +211,7 @@ const KpiCard = ({
 				style={{
 					fontSize: 28,
 					fontWeight: "800",
-					color: isDark ? "#f3f4f6" : "#111827",
+					color: isDark ? Colors.dark.text : Colors.light.text,
 					lineHeight: 34,
 				}}>
 				{value}
@@ -203,7 +220,7 @@ const KpiCard = ({
 				<Text
 					size='xs'
 					style={{
-						color: isDark ? "#6b7280" : "#9ca3af",
+						color: isDark ? Colors.dark.muted : Colors.light.muted,
 						marginTop: 2,
 					}}>
 					{sub}
@@ -307,7 +324,7 @@ const HomeChartsPro = () => {
 		const barData = sorted.map(({ cat, count, i }) => ({
 			value: count,
 			label: cat.acronym,
-			frontColor: CAT_COLORS[i % CAT_COLORS.length],
+			frontColor: getCatColors(isDark)[i % 8],
 			pct: Math.round((count / total) * 100),
 		}));
 
@@ -316,7 +333,7 @@ const HomeChartsPro = () => {
 		}));
 
 		return { barData, lineData };
-	}, [allJobs, allApplications, catPeriod]);
+	}, [allJobs, allApplications, catPeriod, isDark]);
 
 	// ── Last Minute charts ──────────────────────────────────────────
 	const lmJobs = useMemo(
@@ -378,7 +395,7 @@ const HomeChartsPro = () => {
 		const barData = sorted.map(({ cat, count, i }) => ({
 			value: count,
 			label: cat.acronym,
-			frontColor: CAT_COLORS[i % CAT_COLORS.length],
+			frontColor: getCatColors(isDark)[i % 8],
 			pct: Math.round((count / total) * 100),
 		}));
 
@@ -387,7 +404,7 @@ const HomeChartsPro = () => {
 		}));
 
 		return { barData, lineData };
-	}, [lmJobs, allApplications, lmCatPeriod]);
+	}, [lmJobs, allApplications, lmCatPeriod, isDark]);
 
 	useEffect(() => {
 		if (!user?.id || !accessToken) return;
@@ -571,19 +588,21 @@ const HomeChartsPro = () => {
 		}
 	};
 
-	const cardBg = isDark ? "#1f2937" : "#ffffff";
-	const borderColor = isDark ? "#374151" : "#e5e7eb";
-	const textPrimary = isDark ? "#f3f4f6" : "#111827";
-	const textSecondary = isDark ? "#9ca3af" : "#6b7280";
-	const axisColor = isDark ? "#374151" : "#e5e7eb";
-	const labelColor = isDark ? "#6b7280" : "#9ca3af";
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const borderColor = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
+	const axisColor = isDark ? Colors.dark.border : Colors.light.border;
+	const labelColor = isDark ? Colors.dark.muted : Colors.light.muted;
 
 	if (loading) {
 		return (
 			<Box style={{ padding: 32, alignItems: "center" }}>
 				<ActivityIndicator
 					size='large'
-					color={isDark ? "#60a5fa" : "#2563eb"}
+					color={isDark ? Colors.dark.tint : Colors.light.tint}
 				/>
 			</Box>
 		);
@@ -597,8 +616,14 @@ const HomeChartsPro = () => {
 				<HStack space='sm'>
 					<KpiCard
 						icon={Briefcase}
-						iconColor='#2563eb'
-						iconBg={isDark ? "#1e3a5f" : "#eff6ff"}
+						iconColor={
+							isDark ? Colors.dark.tint : Colors.light.tint
+						}
+						iconBg={
+							isDark
+								? Colors.dark.background
+								: Colors.light.background
+						}
 						label='Missions publiées'
 						value={kpis.jobsTotal}
 						sub='actives'
@@ -614,8 +639,14 @@ const HomeChartsPro = () => {
 					/>
 					<KpiCard
 						icon={Users}
-						iconColor='#7c3aed'
-						iconBg={isDark ? "#2e1065" : "#f5f3ff"}
+						iconColor={
+							isDark ? Colors.dark.tint : Colors.light.tint
+						}
+						iconBg={
+							isDark
+								? Colors.dark.background
+								: Colors.light.background
+						}
 						label='Candidatures reçues'
 						value={kpis.applicationsTotal}
 						isDark={isDark}
@@ -634,16 +665,28 @@ const HomeChartsPro = () => {
 				<HStack space='sm'>
 					<KpiCard
 						icon={CheckCircle}
-						iconColor='#059669'
-						iconBg={isDark ? "#052e16" : "#f0fdf4"}
+						iconColor={
+							isDark ? Colors.dark.success : Colors.light.success
+						}
+						iconBg={
+							isDark
+								? Colors.dark.background
+								: Colors.light.background
+						}
 						label='Taux missions pourvues'
 						value={`${kpis.fillRate} %`}
 						isDark={isDark}
 					/>
 					<KpiCard
 						icon={Clock}
-						iconColor='#d97706'
-						iconBg={isDark ? "#451a03" : "#fffbeb"}
+						iconColor={
+							isDark ? Colors.dark.warning : Colors.light.warning
+						}
+						iconBg={
+							isDark
+								? Colors.dark.background
+								: Colors.light.background
+						}
 						label='Temps moyen recrutement'
 						value={(() => {
 							if (kpis.avgMs === null) return "—";
@@ -670,8 +713,14 @@ const HomeChartsPro = () => {
 				<HStack space='sm'>
 					<KpiCard
 						icon={UserCheck}
-						iconColor='#0891b2'
-						iconBg={isDark ? "#0c2a35" : "#ecfeff"}
+						iconColor={
+							isDark ? Colors.dark.tint : Colors.light.tint
+						}
+						iconBg={
+							isDark
+								? Colors.dark.background
+								: Colors.light.background
+						}
 						label='Agents recrutés'
 						value={kpis.uniqueAgents ?? "—"}
 						sub='profils uniques'
@@ -679,8 +728,14 @@ const HomeChartsPro = () => {
 					/>
 					<KpiCard
 						icon={TrendingUp}
-						iconColor='#9333ea'
-						iconBg={isDark ? "#2e0a4a" : "#faf5ff"}
+						iconColor={
+							isDark ? Colors.dark.tint : Colors.light.tint
+						}
+						iconBg={
+							isDark
+								? Colors.dark.background
+								: Colors.light.background
+						}
 						label='Moy. candidatures / mission'
 						value={kpis.avgAppsPerJob ?? "—"}
 						sub='candidatures en moyenne'
@@ -705,7 +760,9 @@ const HomeChartsPro = () => {
 					{/* Sélecteur de période */}
 					<HStack
 						style={{
-							backgroundColor: isDark ? "#111827" : "#f3f4f6",
+							backgroundColor: isDark
+								? Colors.light.text
+								: Colors.light.background,
 							borderRadius: 10,
 							padding: 3,
 						}}>
@@ -722,8 +779,8 @@ const HomeChartsPro = () => {
 										borderRadius: 8,
 										backgroundColor: active
 											? isDark
-												? "#2563eb"
-												: "#2563eb"
+												? Colors.dark.border
+												: Colors.light.cardBackground
 											: "transparent",
 									}}>
 									<Text
@@ -731,10 +788,12 @@ const HomeChartsPro = () => {
 										style={{
 											fontWeight: active ? "700" : "500",
 											color: active
-												? "#ffffff"
+												? isDark
+													? Colors.dark.text
+													: Colors.light.text
 												: isDark
-													? "#6b7280"
-													: "#9ca3af",
+													? Colors.dark.muted
+													: Colors.light.muted,
 										}}>
 										{label}
 									</Text>
@@ -765,8 +824,8 @@ const HomeChartsPro = () => {
 									height: 3,
 									borderRadius: 2,
 									backgroundColor: isDark
-										? "#3b82f6"
-										: "#2563eb",
+										? Colors.dark.tint
+										: Colors.light.tint,
 								}}
 							/>
 							<Text size='xs' style={{ color: textSecondary }}>
@@ -780,8 +839,8 @@ const HomeChartsPro = () => {
 									height: 3,
 									borderRadius: 2,
 									backgroundColor: isDark
-										? "#a78bfa"
-										: "#7c3aed",
+										? Colors.dark.muted
+										: Colors.light.muted,
 								}}
 							/>
 							<Text size='xs' style={{ color: textSecondary }}>
@@ -795,14 +854,30 @@ const HomeChartsPro = () => {
 						width={SCREEN_WIDTH - 96}
 						height={180}
 						spacing={(SCREEN_WIDTH - 96) / (lineData.length + 1)}
-						color1={isDark ? "#3b82f6" : "#2563eb"}
-						color2={isDark ? "#a78bfa" : "#7c3aed"}
+						color1={isDark ? Colors.dark.tint : Colors.light.tint}
+						color2={isDark ? Colors.dark.muted : Colors.light.muted}
 						thickness1={2.5}
 						thickness2={2.5}
-						startFillColor1={isDark ? "#1e3a5f" : "#dbeafe"}
-						endFillColor1={isDark ? "#111827" : "#ffffff"}
-						startFillColor2={isDark ? "#2e1065" : "#f5f3ff"}
-						endFillColor2={isDark ? "#111827" : "#ffffff"}
+						startFillColor1={
+							isDark
+								? Colors.dark.cardBackground
+								: Colors.light.background
+						}
+						endFillColor1={
+							isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground
+						}
+						startFillColor2={
+							isDark
+								? Colors.dark.cardBackground
+								: Colors.light.background
+						}
+						endFillColor2={
+							isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground
+						}
 						startOpacity1={0.35}
 						endOpacity1={0}
 						startOpacity2={0.25}
@@ -816,8 +891,12 @@ const HomeChartsPro = () => {
 							color: labelColor,
 							fontSize: 10,
 						}}
-						dataPointsColor1={isDark ? "#60a5fa" : "#2563eb"}
-						dataPointsColor2={isDark ? "#c4b5fd" : "#7c3aed"}
+						dataPointsColor1={
+							isDark ? Colors.dark.tint : Colors.light.tint
+						}
+						dataPointsColor2={
+							isDark ? Colors.dark.muted : Colors.light.muted
+						}
 						dataPointsRadius={4}
 						noOfSections={4}
 						maxValue={Math.max(
@@ -847,7 +926,9 @@ const HomeChartsPro = () => {
 					</Heading>
 					<HStack
 						style={{
-							backgroundColor: isDark ? "#111827" : "#f3f4f6",
+							backgroundColor: isDark
+								? Colors.light.text
+								: Colors.light.background,
 							borderRadius: 10,
 							padding: 3,
 						}}>
@@ -863,7 +944,9 @@ const HomeChartsPro = () => {
 										paddingVertical: 5,
 										borderRadius: 8,
 										backgroundColor: active
-											? "#2563eb"
+											? isDark
+												? Colors.dark.border
+												: Colors.light.cardBackground
 											: "transparent",
 									}}>
 									<Text
@@ -871,10 +954,12 @@ const HomeChartsPro = () => {
 										style={{
 											fontWeight: active ? "700" : "500",
 											color: active
-												? "#ffffff"
+												? isDark
+													? Colors.dark.text
+													: Colors.light.text
 												: isDark
-													? "#6b7280"
-													: "#9ca3af",
+													? Colors.dark.muted
+													: Colors.light.muted,
 										}}>
 										{label}
 									</Text>
@@ -921,7 +1006,8 @@ const HomeChartsPro = () => {
 										width: 12,
 										height: 12,
 										borderRadius: 3,
-										backgroundColor: CAT_COLORS[0],
+										backgroundColor:
+											getCatColors(isDark)[0],
 									}}
 								/>
 								<Text
@@ -937,8 +1023,8 @@ const HomeChartsPro = () => {
 										height: 3,
 										borderRadius: 2,
 										backgroundColor: isDark
-											? "#a78bfa"
-											: "#7c3aed",
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}
 								/>
 								<Text
@@ -953,10 +1039,14 @@ const HomeChartsPro = () => {
 							showLine
 							lineData={catChartData.lineData}
 							lineConfig={{
-								color: isDark ? "#a78bfa" : "#7c3aed",
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 								thickness: 2.5,
 								curved: false,
-								dataPointsColor: isDark ? "#c4b5fd" : "#7c3aed",
+								dataPointsColor: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 								dataPointsRadius: 5,
 								dataPointsWidth: 5,
 								shiftY: 0,
@@ -986,8 +1076,8 @@ const HomeChartsPro = () => {
 								<Box
 									style={{
 										backgroundColor: isDark
-											? "#374151"
-											: "#1f2937",
+											? Colors.dark.border
+											: Colors.dark.cardBackground,
 										paddingHorizontal: 8,
 										paddingVertical: 4,
 										borderRadius: 6,
@@ -995,7 +1085,7 @@ const HomeChartsPro = () => {
 									}}>
 									<Text
 										style={{
-											color: "#ffffff",
+											color: Colors.light.cardBackground,
 											fontSize: 12,
 											fontWeight: "700",
 										}}>
@@ -1015,20 +1105,31 @@ const HomeChartsPro = () => {
 			{lmKpis.total === 0 ? (
 				<Box
 					style={{
-						backgroundColor: isDark ? "#422006" : "#fefce8",
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.background,
 						borderRadius: 16,
 						borderWidth: 1,
-						borderColor: isDark ? "#92400e" : "#fde68a",
+						borderColor: isDark
+							? Colors.dark.warning
+							: Colors.light.warning,
 						padding: 16,
 						flexDirection: "row",
 						alignItems: "center",
 						gap: 10,
 					}}>
-					<Zap size={18} color={isDark ? "#fbbf24" : "#d97706"} />
+					<Zap
+						size={18}
+						color={
+							isDark ? Colors.dark.warning : Colors.light.warning
+						}
+					/>
 					<VStack style={{ flex: 1 }}>
 						<Text
 							style={{
-								color: isDark ? "#fbbf24" : "#92400e",
+								color: isDark
+									? Colors.dark.warning
+									: Colors.light.warning,
 								fontWeight: "700",
 								fontSize: 14,
 							}}>
@@ -1036,7 +1137,9 @@ const HomeChartsPro = () => {
 						</Text>
 						<Text
 							style={{
-								color: isDark ? "#fcd34d" : "#b45309",
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 								fontSize: 12,
 								marginTop: 2,
 							}}>
@@ -1061,12 +1164,19 @@ const HomeChartsPro = () => {
 									height: 28,
 									borderRadius: 8,
 									backgroundColor: isDark
-										? "#451a03"
-										: "#fff7ed",
+										? Colors.dark.background
+										: Colors.light.background,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
-								<Zap size={15} color='#ea580c' />
+								<Zap
+									size={15}
+									color={
+										isDark
+											? Colors.dark.warning
+											: Colors.light.warning
+									}
+								/>
 							</Box>
 							<Heading size='sm' style={{ color: textPrimary }}>
 								Missions Last Minute
@@ -1076,8 +1186,16 @@ const HomeChartsPro = () => {
 						<HStack space='sm'>
 							<KpiCard
 								icon={Zap}
-								iconColor='#ea580c'
-								iconBg={isDark ? "#451a03" : "#fff7ed"}
+								iconColor={
+									isDark
+										? Colors.dark.warning
+										: Colors.light.warning
+								}
+								iconBg={
+									isDark
+										? Colors.dark.background
+										: Colors.light.background
+								}
 								label='Missions last minute'
 								value={lmKpis.active}
 								sub='actives'
@@ -1093,8 +1211,16 @@ const HomeChartsPro = () => {
 							/>
 							<KpiCard
 								icon={Users}
-								iconColor='#be185d'
-								iconBg={isDark ? "#4a0520" : "#fdf2f8"}
+								iconColor={
+									isDark
+										? Colors.dark.tint
+										: Colors.light.tint
+								}
+								iconBg={
+									isDark
+										? Colors.dark.background
+										: Colors.light.background
+								}
 								label='Candidatures reçues'
 								value={lmKpis.apps}
 								sub='sur missions LM'
@@ -1113,16 +1239,32 @@ const HomeChartsPro = () => {
 						<HStack space='sm'>
 							<KpiCard
 								icon={Target}
-								iconColor='#16a34a'
-								iconBg={isDark ? "#052e16" : "#f0fdf4"}
+								iconColor={
+									isDark
+										? Colors.dark.success
+										: Colors.light.success
+								}
+								iconBg={
+									isDark
+										? Colors.dark.background
+										: Colors.light.background
+								}
 								label='Taux de pourvoi LM'
 								value={`${lmKpis.fillRate} %`}
 								isDark={isDark}
 							/>
 							<KpiCard
 								icon={Timer}
-								iconColor='#0891b2'
-								iconBg={isDark ? "#0c2a35" : "#ecfeff"}
+								iconColor={
+									isDark
+										? Colors.dark.tint
+										: Colors.light.tint
+								}
+								iconBg={
+									isDark
+										? Colors.dark.background
+										: Colors.light.background
+								}
 								label='Temps moyen pourvoi LM'
 								value={(() => {
 									if (lmKpis.avgMs === null) return "—";
@@ -1157,8 +1299,16 @@ const HomeChartsPro = () => {
 						<HStack space='sm'>
 							<KpiCard
 								icon={UserCheck}
-								iconColor='#0891b2'
-								iconBg={isDark ? "#0c2a35" : "#ecfeff"}
+								iconColor={
+									isDark
+										? Colors.dark.tint
+										: Colors.light.tint
+								}
+								iconBg={
+									isDark
+										? Colors.dark.background
+										: Colors.light.background
+								}
 								label='Agents recrutés LM'
 								value={lmKpis.uniqueAgents ?? "—"}
 								sub='profils uniques'
@@ -1166,8 +1316,16 @@ const HomeChartsPro = () => {
 							/>
 							<KpiCard
 								icon={TrendingUp}
-								iconColor='#9333ea'
-								iconBg={isDark ? "#2e0a4a" : "#faf5ff"}
+								iconColor={
+									isDark
+										? Colors.dark.tint
+										: Colors.light.tint
+								}
+								iconBg={
+									isDark
+										? Colors.dark.background
+										: Colors.light.background
+								}
 								label='Moy. candidatures / mission LM'
 								value={lmKpis.avgAppsPerJob ?? "—"}
 								sub='candidatures en moyenne'
@@ -1192,8 +1350,8 @@ const HomeChartsPro = () => {
 							<HStack
 								style={{
 									backgroundColor: isDark
-										? "#111827"
-										: "#f3f4f6",
+										? Colors.dark.background
+										: Colors.light.border,
 									borderRadius: 10,
 									padding: 3,
 								}}>
@@ -1209,7 +1367,10 @@ const HomeChartsPro = () => {
 												paddingVertical: 5,
 												borderRadius: 8,
 												backgroundColor: active
-													? "#ea580c"
+													? isDark
+														? Colors.dark.border
+														: Colors.light
+																.cardBackground
 													: "transparent",
 											}}>
 											<Text
@@ -1219,10 +1380,13 @@ const HomeChartsPro = () => {
 														? "700"
 														: "500",
 													color: active
-														? "#ffffff"
+														? isDark
+															? Colors.dark.text
+															: Colors.light.text
 														: isDark
-															? "#6b7280"
-															: "#9ca3af",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 												}}>
 												{label}
 											</Text>
@@ -1257,8 +1421,8 @@ const HomeChartsPro = () => {
 											height: 3,
 											borderRadius: 2,
 											backgroundColor: isDark
-												? "#fb923c"
-												: "#ea580c",
+												? Colors.dark.warning
+												: Colors.light.warning,
 										}}
 									/>
 									<Text
@@ -1276,8 +1440,8 @@ const HomeChartsPro = () => {
 											height: 3,
 											borderRadius: 2,
 											backgroundColor: isDark
-												? "#a78bfa"
-												: "#7c3aed",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}
 									/>
 									<Text
@@ -1296,14 +1460,38 @@ const HomeChartsPro = () => {
 									(SCREEN_WIDTH - 96) /
 									(lmLineData.length + 1)
 								}
-								color1={isDark ? "#fb923c" : "#ea580c"}
-								color2={isDark ? "#a78bfa" : "#7c3aed"}
+								color1={
+									isDark
+										? Colors.dark.warning
+										: Colors.light.warning
+								}
+								color2={
+									isDark
+										? Colors.dark.muted
+										: Colors.light.muted
+								}
 								thickness1={2.5}
 								thickness2={2.5}
-								startFillColor1={isDark ? "#431407" : "#ffedd5"}
-								endFillColor1={isDark ? "#111827" : "#ffffff"}
-								startFillColor2={isDark ? "#2e1065" : "#f5f3ff"}
-								endFillColor2={isDark ? "#111827" : "#ffffff"}
+								startFillColor1={
+									isDark
+										? Colors.dark.background
+										: Colors.light.background
+								}
+								endFillColor1={
+									isDark
+										? Colors.dark.background
+										: Colors.light.cardBackground
+								}
+								startFillColor2={
+									isDark
+										? Colors.dark.cardBackground
+										: Colors.light.background
+								}
+								endFillColor2={
+									isDark
+										? Colors.dark.background
+										: Colors.light.cardBackground
+								}
 								startOpacity1={0.35}
 								endOpacity1={0}
 								startOpacity2={0.25}
@@ -1321,10 +1509,14 @@ const HomeChartsPro = () => {
 									fontSize: 10,
 								}}
 								dataPointsColor1={
-									isDark ? "#fb923c" : "#ea580c"
+									isDark
+										? Colors.dark.warning
+										: Colors.light.warning
 								}
 								dataPointsColor2={
-									isDark ? "#c4b5fd" : "#7c3aed"
+									isDark
+										? Colors.dark.muted
+										: Colors.light.muted
 								}
 								dataPointsRadius={4}
 								noOfSections={4}
@@ -1356,8 +1548,8 @@ const HomeChartsPro = () => {
 							<HStack
 								style={{
 									backgroundColor: isDark
-										? "#111827"
-										: "#f3f4f6",
+										? Colors.dark.background
+										: Colors.light.border,
 									borderRadius: 10,
 									padding: 3,
 								}}>
@@ -1373,7 +1565,10 @@ const HomeChartsPro = () => {
 												paddingVertical: 5,
 												borderRadius: 8,
 												backgroundColor: active
-													? "#ea580c"
+													? isDark
+														? Colors.dark.border
+														: Colors.light
+																.cardBackground
 													: "transparent",
 											}}>
 											<Text
@@ -1383,10 +1578,13 @@ const HomeChartsPro = () => {
 														? "700"
 														: "500",
 													color: active
-														? "#ffffff"
+														? isDark
+															? Colors.dark.text
+															: Colors.light.text
 														: isDark
-															? "#6b7280"
-															: "#9ca3af",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 												}}>
 												{label}
 											</Text>
@@ -1438,7 +1636,8 @@ const HomeChartsPro = () => {
 												width: 12,
 												height: 12,
 												borderRadius: 3,
-												backgroundColor: CAT_COLORS[0],
+												backgroundColor:
+													getCatColors(isDark)[0],
 											}}
 										/>
 										<Text
@@ -1458,8 +1657,8 @@ const HomeChartsPro = () => {
 												height: 3,
 												borderRadius: 2,
 												backgroundColor: isDark
-													? "#a78bfa"
-													: "#7c3aed",
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}
 										/>
 										<Text
@@ -1474,12 +1673,14 @@ const HomeChartsPro = () => {
 									showLine
 									lineData={lmCatChartData.lineData}
 									lineConfig={{
-										color: isDark ? "#a78bfa" : "#7c3aed",
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										thickness: 2.5,
 										curved: false,
 										dataPointsColor: isDark
-											? "#c4b5fd"
-											: "#7c3aed",
+											? Colors.dark.muted
+											: Colors.light.muted,
 										dataPointsRadius: 5,
 										dataPointsWidth: 5,
 										shiftY: 0,
@@ -1516,8 +1717,9 @@ const HomeChartsPro = () => {
 										<Box
 											style={{
 												backgroundColor: isDark
-													? "#374151"
-													: "#1f2937",
+													? Colors.dark.border
+													: Colors.dark
+															.cardBackground,
 												paddingHorizontal: 8,
 												paddingVertical: 4,
 												borderRadius: 6,
@@ -1525,7 +1727,8 @@ const HomeChartsPro = () => {
 											}}>
 											<Text
 												style={{
-													color: "#ffffff",
+													color: Colors.light
+														.cardBackground,
 													fontSize: 12,
 													fontWeight: "700",
 												}}>
@@ -1563,14 +1766,18 @@ const HomeChartsPro = () => {
 							<Heading
 								size='sm'
 								style={{
-									color: isDark ? "#f9fafb" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Top agents
 							</Heading>
 							<Text
 								size='xs'
 								style={{
-									color: isDark ? "#6b7280" : "#9ca3af",
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 								}}>
 								contrats signés
 							</Text>
@@ -1585,10 +1792,12 @@ const HomeChartsPro = () => {
 									paddingHorizontal: 14,
 									borderRadius: 12,
 									borderWidth: 1,
-									borderColor: isDark ? "#374151" : "#e5e7eb",
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 									backgroundColor: isDark
-										? "#1f2937"
-										: "#ffffff",
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 								}}>
 								{/* Rang */}
 								<Box
@@ -1597,8 +1806,8 @@ const HomeChartsPro = () => {
 										height: 28,
 										borderRadius: 8,
 										backgroundColor: isDark
-											? "#374151"
-											: "#f3f4f6",
+											? Colors.dark.border
+											: Colors.light.background,
 										alignItems: "center",
 										justifyContent: "center",
 									}}>
@@ -1607,8 +1816,8 @@ const HomeChartsPro = () => {
 										style={{
 											fontWeight: "700",
 											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										#{idx + 1}
 									</Text>
@@ -1630,8 +1839,8 @@ const HomeChartsPro = () => {
 											height: 36,
 											borderRadius: 18,
 											backgroundColor: isDark
-												? "#374151"
-												: "#e5e7eb",
+												? Colors.dark.border
+												: Colors.light.border,
 											alignItems: "center",
 											justifyContent: "center",
 										}}>
@@ -1639,8 +1848,8 @@ const HomeChartsPro = () => {
 											style={{
 												fontWeight: "700",
 												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+													? Colors.dark.muted
+													: Colors.light.muted,
 												fontSize: 14,
 											}}>
 											{(
@@ -1656,8 +1865,8 @@ const HomeChartsPro = () => {
 										style={{
 											fontWeight: "600",
 											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+												? Colors.light.background
+												: Colors.light.text,
 										}}>
 										{agent.firstname ?? ""}{" "}
 										{agent.lastname ?? ""}
@@ -1672,8 +1881,8 @@ const HomeChartsPro = () => {
 											fontWeight: "700",
 											fontSize: 16,
 											color: isDark
-												? "#fbbf24"
-												: "#d97706",
+												? Colors.dark.warning
+												: Colors.light.warning,
 										}}>
 										{agent.count}
 									</Text>
@@ -1681,8 +1890,8 @@ const HomeChartsPro = () => {
 										size='xs'
 										style={{
 											color: isDark
-												? "#6b7280"
-												: "#9ca3af",
+												? Colors.light.muted
+												: Colors.dark.muted,
 										}}>
 										contrat{agent.count > 1 ? "s" : ""}
 									</Text>

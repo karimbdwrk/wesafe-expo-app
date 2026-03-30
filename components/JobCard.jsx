@@ -3,6 +3,7 @@ import { TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { toast } from "sonner-native";
@@ -156,13 +157,13 @@ const JobCard = ({
 			activeOpacity={0.7}>
 			<Card
 				style={{
-					backgroundColor: isDark ? "#374151" : "#ffffff",
+					backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 					borderRadius: 8,
 					padding: 16,
 					paddingBottom: 20,
 					marginBottom: 12,
 					borderWidth: 1,
-					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+					borderColor: isDark ? Colors.dark.border : Colors.light.border,
 					flexDirection: "row",
 					justifyContent: "space-between",
 				}}>
@@ -181,10 +182,8 @@ const JobCard = ({
 							size='xl'
 							style={{
 								color: isInWishlist
-									? "#3b82f6"
-									: isDark
-										? "#9ca3af"
-										: "#6b7280",
+									? Colors.light.tint
+									: isDark ? Colors.dark.muted : Colors.light.muted,
 							}}
 						/>
 					</TouchableOpacity>
@@ -244,7 +243,7 @@ const JobCard = ({
 							<Heading
 								size='lg'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark ? Colors.dark.text : Colors.light.text,
 									lineHeight: 24,
 								}}>
 								{title}
@@ -260,15 +259,13 @@ const JobCard = ({
 										<Sparkles
 											size={11}
 											color={
-												isDark ? "#fbbf24" : "#d97706"
+												isDark ? Colors.dark.warning : Colors.light.warning
 											}
 										/>
 										<Text
 											size='xs'
 											style={{
-												color: isDark
-													? "#fbbf24"
-													: "#d97706",
+												color: isDark ? Colors.dark.warning : Colors.light.warning,
 												fontWeight: "500",
 											}}>
 											Annonce sponsorisée
@@ -293,12 +290,12 @@ const JobCard = ({
 								}}>
 								{/* <Building2
 									size={14}
-									color={isDark ? "#f3f4f6" : "#111827"}
+									color={isDark ? Colors.dark.text : Colors.light.text}
 								/> */}
 								<Text
 									size='md'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark ? Colors.dark.text : Colors.light.text,
 										fontWeight: "500",
 									}}>
 									{company_name || "Entreprise"}
@@ -313,14 +310,12 @@ const JobCard = ({
 									}}>
 									<MapPin
 										size={12}
-										color={isDark ? "#9ca3af" : "#6b7280"}
+										color={isDark ? Colors.dark.muted : Colors.light.muted}
 									/>
 									<Text
 										size='sm'
 										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+											color: isDark ? Colors.dark.muted : Colors.light.muted,
 										}}>
 										{city + " (" + postcode + ")"}
 									</Text>
@@ -390,12 +385,12 @@ const JobCard = ({
 							}}>
 							<Calendar
 								size={13}
-								color={isDark ? "#9ca3af" : "#6b7280"}
+								color={isDark ? Colors.dark.muted : Colors.light.muted}
 							/>
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: isDark ? Colors.dark.muted : Colors.light.muted,
 								}}>
 								{formatVacDate(parsedVacations[0].date)}
 								{parsedVacations[0].start_time &&
@@ -427,15 +422,13 @@ const JobCard = ({
 								}}>
 								<Calendar
 									size={13}
-									color={isDark ? "#9ca3af" : "#6b7280"}
+									color={isDark ? Colors.dark.muted : Colors.light.muted}
 								/>
 								{start_date_asap ? (
 									<Text
 										size='sm'
 										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+											color: isDark ? Colors.dark.muted : Colors.light.muted,
 										}}>
 										Dès que possible
 									</Text>
@@ -443,9 +436,7 @@ const JobCard = ({
 									<Text
 										size='sm'
 										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+											color: isDark ? Colors.dark.muted : Colors.light.muted,
 										}}>
 										{formatVacDate(start_date)}
 										{contract_type?.toLowerCase() ===
@@ -468,7 +459,7 @@ const JobCard = ({
 						as={ChevronRight}
 						size='lg'
 						style={{
-							color: isDark ? "#9ca3af" : "#6b7280",
+							color: isDark ? Colors.dark.muted : Colors.light.muted,
 						}}
 					/>
 				</HStack>

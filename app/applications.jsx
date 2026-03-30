@@ -26,6 +26,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -239,7 +240,7 @@ const ApplicationsScreen = () => {
 				ref={scrollRef}
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 				}}
 				contentContainerStyle={{
 					paddingBottom: totalPages > 1 ? 80 : 0,
@@ -260,7 +261,7 @@ const ApplicationsScreen = () => {
 					{!applications.length && (
 						<Card
 							style={{
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 								borderRadius: 12,
 								padding: 40,
 								alignItems: "center",
@@ -270,9 +271,7 @@ const ApplicationsScreen = () => {
 									width: 80,
 									height: 80,
 									borderRadius: 40,
-									backgroundColor: isDark
-										? "#1f2937"
-										: "#f3f4f6",
+									backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 									justifyContent: "center",
 									alignItems: "center",
 									marginBottom: 16,
@@ -280,13 +279,13 @@ const ApplicationsScreen = () => {
 								<Icon
 									as={Inbox}
 									size={40}
-									color={isDark ? "#9ca3af" : "#6b7280"}
+									color={isDark ? Colors.dark.muted : Colors.light.muted}
 								/>
 							</Box>
 							<Heading
 								size='md'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark ? Colors.dark.text : Colors.light.text,
 									marginBottom: 8,
 								}}>
 								Aucune candidature
@@ -294,7 +293,7 @@ const ApplicationsScreen = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: isDark ? Colors.dark.muted : Colors.light.muted,
 									textAlign: "center",
 								}}>
 								Vous n'avez pas encore postulé à une offre
@@ -339,7 +338,7 @@ const ApplicationsScreen = () => {
 						left: 0,
 						right: 0,
 						bottom: 0,
-						backgroundColor: isDark ? "#23272f" : "#fff",
+						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 						shadowColor: "#000",
 						shadowOffset: { width: 0, height: -2 },
 						shadowOpacity: 0.08,
@@ -360,17 +359,17 @@ const ApplicationsScreen = () => {
 							onPress={handlePrev}
 							variant='outline'
 							style={{
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark ? Colors.dark.border : Colors.light.border,
 								borderRadius: 12,
 							}}>
 							<ButtonIcon
 								as={ChevronLeft}
-								color={isDark ? "#f3f4f6" : "#111827"}
+								color={isDark ? Colors.dark.text : Colors.light.text}
 							/>
 						</Button>
 						<Text
 							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: isDark ? Colors.dark.text : Colors.light.text,
 								fontWeight: "600",
 								fontSize: 16,
 							}}>
@@ -381,12 +380,12 @@ const ApplicationsScreen = () => {
 							onPress={handleNext}
 							variant='outline'
 							style={{
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark ? Colors.dark.border : Colors.light.border,
 								borderRadius: 12,
 							}}>
 							<ButtonIcon
 								as={ChevronRight}
-								color={isDark ? "#f3f4f6" : "#111827"}
+								color={isDark ? Colors.dark.text : Colors.light.text}
 							/>
 						</Button>
 					</HStack>

@@ -48,6 +48,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { TOGGLE_WISHLIST_JOB, ARCHIVE_JOB } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 import {
 	Bookmark,
@@ -314,7 +315,9 @@ const JobScreen = () => {
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.background,
 			}}>
 			<Stack.Screen
 				options={{
@@ -336,7 +339,9 @@ const JobScreen = () => {
 						flex: 1,
 						justifyContent: "center",
 						alignItems: "center",
-						backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+						backgroundColor: isDark
+							? Colors.dark.background
+							: Colors.light.background,
 					}}>
 					<Spinner />
 				</Box>
@@ -353,10 +358,14 @@ const JobScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<VStack space='md'>
 								<HStack
@@ -389,8 +398,8 @@ const JobScreen = () => {
 												size='xl'
 												style={{
 													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+														? Colors.dark.text
+														: Colors.light.text,
 													paddingRight:
 														job?.isLastMinute
 															? 35
@@ -417,10 +426,11 @@ const JobScreen = () => {
 												size='xl'
 												style={{
 													color: isInWishlist
-														? "#3b82f6"
+														? Colors.light.tint
 														: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 												}}
 											/>
 										</TouchableOpacity>
@@ -453,8 +463,8 @@ const JobScreen = () => {
 												size='md'
 												style={{
 													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+														? Colors.dark.text
+														: Colors.light.text,
 													fontWeight: "500",
 												}}>
 												{job?.companies?.name ||
@@ -472,16 +482,17 @@ const JobScreen = () => {
 													size={12}
 													color={
 														isDark
-															? "#9ca3af"
-															: "#6b7280"
+															? Colors.dark.muted
+															: Colors.light.muted
 													}
 												/>
 												<Text
 													size='sm'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}>
 													{job?.city +
 														" (" +
@@ -591,15 +602,17 @@ const JobScreen = () => {
 										<Bookmark
 											size={11}
 											color={
-												isDark ? "#9ca3af" : "#6b7280"
+												isDark
+													? Colors.dark.muted
+													: Colors.light.muted
 											}
 										/>
 										<Text
 											size='xs'
 											style={{
 												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}>
 											{wishlistCount} candidat
 											{wishlistCount > 1 ? "s" : ""}{" "}
@@ -615,10 +628,14 @@ const JobScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<VStack space='md'>
 								<HStack
@@ -629,22 +646,28 @@ const JobScreen = () => {
 											width: 48,
 											height: 48,
 											borderRadius: 24,
-											backgroundColor: "#dbeafe",
+											backgroundColor: isDark
+												? Colors.dark.background
+												: Colors.light.background,
 											justifyContent: "center",
 											alignItems: "center",
 										}}>
 										<Icon
 											as={Briefcase}
 											size='xl'
-											style={{ color: "#2563eb" }}
+											style={{
+												color: isDark
+													? Colors.dark.tint
+													: Colors.light.tint,
+											}}
 										/>
 									</Box>
 									<Heading
 										size='lg'
 										style={{
 											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+												? Colors.dark.text
+												: Colors.light.text,
 										}}>
 										Description du poste
 									</Heading>
@@ -653,15 +676,17 @@ const JobScreen = () => {
 								<Divider
 									style={{
 										backgroundColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
+											? Colors.dark.border
+											: Colors.light.border,
 									}}
 								/>
 
 								<Text
 									size='md'
 									style={{
-										color: isDark ? "#d1d5db" : "#374151",
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										lineHeight: 22,
 									}}>
 									{job?.description ||
@@ -675,8 +700,8 @@ const JobScreen = () => {
 											style={{
 												fontWeight: "600",
 												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											Missions principales :
 										</Text>
@@ -695,8 +720,12 @@ const JobScreen = () => {
 														<Text
 															style={{
 																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															•
 														</Text>
@@ -705,8 +734,12 @@ const JobScreen = () => {
 															style={{
 																flex: 1,
 																color: isDark
-																	? "#d1d5db"
-																	: "#374151",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															{mission}
 														</Text>
@@ -723,10 +756,14 @@ const JobScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<VStack space='md'>
 								<HStack
@@ -737,22 +774,28 @@ const JobScreen = () => {
 											width: 48,
 											height: 48,
 											borderRadius: 24,
-											backgroundColor: "#dcfce7",
+											backgroundColor: isDark
+												? Colors.dark.background
+												: Colors.light.background,
 											justifyContent: "center",
 											alignItems: "center",
 										}}>
 										<Icon
 											as={Users}
 											size='xl'
-											style={{ color: "#16a34a" }}
+											style={{
+												color: isDark
+													? Colors.dark.tint
+													: Colors.light.tint,
+											}}
 										/>
 									</Box>
 									<Heading
 										size='lg'
 										style={{
 											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+												? Colors.dark.text
+												: Colors.light.text,
 										}}>
 										Profil recherché
 									</Heading>
@@ -761,8 +804,8 @@ const JobScreen = () => {
 								<Divider
 									style={{
 										backgroundColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
+											? Colors.dark.border
+											: Colors.light.border,
 									}}
 								/>
 
@@ -775,8 +818,8 @@ const JobScreen = () => {
 												style={{
 													fontWeight: "600",
 													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Profil recherché :
 											</Text>
@@ -796,8 +839,12 @@ const JobScreen = () => {
 														<Text
 															style={{
 																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															✓
 														</Text>
@@ -806,8 +853,12 @@ const JobScreen = () => {
 															style={{
 																flex: 1,
 																color: isDark
-																	? "#d1d5db"
-																	: "#374151",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															{profile}
 														</Text>
@@ -824,8 +875,8 @@ const JobScreen = () => {
 												style={{
 													fontWeight: "600",
 													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Diplômes requis :
 											</Text>
@@ -845,8 +896,12 @@ const JobScreen = () => {
 														<Text
 															style={{
 																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															✓
 														</Text>
@@ -855,8 +910,12 @@ const JobScreen = () => {
 															style={{
 																flex: 1,
 																color: isDark
-																	? "#d1d5db"
-																	: "#374151",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															{diploma}
 														</Text>
@@ -874,8 +933,8 @@ const JobScreen = () => {
 												style={{
 													fontWeight: "600",
 													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Certifications requises :
 											</Text>
@@ -895,8 +954,12 @@ const JobScreen = () => {
 														<Text
 															style={{
 																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															✓
 														</Text>
@@ -905,8 +968,12 @@ const JobScreen = () => {
 															style={{
 																flex: 1,
 																color: isDark
-																	? "#d1d5db"
-																	: "#374151",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															{cert}
 														</Text>
@@ -923,8 +990,8 @@ const JobScreen = () => {
 												style={{
 													fontWeight: "600",
 													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Permis requis :
 											</Text>
@@ -944,8 +1011,12 @@ const JobScreen = () => {
 														<Text
 															style={{
 																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															✓
 														</Text>
@@ -954,8 +1025,12 @@ const JobScreen = () => {
 															style={{
 																flex: 1,
 																color: isDark
-																	? "#d1d5db"
-																	: "#374151",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															{license}
 														</Text>
@@ -972,8 +1047,8 @@ const JobScreen = () => {
 												style={{
 													fontWeight: "600",
 													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Langues requises :
 											</Text>
@@ -993,8 +1068,12 @@ const JobScreen = () => {
 														<Text
 															style={{
 																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															✓
 														</Text>
@@ -1003,8 +1082,12 @@ const JobScreen = () => {
 															style={{
 																flex: 1,
 																color: isDark
-																	? "#d1d5db"
-																	: "#374151",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															{language}
 														</Text>
@@ -1021,10 +1104,14 @@ const JobScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<VStack space='md'>
 								<HStack
@@ -1035,22 +1122,28 @@ const JobScreen = () => {
 											width: 48,
 											height: 48,
 											borderRadius: 24,
-											backgroundColor: "#fef3c7",
+											backgroundColor: isDark
+												? Colors.dark.background
+												: Colors.light.background,
 											justifyContent: "center",
 											alignItems: "center",
 										}}>
 										<Icon
 											as={Clock}
 											size='xl'
-											style={{ color: "#f59e0b" }}
+											style={{
+												color: isDark
+													? Colors.dark.tint
+													: Colors.light.tint,
+											}}
 										/>
 									</Box>
 									<Heading
 										size='lg'
 										style={{
 											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+												? Colors.dark.text
+												: Colors.light.text,
 										}}>
 										Conditions
 									</Heading>
@@ -1059,8 +1152,8 @@ const JobScreen = () => {
 								<Divider
 									style={{
 										backgroundColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
+											? Colors.dark.border
+											: Colors.light.border,
 									}}
 								/>
 
@@ -1074,8 +1167,8 @@ const JobScreen = () => {
 											size='sm'
 											style={{
 												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}>
 											Type de contrat
 										</Text>
@@ -1084,8 +1177,8 @@ const JobScreen = () => {
 											style={{
 												fontWeight: "600",
 												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											{mapContractType(
 												job?.contract_type,
@@ -1095,8 +1188,8 @@ const JobScreen = () => {
 									<Divider
 										style={{
 											backgroundColor: isDark
-												? "#374151"
-												: "#f3f4f6",
+												? Colors.dark.cardBackground
+												: Colors.light.background,
 										}}
 									/>
 									<HStack
@@ -1108,8 +1201,8 @@ const JobScreen = () => {
 											size='sm'
 											style={{
 												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}>
 											Temps de travail
 										</Text>
@@ -1118,8 +1211,8 @@ const JobScreen = () => {
 											style={{
 												fontWeight: "600",
 												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											{mapWorkTime(job?.work_time) ||
 												"Non spécifié"}
@@ -1128,8 +1221,8 @@ const JobScreen = () => {
 									<Divider
 										style={{
 											backgroundColor: isDark
-												? "#374151"
-												: "#f3f4f6",
+												? Colors.dark.cardBackground
+												: Colors.light.background,
 										}}
 									/>
 									<HStack
@@ -1141,8 +1234,8 @@ const JobScreen = () => {
 											size='sm'
 											style={{
 												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}>
 											Salaire
 										</Text>
@@ -1151,8 +1244,8 @@ const JobScreen = () => {
 											style={{
 												fontWeight: "600",
 												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											{formatSalary(job)}
 										</Text>
@@ -1160,8 +1253,8 @@ const JobScreen = () => {
 									<Divider
 										style={{
 											backgroundColor: isDark
-												? "#374151"
-												: "#f3f4f6",
+												? Colors.dark.cardBackground
+												: Colors.light.background,
 										}}
 									/>
 									<HStack
@@ -1173,8 +1266,8 @@ const JobScreen = () => {
 											size='sm'
 											style={{
 												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}>
 											Horaires
 										</Text>
@@ -1183,8 +1276,8 @@ const JobScreen = () => {
 											style={{
 												fontWeight: "600",
 												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											{mapWorkSchedule(
 												job?.work_schedule,
@@ -1197,8 +1290,10 @@ const JobScreen = () => {
 											<Divider
 												style={{
 													backgroundColor: isDark
-														? "#374151"
-														: "#f3f4f6",
+														? Colors.dark
+																.cardBackground
+														: Colors.light
+																.background,
 												}}
 											/>
 											<HStack
@@ -1212,8 +1307,9 @@ const JobScreen = () => {
 													size='sm'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}>
 													Vacations
 												</Text>
@@ -1232,8 +1328,12 @@ const JobScreen = () => {
 																fontWeight:
 																	"600",
 																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 															}}>
 															{formatVacationDate(
 																v.date,
@@ -1254,8 +1354,10 @@ const JobScreen = () => {
 											<Divider
 												style={{
 													backgroundColor: isDark
-														? "#374151"
-														: "#f3f4f6",
+														? Colors.dark
+																.cardBackground
+														: Colors.light
+																.background,
 												}}
 											/>
 											<HStack
@@ -1268,8 +1370,9 @@ const JobScreen = () => {
 													size='sm'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}>
 													Dates
 												</Text>
@@ -1278,8 +1381,8 @@ const JobScreen = () => {
 													style={{
 														fontWeight: "600",
 														color: isDark
-															? "#f3f4f6"
-															: "#111827",
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													{job?.start_date_asap
 														? "Dès que possible"
@@ -1309,8 +1412,10 @@ const JobScreen = () => {
 											<Divider
 												style={{
 													backgroundColor: isDark
-														? "#374151"
-														: "#f3f4f6",
+														? Colors.dark
+																.cardBackground
+														: Colors.light
+																.background,
 												}}
 											/>
 											<HStack
@@ -1323,8 +1428,9 @@ const JobScreen = () => {
 													size='sm'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}>
 													Heures
 												</Text>
@@ -1333,8 +1439,8 @@ const JobScreen = () => {
 													style={{
 														fontWeight: "600",
 														color: isDark
-															? "#f3f4f6"
-															: "#111827",
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													{job?.start_time &&
 														job.start_time.slice(
@@ -1361,8 +1467,10 @@ const JobScreen = () => {
 											<Divider
 												style={{
 													backgroundColor: isDark
-														? "#374151"
-														: "#f3f4f6",
+														? Colors.dark
+																.cardBackground
+														: Colors.light
+																.background,
 												}}
 											/>
 											<HStack
@@ -1376,8 +1484,9 @@ const JobScreen = () => {
 													size='sm'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}>
 													Avantages
 												</Text>
@@ -1393,8 +1502,12 @@ const JobScreen = () => {
 																fontWeight:
 																	"600",
 																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 															}}>
 															Panier repas
 														</Text>
@@ -1406,8 +1519,12 @@ const JobScreen = () => {
 																fontWeight:
 																	"600",
 																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 															}}>
 															Hébergement
 														</Text>
@@ -1426,8 +1543,12 @@ const JobScreen = () => {
 																	fontWeight:
 																		"600",
 																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																}}>
 																{reimbursement}
 															</Text>
@@ -1448,13 +1569,13 @@ const JobScreen = () => {
 									style={{
 										padding: 0,
 										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
 										borderRadius: 12,
 										borderWidth: 1,
 										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
+											? Colors.dark.border
+											: Colors.light.border,
 										overflow: "hidden",
 									}}>
 									<Accordion type='single' variant='unfilled'>
@@ -1511,8 +1632,12 @@ const JobScreen = () => {
 																		size='xs'
 																		style={{
 																			color: isDark
-																				? "#9ca3af"
-																				: "#6b7280",
+																				? Colors
+																						.dark
+																						.muted
+																				: Colors
+																						.light
+																						.muted,
 																		}}>
 																		Entreprise
 																	</Text>
@@ -1522,8 +1647,12 @@ const JobScreen = () => {
 																			fontWeight:
 																				"600",
 																			color: isDark
-																				? "#f3f4f6"
-																				: "#111827",
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																		}}>
 																		{
 																			job
@@ -1541,8 +1670,12 @@ const JobScreen = () => {
 																	size='lg'
 																	style={{
 																		color: isDark
-																			? "#9ca3af"
-																			: "#6b7280",
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 																	}}
 																/>
 															</HStack>
@@ -1560,8 +1693,12 @@ const JobScreen = () => {
 														style={{
 															backgroundColor:
 																isDark
-																	? "#4b5563"
-																	: "#e5e7eb",
+																	? Colors
+																			.dark
+																			.border
+																	: Colors
+																			.light
+																			.border,
 														}}
 													/>
 
@@ -1573,8 +1710,12 @@ const JobScreen = () => {
 																fontWeight:
 																	"600",
 																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 															}}>
 															À propos
 														</Text>
@@ -1582,8 +1723,12 @@ const JobScreen = () => {
 															size='sm'
 															style={{
 																color: isDark
-																	? "#d1d5db"
-																	: "#374151",
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 																lineHeight: 20,
 															}}>
 															{job.companies
@@ -1606,7 +1751,7 @@ const JobScreen = () => {
 																height: 40,
 																borderRadius: 20,
 																backgroundColor:
-																	"#fef3c7",
+																	isDark ? Colors.dark.background : Colors.light.background,
 																justifyContent:
 																	"center",
 																alignItems:
@@ -1624,9 +1769,7 @@ const JobScreen = () => {
 															<Text
 																size='xs'
 																style={{
-																	color: isDark
-																		? "#9ca3af"
-																		: "#6b7280",
+																	color: isDark ? Colors.dark.muted : Colors.light.muted,
 																}}>
 																Localisation
 															</Text>
@@ -1635,9 +1778,7 @@ const JobScreen = () => {
 																style={{
 																	fontWeight:
 																		"500",
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
+																	color: isDark ? Colors.dark.text : Colors.light.text,
 																}}>
 																{job.city} (
 																{
@@ -1663,7 +1804,7 @@ const JobScreen = () => {
 																height: 40,
 																borderRadius: 20,
 																backgroundColor:
-																	"#dbeafe",
+																	isDark ? Colors.dark.background : Colors.light.background,
 																justifyContent:
 																	"center",
 																alignItems:
@@ -1681,9 +1822,7 @@ const JobScreen = () => {
 															<Text
 																size='xs'
 																style={{
-																	color: isDark
-																		? "#9ca3af"
-																		: "#6b7280",
+																	color: isDark ? Colors.dark.muted : Colors.light.muted,
 																}}>
 																Email
 															</Text>
@@ -1692,9 +1831,7 @@ const JobScreen = () => {
 																style={{
 																	fontWeight:
 																		"500",
-																	color: isDark
-																		? "#f3f4f6"
-																		: "#111827",
+																	color: isDark ? Colors.dark.text : Colors.light.text,
 																}}>
 																{
 																	job
@@ -1718,7 +1855,7 @@ const JobScreen = () => {
 															height: 40,
 															borderRadius: 20,
 															backgroundColor:
-																"#dcfce7",
+																isDark ? Colors.dark.background : Colors.light.background,
 															justifyContent:
 																"center",
 															alignItems:
@@ -1736,9 +1873,7 @@ const JobScreen = () => {
 														<Text
 															size='xs'
 															style={{
-																color: isDark
-																	? "#9ca3af"
-																	: "#6b7280",
+																color: isDark ? Colors.dark.muted : Colors.light.muted,
 															}}>
 															Téléphone
 														</Text>
@@ -1747,9 +1882,7 @@ const JobScreen = () => {
 															style={{
 																fontWeight:
 																	"500",
-																color: isDark
-																	? "#f3f4f6"
-																	: "#111827",
+																color: isDark ? Colors.dark.text : Colors.light.text,
 															}}>
 															{job.companies
 																.phone ||
@@ -1791,11 +1924,13 @@ const JobScreen = () => {
 								style={{
 									padding: 20,
 									backgroundColor: isDark
-										? "#374151"
-										: "#ffffff",
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 									borderRadius: 12,
 									borderWidth: 1,
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 								}}>
 								<VStack space='md'>
 									<HStack
@@ -1806,22 +1941,28 @@ const JobScreen = () => {
 												width: 48,
 												height: 48,
 												borderRadius: 24,
-												backgroundColor: "#dcfce7",
+												backgroundColor: isDark
+													? Colors.dark.background
+													: Colors.light.background,
 												justifyContent: "center",
 												alignItems: "center",
 											}}>
 											<Icon
 												as={Users}
 												size='xl'
-												style={{ color: "#16a34a" }}
+												style={{
+													color: isDark
+														? Colors.dark.tint
+														: Colors.light.tint,
+												}}
 											/>
 										</Box>
 										<Heading
 											size='lg'
 											style={{
 												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											Candidats
 										</Heading>
@@ -1830,8 +1971,8 @@ const JobScreen = () => {
 									<Divider
 										style={{
 											backgroundColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
+												? Colors.dark.border
+												: Colors.light.border,
 										}}
 									/>
 
@@ -1847,8 +1988,12 @@ const JobScreen = () => {
 																style={{
 																	backgroundColor:
 																		isDark
-																			? "#374151"
-																			: "#f3f4f6",
+																			? Colors
+																					.dark
+																					.cardBackground
+																			: Colors
+																					.light
+																					.background,
 																}}
 															/>
 														)}
@@ -1870,8 +2015,12 @@ const JobScreen = () => {
 																		fontWeight:
 																			"600",
 																		color: isDark
-																			? "#f3f4f6"
-																			: "#111827",
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	{
 																		apply
@@ -1957,8 +2106,8 @@ const JobScreen = () => {
 										<Text
 											style={{
 												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+													? Colors.dark.muted
+													: Colors.light.muted,
 												textAlign: "center",
 												paddingVertical: 16,
 											}}>
@@ -1982,9 +2131,13 @@ const JobScreen = () => {
 						right: 0,
 						padding: 16,
 						paddingBottom: 35,
-						backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+						backgroundColor: isDark
+							? Colors.dark.background
+							: Colors.light.background,
 						borderTopWidth: 1,
-						borderTopColor: isDark ? "#374151" : "#e5e7eb",
+						borderTopColor: isDark
+							? Colors.dark.border
+							: Colors.light.border,
 					}}>
 					<Button
 						disabled={isApplied}
@@ -1995,18 +2148,20 @@ const JobScreen = () => {
 							borderRadius: 12,
 							backgroundColor: isApplied
 								? isDark
-									? "#374151"
-									: "#e5e7eb"
-								: "#2563eb",
+									? Colors.dark.border
+									: Colors.light.border
+								: Colors.light.tint,
 							borderWidth: isApplied ? 1 : 0,
-							borderColor: isDark ? "#4b5563" : "#d1d5db",
+							borderColor: isDark
+								? Colors.dark.border
+								: Colors.light.border,
 						}}>
 						<ButtonText
 							style={{
 								color: isApplied
 									? isDark
-										? "#9ca3af"
-										: "#6b7280"
+										? Colors.dark.muted
+										: Colors.light.muted
 									: "#ffffff",
 								fontWeight: "700",
 								fontSize: 16,
@@ -2025,7 +2180,9 @@ const JobScreen = () => {
 				<ModalContent
 					style={{
 						maxWidth: 400,
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 						borderRadius: 16,
 						padding: 24,
 					}}>
@@ -2035,21 +2192,29 @@ const JobScreen = () => {
 								width: 64,
 								height: 64,
 								borderRadius: 32,
-								backgroundColor: "#dbeafe",
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
 								justifyContent: "center",
 								alignItems: "center",
 							}}>
 							<Icon
 								as={CheckCircle}
 								size='2xl'
-								style={{ color: "#2563eb" }}
+								style={{
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+								}}
 							/>
 						</Box>
 						<VStack space='sm' style={{ alignItems: "center" }}>
 							<Heading
 								size='xl'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 									textAlign: "center",
 								}}>
 								Confirmer la candidature
@@ -2057,7 +2222,9 @@ const JobScreen = () => {
 							<Text
 								size='md'
 								style={{
-									color: isDark ? "#d1d5db" : "#6b7280",
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									textAlign: "center",
 								}}>
 								Êtes-vous sûr de vouloir postuler à cette offre

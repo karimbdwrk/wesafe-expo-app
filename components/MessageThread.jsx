@@ -12,6 +12,7 @@ import { createSupabaseClient } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Box } from "@/components/ui/box";
@@ -73,7 +74,7 @@ const TypingAnimation = () => {
 						width: 7,
 						height: 7,
 						borderRadius: 3.5,
-						backgroundColor: "#667eea",
+						backgroundColor: Colors.light.tint,
 						marginHorizontal: 2,
 						transform: [{ translateY: dotY }],
 					}}
@@ -87,7 +88,7 @@ const TypingAnimation = () => {
 const MessageChecks = ({ messageId, isRead, createdAt }) => {
 	const check1Opacity = useRef(new Animated.Value(0)).current;
 	const check2Opacity = useRef(new Animated.Value(0)).current;
-	const [checkColor, setCheckColor] = useState("#9ca3af");
+	const [checkColor, setCheckColor] = useState(Colors.light.muted);
 
 	useEffect(() => {
 		// Animation du premier check (envoyé) - immédiat
@@ -113,7 +114,7 @@ const MessageChecks = ({ messageId, isRead, createdAt }) => {
 		// Changement de couleur quand lu
 		if (isRead) {
 			setTimeout(() => {
-				setCheckColor("#4ade80");
+				setCheckColor(Colors.light.success);
 			}, 200);
 		}
 	}, [isRead]);
@@ -1152,7 +1153,9 @@ const MessageThread = ({
 				ref={scrollViewRef}
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.background,
 				}}
 				contentContainerStyle={{ padding: 16, flexGrow: 1 }}
 				keyboardShouldPersistTaps='handled'
@@ -1180,13 +1183,19 @@ const MessageThread = ({
 							<Icon
 								as={MessageCircle}
 								size={40}
-								color={isDark ? "#9ca3af" : "#6366f1"}
+								color={
+									isDark
+										? Colors.light.muted
+										: Colors.light.tint
+								}
 							/>
 						</Box>
 						<Heading
 							size='md'
 							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: isDark
+									? Colors.dark.text
+									: Colors.light.text,
 								marginBottom: 8,
 								textAlign: "center",
 							}}>
@@ -1195,7 +1204,9 @@ const MessageThread = ({
 						<Text
 							size='sm'
 							style={{
-								color: isDark ? "#9ca3af" : "#6b7280",
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 								textAlign: "center",
 							}}>
 							{!isReadOnly
@@ -1228,14 +1239,14 @@ const MessageThread = ({
 										paddingVertical: 8,
 										borderRadius: 16,
 										backgroundColor: isMyMessage
-											? "#6366f1"
+											? Colors.light.tint
 											: isDark
-												? "#374151"
-												: "#ffffff",
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
 										borderWidth: isMyMessage ? 0 : 1,
 										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
+											? Colors.dark.border
+											: Colors.light.border,
 									}}>
 									<Text
 										size='md'
@@ -1243,8 +1254,8 @@ const MessageThread = ({
 											color: isMyMessage
 												? "#ffffff"
 												: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											lineHeight: 20,
 										}}>
 										{message.content}
@@ -1267,8 +1278,8 @@ const MessageThread = ({
 										size='xs'
 										style={{
 											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										{formatTime(message.created_at)}
 									</Text>
@@ -1308,9 +1319,13 @@ const MessageThread = ({
 								paddingHorizontal: 12,
 								paddingVertical: 8,
 								borderRadius: 16,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<HStack space='xs' style={{ alignItems: "center" }}>
 								{transitionMessage ? (
@@ -1318,8 +1333,8 @@ const MessageThread = ({
 										size='md'
 										style={{
 											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+												? Colors.dark.text
+												: Colors.light.text,
 										}}>
 										{transitionMessage.content}
 									</Text>
@@ -1338,7 +1353,9 @@ const MessageThread = ({
 								<Text
 									size='xs'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}>
 									{formatTime(transitionMessage.created_at)}
 								</Text>
@@ -1379,14 +1396,18 @@ const MessageThread = ({
 									<Icon
 										as={AlertCircle}
 										size={20}
-										color={isDark ? "#fbbf24" : "#d97706"}
+										color={
+											isDark
+												? Colors.dark.warning
+												: Colors.light.warning
+										}
 									/>
 									<Text
 										size='sm'
 										style={{
 											color: isDark
-												? "#fbbf24"
-												: "#d97706",
+												? Colors.dark.warning
+												: Colors.light.warning,
 											flex: 1,
 										}}>
 										Vous avez envoyé 3 messages. Veuillez
@@ -1421,14 +1442,18 @@ const MessageThread = ({
 									<Icon
 										as={AlertCircle}
 										size={20}
-										color={isDark ? "#fbbf24" : "#d97706"}
+										color={
+											isDark
+												? Colors.dark.warning
+												: Colors.light.warning
+										}
 									/>
 									<Text
 										size='sm'
 										style={{
 											color: isDark
-												? "#fbbf24"
-												: "#d97706",
+												? Colors.dark.warning
+												: Colors.light.warning,
 											flex: 1,
 										}}>
 										En attente que le recruteur ouvre la
@@ -1463,14 +1488,18 @@ const MessageThread = ({
 									<Icon
 										as={AlertCircle}
 										size={20}
-										color={isDark ? "#fbbf24" : "#d97706"}
+										color={
+											isDark
+												? Colors.dark.warning
+												: Colors.light.warning
+										}
 									/>
 									<Text
 										size='sm'
 										style={{
 											color: isDark
-												? "#fbbf24"
-												: "#d97706",
+												? Colors.dark.warning
+												: Colors.light.warning,
 											flex: 1,
 										}}>
 										Vous avez envoyé 3 messages. Veuillez
@@ -1486,9 +1515,13 @@ const MessageThread = ({
 						<Box
 							style={{
 								padding: 16,
-								backgroundColor: isDark ? "#1f2937" : "#ffffff",
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
 								borderTopWidth: 1,
-								borderTopColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderTopColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<Box style={{ position: "relative" }}>
 								<Input
@@ -1496,11 +1529,11 @@ const MessageThread = ({
 									style={{
 										width: "100%",
 										backgroundColor: isDark
-											? "#374151"
-											: "#f9fafb",
+											? Colors.dark.cardBackground
+											: Colors.light.background,
 										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
+											? Colors.dark.border
+											: Colors.light.border,
 										paddingRight: 56,
 										borderRadius: 18,
 									}}>
@@ -1512,8 +1545,8 @@ const MessageThread = ({
 										onSubmitEditing={sendMessage}
 										style={{
 											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+												? Colors.dark.text
+												: Colors.light.text,
 										}}
 									/>
 								</Input>
@@ -1529,9 +1562,9 @@ const MessageThread = ({
 										backgroundColor:
 											!newMessage.trim() || loading
 												? isDark
-													? "#4b5563"
-													: "#e5e7eb"
-												: "#6366f1",
+													? Colors.dark.border
+													: Colors.light.border
+												: Colors.light.tint,
 										width: 32,
 										height: 32,
 										borderRadius: 15,
@@ -1562,12 +1595,18 @@ const MessageThread = ({
 						<Icon
 							as={AlertCircle}
 							size={20}
-							color={isDark ? "#ef4444" : "#dc2626"}
+							color={
+								isDark
+									? Colors.dark.danger
+									: Colors.light.danger
+							}
 						/>
 						<Text
 							size='sm'
 							style={{
-								color: isDark ? "#ef4444" : "#dc2626",
+								color: isDark
+									? Colors.dark.danger
+									: Colors.light.danger,
 								flex: 1,
 							}}>
 							Cette conversation est en lecture seule car la

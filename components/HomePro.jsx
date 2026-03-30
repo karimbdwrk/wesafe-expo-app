@@ -23,6 +23,7 @@ import HomeChartsProMini from "./HomeChartsProMini";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const HomePro = () => {
 	const router = useRouter();
@@ -109,10 +110,14 @@ const HomePro = () => {
 				className='mb-4'>
 				<Box
 					style={{
-						backgroundColor: isDark ? "#1e3a5f" : "#eff6ff",
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 						borderRadius: 14,
 						borderWidth: 1,
-						borderColor: isDark ? "#1d4ed8" : "#bfdbfe",
+						borderColor: isDark
+							? Colors.dark.border
+							: Colors.light.border,
 						padding: 16,
 						flexDirection: "row",
 						alignItems: "center",
@@ -123,32 +128,43 @@ const HomePro = () => {
 							width: 44,
 							height: 44,
 							borderRadius: 12,
-							backgroundColor: "#2563eb",
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.background,
 							justifyContent: "center",
 							alignItems: "center",
 						}}>
-						<Plus size={22} color='#ffffff' />
+						<Plus
+							size={22}
+							color={
+								isDark ? Colors.dark.tint : Colors.light.tint
+							}
+						/>
 					</Box>
 					<VStack style={{ flex: 1 }} space='xs'>
 						<Text
 							style={{
 								fontWeight: "700",
 								fontSize: 15,
-								color: isDark ? "#93c5fd" : "#1d4ed8",
+								color: isDark
+									? Colors.dark.text
+									: Colors.light.text,
 							}}>
 							Créer une nouvelle annonce
 						</Text>
 						<Text
 							size='xs'
 							style={{
-								color: isDark ? "#60a5fa" : "#3b82f6",
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 							}}>
 							Publiez une offre classique ou Last Minute
 						</Text>
 					</VStack>
 					<ChevronRight
 						size={18}
-						color={isDark ? "#3b82f6" : "#2563eb"}
+						color={isDark ? Colors.dark.muted : Colors.light.muted}
 					/>
 				</Box>
 			</TouchableOpacity>
@@ -156,10 +172,14 @@ const HomePro = () => {
 			{/* Récap missions du jour */}
 			<Box
 				style={{
-					backgroundColor: isDark ? "#1f2937" : "#ffffff",
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.cardBackground,
 					borderRadius: 14,
 					borderWidth: 1,
-					borderColor: isDark ? "#374151" : "#e5e7eb",
+					borderColor: isDark
+						? Colors.dark.border
+						: Colors.light.border,
 					marginBottom: 16,
 					overflow: "hidden",
 				}}>
@@ -170,7 +190,9 @@ const HomePro = () => {
 						alignItems: "center",
 						justifyContent: "space-between",
 						borderBottomWidth: todayJobs.length > 0 ? 1 : 0,
-						borderBottomColor: isDark ? "#374151" : "#f3f4f6",
+						borderBottomColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.background,
 					}}>
 					<HStack space='sm' style={{ alignItems: "center" }}>
 						<Box
@@ -178,25 +200,38 @@ const HomePro = () => {
 								width: 32,
 								height: 32,
 								borderRadius: 9,
-								backgroundColor: isDark ? "#1e3a5f" : "#eff6ff",
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
 								justifyContent: "center",
 								alignItems: "center",
 							}}>
-							<Calendar size={16} color='#2563eb' />
+							<Calendar
+								size={16}
+								color={
+									isDark
+										? Colors.dark.tint
+										: Colors.light.tint
+								}
+							/>
 						</Box>
 						<VStack space='xs'>
 							<Text
 								style={{
 									fontWeight: "700",
 									fontSize: 14,
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Missions du jour
 							</Text>
 							<Text
 								size='xs'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 								}}>
 								{new Date().toLocaleDateString("fr-FR", {
 									weekday: "long",
@@ -212,8 +247,8 @@ const HomePro = () => {
 							<Box
 								style={{
 									backgroundColor: isDark
-										? "#451a03"
-										: "#fff7ed",
+										? Colors.dark.background
+										: Colors.light.background,
 									borderRadius: 8,
 									paddingHorizontal: 8,
 									paddingVertical: 3,
@@ -222,7 +257,9 @@ const HomePro = () => {
 									size='xs'
 									style={{
 										fontWeight: "700",
-										color: "#ea580c",
+										color: isDark
+											? Colors.dark.warning
+											: Colors.light.warning,
 									}}>
 									{pendingCount} à pourvoir
 								</Text>
@@ -232,8 +269,8 @@ const HomePro = () => {
 							<Box
 								style={{
 									backgroundColor: isDark
-										? "#052e16"
-										: "#f0fdf4",
+										? Colors.dark.background
+										: Colors.light.background,
 									borderRadius: 8,
 									paddingHorizontal: 8,
 									paddingVertical: 3,
@@ -242,7 +279,9 @@ const HomePro = () => {
 									size='xs'
 									style={{
 										fontWeight: "700",
-										color: "#16a34a",
+										color: isDark
+											? Colors.dark.success
+											: Colors.light.success,
 									}}>
 									{filledCount} pourvue
 									{filledCount > 1 ? "s" : ""}
@@ -262,12 +301,18 @@ const HomePro = () => {
 						}}>
 						<AlertCircle
 							size={16}
-							color={isDark ? "#4b5563" : "#d1d5db"}
+							color={
+								isDark
+									? Colors.dark.border
+									: Colors.light.border
+							}
 						/>
 						<Text
 							size='sm'
 							style={{
-								color: isDark ? "#6b7280" : "#9ca3af",
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 							}}>
 							Aucune mission programmée aujourd'hui
 						</Text>
@@ -290,8 +335,8 @@ const HomePro = () => {
 										alignItems: "center",
 										borderTopWidth: idx > 0 ? 1 : 0,
 										borderTopColor: isDark
-											? "#374151"
-											: "#f3f4f6",
+											? Colors.dark.cardBackground
+											: Colors.light.background,
 									}}>
 									{/* Icône statut */}
 									<Box
@@ -299,25 +344,29 @@ const HomePro = () => {
 											width: 30,
 											height: 30,
 											borderRadius: 8,
-											backgroundColor: filled
-												? isDark
-													? "#052e16"
-													: "#f0fdf4"
-												: isDark
-													? "#451a03"
-													: "#fff7ed",
+											backgroundColor: isDark
+												? Colors.dark.background
+												: Colors.light.background,
 											justifyContent: "center",
 											alignItems: "center",
 										}}>
 										{filled ? (
 											<CheckCircle
 												size={15}
-												color='#16a34a'
+												color={
+													isDark
+														? Colors.dark.success
+														: Colors.light.success
+												}
 											/>
 										) : (
 											<Briefcase
 												size={15}
-												color='#ea580c'
+												color={
+													isDark
+														? Colors.dark.warning
+														: Colors.light.warning
+												}
 											/>
 										)}
 									</Box>
@@ -328,8 +377,8 @@ const HomePro = () => {
 											style={{
 												fontWeight: "600",
 												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											}}
 											numberOfLines={1}>
 											{job.title}
@@ -343,16 +392,20 @@ const HomePro = () => {
 														size={11}
 														color={
 															isDark
-																? "#6b7280"
-																: "#9ca3af"
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted
 														}
 													/>
 													<Text
 														size='xs'
 														style={{
 															color: isDark
-																? "#6b7280"
-																: "#9ca3af",
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 														}}>
 														{job.city}
 														{job.postcode
@@ -381,15 +434,17 @@ const HomePro = () => {
 											style={{
 												fontWeight: "700",
 												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}>
 											{appCount} cand.
 										</Text>
 										<ChevronRight
 											size={14}
 											color={
-												isDark ? "#4b5563" : "#d1d5db"
+												isDark
+													? Colors.dark.border
+													: Colors.light.border
 											}
 										/>
 									</VStack>
@@ -411,10 +466,14 @@ const HomePro = () => {
 				return (
 					<Box
 						style={{
-							backgroundColor: isDark ? "#1f2937" : "#ffffff",
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground,
 							borderRadius: 14,
 							borderWidth: 1,
-							borderColor: isDark ? "#374151" : "#e5e7eb",
+							borderColor: isDark
+								? Colors.dark.border
+								: Colors.light.border,
 							marginBottom: 16,
 							padding: 16,
 						}}>
@@ -430,18 +489,27 @@ const HomePro = () => {
 									height: 32,
 									borderRadius: 9,
 									backgroundColor: isDark
-										? "#2e1065"
-										: "#f5f3ff",
+										? Colors.dark.background
+										: Colors.light.background,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
-								<Users size={16} color='#7c3aed' />
+								<Users
+									size={16}
+									color={
+										isDark
+											? Colors.dark.tint
+											: Colors.light.tint
+									}
+								/>
 							</Box>
 							<Text
 								style={{
 									fontWeight: "700",
 									fontSize: 18,
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								{pendingApps.length} candidature
 								{pendingApps.length !== 1 ? "s" : ""} à traiter
@@ -453,13 +521,20 @@ const HomePro = () => {
 								<HStack
 									space='sm'
 									style={{ alignItems: "center" }}>
-									<Clock size={14} color='#7c3aed' />
+									<Clock
+										size={14}
+										color={
+											isDark
+												? Colors.dark.muted
+												: Colors.light.muted
+										}
+									/>
 									<Text
 										size='sm'
 										style={{
 											color: isDark
-												? "#d1d5db"
-												: "#374151",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										<Text style={{ fontWeight: "700" }}>
 											{appliedCount}
@@ -473,13 +548,20 @@ const HomePro = () => {
 								<HStack
 									space='sm'
 									style={{ alignItems: "center" }}>
-									<CheckCircle size={14} color='#2563eb' />
+									<CheckCircle
+										size={14}
+										color={
+											isDark
+												? Colors.dark.tint
+												: Colors.light.tint
+										}
+									/>
 									<Text
 										size='sm'
 										style={{
 											color: isDark
-												? "#d1d5db"
-												: "#374151",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										<Text style={{ fontWeight: "700" }}>
 											{selectedCount}
@@ -494,14 +576,18 @@ const HomePro = () => {
 									style={{ alignItems: "center" }}>
 									<AlertCircle
 										size={14}
-										color={isDark ? "#4b5563" : "#d1d5db"}
+										color={
+											isDark
+												? Colors.dark.border
+												: Colors.light.border
+										}
 									/>
 									<Text
 										size='sm'
 										style={{
 											color: isDark
-												? "#6b7280"
-												: "#9ca3af",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										Aucune candidature en attente
 									</Text>
@@ -513,12 +599,16 @@ const HomePro = () => {
 							onPress={() => router.push("/applicationspro")}
 							activeOpacity={0.75}
 							style={{
-								backgroundColor: isDark ? "#2e1065" : "#f5f3ff",
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 10,
 								paddingVertical: 11,
 								alignItems: "center",
 								borderWidth: 1,
-								borderColor: isDark ? "#5b21b6" : "#ddd6fe",
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 								flexDirection: "row",
 								justifyContent: "center",
 								gap: 6,
@@ -527,11 +617,20 @@ const HomePro = () => {
 								style={{
 									fontWeight: "700",
 									fontSize: 14,
-									color: "#7c3aed",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Voir candidatures
 							</Text>
-							<ChevronRight size={16} color='#7c3aed' />
+							<ChevronRight
+								size={16}
+								color={
+									isDark
+										? Colors.dark.muted
+										: Colors.light.muted
+								}
+							/>
 						</TouchableOpacity>
 					</Box>
 				);
@@ -540,10 +639,14 @@ const HomePro = () => {
 			{/* Crédits Last Minute */}
 			<Box
 				style={{
-					backgroundColor: isDark ? "#1f2937" : "#ffffff",
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.cardBackground,
 					borderRadius: 14,
 					borderWidth: 1,
-					borderColor: isDark ? "#374151" : "#e5e7eb",
+					borderColor: isDark
+						? Colors.dark.border
+						: Colors.light.border,
 					marginBottom: 16,
 					padding: 16,
 				}}>
@@ -558,17 +661,26 @@ const HomePro = () => {
 							width: 32,
 							height: 32,
 							borderRadius: 9,
-							backgroundColor: isDark ? "#422006" : "#fff7ed",
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.background,
 							justifyContent: "center",
 							alignItems: "center",
 						}}>
-						<Zap size={16} color='#f97316' />
+						<Calendar
+							size={16}
+							color={
+								isDark ? Colors.dark.tint : Colors.light.tint
+							}
+						/>
 					</Box>
 					<Text
 						style={{
 							fontWeight: "700",
 							fontSize: 15,
-							color: isDark ? "#f3f4f6" : "#111827",
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
 						}}>
 						Crédits last minute
 					</Text>
@@ -578,7 +690,9 @@ const HomePro = () => {
 					style={{
 						fontSize: 28,
 						fontWeight: "800",
-						color: "#f97316",
+						color: isDark
+							? Colors.dark.warning
+							: Colors.light.warning,
 						marginBottom: 14,
 						lineHeight: 32,
 					}}>
@@ -587,7 +701,9 @@ const HomePro = () => {
 						style={{
 							fontSize: 14,
 							fontWeight: "500",
-							color: isDark ? "#9ca3af" : "#6b7280",
+							color: isDark
+								? Colors.dark.muted
+								: Colors.light.muted,
 						}}>
 						crédit{lmCredits !== 1 ? "s" : ""} restant
 						{lmCredits !== 1 ? "s" : ""}
@@ -598,20 +714,33 @@ const HomePro = () => {
 					onPress={() => router.push("/buycredits")}
 					activeOpacity={0.75}
 					style={{
-						backgroundColor: "#f97316",
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 						borderRadius: 10,
 						paddingVertical: 11,
 						alignItems: "center",
+						borderWidth: 1,
+						borderColor: isDark
+							? Colors.dark.border
+							: Colors.light.border,
 						flexDirection: "row",
 						justifyContent: "center",
 						gap: 6,
 					}}>
-					<Zap size={15} color='#ffffff' />
+					<Zap
+						size={15}
+						color={
+							isDark ? Colors.dark.warning : Colors.light.warning
+						}
+					/>
 					<Text
 						style={{
 							fontWeight: "700",
 							fontSize: 14,
-							color: "#ffffff",
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
 						}}>
 						Acheter
 					</Text>

@@ -34,19 +34,32 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { CATEGORY } from "@/constants/categories";
 
-// Palette de couleurs pour les catégories
-const CAT_COLORS = [
-	"#2563eb",
-	"#7c3aed",
-	"#059669",
-	"#d97706",
-	"#dc2626",
-	"#0891b2",
-	"#9333ea",
-	"#65a30d",
-];
+// Dégradé de gris pour les catégories (sobre)
+const getCatColors = (isDark) =>
+	isDark
+		? [
+				"#e2e8f0",
+				"#cbd5e1",
+				"#94a3b8",
+				"#b0c1d0",
+				"#f1f5f9",
+				"#a8b4be",
+				"#d1d5db",
+				"#9ca3af",
+			]
+		: [
+				"#1e293b",
+				"#334155",
+				"#475569",
+				"#64748b",
+				"#374151",
+				"#4b5563",
+				"#6b7280",
+				"#0f172a",
+			];
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -153,10 +166,12 @@ const KpiCard = ({
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#ffffff",
+				backgroundColor: isDark
+					? Colors.dark.cardBackground
+					: Colors.light.cardBackground,
 				borderRadius: 16,
 				borderWidth: 1,
-				borderColor: isDark ? "#374151" : "#e5e7eb",
+				borderColor: isDark ? Colors.dark.border : Colors.light.border,
 				padding: 16,
 				minWidth: "47%",
 			}}>
@@ -177,7 +192,7 @@ const KpiCard = ({
 				<Text
 					size='xs'
 					style={{
-						color: isDark ? "#9ca3af" : "#6b7280",
+						color: isDark ? Colors.dark.muted : Colors.light.muted,
 						fontWeight: "600",
 						flex: 1,
 						lineHeight: 16,
@@ -187,7 +202,9 @@ const KpiCard = ({
 				{onPress ? (
 					<ChevronRight
 						size={14}
-						color={isDark ? "#4b5563" : "#d1d5db"}
+						color={
+							isDark ? Colors.dark.border : Colors.light.border
+						}
 					/>
 				) : null}
 			</HStack>
@@ -195,7 +212,7 @@ const KpiCard = ({
 				style={{
 					fontSize: 28,
 					fontWeight: "800",
-					color: isDark ? "#f3f4f6" : "#111827",
+					color: isDark ? Colors.dark.text : Colors.light.text,
 					lineHeight: 34,
 				}}>
 				{value}
@@ -204,7 +221,7 @@ const KpiCard = ({
 				<Text
 					size='xs'
 					style={{
-						color: isDark ? "#6b7280" : "#9ca3af",
+						color: isDark ? Colors.dark.muted : Colors.light.muted,
 						marginTop: 2,
 					}}>
 					{sub}
@@ -308,7 +325,7 @@ const HomeChartsProMini = () => {
 		const barData = sorted.map(({ cat, count, i }) => ({
 			value: count,
 			label: cat.acronym,
-			frontColor: CAT_COLORS[i % CAT_COLORS.length],
+			frontColor: getCatColors(isDark)[i % 8],
 			pct: Math.round((count / total) * 100),
 		}));
 
@@ -317,7 +334,7 @@ const HomeChartsProMini = () => {
 		}));
 
 		return { barData, lineData };
-	}, [allJobs, allApplications, catPeriod]);
+	}, [allJobs, allApplications, catPeriod, isDark]);
 
 	// ── Last Minute charts ──────────────────────────────────────────
 	const lmJobs = useMemo(
@@ -379,7 +396,7 @@ const HomeChartsProMini = () => {
 		const barData = sorted.map(({ cat, count, i }) => ({
 			value: count,
 			label: cat.acronym,
-			frontColor: CAT_COLORS[i % CAT_COLORS.length],
+			frontColor: getCatColors(isDark)[i % 8],
 			pct: Math.round((count / total) * 100),
 		}));
 
@@ -388,7 +405,7 @@ const HomeChartsProMini = () => {
 		}));
 
 		return { barData, lineData };
-	}, [lmJobs, allApplications, lmCatPeriod]);
+	}, [lmJobs, allApplications, lmCatPeriod, isDark]);
 
 	useEffect(() => {
 		if (!user?.id || !accessToken) return;
@@ -572,19 +589,21 @@ const HomeChartsProMini = () => {
 		}
 	};
 
-	const cardBg = isDark ? "#1f2937" : "#ffffff";
-	const borderColor = isDark ? "#374151" : "#e5e7eb";
-	const textPrimary = isDark ? "#f3f4f6" : "#111827";
-	const textSecondary = isDark ? "#9ca3af" : "#6b7280";
-	const axisColor = isDark ? "#374151" : "#e5e7eb";
-	const labelColor = isDark ? "#6b7280" : "#9ca3af";
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const borderColor = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
+	const axisColor = isDark ? Colors.dark.border : Colors.light.border;
+	const labelColor = isDark ? Colors.dark.muted : Colors.light.muted;
 
 	if (loading) {
 		return (
 			<Box style={{ padding: 32, alignItems: "center" }}>
 				<ActivityIndicator
 					size='large'
-					color={isDark ? "#60a5fa" : "#2563eb"}
+					color={isDark ? Colors.dark.tint : Colors.light.tint}
 				/>
 			</Box>
 		);
@@ -604,8 +623,14 @@ const HomeChartsProMini = () => {
 				<HStack space='sm'>
 					<KpiCard
 						icon={Briefcase}
-						iconColor='#2563eb'
-						iconBg={isDark ? "#1e3a5f" : "#eff6ff"}
+						iconColor={
+							isDark ? Colors.dark.tint : Colors.light.tint
+						}
+						iconBg={
+							isDark
+								? Colors.dark.background
+								: Colors.light.background
+						}
 						label='Missions publiées'
 						value={kpis.jobsTotal}
 						sub='actives'
@@ -621,8 +646,14 @@ const HomeChartsProMini = () => {
 					/>
 					<KpiCard
 						icon={Users}
-						iconColor='#7c3aed'
-						iconBg={isDark ? "#2e1065" : "#f5f3ff"}
+						iconColor={
+							isDark ? Colors.dark.tint : Colors.light.tint
+						}
+						iconBg={
+							isDark
+								? Colors.dark.background
+								: Colors.light.background
+						}
 						label='Candidatures reçues'
 						value={kpis.applicationsTotal}
 						isDark={isDark}
@@ -641,16 +672,28 @@ const HomeChartsProMini = () => {
 				<HStack space='sm'>
 					<KpiCard
 						icon={CheckCircle}
-						iconColor='#059669'
-						iconBg={isDark ? "#052e16" : "#f0fdf4"}
+						iconColor={
+							isDark ? Colors.dark.success : Colors.light.success
+						}
+						iconBg={
+							isDark
+								? Colors.dark.background
+								: Colors.light.background
+						}
 						label='Taux missions pourvues'
 						value={`${kpis.fillRate} %`}
 						isDark={isDark}
 					/>
 					<KpiCard
 						icon={Clock}
-						iconColor='#d97706'
-						iconBg={isDark ? "#451a03" : "#fffbeb"}
+						iconColor={
+							isDark ? Colors.dark.warning : Colors.light.warning
+						}
+						iconBg={
+							isDark
+								? Colors.dark.background
+								: Colors.light.background
+						}
 						label='Temps moyen recrutement'
 						value={(() => {
 							if (kpis.avgMs === null) return "—";
@@ -711,8 +754,8 @@ const HomeChartsProMini = () => {
 									height: 3,
 									borderRadius: 2,
 									backgroundColor: isDark
-										? "#3b82f6"
-										: "#2563eb",
+										? Colors.dark.tint
+										: Colors.light.tint,
 								}}
 							/>
 							<Text size='xs' style={{ color: textSecondary }}>
@@ -726,8 +769,8 @@ const HomeChartsProMini = () => {
 									height: 3,
 									borderRadius: 2,
 									backgroundColor: isDark
-										? "#a78bfa"
-										: "#7c3aed",
+										? Colors.dark.muted
+										: Colors.light.muted,
 								}}
 							/>
 							<Text size='xs' style={{ color: textSecondary }}>
@@ -741,14 +784,30 @@ const HomeChartsProMini = () => {
 						width={SCREEN_WIDTH - 96}
 						height={180}
 						spacing={(SCREEN_WIDTH - 96) / (lineData.length + 1)}
-						color1={isDark ? "#3b82f6" : "#2563eb"}
-						color2={isDark ? "#a78bfa" : "#7c3aed"}
+						color1={isDark ? Colors.dark.tint : Colors.light.tint}
+						color2={isDark ? Colors.dark.muted : Colors.light.muted}
 						thickness1={2.5}
 						thickness2={2.5}
-						startFillColor1={isDark ? "#1e3a5f" : "#dbeafe"}
-						endFillColor1={isDark ? "#111827" : "#ffffff"}
-						startFillColor2={isDark ? "#2e1065" : "#f5f3ff"}
-						endFillColor2={isDark ? "#111827" : "#ffffff"}
+						startFillColor1={
+							isDark
+								? Colors.dark.cardBackground
+								: Colors.light.background
+						}
+						endFillColor1={
+							isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground
+						}
+						startFillColor2={
+							isDark
+								? Colors.dark.cardBackground
+								: Colors.light.background
+						}
+						endFillColor2={
+							isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground
+						}
 						startOpacity1={0.35}
 						endOpacity1={0}
 						startOpacity2={0.25}
@@ -762,8 +821,12 @@ const HomeChartsProMini = () => {
 							color: labelColor,
 							fontSize: 10,
 						}}
-						dataPointsColor1={isDark ? "#60a5fa" : "#2563eb"}
-						dataPointsColor2={isDark ? "#c4b5fd" : "#7c3aed"}
+						dataPointsColor1={
+							isDark ? Colors.dark.tint : Colors.light.tint
+						}
+						dataPointsColor2={
+							isDark ? Colors.dark.muted : Colors.light.muted
+						}
 						dataPointsRadius={4}
 						noOfSections={4}
 						maxValue={Math.max(
@@ -798,14 +861,18 @@ const HomeChartsProMini = () => {
 							<Heading
 								size='sm'
 								style={{
-									color: isDark ? "#f9fafb" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Top agents
 							</Heading>
 							<Text
 								size='xs'
 								style={{
-									color: isDark ? "#6b7280" : "#9ca3af",
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 								}}>
 								contrats signés
 							</Text>
@@ -820,10 +887,12 @@ const HomeChartsProMini = () => {
 									paddingHorizontal: 14,
 									borderRadius: 12,
 									borderWidth: 1,
-									borderColor: isDark ? "#374151" : "#e5e7eb",
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 									backgroundColor: isDark
-										? "#1f2937"
-										: "#ffffff",
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 								}}>
 								{/* Rang */}
 								<Box
@@ -832,8 +901,8 @@ const HomeChartsProMini = () => {
 										height: 28,
 										borderRadius: 8,
 										backgroundColor: isDark
-											? "#374151"
-											: "#f3f4f6",
+											? Colors.dark.border
+											: Colors.light.background,
 										alignItems: "center",
 										justifyContent: "center",
 									}}>
@@ -842,8 +911,8 @@ const HomeChartsProMini = () => {
 										style={{
 											fontWeight: "700",
 											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										#{idx + 1}
 									</Text>
@@ -865,8 +934,8 @@ const HomeChartsProMini = () => {
 											height: 36,
 											borderRadius: 18,
 											backgroundColor: isDark
-												? "#374151"
-												: "#e5e7eb",
+												? Colors.dark.border
+												: Colors.light.border,
 											alignItems: "center",
 											justifyContent: "center",
 										}}>
@@ -874,8 +943,8 @@ const HomeChartsProMini = () => {
 											style={{
 												fontWeight: "700",
 												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+													? Colors.dark.muted
+													: Colors.light.muted,
 												fontSize: 14,
 											}}>
 											{(
@@ -891,8 +960,8 @@ const HomeChartsProMini = () => {
 										style={{
 											fontWeight: "600",
 											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+												? Colors.light.background
+												: Colors.light.text,
 										}}>
 										{agent.firstname ?? ""}{" "}
 										{agent.lastname ?? ""}
@@ -907,8 +976,8 @@ const HomeChartsProMini = () => {
 											fontWeight: "700",
 											fontSize: 16,
 											color: isDark
-												? "#fbbf24"
-												: "#d97706",
+												? Colors.dark.warning
+												: Colors.light.warning,
 										}}>
 										{agent.count}
 									</Text>
@@ -916,8 +985,8 @@ const HomeChartsProMini = () => {
 										size='xs'
 										style={{
 											color: isDark
-												? "#6b7280"
-												: "#9ca3af",
+												? Colors.light.muted
+												: Colors.dark.muted,
 										}}>
 										contrat{agent.count > 1 ? "s" : ""}
 									</Text>
@@ -932,21 +1001,21 @@ const HomeChartsProMini = () => {
 				action='primary'
 				variant='outline'
 				style={{
-					borderColor: "#3b82f6",
+					borderColor: Colors.light.tint,
 					backgroundColor: "transparent",
-					color: "#3b82f6",
+					color: Colors.light.tint,
 					borderRadius: 8,
 				}}
 				onPress={() => router.push("/analytics")}>
 				<ButtonIcon
 					as={ChartNoAxesCombined}
 					style={{
-						color: "#3b82f6",
+						color: Colors.light.tint,
 					}}
 				/>
 				<ButtonText
 					style={{
-						color: "#3b82f6",
+						color: Colors.light.tint,
 					}}>
 					Voir toutes les statistiques
 				</ButtonText>

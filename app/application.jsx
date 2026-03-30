@@ -110,28 +110,28 @@ const STATUS_CONFIG = {
 		title: "Candidature envoyée",
 		descriptionCandidate: "Votre candidature a été envoyée avec succès.",
 		descriptionPro: "Un candidat a postulé à cette annonce.",
-		color: "#16a34a",
+		color: Colors.light.success,
 	},
 
 	selected: {
 		title: "Profil sélectionné",
 		descriptionCandidate: "Le recruteur étudie votre profil.",
 		descriptionPro: "Vous avez sélectionné ce candidat pour la suite.",
-		color: "#2563eb",
+		color: Colors.light.tint,
 	},
 
 	contract_sent: {
 		title: "Contrat envoyé",
 		descriptionCandidate: "Un contrat vous a été transmis.",
 		descriptionPro: "Vous avez envoyé un contrat au candidat.",
-		color: "#f59e0b",
+		color: Colors.light.warning,
 	},
 
 	contract_signed_candidate: {
 		title: "Contrat signé",
 		descriptionCandidate: "Vous avez signé le contrat.",
 		descriptionPro: "Le candidat a signé le contrat.",
-		color: "#16a34a",
+		color: Colors.light.success,
 	},
 
 	contract_signed_pro: {
@@ -140,7 +140,7 @@ const STATUS_CONFIG = {
 			"Le recruteur a signé le contrat. \nLa mission est confirmée.",
 		descriptionPro:
 			"Vous avez signé le contrat. \nLa mission est confirmée.",
-		color: "#16a34a",
+		color: Colors.light.success,
 		isFinal: true,
 	},
 
@@ -148,13 +148,13 @@ const STATUS_CONFIG = {
 		title: "Candidature refusée",
 		descriptionCandidate: "Votre candidature n’a pas été retenue.",
 		descriptionPro: "Vous avez refusé cette candidature.",
-		color: "#dc2626",
+		color: Colors.light.danger,
 		isFinal: true,
 	},
 
 	// 🟡 PENDING (fictif)
 	pending: {
-		color: "#9ca3af",
+		color: Colors.light.muted,
 	},
 };
 
@@ -959,7 +959,7 @@ const ApplicationScreen = () => {
 					flex: 1,
 					justifyContent: "center",
 					alignItems: "center",
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 				}}>
 				<Spinner size='large' />
 			</Box>
@@ -970,7 +970,7 @@ const ApplicationScreen = () => {
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 			}}>
 			<ScrollView style={{ flex: 1 }}>
 				<VStack space='lg' style={{ padding: 20, paddingBottom: 90 }}>
@@ -986,19 +986,17 @@ const ApplicationScreen = () => {
 							style={{
 								padding: 20,
 								// paddingRight: 10,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark ? Colors.dark.border : Colors.light.border,
 							}}>
 							<HStack space='md' style={{ alignItems: "center" }}>
 								<VStack style={{ flex: 1 }} space='xs'>
 									<Heading
 										size='xl'
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: isDark ? Colors.dark.text : Colors.light.text,
 										}}>
 										{application?.jobs?.title}
 									</Heading>
@@ -1120,9 +1118,7 @@ const ApplicationScreen = () => {
 												<Heading
 													size='md'
 													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
+														color: isDark ? Colors.dark.text : Colors.light.text,
 													}}>
 													{application?.companies
 														?.name ||
@@ -1140,7 +1136,7 @@ const ApplicationScreen = () => {
 									as={ChevronRight}
 									size='lg'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 									}}
 								/>
 							</HStack>
@@ -1162,11 +1158,9 @@ const ApplicationScreen = () => {
 							<Card
 								style={{
 									padding: 16,
-									backgroundColor: isDark
-										? "#374151"
-										: "#ffffff",
+									backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 									borderWidth: 1,
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									borderColor: isDark ? Colors.dark.border : Colors.light.border,
 									borderRadius: 12,
 								}}>
 								<HStack
@@ -1196,9 +1190,7 @@ const ApplicationScreen = () => {
 											<Heading
 												size='md'
 												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+													color: isDark ? Colors.dark.text : Colors.light.text,
 												}}>
 												{(application?.profiles
 													?.lastname || "") +
@@ -1209,9 +1201,7 @@ const ApplicationScreen = () => {
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: isDark ? Colors.dark.muted : Colors.light.muted,
 												}}>
 												Voir le profil du candidat
 											</Text>
@@ -1221,9 +1211,7 @@ const ApplicationScreen = () => {
 										as={ChevronRight}
 										size='lg'
 										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+											color: isDark ? Colors.dark.muted : Colors.light.muted,
 										}}
 									/>
 								</HStack>
@@ -1235,16 +1223,16 @@ const ApplicationScreen = () => {
 					<Card
 						style={{
 							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 							borderRadius: 12,
 							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							borderColor: isDark ? Colors.dark.border : Colors.light.border,
 						}}>
 						<VStack space='lg'>
 							<Heading
 								size='lg'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark ? Colors.dark.text : Colors.light.text,
 								}}>
 								Suivi de la candidature
 							</Heading>
@@ -1276,9 +1264,7 @@ const ApplicationScreen = () => {
 														borderRadius: 5,
 														backgroundColor:
 															isPending
-																? isDark
-																	? "#6b7280"
-																	: "#9ca3af"
+																? isDark ? Colors.dark.muted : Colors.light.muted
 																: config.color,
 													}}
 												/>
@@ -1291,9 +1277,7 @@ const ApplicationScreen = () => {
 															flex: 1,
 															minHeight: 40,
 															backgroundColor:
-																isDark
-																	? "#4b5563"
-																	: "#e5e7eb",
+																isDark ? Colors.dark.border : Colors.light.border,
 															marginTop: 4,
 														}}
 													/>
@@ -1313,12 +1297,8 @@ const ApplicationScreen = () => {
 													size='sm'
 													style={{
 														color: isPending
-															? isDark
-																? "#6b7280"
-																: "#9ca3af"
-															: isDark
-																? "#f3f4f6"
-																: "#111827",
+															? isDark ? Colors.dark.muted : Colors.light.muted
+															: isDark ? Colors.dark.text : Colors.light.text,
 													}}>
 													{config.title}
 												</Heading>
@@ -1326,12 +1306,8 @@ const ApplicationScreen = () => {
 													size='sm'
 													style={{
 														color: isPending
-															? isDark
-																? "#6b7280"
-																: "#9ca3af"
-															: isDark
-																? "#d1d5db"
-																: "#374151",
+															? isDark ? Colors.dark.muted : Colors.light.muted
+															: isDark ? Colors.dark.muted : Colors.light.muted,
 													}}>
 													{description}
 												</Text>
@@ -1349,17 +1325,13 @@ const ApplicationScreen = () => {
 																}
 																size='xs'
 																style={{
-																	color: isDark
-																		? "#6b7280"
-																		: "#9ca3af",
+																	color: isDark ? Colors.dark.muted : Colors.light.muted,
 																}}
 															/>
 															<Text
 																size='xs'
 																style={{
-																	color: isDark
-																		? "#6b7280"
-																		: "#9ca3af",
+																	color: isDark ? Colors.dark.muted : Colors.light.muted,
 																}}>
 																{formatDate(
 																	step.created_at,
@@ -1381,10 +1353,10 @@ const ApplicationScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark ? Colors.dark.border : Colors.light.border,
 							}}>
 							<Button
 								variant='link'
@@ -1419,7 +1391,7 @@ const ApplicationScreen = () => {
 										<Icon
 											as={FileText}
 											size='xl'
-											style={{ color: "#16a34a" }}
+											style={{ color: Colors.light.success }}
 										/>
 									</Box>
 									<VStack style={{ flex: 1 }} space='xs'>
@@ -1427,18 +1399,14 @@ const ApplicationScreen = () => {
 											size='lg'
 											style={{
 												fontWeight: "600",
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+												color: isDark ? Colors.dark.text : Colors.light.text,
 											}}>
 											Contrat de mission
 										</Text>
 										<Text
 											size='sm'
 											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												color: isDark ? Colors.dark.muted : Colors.light.muted,
 											}}>
 											{role === "pro"
 												? draftContractExists &&
@@ -1460,9 +1428,7 @@ const ApplicationScreen = () => {
 										as={ChevronRight}
 										size='lg'
 										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+											color: isDark ? Colors.dark.muted : Colors.light.muted,
 										}}
 									/>
 								</HStack>
@@ -1592,7 +1558,7 @@ const ApplicationScreen = () => {
 				<ModalContent
 					style={{
 						maxWidth: 400,
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 						borderRadius: 16,
 						padding: 24,
 					}}>
@@ -1609,14 +1575,14 @@ const ApplicationScreen = () => {
 							<Icon
 								as={CheckCircle}
 								size='2xl'
-								style={{ color: "#16a34a" }}
+								style={{ color: Colors.light.success }}
 							/>
 						</Box>
 						<VStack space='sm' style={{ alignItems: "center" }}>
 							<Heading
 								size='xl'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark ? Colors.dark.text : Colors.light.text,
 									textAlign: "center",
 								}}>
 								Confirmer la sélection
@@ -1661,7 +1627,7 @@ const ApplicationScreen = () => {
 				<ModalContent
 					style={{
 						maxWidth: 400,
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 						borderRadius: 16,
 						padding: 24,
 					}}>
@@ -1678,14 +1644,14 @@ const ApplicationScreen = () => {
 							<Icon
 								as={XCircle}
 								size='2xl'
-								style={{ color: "#dc2626" }}
+								style={{ color: Colors.light.danger }}
 							/>
 						</Box>
 						<VStack space='sm' style={{ alignItems: "center" }}>
 							<Heading
 								size='xl'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark ? Colors.dark.text : Colors.light.text,
 									textAlign: "center",
 								}}>
 								Confirmer le refus
@@ -1756,13 +1722,13 @@ const ApplicationScreen = () => {
 								<Icon
 									as={FileCheck}
 									size='lg'
-									style={{ color: "#2563eb" }}
+									style={{ color: Colors.light.tint }}
 								/>
 							</Box>
 							<Heading
 								size='lg'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark ? Colors.dark.text : Colors.light.text,
 								}}>
 								Générer le contrat
 							</Heading>
@@ -1773,7 +1739,7 @@ const ApplicationScreen = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#d1d5db" : "#374151",
+									color: isDark ? Colors.dark.muted : Colors.light.muted,
 									fontWeight: "600",
 								}}>
 								Taux horaire brut (€/h)
@@ -1793,10 +1759,10 @@ const ApplicationScreen = () => {
 									keyboardType='numeric'
 									placeholder='Ex: 15.50'
 									placeholderTextColor={
-										isDark ? "#6b7280" : "#9ca3af"
+										isDark ? Colors.dark.muted : Colors.light.muted
 									}
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark ? Colors.dark.text : Colors.light.text,
 									}}
 								/>
 							</Input>
@@ -1807,7 +1773,7 @@ const ApplicationScreen = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#d1d5db" : "#374151",
+									color: isDark ? Colors.dark.muted : Colors.light.muted,
 									fontWeight: "600",
 								}}>
 								Lieu d'exécution du contrat
@@ -1827,12 +1793,12 @@ const ApplicationScreen = () => {
 										"Ex: Centre commercial Westfield Les 4 Temps\n15 Parvis de la Défense\n92000 Nanterre"
 									}
 									placeholderTextColor={
-										isDark ? "#6b7280" : "#9ca3af"
+										isDark ? Colors.dark.muted : Colors.light.muted
 									}
 									numberOfLines={3}
 									multiline
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark ? Colors.dark.text : Colors.light.text,
 										minHeight: 72,
 										textAlignVertical: "top",
 									}}
@@ -1845,7 +1811,7 @@ const ApplicationScreen = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#d1d5db" : "#374151",
+									color: isDark ? Colors.dark.muted : Colors.light.muted,
 									fontWeight: "600",
 								}}>
 								Date de début
@@ -1875,9 +1841,7 @@ const ApplicationScreen = () => {
 										editable={false}
 										style={{
 											color: contractStartDate
-												? isDark
-													? "#f3f4f6"
-													: "#111827"
+												? isDark ? Colors.dark.text : Colors.light.text
 												: "#9ca3af",
 										}}
 									/>
@@ -1892,7 +1856,7 @@ const ApplicationScreen = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#d1d5db" : "#374151",
+										color: isDark ? Colors.dark.muted : Colors.light.muted,
 										fontWeight: "600",
 									}}>
 									Date de fin
@@ -1922,9 +1886,7 @@ const ApplicationScreen = () => {
 											editable={false}
 											style={{
 												color: contractEndDate
-													? isDark
-														? "#f3f4f6"
-														: "#111827"
+													? isDark ? Colors.dark.text : Colors.light.text
 													: "#9ca3af",
 											}}
 										/>
@@ -2135,9 +2097,7 @@ const ApplicationScreen = () => {
 											<Heading
 												size='md'
 												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+													color: isDark ? Colors.dark.text : Colors.light.text,
 												}}>
 												{role === "pro"
 													? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
@@ -2161,9 +2121,7 @@ const ApplicationScreen = () => {
 										<Text
 											size='sm'
 											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												color: isDark ? Colors.dark.muted : Colors.light.muted,
 											}}>
 											{application?.jobs?.title}
 										</Text>
@@ -2177,7 +2135,7 @@ const ApplicationScreen = () => {
 									<Icon
 										as={X}
 										size='xl'
-										color={isDark ? "#9ca3af" : "#6b7280"}
+										color={isDark ? Colors.dark.muted : Colors.light.muted}
 									/>
 								</Pressable>
 							</HStack>
