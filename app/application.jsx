@@ -92,6 +92,7 @@ import { sendApplicationSelectedEmail } from "@/utils/sendApplicationSelectedEma
 import { sendRecruitmentStatusEmail } from "@/utils/sendRecruitmentStatusEmail";
 import { getCategoryLabel } from "@/constants/categories";
 import { formatSalary } from "@/constants/salary";
+import Colors from "@/constants/Colors";
 
 import JobCard from "@/components/JobCard";
 import { width } from "dom-helpers";
@@ -1538,7 +1539,9 @@ const ApplicationScreen = () => {
 						width: 56,
 						height: 56,
 						borderRadius: 28,
-						backgroundColor: "#2563eb",
+						backgroundColor: isDark
+							? Colors.dark.tint
+							: Colors.light.tint,
 						justifyContent: "center",
 						alignItems: "center",
 						shadowColor: "#000",
@@ -1558,7 +1561,9 @@ const ApplicationScreen = () => {
 								position: "absolute",
 								top: -4,
 								right: -4,
-								backgroundColor: "#dc2626",
+								backgroundColor: isDark
+									? Colors.dark.danger
+									: Colors.light.danger,
 								borderRadius: 10,
 								minWidth: 20,
 								height: 20,
