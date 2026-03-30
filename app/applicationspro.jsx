@@ -220,7 +220,9 @@ const ApplicationsProScreen = () => {
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.background,
 			}}>
 			<ScrollView
 				ref={scrollRef}
@@ -287,7 +289,9 @@ const ApplicationsProScreen = () => {
 						left: 0,
 						right: 0,
 						bottom: 0,
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 						shadowColor: "#000",
 						shadowOffset: { width: 0, height: -2 },
 						shadowOpacity: 0.08,
@@ -308,17 +312,25 @@ const ApplicationsProScreen = () => {
 							onPress={handlePrev}
 							variant='outline'
 							style={{
-								borderColor: isDark ? Colors.dark.border : Colors.light.border,
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 								borderRadius: 12,
 							}}>
 							<ButtonIcon
 								as={ChevronLeft}
-								color={isDark ? Colors.dark.text : Colors.light.text}
+								color={
+									isDark
+										? Colors.dark.text
+										: Colors.light.text
+								}
 							/>
 						</Button>
 						<Text
 							style={{
-								color: isDark ? Colors.dark.text : Colors.light.text,
+								color: isDark
+									? Colors.dark.text
+									: Colors.light.text,
 								fontWeight: "600",
 								fontSize: 16,
 							}}>
@@ -329,12 +341,18 @@ const ApplicationsProScreen = () => {
 							onPress={handleNext}
 							variant='outline'
 							style={{
-								borderColor: isDark ? Colors.dark.border : Colors.light.border,
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 								borderRadius: 12,
 							}}>
 							<ButtonIcon
 								as={ChevronRight}
-								color={isDark ? Colors.dark.text : Colors.light.text}
+								color={
+									isDark
+										? Colors.dark.text
+										: Colors.light.text
+								}
 							/>
 						</Button>
 					</HStack>
@@ -355,7 +373,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		width: "100%",
 		paddingHorizontal: 15,
-		backgroundColor: "white",
 	},
 	jobList: {
 		flex: 1,

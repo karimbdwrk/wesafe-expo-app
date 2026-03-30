@@ -30,7 +30,6 @@ import { VStack } from "@/components/ui/vstack";
 import { Center } from "@/components/ui/center";
 import { Divider } from "@/components/ui/divider";
 import { Text } from "@/components/ui/text";
-import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
 import {
@@ -1358,9 +1357,7 @@ const ApplicationScreen = () => {
 								borderWidth: 1,
 								borderColor: isDark ? Colors.dark.border : Colors.light.border,
 							}}>
-							<Button
-								variant='link'
-								style={{ padding: 0 }}
+							<TouchableOpacity
 								onPress={() =>
 									router.push({
 										pathname: "/contract",
@@ -1372,7 +1369,8 @@ const ApplicationScreen = () => {
 											job_id: application.job_id,
 										},
 									})
-								}>
+								}
+								activeOpacity={0.75}>
 								<HStack
 									space='md'
 									style={{
@@ -1432,7 +1430,7 @@ const ApplicationScreen = () => {
 										}}
 									/>
 								</HStack>
-							</Button>
+							</TouchableOpacity>
 						</Card>
 					)}
 
@@ -1441,29 +1439,43 @@ const ApplicationScreen = () => {
 						<VStack space='sm'>
 							{currentStatus === "applied" && (
 								<>
-									<Button
-										action='positive'
-										onPress={() => handleSelect()}>
-										<ButtonText>
+									<TouchableOpacity
+										onPress={() => handleSelect()}
+										activeOpacity={0.75}
+										style={{
+											borderRadius: 10,
+											paddingVertical: 13,
+											alignItems: "center",
+											borderWidth: 1,
+											borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
+											backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+										}}>
+										<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>
 											Sélectionner le candidat
-										</ButtonText>
-									</Button>
-									<Button
-										variant='outline'
-										action='negative'
-										onPress={() => handleReject()}>
-										<ButtonText>
+										</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										onPress={() => handleReject()}
+										activeOpacity={0.75}
+										style={{
+											borderRadius: 10,
+											paddingVertical: 13,
+											alignItems: "center",
+											borderWidth: 1,
+											borderColor: isDark ? Colors.dark.danger : Colors.light.danger,
+											backgroundColor: "transparent",
+										}}>
+										<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.danger : Colors.light.danger }}>
 											Refuser la candidature
-										</ButtonText>
-									</Button>
+										</Text>
+									</TouchableOpacity>
 								</>
 							)}
 							{currentStatus === "selected" && (
 								<>
 									{!draftContractExists &&
 										!contractGenerated && (
-											<Button
-												action='positive'
+											<TouchableOpacity
 												onPress={() =>
 													router.push({
 														pathname:
@@ -1473,20 +1485,36 @@ const ApplicationScreen = () => {
 																application.id,
 														},
 													})
-												}>
-												<ButtonText>
+												}
+												activeOpacity={0.75}
+												style={{
+													borderRadius: 10,
+													paddingVertical: 13,
+													alignItems: "center",
+													borderWidth: 1,
+													borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
+													backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+												}}>
+												<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>
 													Générer le contrat
-												</ButtonText>
-											</Button>
+												</Text>
+											</TouchableOpacity>
 										)}
-									<Button
-										variant='outline'
-										action='negative'
-										onPress={() => handleReject()}>
-										<ButtonText>
+									<TouchableOpacity
+										onPress={() => handleReject()}
+										activeOpacity={0.75}
+										style={{
+											borderRadius: 10,
+											paddingVertical: 13,
+											alignItems: "center",
+											borderWidth: 1,
+											borderColor: isDark ? Colors.dark.danger : Colors.light.danger,
+											backgroundColor: "transparent",
+										}}>
+										<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.danger : Colors.light.danger }}>
 											Refuser la candidature
-										</ButtonText>
-									</Button>
+										</Text>
+									</TouchableOpacity>
 								</>
 							)}
 						</VStack>
@@ -1590,7 +1618,7 @@ const ApplicationScreen = () => {
 							<Text
 								size='md'
 								style={{
-									color: isDark ? "#d1d5db" : "#6b7280",
+									color: isDark ? Colors.dark.muted : Colors.light.muted,
 									textAlign: "center",
 								}}>
 								Êtes-vous sûr de vouloir sélectionner ce
@@ -1601,19 +1629,34 @@ const ApplicationScreen = () => {
 						<HStack
 							space='md'
 							style={{ width: "100%", marginTop: 8 }}>
-							<Button
-								variant='outline'
-								action='secondary'
+							<TouchableOpacity
 								onPress={() => setShowSelectModal(false)}
-								style={{ flex: 1 }}>
-								<ButtonText>Annuler</ButtonText>
-							</Button>
-							<Button
-								action='positive'
+								activeOpacity={0.75}
+								style={{
+									flex: 1,
+									paddingVertical: 11,
+									borderRadius: 10,
+									alignItems: "center",
+									borderWidth: 1,
+									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								}}>
+								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.muted : Colors.light.muted }}>Annuler</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
 								onPress={confirmSelect}
-								style={{ flex: 1 }}>
-								<ButtonText>Confirmer</ButtonText>
-							</Button>
+								activeOpacity={0.75}
+								style={{
+									flex: 1,
+									paddingVertical: 11,
+									borderRadius: 10,
+									alignItems: "center",
+									borderWidth: 1,
+									borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
+									backgroundColor: "transparent",
+								}}>
+								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>Confirmer</Text>
+							</TouchableOpacity>
 						</HStack>
 					</VStack>
 				</ModalContent>
@@ -1659,7 +1702,7 @@ const ApplicationScreen = () => {
 							<Text
 								size='md'
 								style={{
-									color: isDark ? "#d1d5db" : "#6b7280",
+									color: isDark ? Colors.dark.muted : Colors.light.muted,
 									textAlign: "center",
 								}}>
 								Êtes-vous sûr de vouloir refuser cette
@@ -1669,19 +1712,34 @@ const ApplicationScreen = () => {
 						<HStack
 							space='md'
 							style={{ width: "100%", marginTop: 8 }}>
-							<Button
-								variant='outline'
-								action='secondary'
+							<TouchableOpacity
 								onPress={() => setShowRejectModal(false)}
-								style={{ flex: 1 }}>
-								<ButtonText>Annuler</ButtonText>
-							</Button>
-							<Button
-								action='negative'
+								activeOpacity={0.75}
+								style={{
+									flex: 1,
+									paddingVertical: 11,
+									borderRadius: 10,
+									alignItems: "center",
+									borderWidth: 1,
+									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								}}>
+								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.muted : Colors.light.muted }}>Annuler</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
 								onPress={confirmReject}
-								style={{ flex: 1 }}>
-								<ButtonText>Refuser</ButtonText>
-							</Button>
+								activeOpacity={0.75}
+								style={{
+									flex: 1,
+									paddingVertical: 11,
+									borderRadius: 10,
+									alignItems: "center",
+									borderWidth: 1,
+									borderColor: isDark ? Colors.dark.danger : Colors.light.danger,
+									backgroundColor: "transparent",
+								}}>
+								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.danger : Colors.light.danger }}>Refuser</Text>
+							</TouchableOpacity>
 						</HStack>
 					</VStack>
 				</ModalContent>
@@ -1694,7 +1752,7 @@ const ApplicationScreen = () => {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 						paddingBottom: 32,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
@@ -1748,10 +1806,8 @@ const ApplicationScreen = () => {
 								variant='outline'
 								size='md'
 								style={{
-									backgroundColor: isDark
-										? "#374151"
-										: "#f9fafb",
-									borderColor: isDark ? "#4b5563" : "#d1d5db",
+									backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+									borderColor: isDark ? Colors.dark.border : Colors.light.border,
 								}}>
 								<InputField
 									value={contractHourlyRate}
@@ -1781,10 +1837,8 @@ const ApplicationScreen = () => {
 							<Textarea
 								size='md'
 								style={{
-									backgroundColor: isDark
-										? "#374151"
-										: "#f9fafb",
-									borderColor: isDark ? "#4b5563" : "#d1d5db",
+									backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+									borderColor: isDark ? Colors.dark.border : Colors.light.border,
 								}}>
 								<TextareaInput
 									value={contractLocation}
@@ -1827,12 +1881,8 @@ const ApplicationScreen = () => {
 									isDisabled
 									style={{
 										pointerEvents: "none",
-										backgroundColor: isDark
-											? "#374151"
-											: "#f9fafb",
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+										borderColor: isDark ? Colors.dark.border : Colors.light.border,
 									}}>
 									<InputField
 										value={formatContractDate(
@@ -1872,12 +1922,8 @@ const ApplicationScreen = () => {
 										isDisabled
 										style={{
 											pointerEvents: "none",
-											backgroundColor: isDark
-												? "#374151"
-												: "#f9fafb",
-											borderColor: isDark
-												? "#4b5563"
-												: "#d1d5db",
+											backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+											borderColor: isDark ? Colors.dark.border : Colors.light.border,
 										}}>
 										<InputField
 											value={formatContractDate(
@@ -1897,21 +1943,34 @@ const ApplicationScreen = () => {
 
 						{/* Boutons */}
 						<HStack space='md' style={{ width: "100%" }}>
-							<Button
-								variant='outline'
-								action='secondary'
-								onPress={() =>
-									setShowGenerateContractModal(false)
-								}
-								style={{ flex: 1 }}>
-								<ButtonText>Annuler</ButtonText>
-							</Button>
-							<Button
-								action='positive'
+							<TouchableOpacity
+								onPress={() => setShowGenerateContractModal(false)}
+								activeOpacity={0.75}
+								style={{
+									flex: 1,
+									paddingVertical: 11,
+									borderRadius: 10,
+									alignItems: "center",
+									borderWidth: 1,
+									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								}}>
+								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.muted : Colors.light.muted }}>Annuler</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
 								onPress={handleSubmitContract}
-								style={{ flex: 1 }}>
-								<ButtonText>Générer</ButtonText>
-							</Button>
+								activeOpacity={0.75}
+								style={{
+									flex: 1,
+									paddingVertical: 11,
+									borderRadius: 10,
+									alignItems: "center",
+									borderWidth: 1,
+									borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
+									backgroundColor: "transparent",
+								}}>
+								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>Générer</Text>
+							</TouchableOpacity>
 						</HStack>
 					</VStack>
 				</ActionsheetContent>
@@ -1925,7 +1984,7 @@ const ApplicationScreen = () => {
 				<ActionsheetContent
 					style={{
 						paddingBottom: 32,
-						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
@@ -1941,7 +2000,7 @@ const ApplicationScreen = () => {
 							style={{
 								fontWeight: "600",
 								fontSize: 16,
-								color: isDark ? "#f9fafb" : "#111827",
+								color: isDark ? Colors.dark.text : Colors.light.text,
 							}}>
 							Date de début
 						</Text>
@@ -1955,22 +2014,23 @@ const ApplicationScreen = () => {
 							}}
 							minimumDate={new Date()}
 							style={{ width: "100%" }}
-							textColor={isDark ? "#f9fafb" : "#111827"}
+							textColor={isDark ? Colors.dark.text : Colors.light.text}
 						/>
-						<Button
-							size='md'
-							onPress={() =>
-								setShowContractStartDatePicker(false)
-							}
+						<TouchableOpacity
+							onPress={() => setShowContractStartDatePicker(false)}
+							activeOpacity={0.75}
 							style={{
-								backgroundColor: "#3b82f6",
+								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								borderWidth: 1,
+								borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
+								borderRadius: 10,
+								paddingVertical: 11,
+								alignItems: "center",
 								width: "100%",
 								marginTop: 8,
 							}}>
-							<ButtonText style={{ color: "#ffffff" }}>
-								Confirmer
-							</ButtonText>
-						</Button>
+							<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>Confirmer</Text>
+						</TouchableOpacity>
 					</VStack>
 				</ActionsheetContent>
 			</Actionsheet>
@@ -1983,7 +2043,7 @@ const ApplicationScreen = () => {
 				<ActionsheetContent
 					style={{
 						paddingBottom: 32,
-						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
@@ -1999,7 +2059,7 @@ const ApplicationScreen = () => {
 							style={{
 								fontWeight: "600",
 								fontSize: 16,
-								color: isDark ? "#f9fafb" : "#111827",
+								color: isDark ? Colors.dark.text : Colors.light.text,
 							}}>
 							Date de fin
 						</Text>
@@ -2017,20 +2077,23 @@ const ApplicationScreen = () => {
 							}}
 							minimumDate={contractStartDate || new Date()}
 							style={{ width: "100%" }}
-							textColor={isDark ? "#f9fafb" : "#111827"}
+							textColor={isDark ? Colors.dark.text : Colors.light.text}
 						/>
-						<Button
-							size='md'
+						<TouchableOpacity
 							onPress={() => setShowContractEndDatePicker(false)}
+							activeOpacity={0.75}
 							style={{
-								backgroundColor: "#3b82f6",
+								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								borderWidth: 1,
+								borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
+								borderRadius: 10,
+								paddingVertical: 11,
+								alignItems: "center",
 								width: "100%",
 								marginTop: 8,
 							}}>
-							<ButtonText style={{ color: "#ffffff" }}>
-								Confirmer
-							</ButtonText>
-						</Button>
+							<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>Confirmer</Text>
+						</TouchableOpacity>
 					</VStack>
 				</ActionsheetContent>
 			</Actionsheet>

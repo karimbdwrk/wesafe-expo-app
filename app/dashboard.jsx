@@ -74,6 +74,7 @@ import LogoUploader from "@/components/LogoUploader";
 import { OPEN_SUPPORT_CHAT, SIGN_OUT } from "@/utils/activityEvents";
 import SubscriptionPaymentSheet from "../components/SubscriptionPaymentSheet";
 import MessageThread from "@/components/MessageThread";
+import { width } from "dom-helpers";
 
 const { SUPABASE_URL, SUPABASE_API_KEY, SUPERADMIN_ID } =
 	Constants.expoConfig.extra;
@@ -243,10 +244,14 @@ const DashboardScreen = () => {
 			<Card
 				style={{
 					padding: 16,
-					backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+					backgroundColor: isDark
+						? Colors.dark.cardBackground
+						: Colors.light.cardBackground,
 					borderRadius: 12,
 					borderWidth: 1,
-					borderColor: isDark ? Colors.dark.border : Colors.light.border,
+					borderColor: isDark
+						? Colors.dark.border
+						: Colors.light.border,
 				}}>
 				<HStack
 					style={{
@@ -261,7 +266,9 @@ const DashboardScreen = () => {
 								width: 40,
 								height: 40,
 								borderRadius: 20,
-								backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
 								justifyContent: "center",
 								alignItems: "center",
 							}}>
@@ -269,7 +276,9 @@ const DashboardScreen = () => {
 								as={icon}
 								size='lg'
 								style={{
-									color: isDark ? Colors.dark.tint : Colors.light.tint,
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
 								}}
 							/>
 						</Box>
@@ -278,7 +287,9 @@ const DashboardScreen = () => {
 								size='md'
 								style={{
 									fontWeight: "600",
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								{title}
 							</Text>
@@ -286,7 +297,9 @@ const DashboardScreen = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}>
 									{subtitle}
 								</Text>
@@ -306,7 +319,9 @@ const DashboardScreen = () => {
 							as={ChevronRight}
 							size='lg'
 							style={{
-								color: isDark ? Colors.dark.muted : Colors.light.muted,
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 							}}
 						/>
 					</HStack>
@@ -330,7 +345,9 @@ const DashboardScreen = () => {
 								as={ScanLine}
 								size='xl'
 								style={{
-									color: isDark ? Colors.dark.tint : Colors.light.tint,
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
 								}}
 							/>
 						</TouchableOpacity>
@@ -340,7 +357,9 @@ const DashboardScreen = () => {
 			<ScrollView
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.background,
 				}}
 				showsVerticalScrollIndicator={false}>
 				<Box style={{ padding: 20, paddingBottom: 40 }}>
@@ -371,7 +390,9 @@ const DashboardScreen = () => {
 									{company?.reject_message ? (
 										<Text
 											style={{
-												color: isDark ? Colors.dark.danger : Colors.light.danger,
+												color: isDark
+													? Colors.dark.danger
+													: Colors.light.danger,
 												fontSize: 13,
 											}}>
 											{company.reject_message}
@@ -386,16 +407,22 @@ const DashboardScreen = () => {
 							<Card
 								style={{
 									padding: 16,
-									backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+									backgroundColor: isDark
+										? Colors.dark.background
+										: Colors.light.background,
 									borderRadius: 12,
 									borderWidth: 1,
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 								}}>
 								<VStack space='xs'>
 									<Text
 										style={{
 											fontWeight: "700",
-											color: isDark ? Colors.dark.muted : Colors.light.muted,
+											color: isDark
+												? Colors.dark.muted
+												: Colors.light.muted,
 											fontSize: 14,
 										}}>
 										Votre compte a été suspendu
@@ -403,7 +430,9 @@ const DashboardScreen = () => {
 									{company?.suspend_message ? (
 										<Text
 											style={{
-												color: isDark ? Colors.dark.muted : Colors.light.muted,
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
 												fontSize: 13,
 											}}>
 											{company.suspend_message}
@@ -411,7 +440,9 @@ const DashboardScreen = () => {
 									) : (
 										<Text
 											style={{
-												color: isDark ? Colors.dark.muted : Colors.light.muted,
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
 												fontSize: 13,
 											}}>
 											Contactez le support pour plus
@@ -426,10 +457,14 @@ const DashboardScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.border : Colors.light.border,
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<VStack space='lg'>
 								{/* Logo Section - Centré et cliquable */}
@@ -458,7 +493,9 @@ const DashboardScreen = () => {
 													size='lg'
 													style={{
 														fontWeight: "600",
-														color: isDark ? Colors.dark.text : Colors.light.text,
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													{company?.name}
 												</Text>
@@ -468,7 +505,11 @@ const DashboardScreen = () => {
 														size='xs'
 														style={{
 															fontStyle: "italic",
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 														}}>
 														(
 														{[
@@ -551,14 +592,20 @@ const DashboardScreen = () => {
 												<Text
 													size='sm'
 													style={{
-														color: isDark ? Colors.dark.muted : Colors.light.muted,
+														color: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}>
 													{company.street}
 												</Text>
 												<Text
 													size='sm'
 													style={{
-														color: isDark ? Colors.dark.muted : Colors.light.muted,
+														color: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}>
 													{[
 														company.postcode,
@@ -573,7 +620,9 @@ const DashboardScreen = () => {
 											<Text
 												size='sm'
 												style={{
-													color: isDark ? Colors.dark.muted : Colors.light.muted,
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
 												}}>
 												SIRET:{" "}
 												{formatSiret(company.siret)}
@@ -588,7 +637,9 @@ const DashboardScreen = () => {
 										<Text
 											size='sm'
 											style={{
-												color: isDark ? Colors.dark.muted : Colors.light.muted,
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}>
 											{company.description}
 										</Text>
@@ -618,7 +669,9 @@ const DashboardScreen = () => {
 												size='sm'
 												style={{
 													fontWeight: "600",
-													color: isDark ? Colors.dark.text : Colors.light.text,
+													color: isDark
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Statut d'abonnement
 											</Text>
@@ -649,7 +702,9 @@ const DashboardScreen = () => {
 											as={ChevronRight}
 											size='sm'
 											style={{
-												color: isDark ? Colors.dark.muted : Colors.light.muted,
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}
 										/>
 									</HStack>
@@ -677,7 +732,9 @@ const DashboardScreen = () => {
 												size='sm'
 												style={{
 													fontWeight: "600",
-													color: isDark ? Colors.dark.text : Colors.light.text,
+													color: isDark
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Crédits LastMinute
 											</Text>
@@ -700,7 +757,9 @@ const DashboardScreen = () => {
 											as={ChevronRight}
 											size='sm'
 											style={{
-												color: isDark ? Colors.dark.muted : Colors.light.muted,
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}
 										/>
 									</HStack>
@@ -714,7 +773,9 @@ const DashboardScreen = () => {
 								size='lg'
 								style={{
 									fontWeight: "600",
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Actions rapides
 							</Text>
@@ -925,13 +986,42 @@ const DashboardScreen = () => {
 						</VStack>
 						<Divider />
 						{/* Déconnexion */}
-						<Button
-							action='negative'
-							onPress={() => setShowLogoutDialog(true)}
-							style={{ marginTop: 8 }}>
-							<ButtonIcon as={LogOut} />
-							<ButtonText>Déconnexion</ButtonText>
-						</Button>
+						<HStack
+							style={{
+								justifyContent: "center",
+								alignItems: "center",
+								width: "100%",
+							}}>
+							<TouchableOpacity
+								onPress={() => setShowLogoutDialog(true)}
+								activeOpacity={0.7}
+								style={{
+									flexDirection: "row",
+									alignItems: "center",
+									gap: 10,
+									paddingVertical: 14,
+									paddingHorizontal: 4,
+								}}>
+								<LogOut
+									size={16}
+									color={
+										isDark
+											? Colors.dark.danger
+											: Colors.light.danger
+									}
+								/>
+								<Text
+									style={{
+										fontSize: 14,
+										fontWeight: "500",
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
+									}}>
+									Déconnexion
+								</Text>
+							</TouchableOpacity>
+						</HStack>
 					</VStack>
 
 					{/* Modal de confirmation de déconnexion */}
@@ -941,7 +1031,9 @@ const DashboardScreen = () => {
 						<AlertDialogBackdrop />
 						<AlertDialogContent
 							style={{
-								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								padding: 24,
 							}}>
@@ -949,7 +1041,9 @@ const DashboardScreen = () => {
 								<Heading
 									size='lg'
 									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Déconnexion
 								</Heading>
@@ -957,7 +1051,9 @@ const DashboardScreen = () => {
 							<AlertDialogBody>
 								<Text
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										marginTop: 8,
 									}}>
 									Êtes-vous sûr de vouloir vous déconnecter ?
@@ -965,25 +1061,64 @@ const DashboardScreen = () => {
 							</AlertDialogBody>
 							<AlertDialogFooter style={{ marginTop: 24 }}>
 								<HStack space='md' style={{ width: "100%" }}>
-									<Button
-										variant='outline'
-										action='secondary'
+									<TouchableOpacity
 										onPress={() =>
 											setShowLogoutDialog(false)
 										}
-										style={{ flex: 1 }}>
-										<ButtonText>Annuler</ButtonText>
-									</Button>
-									<Button
-										action='negative'
+										activeOpacity={0.75}
+										style={{
+											flex: 1,
+											paddingVertical: 11,
+											borderRadius: 10,
+											alignItems: "center",
+											borderWidth: 1,
+											borderColor: isDark
+												? Colors.dark.border
+												: Colors.light.border,
+											backgroundColor: isDark
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
+										}}>
+										<Text
+											style={{
+												fontWeight: "600",
+												fontSize: 14,
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
+											}}>
+											Annuler
+										</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
 										onPress={() => {
 											setShowLogoutDialog(false);
 											trackActivity(SIGN_OUT);
 											signOut();
 										}}
-										style={{ flex: 1 }}>
-										<ButtonText>Déconnexion</ButtonText>
-									</Button>
+										activeOpacity={0.75}
+										style={{
+											flex: 1,
+											paddingVertical: 11,
+											borderRadius: 10,
+											alignItems: "center",
+											borderWidth: 1,
+											borderColor: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
+											backgroundColor: "transparent",
+										}}>
+										<Text
+											style={{
+												fontWeight: "600",
+												fontSize: 14,
+												color: isDark
+													? Colors.dark.danger
+													: Colors.light.danger,
+											}}>
+											Déconnexion
+										</Text>
+									</TouchableOpacity>
 								</HStack>
 							</AlertDialogFooter>
 						</AlertDialogContent>
@@ -1005,7 +1140,9 @@ const DashboardScreen = () => {
 						<ActionsheetDragIndicatorWrapper>
 							<ActionsheetDragIndicator
 								style={{
-									backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+									backgroundColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 								}}
 							/>
 						</ActionsheetDragIndicatorWrapper>
@@ -1017,21 +1154,27 @@ const DashboardScreen = () => {
 								paddingHorizontal: 20,
 								paddingVertical: 10,
 								borderBottomWidth: 1,
-								borderBottomColor: isDark ? Colors.dark.border : Colors.light.border,
+								borderBottomColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<VStack space='xs'>
 								<Text
 									style={{
 										fontSize: 16,
 										fontWeight: "700",
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Support WeSafe
 								</Text>
 								<Text
 									style={{
 										fontSize: 11,
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										fontStyle: "italic",
 										letterSpacing: 0.2,
 									}}>
@@ -1048,7 +1191,9 @@ const DashboardScreen = () => {
 									width: 32,
 									height: 32,
 									borderRadius: 16,
-									backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
+									backgroundColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
@@ -1056,7 +1201,9 @@ const DashboardScreen = () => {
 									style={{
 										fontSize: 16,
 										fontWeight: "700",
-										color: isDark ? Colors.dark.text : Colors.light.muted,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.muted,
 										lineHeight: 18,
 									}}>
 									✕

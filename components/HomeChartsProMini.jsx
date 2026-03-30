@@ -16,7 +16,6 @@ import { VStack } from "@/components/ui/vstack";
 import { Text } from "@/components/ui/text";
 import { Heading } from "@/components/ui/heading";
 import { Divider } from "@/components/ui/divider";
-import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 
 import {
 	Briefcase,
@@ -996,30 +995,41 @@ const HomeChartsProMini = () => {
 					</VStack>
 				</>
 			)}
-			<Button
-				size='md'
-				action='primary'
-				variant='outline'
+			<TouchableOpacity
+				onPress={() => router.push("/analytics")}
+				activeOpacity={0.75}
 				style={{
-					borderColor: Colors.light.tint,
-					backgroundColor: "transparent",
-					color: Colors.light.tint,
-					borderRadius: 8,
-				}}
-				onPress={() => router.push("/analytics")}>
-				<ButtonIcon
-					as={ChartNoAxesCombined}
-					style={{
-						color: Colors.light.tint,
-					}}
+					backgroundColor: isDark
+						? Colors.dark.cardBackground
+						: Colors.light.cardBackground,
+					borderRadius: 10,
+					paddingVertical: 11,
+					alignItems: "center",
+					borderWidth: 1,
+					borderColor: isDark
+						? Colors.dark.border
+						: Colors.light.border,
+					flexDirection: "row",
+					justifyContent: "center",
+					gap: 6,
+				}}>
+				<ChartNoAxesCombined
+					size={15}
+					color={isDark ? Colors.dark.muted : Colors.light.muted}
 				/>
-				<ButtonText
+				<Text
 					style={{
-						color: Colors.light.tint,
+						fontWeight: "700",
+						fontSize: 14,
+						color: isDark ? Colors.dark.text : Colors.light.text,
 					}}>
 					Voir toutes les statistiques
-				</ButtonText>
-			</Button>
+				</Text>
+				<ChevronRight
+					size={16}
+					color={isDark ? Colors.dark.muted : Colors.light.muted}
+				/>
+			</TouchableOpacity>
 		</VStack>
 	);
 };

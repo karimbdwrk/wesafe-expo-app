@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Constants from "expo-constants";
 
-import { ScrollView } from "react-native";
-import { View } from "react-native";
+import { ScrollView, View, TouchableOpacity } from "react-native";
 import {
 	useRouter,
 	useLocalSearchParams,
@@ -15,7 +14,6 @@ import { Box } from "@/components/ui/box";
 import { Divider } from "@/components/ui/divider";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
-import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { useToast, Toast, ToastTitle } from "@/components/ui/toast";
 import { Icon } from "@/components/ui/icon";
 import {
@@ -42,6 +40,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { useDataContext } from "@/context/DataContext";
 import { SEND_CONTRACT_OTP, SIGN_CONTRACT } from "@/utils/activityEvents";
 
@@ -97,11 +96,13 @@ const ContractScreen = () => {
 	const { isDark } = useTheme();
 
 	// Style constants
-	const bg = isDark ? "#111827" : "#f3f4f6";
-	const cardBg = isDark ? "#1f2937" : "#ffffff";
-	const cardBorder = isDark ? "#374151" : "#e5e7eb";
-	const textPrimary = isDark ? "#f3f4f6" : "#111827";
-	const textSecondary = isDark ? "#9ca3af" : "#6b7280";
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const cardBorder = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
 	const cardStyle = {
 		backgroundColor: cardBg,
 		borderRadius: 12,
@@ -767,7 +768,11 @@ const ContractScreen = () => {
 	// En-tête de section
 	const SectionHeader = ({ icon, title }) => (
 		<HStack space='sm' style={{ alignItems: "center", marginBottom: 14 }}>
-			<Icon as={icon} size='sm' style={{ color: "#3b82f6" }} />
+			<Icon
+				as={icon}
+				size='sm'
+				style={{ color: isDark ? Colors.dark.tint : Colors.light.tint }}
+			/>
 			<Text
 				style={{
 					fontSize: 15,
@@ -787,14 +792,20 @@ const ContractScreen = () => {
 				? "Brouillon"
 				: contract?.status || "—";
 	const statusColor =
-		contract?.status === "published" ? "#3b82f6" : "#6b7280";
+		contract?.status === "published"
+			? isDark
+				? Colors.dark.tint
+				: Colors.light.tint
+			: isDark
+				? Colors.dark.muted
+				: Colors.light.muted;
 	const statusBg = isDark
 		? contract?.status === "published"
 			? "#1e3a5f"
-			: "#374151"
+			: Colors.dark.border
 		: contract?.status === "published"
 			? "#dbeafe"
-			: "#f3f4f6";
+			: Colors.light.background;
 
 	return (
 		<Box style={{ flex: 1, backgroundColor: bg }}>
@@ -838,7 +849,7 @@ const ContractScreen = () => {
 								style={{
 									fontSize: 12,
 									fontWeight: "600",
-									color: "#16a34a",
+									color: "isDark ? Colors.dark.success : Colors.light.success",
 								}}>
 								Signé
 							</Text>
@@ -1014,7 +1025,8 @@ const ContractScreen = () => {
 												width: 6,
 												height: 6,
 												borderRadius: 3,
-												backgroundColor: "#3b82f6",
+												backgroundColor:
+													"isDark ? Colors.dark.tint : Colors.light.tint",
 												marginRight: 10,
 											}}
 										/>
@@ -1209,7 +1221,7 @@ const ContractScreen = () => {
 										as={CheckCircle}
 										size='xs'
 										style={{
-											color: "#16a34a",
+											color: "isDark ? Colors.dark.success : Colors.light.success",
 											marginRight: 8,
 										}}
 									/>
@@ -1323,14 +1335,26 @@ const ContractScreen = () => {
 								as={Clock}
 								size='sm'
 								style={{
-									color: isSigned ? "#16a34a" : "#9ca3af",
+									color: isSigned
+										? isDark
+											? Colors.dark.success
+											: Colors.light.success
+										: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 								}}
 							/>
 							<Text
 								style={{
 									fontSize: 13,
 									fontWeight: "600",
-									color: isSigned ? "#16a34a" : "#9ca3af",
+									color: isSigned
+										? isDark
+											? Colors.dark.success
+											: Colors.light.success
+										: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 								}}>
 								{isSigned ? "Signé" : "En attente"}
 							</Text>
@@ -1368,14 +1392,26 @@ const ContractScreen = () => {
 								as={Clock}
 								size='sm'
 								style={{
-									color: isProSigned ? "#16a34a" : "#9ca3af",
+									color: isProSigned
+										? isDark
+											? Colors.dark.success
+											: Colors.light.success
+										: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 								}}
 							/>
 							<Text
 								style={{
 									fontSize: 13,
 									fontWeight: "600",
-									color: isProSigned ? "#16a34a" : "#9ca3af",
+									color: isProSigned
+										? isDark
+											? Colors.dark.success
+											: Colors.light.success
+										: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 								}}>
 								{isProSigned ? "Signé" : "En attente"}
 							</Text>
@@ -1386,7 +1422,7 @@ const ContractScreen = () => {
 				{/* Action : Modifier le contrat (pro uniquement, pas encore signé des deux côtés) */}
 				{role === "pro" && !(isSigned && isProSigned) ? (
 					<Box style={{ marginTop: 4, marginBottom: 8 }}>
-						<Button
+						<TouchableOpacity
 							onPress={() =>
 								router.push({
 									pathname: "/contractgeneration",
@@ -1394,23 +1430,25 @@ const ContractScreen = () => {
 								})
 							}
 							style={{
-								backgroundColor: isDark ? "#374151" : "#e5e7eb",
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "center",
+								gap: 8,
+								borderWidth: 1,
+								borderColor: cardBorder,
+								backgroundColor: cardBg,
 								borderRadius: 10,
 								height: 48,
 							}}>
-							<ButtonIcon
+							<Icon
 								as={Pen}
+								size='sm'
 								style={{ color: textPrimary }}
 							/>
-							<ButtonText
-								style={{
-									color: textPrimary,
-									fontSize: 15,
-									marginLeft: 6,
-								}}>
+							<Text style={{ color: textPrimary, fontSize: 15 }}>
 								Modifier ou finaliser le contrat
-							</ButtonText>
-						</Button>
+							</Text>
+						</TouchableOpacity>
 					</Box>
 				) : null}
 
@@ -1418,7 +1456,7 @@ const ContractScreen = () => {
 				{role === "candidat" && !isSigned ? (
 					<Box style={{ marginTop: 4, marginBottom: 8 }}>
 						{!candidate?.signature_url ? (
-							<Button
+							<TouchableOpacity
 								onPress={() =>
 									router.push({
 										pathname: "/signature",
@@ -1426,39 +1464,62 @@ const ContractScreen = () => {
 									})
 								}
 								style={{
-									backgroundColor: "#3b82f6",
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									borderWidth: 1,
+									borderColor: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+									backgroundColor: cardBg,
 									borderRadius: 10,
 									height: 48,
 								}}>
-								<ButtonText
+								<Text
 									style={{
-										color: "#ffffff",
+										color: isDark
+											? Colors.dark.tint
+											: Colors.light.tint,
 										fontSize: 15,
 									}}>
 									Enregistrer une signature
-								</ButtonText>
-							</Button>
+								</Text>
+							</TouchableOpacity>
 						) : (
-							<Button
+							<TouchableOpacity
 								onPress={() => setShowSignModal(true)}
 								style={{
-									backgroundColor: "#16a34a",
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: 8,
+									borderWidth: 1,
+									borderColor: isDark
+										? Colors.dark.success
+										: Colors.light.success,
+									backgroundColor: cardBg,
 									borderRadius: 10,
 									height: 48,
 								}}>
-								<ButtonIcon
+								<Icon
 									as={Signature}
-									style={{ color: "#ffffff" }}
-								/>
-								<ButtonText
+									size='sm'
 									style={{
-										color: "#ffffff",
+										color: isDark
+											? Colors.dark.success
+											: Colors.light.success,
+									}}
+								/>
+								<Text
+									style={{
+										color: isDark
+											? Colors.dark.success
+											: Colors.light.success,
 										fontSize: 15,
-										marginLeft: 6,
 									}}>
 									Signer le contrat
-								</ButtonText>
-							</Button>
+								</Text>
+							</TouchableOpacity>
 						)}
 					</Box>
 				) : null}
@@ -1467,7 +1528,7 @@ const ContractScreen = () => {
 				{role === "pro" && isSigned && !isProSigned ? (
 					<Box style={{ marginTop: 4, marginBottom: 8 }}>
 						{!company?.signature_url || !company?.stamp_url ? (
-							<Button
+							<TouchableOpacity
 								onPress={() =>
 									router.push({
 										pathname: "/signature",
@@ -1475,39 +1536,62 @@ const ContractScreen = () => {
 									})
 								}
 								style={{
-									backgroundColor: "#3b82f6",
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									borderWidth: 1,
+									borderColor: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+									backgroundColor: cardBg,
 									borderRadius: 10,
 									height: 48,
 								}}>
-								<ButtonText
+								<Text
 									style={{
-										color: "#ffffff",
+										color: isDark
+											? Colors.dark.tint
+											: Colors.light.tint,
 										fontSize: 15,
 									}}>
 									Enregistrer signature et tampon
-								</ButtonText>
-							</Button>
+								</Text>
+							</TouchableOpacity>
 						) : (
-							<Button
+							<TouchableOpacity
 								onPress={() => setShowSignModal(true)}
 								style={{
-									backgroundColor: "#16a34a",
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: 8,
+									borderWidth: 1,
+									borderColor: isDark
+										? Colors.dark.success
+										: Colors.light.success,
+									backgroundColor: cardBg,
 									borderRadius: 10,
 									height: 48,
 								}}>
-								<ButtonIcon
+								<Icon
 									as={Signature}
-									style={{ color: "#ffffff" }}
-								/>
-								<ButtonText
+									size='sm'
 									style={{
-										color: "#ffffff",
+										color: isDark
+											? Colors.dark.success
+											: Colors.light.success,
+									}}
+								/>
+								<Text
+									style={{
+										color: isDark
+											? Colors.dark.success
+											: Colors.light.success,
 										fontSize: 15,
-										marginLeft: 6,
 									}}>
 									Signer et tamponner le contrat
-								</ButtonText>
-							</Button>
+								</Text>
+							</TouchableOpacity>
 						)}
 					</Box>
 				) : null}
@@ -1516,53 +1600,61 @@ const ContractScreen = () => {
 				{isSigned && isProSigned ? (
 					<Box style={{ marginTop: 4, marginBottom: 8 }}>
 						{contract?.pdf_url ? (
-							<Button
+							<TouchableOpacity
 								onPress={() =>
 									downloadAndOpenPdf(contract.pdf_url)
 								}
 								style={{
-									backgroundColor: isDark
-										? "#374151"
-										: "#e5e7eb",
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: 8,
+									borderWidth: 1,
+									borderColor: cardBorder,
+									backgroundColor: cardBg,
 									borderRadius: 10,
 									height: 48,
 								}}>
-								<ButtonIcon
+								<Icon
 									as={Download}
+									size='sm'
 									style={{ color: textPrimary }}
 								/>
-								<ButtonText
+								<Text
 									style={{
 										color: textPrimary,
 										fontSize: 15,
-										marginLeft: 6,
 									}}>
 									Télécharger le PDF
-								</ButtonText>
-							</Button>
+								</Text>
+							</TouchableOpacity>
 						) : (
-							<Button
+							<TouchableOpacity
 								onPress={handleDownloadAndUploadPdf}
 								style={{
-									backgroundColor: isDark
-										? "#374151"
-										: "#e5e7eb",
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: 8,
+									borderWidth: 1,
+									borderColor: cardBorder,
+									backgroundColor: cardBg,
 									borderRadius: 10,
 									height: 48,
 								}}>
-								<ButtonIcon
+								<Icon
 									as={Download}
+									size='sm'
 									style={{ color: textPrimary }}
 								/>
-								<ButtonText
+								<Text
 									style={{
 										color: textPrimary,
 										fontSize: 15,
-										marginLeft: 6,
 									}}>
 									Générer et télécharger le PDF
-								</ButtonText>
-							</Button>
+								</Text>
+							</TouchableOpacity>
 						)}
 					</Box>
 				) : null}
@@ -1575,7 +1667,7 @@ const ContractScreen = () => {
 				<ModalBackdrop />
 				<ModalContent
 					style={{
-						backgroundColor: isDark ? "#1f2937" : "#ffffff",
+						backgroundColor: cardBg,
 						borderRadius: 16,
 						marginHorizontal: 24,
 					}}>
@@ -1613,15 +1705,14 @@ const ContractScreen = () => {
 								{error ? (
 									<Text
 										style={{
-											color: "#ef4444",
+											color: "isDark ? Colors.dark.danger : Colors.light.danger",
 											fontSize: 13,
 										}}>
 										{error}
 									</Text>
 								) : null}
 								{canResend ? (
-									<Button
-										variant='link'
+									<TouchableOpacity
 										onPress={() => {
 											if (role === "pro") {
 												sendContractOtp(
@@ -1639,11 +1730,20 @@ const ContractScreen = () => {
 												);
 											}
 										}}
-										className='mt-2'>
-										<ButtonText>
+										style={{
+											marginTop: 8,
+											alignSelf: "center",
+										}}>
+										<Text
+											style={{
+												color: isDark
+													? Colors.dark.tint
+													: Colors.light.tint,
+												fontSize: 14,
+											}}>
 											Renvoyer le code
-										</ButtonText>
-									</Button>
+										</Text>
+									</TouchableOpacity>
 								) : (
 									<Text
 										style={{
@@ -1657,7 +1757,7 @@ const ContractScreen = () => {
 						) : null}
 
 						{!otpSent ? (
-							<Button
+							<TouchableOpacity
 								onPress={async () => {
 									try {
 										if (role === "pro") {
@@ -1691,31 +1791,47 @@ const ContractScreen = () => {
 									}
 								}}
 								style={{
-									backgroundColor: "#3b82f6",
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									borderWidth: 1,
+									borderColor: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+									backgroundColor: cardBg,
 									borderRadius: 10,
 									height: 44,
 									marginTop: 16,
 								}}>
-								<ButtonText style={{ color: "#ffffff" }}>
+								<Text
+									style={{
+										color: isDark
+											? Colors.dark.tint
+											: Colors.light.tint,
+									}}>
 									Envoyer le code par email
-								</ButtonText>
-							</Button>
+								</Text>
+							</TouchableOpacity>
 						) : null}
 					</ModalBody>
 					<ModalFooter style={{ gap: 10 }}>
-						<Button
-							variant='outline'
+						<TouchableOpacity
 							onPress={() => setShowSignModal(false)}
 							style={{
 								flex: 1,
-								borderColor: isDark ? "#4b5563" : "#d1d5db",
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "center",
+								borderWidth: 1,
+								borderColor: cardBorder,
+								backgroundColor: cardBg,
 								borderRadius: 10,
 								height: 44,
 							}}>
-							<ButtonText style={{ color: textPrimary }}>
+							<Text style={{ color: textSecondary }}>
 								Annuler
-							</ButtonText>
-						</Button>
+							</Text>
+						</TouchableOpacity>
 					</ModalFooter>
 				</ModalContent>
 			</Modal>

@@ -41,7 +41,6 @@ import { HStack } from "@/components/ui/hstack";
 import { Icon } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
-import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import { Divider } from "@/components/ui/divider";
 import {
@@ -83,6 +82,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { useNotifications } from "@/context/NotificationsContext";
 import { useImage } from "@/context/ImageContext";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -102,6 +102,15 @@ const AccountScreen = () => {
 	const { user, signOut, accessToken } = useAuth();
 	const { getById, getAll, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
+
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const cardBorder = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
 	const { unreadCount, refreshNotifications } = useNotifications();
 	const { image } = useImage();
 	const router = useRouter();
@@ -362,10 +371,10 @@ const AccountScreen = () => {
 			<Card
 				style={{
 					padding: 16,
-					backgroundColor: isDark ? "#374151" : "#ffffff",
+					backgroundColor: cardBg,
 					borderRadius: 12,
 					borderWidth: 1,
-					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+					borderColor: cardBorder,
 				}}>
 				<HStack
 					style={{
@@ -380,7 +389,7 @@ const AccountScreen = () => {
 								width: 40,
 								height: 40,
 								borderRadius: 20,
-								backgroundColor: isDark ? "#1f2937" : "#f3f4f6",
+								backgroundColor: bg,
 								justifyContent: "center",
 								alignItems: "center",
 							}}>
@@ -388,7 +397,7 @@ const AccountScreen = () => {
 								as={icon}
 								size='lg'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: tint,
 								}}
 							/>
 						</Box>
@@ -397,7 +406,7 @@ const AccountScreen = () => {
 								size='md'
 								style={{
 									fontWeight: "600",
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textPrimary,
 								}}>
 								{title}
 							</Text>
@@ -405,7 +414,7 @@ const AccountScreen = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: textSecondary,
 									}}>
 									{subtitle}
 								</Text>
@@ -425,7 +434,7 @@ const AccountScreen = () => {
 							as={ChevronRight}
 							size='lg'
 							style={{
-								color: isDark ? "#9ca3af" : "#6b7280",
+								color: textSecondary,
 							}}
 						/>
 					</HStack>
@@ -441,7 +450,7 @@ const AccountScreen = () => {
 			<Stack.Screen
 				options={{
 					headerStyle: {
-						backgroundColor: "white",
+						backgroundColor: bg,
 					},
 					headerRight: () => (
 						<TouchableOpacity
@@ -457,7 +466,7 @@ const AccountScreen = () => {
 								as={QrCode}
 								size='xl'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: tint,
 								}}
 							/>
 						</TouchableOpacity>
@@ -470,7 +479,7 @@ const AccountScreen = () => {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? "#111827" : "#ffffff",
+						backgroundColor: cardBg,
 						paddingBottom: 60,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
@@ -490,7 +499,7 @@ const AccountScreen = () => {
 						<Heading
 							size='md'
 							style={{
-								color: isDark ? "#f9fafb" : "#111827",
+								color: textPrimary,
 							}}>
 							Mon QR Code
 						</Heading>
@@ -498,7 +507,7 @@ const AccountScreen = () => {
 							onPress={() => setShowQRModal(false)}
 							activeOpacity={0.7}
 							style={{
-								backgroundColor: isDark ? "#1f2937" : "#f3f4f6",
+								backgroundColor: bg,
 								borderRadius: 999,
 								padding: 8,
 							}}>
@@ -506,7 +515,7 @@ const AccountScreen = () => {
 								as={X}
 								size='sm'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: textSecondary,
 								}}
 							/>
 						</TouchableOpacity> */}
@@ -536,7 +545,7 @@ const AccountScreen = () => {
 							<Heading
 								size='sm'
 								style={{
-									color: isDark ? "#f9fafb" : "#111827",
+									color: textPrimary,
 								}}>
 								{profile?.firstname} {profile?.lastname}
 							</Heading>
@@ -544,7 +553,7 @@ const AccountScreen = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#6b7280" : "#9ca3af",
+										color: textSecondary,
 									}}>
 									{profile.job_title}
 								</Text>
@@ -561,7 +570,7 @@ const AccountScreen = () => {
 						}}>
 						<View
 							style={{
-								backgroundColor: "#ffffff",
+								backgroundColor: isDark ? "#111827" : "#ffffff",
 								borderRadius: 24,
 								padding: 20,
 								shadowColor: "#000",
@@ -574,8 +583,10 @@ const AccountScreen = () => {
 								<SvgQRCode
 									value={qrUrl}
 									size={200}
-									color='#111827'
-									backgroundColor='#ffffff'
+									color={isDark ? "#f8fafc" : "#111827"}
+									backgroundColor={
+										isDark ? "#111827" : "#ffffff"
+									}
 								/>
 							) : (
 								<View
@@ -587,7 +598,7 @@ const AccountScreen = () => {
 									}}>
 									<Text
 										style={{
-											color: "#9ca3af",
+											color: textSecondary,
 											fontSize: 12,
 										}}>
 										Chargement...
@@ -601,7 +612,7 @@ const AccountScreen = () => {
 							style={{
 								width: 240,
 								height: 4,
-								backgroundColor: isDark ? "#374151" : "#e5e7eb",
+								backgroundColor: cardBorder,
 								borderRadius: 2,
 								marginTop: 16,
 								overflow: "hidden",
@@ -610,7 +621,7 @@ const AccountScreen = () => {
 								style={{
 									height: 4,
 									borderRadius: 2,
-									backgroundColor: "#2563eb",
+									backgroundColor: textSecondary,
 									width: progressAnim.interpolate({
 										inputRange: [0, 1],
 										outputRange: ["0%", "100%"],
@@ -623,7 +634,7 @@ const AccountScreen = () => {
 					{/* Hint */}
 					<Text
 						style={{
-							color: isDark ? "#6b7280" : "#9ca3af",
+							color: textSecondary,
 							fontSize: 12,
 							marginTop: 12,
 							marginBottom: 8,
@@ -637,7 +648,7 @@ const AccountScreen = () => {
 			<Box
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					backgroundColor: bg,
 				}}>
 				<ScrollView
 					style={{ flex: 1 }}
@@ -686,20 +697,16 @@ const AccountScreen = () => {
 							<Card
 								style={{
 									padding: 16,
-									backgroundColor: isDark
-										? "#1c1917"
-										: "#f9fafb",
+									backgroundColor: bg,
 									borderRadius: 12,
 									borderWidth: 1,
-									borderColor: isDark ? "#44403c" : "#d1d5db",
+									borderColor: cardBorder,
 								}}>
 								<VStack space='xs'>
 									<Text
 										style={{
 											fontWeight: "700",
-											color: isDark
-												? "#d1d5db"
-												: "#374151",
+											color: textPrimary,
 											fontSize: 14,
 										}}>
 										Votre compte a été suspendu
@@ -707,9 +714,7 @@ const AccountScreen = () => {
 									{profile?.suspend_message ? (
 										<Text
 											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												color: textSecondary,
 												fontSize: 13,
 											}}>
 											{profile.suspend_message}
@@ -717,9 +722,7 @@ const AccountScreen = () => {
 									) : (
 										<Text
 											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												color: textSecondary,
 												fontSize: 13,
 											}}>
 											Contactez le support pour plus
@@ -734,10 +737,10 @@ const AccountScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: cardBg,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: cardBorder,
 							}}>
 							<VStack space='lg' style={{ alignItems: "center" }}>
 								{/* Avatar Section - Centré et cliquable */}
@@ -771,9 +774,7 @@ const AccountScreen = () => {
 												size='lg'
 												style={{
 													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+													color: textPrimary,
 												}}>
 												{profile?.firstname}{" "}
 												{profile?.lastname}
@@ -831,9 +832,7 @@ const AccountScreen = () => {
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: textSecondary,
 												}}>
 												{profile.email}
 											</Text>
@@ -842,9 +841,7 @@ const AccountScreen = () => {
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: textSecondary,
 												}}>
 												{profile.phone.startsWith(
 													"+33",
@@ -937,17 +934,13 @@ const AccountScreen = () => {
 												as={User}
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: textSecondary,
 												}}
 											/>
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#d1d5db"
-														: "#374151",
+													color: textPrimary,
 												}}>
 												{profile.gender === "male"
 													? "Homme"
@@ -967,17 +960,13 @@ const AccountScreen = () => {
 												as={Calendar}
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: textSecondary,
 												}}
 											/>
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#d1d5db"
-														: "#374151",
+													color: textPrimary,
 												}}>
 												{new Date(
 													profile.birthday,
@@ -986,9 +975,7 @@ const AccountScreen = () => {
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: textSecondary,
 												}}>
 												(
 												{Math.floor(
@@ -1015,17 +1002,13 @@ const AccountScreen = () => {
 												as={Ruler}
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: textSecondary,
 												}}
 											/>
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#d1d5db"
-														: "#374151",
+													color: textPrimary,
 												}}>
 												{profile?.height &&
 													`${profile.height} cm`}
@@ -1050,9 +1033,7 @@ const AccountScreen = () => {
 												as={MapPin}
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: textSecondary,
 													marginTop: 2,
 												}}
 											/>
@@ -1060,9 +1041,7 @@ const AccountScreen = () => {
 												<Text
 													size='sm'
 													style={{
-														color: isDark
-															? "#d1d5db"
-															: "#374151",
+														color: textPrimary,
 													}}>
 													{[
 														profile?.postcode,
@@ -1076,9 +1055,7 @@ const AccountScreen = () => {
 													<Text
 														size='xs'
 														style={{
-															color: isDark
-																? "#9ca3af"
-																: "#6b7280",
+															color: textSecondary,
 														}}>
 														{[
 															profile?.department,
@@ -1100,17 +1077,13 @@ const AccountScreen = () => {
 												as={Shield}
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: textSecondary,
 												}}
 											/>
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#d1d5db"
-														: "#374151",
+													color: textPrimary,
 												}}>
 												Ancien militaire
 											</Text>
@@ -1125,17 +1098,13 @@ const AccountScreen = () => {
 												as={Car}
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: textSecondary,
 												}}
 											/>
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#d1d5db"
-														: "#374151",
+													color: textPrimary,
 												}}>
 												Permis{" "}
 												{profile.driving_licenses}
@@ -1151,17 +1120,13 @@ const AccountScreen = () => {
 												as={Languages}
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: textSecondary,
 												}}
 											/>
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#d1d5db"
-														: "#374151",
+													color: textPrimary,
 												}}>
 												{profile.languages}
 											</Text>
@@ -1208,9 +1173,7 @@ const AccountScreen = () => {
 												size='sm'
 												style={{
 													fontWeight: "600",
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+													color: textPrimary,
 												}}>
 												Cartes professionnelles
 											</Text> */}
@@ -1314,7 +1277,7 @@ const AccountScreen = () => {
 								size='lg'
 								style={{
 									fontWeight: "600",
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textPrimary,
 								}}>
 								Actions rapides
 							</Text>
@@ -1400,13 +1363,42 @@ const AccountScreen = () => {
 								onPress={() => router.push("/settings")}
 							/>
 							<Divider style={{ marginVertical: 16 }} />
-							<Button
-								action='negative'
+							<TouchableOpacity
 								onPress={() => setShowLogoutDialog(true)}
-								style={{ marginTop: 8 }}>
-								<ButtonIcon as={LogOut} />
-								<ButtonText>Déconnexion</ButtonText>
-							</Button>
+								activeOpacity={0.7}
+								style={{
+									marginTop: 8,
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: 8,
+									borderWidth: 1,
+									borderColor: isDark
+										? Colors.dark.danger
+										: Colors.light.danger,
+									backgroundColor: cardBg,
+									borderRadius: 10,
+									height: 48,
+								}}>
+								<Icon
+									as={LogOut}
+									size='sm'
+									style={{
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
+									}}
+								/>
+								<Text
+									style={{
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
+										fontSize: 15,
+									}}>
+									Déconnexion
+								</Text>
+							</TouchableOpacity>
 						</VStack>
 					</VStack>
 				</ScrollView>
@@ -1418,7 +1410,7 @@ const AccountScreen = () => {
 					<AlertDialogBackdrop />
 					<AlertDialogContent
 						style={{
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: cardBg,
 							borderRadius: 12,
 							padding: 24,
 						}}>
@@ -1426,7 +1418,7 @@ const AccountScreen = () => {
 							<Heading
 								size='lg'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textPrimary,
 								}}>
 								Déconnexion
 							</Heading>
@@ -1434,7 +1426,7 @@ const AccountScreen = () => {
 						<AlertDialogBody>
 							<Text
 								style={{
-									color: isDark ? "#d1d5db" : "#4b5563",
+									color: textPrimary,
 									marginTop: 8,
 								}}>
 								Êtes-vous sûr de vouloir vous déconnecter ?
@@ -1442,23 +1434,68 @@ const AccountScreen = () => {
 						</AlertDialogBody>
 						<AlertDialogFooter style={{ marginTop: 24 }}>
 							<HStack space='md' style={{ width: "100%" }}>
-								<Button
-									variant='outline'
-									action='secondary'
+								<TouchableOpacity
 									onPress={() => setShowLogoutDialog(false)}
-									style={{ flex: 1 }}>
-									<ButtonText>Annuler</ButtonText>
-								</Button>
-								<Button
-									action='negative'
+									activeOpacity={0.7}
+									style={{
+										flex: 1,
+										flexDirection: "row",
+										alignItems: "center",
+										justifyContent: "center",
+										borderWidth: 1,
+										borderColor: cardBorder,
+										backgroundColor: cardBg,
+										borderRadius: 10,
+										height: 44,
+									}}>
+									<Text
+										style={{
+											color: textSecondary,
+											fontSize: 15,
+										}}>
+										Annuler
+									</Text>
+								</TouchableOpacity>
+								<TouchableOpacity
 									onPress={() => {
 										setShowLogoutDialog(false);
 										trackActivity(SIGN_OUT);
 										signOut();
 									}}
-									style={{ flex: 1 }}>
-									<ButtonText>Déconnexion</ButtonText>
-								</Button>
+									activeOpacity={0.7}
+									style={{
+										flex: 1,
+										flexDirection: "row",
+										alignItems: "center",
+										justifyContent: "center",
+										gap: 8,
+										borderWidth: 1,
+										borderColor: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
+										backgroundColor: cardBg,
+										borderRadius: 10,
+										height: 44,
+									}}>
+									<Icon
+										as={LogOut}
+										size='sm'
+										style={{
+											color: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
+										}}
+									/>
+									<Text
+										style={{
+											color: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
+											fontSize: 15,
+										}}>
+										Déconnexion
+									</Text>
+								</TouchableOpacity>
 							</HStack>
 						</AlertDialogFooter>
 					</AlertDialogContent>
@@ -1478,9 +1515,7 @@ const AccountScreen = () => {
 						<ActionsheetDragIndicatorWrapper>
 							<ActionsheetDragIndicator
 								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#d1d5db",
+									backgroundColor: cardBorder,
 								}}
 							/>
 						</ActionsheetDragIndicatorWrapper>
@@ -1492,23 +1527,21 @@ const AccountScreen = () => {
 								paddingHorizontal: 20,
 								paddingVertical: 10,
 								borderBottomWidth: 1,
-								borderBottomColor: isDark
-									? "#374151"
-									: "#e5e7eb",
+								borderBottomColor: cardBorder,
 							}}>
 							<VStack space='xs'>
 								<Text
 									style={{
 										fontSize: 16,
 										fontWeight: "700",
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 									}}>
 									Support WeSafe
 								</Text>
 								<Text
 									style={{
 										fontSize: 11,
-										color: isDark ? "#6b7280" : "#9ca3af",
+										color: textSecondary,
 										fontStyle: "italic",
 										letterSpacing: 0.2,
 									}}>
@@ -1525,9 +1558,7 @@ const AccountScreen = () => {
 									width: 32,
 									height: 32,
 									borderRadius: 16,
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
+									backgroundColor: cardBorder,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
@@ -1535,7 +1566,7 @@ const AccountScreen = () => {
 									style={{
 										fontSize: 16,
 										fontWeight: "700",
-										color: isDark ? "#f3f4f6" : "#374151",
+										color: textPrimary,
 										lineHeight: 18,
 									}}>
 									✕

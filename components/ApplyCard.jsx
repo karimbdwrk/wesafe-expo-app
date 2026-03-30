@@ -35,7 +35,7 @@ import {
 } from "lucide-react-native";
 
 import { useTheme } from "@/context/ThemeContext";
-import { height, width } from "dom-helpers";
+import Colors from "@/constants/Colors";
 
 // Tableau des catégories
 import { getCategoryLabel } from "@/constants/categories";
@@ -214,16 +214,20 @@ const ApplyCard = ({
 			activeOpacity={0.7}>
 			<Card
 				style={{
-					backgroundColor: isDark ? "#374151" : "#ffffff",
+					backgroundColor: isDark
+						? Colors.dark.cardBackground
+						: Colors.light.cardBackground,
 					borderRadius: 8,
 					padding: 16,
 					marginBottom: 12,
 					borderWidth: 1,
 					borderColor: hasNotification
-						? "#3b82f6"
+						? isDark
+							? Colors.dark.tint
+							: Colors.light.tint
 						: isDark
-							? "#4b5563"
-							: "#e5e7eb",
+							? Colors.dark.border
+							: Colors.light.border,
 				}}>
 				<VStack
 					style={{
@@ -249,7 +253,9 @@ const ApplyCard = ({
 							<Heading
 								size='lg'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 									lineHeight: 24,
 								}}>
 								{title}
@@ -335,7 +341,9 @@ const ApplyCard = ({
 								<Heading
 									size='md'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									{role === "candidat"
 										? application?.companies?.name
@@ -450,7 +458,9 @@ const ApplyCard = ({
 							as={ChevronRight}
 							size='lg'
 							style={{
-								color: isDark ? "#9ca3af" : "#6b7280",
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 							}}
 						/>
 					</VStack>

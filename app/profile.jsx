@@ -18,7 +18,6 @@ import {
 	AvatarImage,
 	AvatarFallbackText,
 } from "@/components/ui/avatar";
-import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
@@ -60,6 +59,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const ProfileScreen = () => {
 	const { accessToken, signOut, user } = useAuth();
@@ -227,10 +227,12 @@ const ProfileScreen = () => {
 	};
 
 	// ── Style tokens
-	const sT = isDark ? "#f3f4f6" : "#111827";
-	const mT = isDark ? "#9ca3af" : "#6b7280";
-	const cardBg = isDark ? "#1f2937" : "#ffffff";
-	const cardBorder = isDark ? "#374151" : "#e5e7eb";
+	const sT = isDark ? Colors.dark.text : Colors.light.text;
+	const mT = isDark ? Colors.dark.muted : Colors.light.muted;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const cardBorder = isDark ? Colors.dark.border : Colors.light.border;
 
 	// ── Helpers
 	const formatDate = (d) =>
@@ -297,7 +299,9 @@ const ProfileScreen = () => {
 						width: 32,
 						height: 32,
 						borderRadius: 16,
-						backgroundColor: isDark ? "#374151" : "#f3f4f6",
+						backgroundColor: isDark
+							? Colors.dark.border
+							: Colors.light.background,
 						justifyContent: "center",
 						alignItems: "center",
 					}}>
@@ -373,7 +377,11 @@ const ProfileScreen = () => {
 						<Text
 							size='xs'
 							style={{
-								color: isExpired(expiresAt) ? "#ef4444" : mT,
+								color: isExpired(expiresAt)
+									? isDark
+										? Colors.dark.danger
+										: Colors.light.danger
+									: mT,
 								marginTop: 2,
 							}}>
 							Exp. {formatDate(expiresAt)}
@@ -389,7 +397,9 @@ const ProfileScreen = () => {
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#111827" : "#f3f4f6",
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.background,
 			}}>
 			<Stack.Screen
 				options={{
@@ -443,28 +453,36 @@ const ProfileScreen = () => {
 								borderRadius: 20,
 								borderWidth: 1,
 								borderColor: isAdded
-									? "#ef4444"
-									: isDark
-										? "#4b5563"
-										: "#d1d5db",
-								backgroundColor: isAdded
 									? isDark
-										? "#3b0f0f"
-										: "#fef2f2"
+										? Colors.dark.danger
+										: Colors.light.danger
 									: isDark
-										? "#1f2937"
-										: "#ffffff",
+										? Colors.dark.border
+										: Colors.light.border,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 							}}>
 							<Icon
 								as={isAdded ? UserMinus : UserPlus}
 								size='xs'
-								style={{ color: isAdded ? "#ef4444" : mT }}
+								style={{
+									color: isAdded
+										? isDark
+											? Colors.dark.danger
+											: Colors.light.danger
+										: mT,
+								}}
 							/>
 							<Text
 								style={{
 									fontSize: 11,
 									fontWeight: "600",
-									color: isAdded ? "#ef4444" : mT,
+									color: isAdded
+										? isDark
+											? Colors.dark.danger
+											: Colors.light.danger
+										: mT,
 								}}>
 								{isAdded ? "Retirer" : "Répertoire"}
 							</Text>
@@ -499,8 +517,8 @@ const ProfileScreen = () => {
 										height: 90,
 										borderRadius: 14,
 										backgroundColor: isDark
-											? "#374151"
-											: "#e5e7eb",
+											? Colors.dark.border
+											: Colors.light.border,
 										justifyContent: "center",
 										alignItems: "center",
 									}}>
@@ -509,8 +527,8 @@ const ProfileScreen = () => {
 											fontSize: 26,
 											fontWeight: "700",
 											color: isDark
-												? "#d1d5db"
-												: "#6b7280",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										{profile?.firstname?.[0]}
 										{profile?.lastname?.[0]}
@@ -548,8 +566,8 @@ const ProfileScreen = () => {
 												alignItems: "center",
 												gap: 4,
 												backgroundColor: isDark
-													? "#374151"
-													: "#f3f4f6",
+													? Colors.dark.border
+													: Colors.light.background,
 												borderRadius: 8,
 												paddingHorizontal: 8,
 												paddingVertical: 4,
@@ -574,8 +592,8 @@ const ProfileScreen = () => {
 												alignItems: "center",
 												gap: 4,
 												backgroundColor: isDark
-													? "#374151"
-													: "#f3f4f6",
+													? Colors.dark.border
+													: Colors.light.background,
 												borderRadius: 8,
 												paddingHorizontal: 8,
 												paddingVertical: 4,
@@ -605,8 +623,8 @@ const ProfileScreen = () => {
 												alignItems: "center",
 												gap: 4,
 												backgroundColor: isDark
-													? "#374151"
-													: "#f3f4f6",
+													? Colors.dark.border
+													: Colors.light.background,
 												borderRadius: 8,
 												paddingHorizontal: 8,
 												paddingVertical: 4,
@@ -647,12 +665,18 @@ const ProfileScreen = () => {
 											<Icon
 												as={Shield}
 												size='xs'
-												style={{ color: "#16a34a" }}
+												style={{
+													color: isDark
+														? Colors.dark.success
+														: Colors.light.success,
+												}}
 											/>
 											<Text
 												style={{
 													fontSize: 11,
-													color: "#16a34a",
+													color: isDark
+														? Colors.dark.success
+														: Colors.light.success,
 												}}>
 												Ancien militaire
 											</Text>
@@ -855,7 +879,9 @@ const ProfileScreen = () => {
 					paddingHorizontal: 20,
 					paddingVertical: 14,
 					paddingBottom: 28,
-					backgroundColor: isDark ? "#111827" : "#f3f4f6",
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.background,
 					borderTopWidth: 1,
 					borderTopColor: cardBorder,
 				}}>
@@ -865,7 +891,9 @@ const ProfileScreen = () => {
 					style={{
 						height: 52,
 						borderRadius: 14,
-						backgroundColor: "#2563eb",
+						backgroundColor: isDark
+							? Colors.dark.tint
+							: Colors.light.tint,
 						flexDirection: "row",
 						alignItems: "center",
 						justifyContent: "center",
@@ -874,13 +902,13 @@ const ProfileScreen = () => {
 					<Icon
 						as={MessageCircle}
 						size='sm'
-						style={{ color: "#ffffff" }}
+						style={{ color: Colors.light.cardBackground }}
 					/>
 					<Text
 						style={{
 							fontSize: 15,
 							fontWeight: "700",
-							color: "#ffffff",
+							color: Colors.light.cardBackground,
 						}}>
 						Contacter
 					</Text>
@@ -894,7 +922,9 @@ const ProfileScreen = () => {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? "#111827" : "#f3f4f6",
+						backgroundColor: isDark
+							? Colors.dark.background
+							: Colors.light.background,
 						borderTopLeftRadius: 20,
 						borderTopRightRadius: 20,
 						paddingBottom: 32,
@@ -902,7 +932,9 @@ const ProfileScreen = () => {
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator
 							style={{
-								backgroundColor: isDark ? "#4b5563" : "#d1d5db",
+								backgroundColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}
 						/>
 					</ActionsheetDragIndicatorWrapper>
@@ -963,7 +995,11 @@ const ProfileScreen = () => {
 									<Icon
 										as={Phone}
 										size='sm'
-										style={{ color: "#16a34a" }}
+										style={{
+											color: isDark
+												? Colors.dark.success
+												: Colors.light.success,
+										}}
 									/>
 								</Box>
 								<VStack style={{ flex: 1 }}>
@@ -1016,7 +1052,11 @@ const ProfileScreen = () => {
 									<Icon
 										as={MessageSquare}
 										size='sm'
-										style={{ color: "#2563eb" }}
+										style={{
+											color: isDark
+												? Colors.dark.tint
+												: Colors.light.tint,
+										}}
 									/>
 								</Box>
 								<VStack style={{ flex: 1 }}>
@@ -1122,7 +1162,11 @@ const ProfileScreen = () => {
 									<Icon
 										as={Mail}
 										size='sm'
-										style={{ color: "#f59e0b" }}
+										style={{
+											color: isDark
+												? Colors.dark.warning
+												: Colors.light.warning,
+										}}
 									/>
 								</Box>
 								<VStack style={{ flex: 1 }}>
@@ -1157,7 +1201,9 @@ const ProfileScreen = () => {
 							marginTop: 10,
 							height: 48,
 							borderRadius: 14,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: isDark
+								? Colors.dark.cardBackground
+								: Colors.light.cardBackground,
 							borderWidth: 1,
 							borderColor: cardBorder,
 							alignItems: "center",
@@ -1169,7 +1215,9 @@ const ProfileScreen = () => {
 							style={{
 								fontSize: 15,
 								fontWeight: "600",
-								color: isDark ? "#d1d5db" : "#374151",
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.text,
 							}}>
 							Annuler
 						</Text>
