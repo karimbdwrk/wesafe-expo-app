@@ -2,16 +2,19 @@ import { View } from "react-native";
 import { ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { Icon } from "@/components/ui/icon";
 import { VStack } from "@/components/ui/vstack";
-import { useTheme } from "@/context/ThemeContext";
+import { useColorScheme } from "nativewind";
 import Colors from "@/constants/Colors";
 
 const CustomToast = ({ id, icon, color, title, description }) => {
-	const { isDark } = useTheme();
+	const { colorScheme } = useColorScheme();
+	const isDark = colorScheme === "dark";
 	const cardBg = isDark
 		? Colors.dark.cardBackground
 		: Colors.light.cardBackground;
 	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
 	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
+
+	console.log("[CustomToast] colorScheme:", colorScheme, "cardBg:", cardBg);
 
 	return (
 		<View
