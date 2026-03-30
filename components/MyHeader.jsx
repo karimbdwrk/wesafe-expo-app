@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useRef, useState, useEffect } from "react";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 function MarqueeTitle({ title, style, isDark }) {
 	const translateX = useRef(new Animated.Value(0)).current;
@@ -74,7 +75,11 @@ function MarqueeTitle({ title, style, isDark }) {
 				<Text
 					style={[
 						styles.title,
-						{ color: isDark ? "#f3f4f6" : "#111827" },
+						{
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
+						},
 					]}>
 					{title}
 				</Text>
@@ -84,7 +89,11 @@ function MarqueeTitle({ title, style, isDark }) {
 				<Animated.Text
 					style={[
 						styles.title,
-						{ color: isDark ? "#f3f4f6" : "#111827" },
+						{
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
+						},
 						needsScroll
 							? {
 									transform: [{ translateX }],
@@ -117,7 +126,12 @@ export default function MyHeader({
 				styles.container,
 				{
 					paddingTop: insets.top,
-					backgroundColor: isDark ? "#111827" : "#ffffff",
+					backgroundColor: isDark
+						? Colors.dark.cardBackground
+						: Colors.light.cardBackground,
+					borderBottomColor: isDark
+						? Colors.dark.border
+						: Colors.light.border,
 				},
 			]}>
 			{/* LEFT */}
@@ -127,7 +141,9 @@ export default function MyHeader({
 						<Ionicons
 							name='chevron-back'
 							size={18}
-							color={isDark ? "#f3f4f6" : "#111827"}
+							color={
+								isDark ? Colors.dark.text : Colors.light.text
+							}
 						/>
 					</TouchableOpacity>
 				)}
@@ -149,13 +165,19 @@ export default function MyHeader({
 						<Text
 							style={[
 								styles.title,
-								{ color: isDark ? "#f3f4f6" : "#111827" },
+								{
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
+								},
 							]}>
 							{title}
 						</Text>
 						<View
 							style={{
-								backgroundColor: "#2563eb",
+								backgroundColor: isDark
+									? Colors.dark.tint
+									: Colors.light.tint,
 								borderRadius: 10,
 								minWidth: 20,
 								height: 20,
