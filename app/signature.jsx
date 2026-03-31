@@ -30,6 +30,7 @@ import {
 	CheckCircle,
 	XCircle,
 	ShieldCheck,
+	Lightbulb,
 } from "lucide-react-native";
 import { TouchableOpacity } from "react-native";
 import SignatureCapture from "@/components/SignatureCapture";
@@ -56,19 +57,21 @@ const SignatureScreen = () => {
 	} = useAuth();
 	const { update, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
-	const bg        = isDark ? Colors.dark.background     : Colors.light.background;
-	const cardBg    = isDark ? Colors.dark.cardBackground : Colors.light.cardBackground;
-	const border    = isDark ? Colors.dark.border         : Colors.light.border;
-	const textPrimary = isDark ? Colors.dark.text         : Colors.light.text;
-	const muted     = isDark ? Colors.dark.muted          : Colors.light.muted;
-	const tint      = isDark ? Colors.dark.tint           : Colors.light.tint;
-	const tint20    = isDark ? Colors.dark.tint20         : Colors.light.tint20;
-	const success   = isDark ? Colors.dark.success        : Colors.light.success;
-	const success20 = isDark ? Colors.dark.success20      : Colors.light.success20;
-	const warning   = isDark ? Colors.dark.warning        : Colors.light.warning;
-	const warning20 = isDark ? Colors.dark.warning20      : Colors.light.warning20;
-	const danger    = isDark ? Colors.dark.danger         : Colors.light.danger;
-	const danger20  = isDark ? Colors.dark.danger20       : Colors.light.danger20;
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const border = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const muted = isDark ? Colors.dark.muted : Colors.light.muted;
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
+	const tint20 = isDark ? Colors.dark.tint20 : Colors.light.tint20;
+	const success = isDark ? Colors.dark.success : Colors.light.success;
+	const success20 = isDark ? Colors.dark.success20 : Colors.light.success20;
+	const warning = isDark ? Colors.dark.warning : Colors.light.warning;
+	const warning20 = isDark ? Colors.dark.warning20 : Colors.light.warning20;
+	const danger = isDark ? Colors.dark.danger : Colors.light.danger;
+	const danger20 = isDark ? Colors.dark.danger20 : Colors.light.danger20;
 
 	const { signatureUrl, isPro, type } = useLocalSearchParams();
 
@@ -181,20 +184,13 @@ const SignatureScreen = () => {
 			<VStack space='xl'>
 				{/* Header */}
 				<VStack space='md'>
-					<Heading
-						size='2xl'
-						style={{
-							color: textPrimary,
-						}}>
-						Signature électronique
-					</Heading>
 					<Text
 						size='md'
 						style={{
 							color: muted,
 						}}>
-						Créez votre signature pour valider vos documents
-						officiels
+						Créez votre signature électronique pour valider vos
+						documents officiels
 					</Text>
 				</VStack>
 
@@ -456,7 +452,7 @@ const SignatureScreen = () => {
 									backgroundColor: tint,
 									borderRadius: 8,
 								}}>
-								<ButtonIcon as={Edit3} color="#ffffff" />
+								<ButtonIcon as={Edit3} color='#ffffff' />
 								<ButtonText style={{ color: "#ffffff" }}>
 									{signatureImg
 										? "Modifier"
@@ -477,14 +473,17 @@ const SignatureScreen = () => {
 						borderColor: tint20,
 					}}>
 					<VStack space='sm'>
-						<Text
-							size='sm'
-							style={{
-								color: tint,
-								fontWeight: "600",
-							}}>
-							💡 À propos de la signature
-						</Text>
+						<HStack space='sm' style={{ alignItems: "center" }}>
+							<Lightbulb color={tint} size={14} />
+							<Text
+								size='sm'
+								style={{
+									color: tint,
+									fontWeight: "600",
+								}}>
+								À propos de la signature
+							</Text>
+						</HStack>
 						<Text
 							size='sm'
 							style={{
