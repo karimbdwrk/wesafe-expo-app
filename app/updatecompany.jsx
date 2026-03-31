@@ -299,48 +299,14 @@ const UpdateCompany = () => {
 				contentContainerStyle={{ paddingBottom: 100 }}>
 				<VStack space='lg' style={{ padding: 20 }}>
 					{/* Header Card */}
-					<Card
+					<Text
+						size='sm'
 						style={{
-							backgroundColor: cardBg,
-							borderRadius: 12,
-							padding: 20,
+							color: textSecondary,
+							marginTop: 4,
 						}}>
-						<HStack space='md' style={{ alignItems: "center" }}>
-							<Box
-								style={{
-									width: 48,
-									height: 48,
-									borderRadius: 24,
-									backgroundColor: tint,
-									justifyContent: "center",
-									alignItems: "center",
-								}}>
-								<Icon
-									as={Building2}
-									size={24}
-									color='#ffffff'
-								/>
-							</Box>
-							<VStack style={{ flex: 1 }}>
-								<Heading
-									size='lg'
-									style={{
-										color: textPrimary,
-									}}>
-									Modifier l'entreprise
-								</Heading>
-								<Text
-									size='sm'
-									style={{
-										color: textSecondary,
-										marginTop: 4,
-									}}>
-									Mettez à jour les informations de votre
-									entreprise
-								</Text>
-							</VStack>
-						</HStack>
-					</Card>
+						Mettez à jour les informations de votre entreprise
+					</Text>
 
 					{/* Form Card */}
 					<Card
