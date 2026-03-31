@@ -45,8 +45,13 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
-import { STAMP_TAKE_PHOTO, STAMP_PICK_GALLERY, STAMP_PICK_DOCUMENT } from "@/utils/activityEvents";
+import {
+	STAMP_TAKE_PHOTO,
+	STAMP_PICK_GALLERY,
+	STAMP_PICK_DOCUMENT,
+} from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const BUCKET_NAME = "stamps";
@@ -57,6 +62,22 @@ const StampScreen = () => {
 	const { isDark } = useTheme();
 	const { update, trackActivity } = useDataContext();
 	const router = useRouter();
+
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const border = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const muted = isDark ? Colors.dark.muted : Colors.light.muted;
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
+	const tint20 = isDark ? Colors.dark.tint20 : Colors.light.tint20;
+	const success = isDark ? Colors.dark.success : Colors.light.success;
+	const success20 = isDark ? Colors.dark.success20 : Colors.light.success20;
+	const warning = isDark ? Colors.dark.warning : Colors.light.warning;
+	const warning20 = isDark ? Colors.dark.warning20 : Colors.light.warning20;
+	const danger = isDark ? Colors.dark.danger : Colors.light.danger;
+	const danger20 = isDark ? Colors.dark.danger20 : Colors.light.danger20;
 
 	const [showActionsheet, setShowActionsheet] = useState(false);
 	const [uploading, setUploading] = useState(false);
@@ -250,7 +271,7 @@ const StampScreen = () => {
 		<ScrollView
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				backgroundColor: bg,
 			}}
 			contentContainerStyle={{ padding: 20 }}>
 			<VStack space='xl'>
@@ -259,14 +280,14 @@ const StampScreen = () => {
 					<Heading
 						size='2xl'
 						style={{
-							color: isDark ? "#f3f4f6" : "#111827",
+							color: textPrimary,
 						}}>
 						Tampon de l'entreprise
 					</Heading>
 					<Text
 						size='md'
 						style={{
-							color: isDark ? "#9ca3af" : "#6b7280",
+							color: muted,
 						}}>
 						Gérez le tampon officiel de votre entreprise pour les
 						documents
@@ -276,11 +297,11 @@ const StampScreen = () => {
 				{/* Stamp Preview Card */}
 				<Card
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: cardBg,
 						borderRadius: 12,
 						padding: 24,
 						borderWidth: 1,
-						borderColor: isDark ? "#4b5563" : "#e5e7eb",
+						borderColor: border,
 					}}>
 					<VStack space='lg'>
 						<HStack
@@ -291,7 +312,7 @@ const StampScreen = () => {
 							<Heading
 								size='md'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textPrimary,
 								}}>
 								Aperçu du tampon
 							</Heading>
@@ -302,26 +323,22 @@ const StampScreen = () => {
 									space='xs'
 									style={{
 										alignItems: "center",
-										backgroundColor: isDark
-											? "rgba(16,185,129,0.15)"
-											: "rgba(16,185,129,0.1)",
+										backgroundColor: success20,
 										paddingHorizontal: 10,
 										paddingVertical: 4,
 										borderRadius: 20,
 										borderWidth: 1,
-										borderColor: isDark
-											? "rgba(16,185,129,0.4)"
-											: "rgba(16,185,129,0.3)",
+										borderColor: success20,
 									}}>
 									<Icon
 										as={CheckCircle}
 										size='xs'
-										style={{ color: "#10b981" }}
+										style={{ color: success }}
 									/>
 									<Text
 										size='xs'
 										style={{
-											color: "#10b981",
+											color: success,
 											fontWeight: "600",
 										}}>
 										Validé
@@ -333,26 +350,22 @@ const StampScreen = () => {
 									space='xs'
 									style={{
 										alignItems: "center",
-										backgroundColor: isDark
-											? "rgba(245,158,11,0.15)"
-											: "rgba(245,158,11,0.1)",
+										backgroundColor: warning20,
 										paddingHorizontal: 10,
 										paddingVertical: 4,
 										borderRadius: 20,
 										borderWidth: 1,
-										borderColor: isDark
-											? "rgba(245,158,11,0.4)"
-											: "rgba(245,158,11,0.3)",
+										borderColor: warning20,
 									}}>
 									<Icon
 										as={Clock}
 										size='xs'
-										style={{ color: "#f59e0b" }}
+										style={{ color: warning }}
 									/>
 									<Text
 										size='xs'
 										style={{
-											color: "#f59e0b",
+											color: warning,
 											fontWeight: "600",
 										}}>
 										En attente
@@ -364,26 +377,22 @@ const StampScreen = () => {
 									space='xs'
 									style={{
 										alignItems: "center",
-										backgroundColor: isDark
-											? "rgba(239,68,68,0.15)"
-											: "rgba(239,68,68,0.1)",
+										backgroundColor: danger20,
 										paddingHorizontal: 10,
 										paddingVertical: 4,
 										borderRadius: 20,
 										borderWidth: 1,
-										borderColor: isDark
-											? "rgba(239,68,68,0.4)"
-											: "rgba(239,68,68,0.3)",
+										borderColor: danger20,
 									}}>
 									<Icon
 										as={XCircle}
 										size='xs'
-										style={{ color: "#ef4444" }}
+										style={{ color: danger }}
 									/>
 									<Text
 										size='xs'
 										style={{
-											color: "#ef4444",
+											color: danger,
 											fontWeight: "600",
 										}}>
 										Refusé
@@ -396,11 +405,11 @@ const StampScreen = () => {
 								minHeight: 300,
 								justifyContent: "center",
 								alignItems: "center",
-								backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+								backgroundColor: bg,
 								borderRadius: 8,
 								borderWidth: 2,
 								borderStyle: "dashed",
-								borderColor: isDark ? "#4b5563" : "#d1d5db",
+								borderColor: border,
 								padding: 20,
 							}}>
 							{userCompany?.stamp_url ? (
@@ -426,18 +435,12 @@ const StampScreen = () => {
 									<Icon
 										as={Stamp}
 										size='2xl'
-										style={{
-											color: isDark
-												? "#4b5563"
-												: "#d1d5db",
-										}}
+										style={{ color: border }}
 									/>
 									<Text
 										size='md'
 										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+											color: muted,
 											textAlign: "center",
 										}}>
 										Aucun tampon configuré
@@ -452,12 +455,12 @@ const StampScreen = () => {
 								<Icon
 									as={ShieldCheck}
 									size='xs'
-									style={{ color: "#10b981" }}
+									style={{ color: success }}
 								/>
 								<Text
 									size='xs'
 									style={{
-										color: isDark ? "#6ee7b7" : "#065f46",
+										color: success,
 									}}>
 									Votre tampon est validé et ne peut plus être
 									modifié.
@@ -471,13 +474,13 @@ const StampScreen = () => {
 									as={ShieldCheck}
 									size='xs'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: muted,
 									}}
 								/>
 								<Text
 									size='xs'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: muted,
 										flex: 1,
 									}}>
 									Une fois validé, votre tampon ne pourra plus
@@ -491,13 +494,9 @@ const StampScreen = () => {
 								<Icon
 									as={XCircle}
 									size='xs'
-									style={{ color: "#ef4444" }}
+									style={{ color: danger }}
 								/>
-								<Text
-									size='xs'
-									style={{
-										color: isDark ? "#fca5a5" : "#991b1b",
-									}}>
+								<Text size='xs' style={{ color: danger }}>
 									Votre tampon a été refusé. Vous pouvez en
 									soumettre un nouveau.
 								</Text>
@@ -512,12 +511,14 @@ const StampScreen = () => {
 								onPress={() => setShowActionsheet(true)}
 								isDisabled={uploading || processing}
 								style={{
-									backgroundColor: "#3b82f6",
+									backgroundColor: tint,
 									borderRadius: 8,
 								}}>
-								{(uploading || processing) && <ButtonSpinner />}
-								<ButtonIcon as={Edit3} />
-								<ButtonText>
+								{(uploading || processing) && (
+									<ButtonSpinner color='#ffffff' />
+								)}
+								<ButtonIcon as={Edit3} color='#ffffff' />
+								<ButtonText style={{ color: "#ffffff" }}>
 									{processing
 										? "Traitement..."
 										: uploading
@@ -534,21 +535,17 @@ const StampScreen = () => {
 				{/* Info Card */}
 				<Card
 					style={{
-						backgroundColor: isDark
-							? "rgba(59, 130, 246, 0.1)"
-							: "rgba(59, 130, 246, 0.05)",
+						backgroundColor: tint20,
 						borderRadius: 12,
 						padding: 16,
 						borderWidth: 1,
-						borderColor: isDark
-							? "rgba(59, 130, 246, 0.3)"
-							: "rgba(59, 130, 246, 0.2)",
+						borderColor: tint20,
 					}}>
 					<VStack space='sm'>
 						<Text
 							size='sm'
 							style={{
-								color: isDark ? "#93c5fd" : "#2563eb",
+								color: tint,
 								fontWeight: "600",
 							}}>
 							💡 À propos du tampon
@@ -556,7 +553,7 @@ const StampScreen = () => {
 						<Text
 							size='sm'
 							style={{
-								color: isDark ? "#bfdbfe" : "#1e40af",
+								color: tint,
 								lineHeight: 20,
 							}}>
 							Le tampon sera utilisé pour valider et signer vos
@@ -575,18 +572,14 @@ const StampScreen = () => {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: cardBg,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
 					</ActionsheetDragIndicatorWrapper>
 
 					<VStack space='md' style={{ width: "100%", padding: 20 }}>
-						<Heading
-							size='lg'
-							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
-							}}>
+						<Heading size='lg' style={{ color: textPrimary }}>
 							Choisir une source
 						</Heading>
 
@@ -595,13 +588,11 @@ const StampScreen = () => {
 								<Icon
 									as={Camera}
 									size='xl'
-									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
-									}}
+									style={{ color: muted }}
 								/>
 								<ActionsheetItemText
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										fontSize: 16,
 									}}>
 									Prendre une photo
@@ -614,13 +605,11 @@ const StampScreen = () => {
 								<Icon
 									as={ImageIcon}
 									size='xl'
-									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
-									}}
+									style={{ color: muted }}
 								/>
 								<ActionsheetItemText
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										fontSize: 16,
 									}}>
 									Ouvrir la pellicule
@@ -633,13 +622,11 @@ const StampScreen = () => {
 								<Icon
 									as={FileUp}
 									size='xl'
-									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
-									}}
+									style={{ color: muted }}
 								/>
 								<ActionsheetItemText
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										fontSize: 16,
 									}}>
 									Choisir un fichier
