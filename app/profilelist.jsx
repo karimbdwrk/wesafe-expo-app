@@ -29,6 +29,7 @@ import { ChevronRight, Info, QrCode } from "lucide-react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 // Charge tout d'un coup pour pouvoir trier/grouper côté client
 const ITEMS_PER_PAGE = 500;
@@ -110,14 +111,17 @@ const ProfileListScreen = () => {
 	}, [profileList]);
 
 	// Styles couleurs
-	const bg = isDark ? "#111827" : "#f2f2f7";
-	const cardBg = isDark ? "#1f2937" : "#ffffff";
-	const borderColor = isDark ? "#374151" : "#e5e7eb";
-	const textPrimary = isDark ? "#f9fafb" : "#111827";
-	const textMuted = isDark ? "#9ca3af" : "#6b7280";
-	const sectionBg = isDark ? "#111827" : "#f2f2f7";
-	const sectionText = isDark ? "#9ca3af" : "#6b7280";
-	const indexText = isDark ? "#60a5fa" : "#2563eb";
+	const bg          = isDark ? Colors.dark.background     : Colors.light.background;
+	const cardBg      = isDark ? Colors.dark.cardBackground : Colors.light.cardBackground;
+	const elevated    = isDark ? Colors.dark.elevated       : Colors.light.elevated;
+	const borderColor = isDark ? Colors.dark.border         : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text           : Colors.light.text;
+	const textMuted   = isDark ? Colors.dark.muted          : Colors.light.muted;
+	const tint        = isDark ? Colors.dark.tint           : Colors.light.tint;
+	const warning     = isDark ? Colors.dark.warning        : Colors.light.warning;
+	const sectionBg   = isDark ? Colors.dark.background     : Colors.light.background;
+	const sectionText = isDark ? Colors.dark.muted          : Colors.light.muted;
+	const indexText   = isDark ? Colors.dark.tint           : Colors.light.tint;
 
 	const renderItem = ({ item: pro, index, section }) => {
 		const isLast = index === section.data.length - 1;
@@ -131,7 +135,7 @@ const ProfileListScreen = () => {
 
 		return (
 			<TouchableHighlight
-				underlayColor={isDark ? "#374151" : "#f3f4f6"}
+				underlayColor={elevated}
 				onPress={() =>
 					router.push({
 						pathname: "/profile",
@@ -180,7 +184,7 @@ const ProfileListScreen = () => {
 								))}
 							</HStack>
 						) : (
-							<Text style={{ fontSize: 12, color: "#f59e0b" }}>
+							<Text style={{ fontSize: 12, color: warning }}>
 								Aucune carte valide
 							</Text>
 						)}
@@ -236,7 +240,7 @@ const ProfileListScreen = () => {
 					}}>
 					<ActivityIndicator
 						size='large'
-						color={isDark ? "#3b82f6" : "#2563eb"}
+						color={tint}
 					/>
 				</View>
 			) : !profileList.length ? (
@@ -349,7 +353,7 @@ const ProfileListScreen = () => {
 							borderRadius: 50,
 							paddingHorizontal: 20,
 							paddingVertical: 0,
-							shadowColor: "#2563eb",
+							shadowColor: tint,
 							shadowOffset: { width: 0, height: 4 },
 							shadowOpacity: 0.35,
 							shadowRadius: 8,
