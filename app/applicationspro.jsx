@@ -372,11 +372,11 @@ const styles = StyleSheet.create({
 	scrollView: {
 		flex: 1,
 		width: "100%",
-		paddingHorizontal: 15,
+		paddingHorizontal: 10,
 	},
 	jobList: {
 		flex: 1,
-		gap: 15,
+		gap: 5,
 		width: "100%",
 		marginVertical: 15,
 	},
