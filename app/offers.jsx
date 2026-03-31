@@ -18,6 +18,7 @@ import { ChevronLeft, ChevronRight, Info } from "lucide-react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -26,6 +27,12 @@ const OffersScreen = () => {
 	const { accessToken, user, signOut } = useAuth();
 	const { getAll } = useDataContext();
 	const { isDark } = useTheme();
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const border = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
 	const { isLastMinute } = useLocalSearchParams();
 
 	const [refreshing, setRefreshing] = useState(false);
@@ -82,14 +89,14 @@ const OffersScreen = () => {
 		<VStack
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				backgroundColor: bg,
 			}}>
 			<ScrollView
 				ref={scrollRef}
 				style={{
 					width: "100%",
-					paddingHorizontal: 15,
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					paddingHorizontal: 10,
+					backgroundColor: bg,
 				}}
 				contentContainerStyle={{
 					paddingBottom: totalPages > 1 ? 80 : 0,
@@ -105,9 +112,9 @@ const OffersScreen = () => {
 				) : (
 					<VStack
 						style={{
-							gap: 15,
+							gap: 5,
 							width: "100%",
-							marginVertical: 15,
+							marginVertical: 10,
 						}}>
 						{!offers.length && (
 							<HStack
@@ -169,7 +176,7 @@ const OffersScreen = () => {
 						left: 0,
 						right: 0,
 						bottom: 0,
-						backgroundColor: isDark ? "#23272f" : "#fff",
+						backgroundColor: cardBg,
 						shadowColor: "#000",
 						shadowOffset: { width: 0, height: -2 },
 						shadowOpacity: 0.08,
@@ -190,17 +197,14 @@ const OffersScreen = () => {
 							onPress={handlePrev}
 							variant='outline'
 							style={{
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: border,
 								borderRadius: 12,
 							}}>
-							<ButtonIcon
-								as={ChevronLeft}
-								color={isDark ? "#f3f4f6" : "#111827"}
-							/>
+							<ButtonIcon as={ChevronLeft} color={textPrimary} />
 						</Button>
 						<Text
 							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: textPrimary,
 								fontWeight: "600",
 								fontSize: 16,
 							}}>
@@ -211,13 +215,10 @@ const OffersScreen = () => {
 							onPress={handleNext}
 							variant='outline'
 							style={{
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: border,
 								borderRadius: 12,
 							}}>
-							<ButtonIcon
-								as={ChevronRight}
-								color={isDark ? "#f3f4f6" : "#111827"}
-							/>
+							<ButtonIcon as={ChevronRight} color={textPrimary} />
 						</Button>
 					</HStack>
 				</Box>
