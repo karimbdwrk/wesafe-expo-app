@@ -181,6 +181,8 @@ module.exports = {
 				semibold: ["Inter_600SemiBold"],
 				heading: ["Inter_600SemiBold"],
 				bold: ["Inter_700Bold"],
+				extrabold: ["Inter_800ExtraBold"],
+				black: ["Inter_900Black"],
 				jakarta: ["var(--font-plus-jakarta-sans)"],
 				roboto: ["var(--font-roboto)"],
 				code: ["var(--font-source-code-pro)"],
