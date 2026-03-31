@@ -310,16 +310,25 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='stamp'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Mon tampon",
+								}}
 							/>
 							<Stack.Screen
 								name='updatestamp'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Mettre à jour mon tampon",
+								}}
 							/>
 							<Stack.Screen name='scanner' />
 							<Stack.Screen
 								name='buycredits'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Acheter des crédits",
+								}}
 							/>
 							<Stack.Screen
 								name='offers'
