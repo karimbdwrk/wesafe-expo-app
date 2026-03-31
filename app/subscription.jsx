@@ -106,18 +106,22 @@ const SubscriptionScreen = () => {
 	const { isDark } = useTheme();
 	const router = useRouter();
 
-	const bg            = isDark ? Colors.dark.background     : Colors.light.background;
-	const cardBg        = isDark ? Colors.dark.cardBackground : Colors.light.cardBackground;
-	const elevated      = isDark ? Colors.dark.elevated       : Colors.light.elevated;
-	const border        = isDark ? Colors.dark.border         : Colors.light.border;
-	const textPrimary   = isDark ? Colors.dark.text           : Colors.light.text;
-	const textSecondary = isDark ? Colors.dark.textSecondary  : Colors.light.textSecondary;
-	const muted         = isDark ? Colors.dark.muted          : Colors.light.muted;
-	const success       = isDark ? Colors.dark.success        : Colors.light.success;
-	const success20     = isDark ? Colors.dark.success20      : Colors.light.success20;
-	const danger        = isDark ? Colors.dark.danger         : Colors.light.danger;
-	const danger20      = isDark ? Colors.dark.danger20       : Colors.light.danger20;
-	const danger50      = isDark ? Colors.dark.danger50       : Colors.light.danger50;
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const elevated = isDark ? Colors.dark.elevated : Colors.light.elevated;
+	const border = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textSecondary = isDark
+		? Colors.dark.textSecondary
+		: Colors.light.textSecondary;
+	const muted = isDark ? Colors.dark.muted : Colors.light.muted;
+	const success = isDark ? Colors.dark.success : Colors.light.success;
+	const success20 = isDark ? Colors.dark.success20 : Colors.light.success20;
+	const danger = isDark ? Colors.dark.danger : Colors.light.danger;
+	const danger20 = isDark ? Colors.dark.danger20 : Colors.light.danger20;
+	const danger50 = isDark ? Colors.dark.danger50 : Colors.light.danger50;
 
 	const [subscriptions, setSubscriptions] = useState([]);
 	const [interval, setInterval] = useState("monthly");
@@ -226,7 +230,7 @@ const SubscriptionScreen = () => {
 			contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
 			<VStack space='xl'>
 				{/* Header */}
-				<VStack space='xs'>
+				{/* <VStack space='xs'>
 					<Heading
 						size='2xl'
 						style={{ color: textPrimary }}>
@@ -237,7 +241,7 @@ const SubscriptionScreen = () => {
 						style={{ color: muted }}>
 						Gérez votre formule WeSafe
 					</Text>
-				</VStack>
+				</VStack> */}
 
 				{/* Current plan summary */}
 				{resolvedStatus && (
@@ -318,12 +322,7 @@ const SubscriptionScreen = () => {
 											alignItems: "center",
 											marginTop: 2,
 										}}>
-										<Calendar
-											size={13}
-											color={
-												muted
-											}
-										/>
+										<Calendar size={13} color={muted} />
 										<Text
 											size='xs'
 											style={{
