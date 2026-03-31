@@ -1,7 +1,5 @@
-import { View } from "react-native";
-import { ToastTitle, ToastDescription } from "@/components/ui/toast";
+import { View, Text } from "react-native";
 import { Icon } from "@/components/ui/icon";
-import { VStack } from "@/components/ui/vstack";
 import { useColorScheme } from "nativewind";
 import Colors from "@/constants/Colors";
 
@@ -13,8 +11,6 @@ const CustomToast = ({ id, icon, color, title, description }) => {
 		: Colors.light.cardBackground;
 	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
 	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
-
-	console.log("[CustomToast] colorScheme:", colorScheme, "cardBg:", cardBg);
 
 	return (
 		<View
@@ -37,14 +33,16 @@ const CustomToast = ({ id, icon, color, title, description }) => {
 				maxWidth: 340,
 			}}>
 			<Icon as={icon} color={color} />
-			<VStack style={{ flex: 1 }}>
-				<ToastTitle style={{ color: textPrimary }}>{title}</ToastTitle>
+			<View style={{ flex: 1 }}>
+				<Text style={{ color: textPrimary, fontWeight: "600", fontSize: 14 }}>
+					{title}
+				</Text>
 				{description ? (
-					<ToastDescription style={{ color: textSecondary }}>
+					<Text style={{ color: textSecondary, fontSize: 13, marginTop: 2 }}>
 						{description}
-					</ToastDescription>
+					</Text>
 				) : null}
-			</VStack>
+			</View>
 		</View>
 	);
 };
