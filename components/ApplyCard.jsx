@@ -219,7 +219,7 @@ const ApplyCard = ({
 						: Colors.light.cardBackground,
 					borderRadius: 8,
 					padding: 16,
-					marginBottom: 12,
+					marginBottom: 5,
 					borderWidth: 1,
 					borderColor: hasNotification
 						? isDark
@@ -262,9 +262,19 @@ const ApplyCard = ({
 							</Heading>
 							{role === "pro" && (
 								<HStack space='xs' className='items-center'>
-									<MapPin size={12} />
+									<MapPin
+										size={12}
+										color={
+											isDark
+												? Colors.dark.text
+												: Colors.light.text
+										}
+									/>
 									<Text size='sm'>
-										{application?.jobs?.city}
+										{application?.jobs?.city +
+											" (" +
+											application?.jobs?.postcode +
+											")"}
 									</Text>
 								</HStack>
 							)}
