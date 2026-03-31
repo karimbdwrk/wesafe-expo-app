@@ -958,7 +958,9 @@ const ApplicationScreen = () => {
 					flex: 1,
 					justifyContent: "center",
 					alignItems: "center",
-					backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.background,
 				}}>
 				<Spinner size='large' />
 			</Box>
@@ -969,10 +971,14 @@ const ApplicationScreen = () => {
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.background,
 			}}>
 			<ScrollView style={{ flex: 1 }}>
-				<VStack space='lg' style={{ padding: 20, paddingBottom: 90 }}>
+				<VStack
+					space='lg'
+					style={{ padding: 10, paddingBottom: 30, paddingTop: 15 }}>
 					{/* Job Card */}
 					<TouchableOpacity
 						onPress={() =>
@@ -985,17 +991,23 @@ const ApplicationScreen = () => {
 							style={{
 								padding: 20,
 								// paddingRight: 10,
-								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.border : Colors.light.border,
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<HStack space='md' style={{ alignItems: "center" }}>
 								<VStack style={{ flex: 1 }} space='xs'>
 									<Heading
 										size='xl'
 										style={{
-											color: isDark ? Colors.dark.text : Colors.light.text,
+											color: isDark
+												? Colors.dark.text
+												: Colors.light.text,
 										}}>
 										{application?.jobs?.title}
 									</Heading>
@@ -1117,7 +1129,9 @@ const ApplicationScreen = () => {
 												<Heading
 													size='md'
 													style={{
-														color: isDark ? Colors.dark.text : Colors.light.text,
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													{application?.companies
 														?.name ||
@@ -1135,7 +1149,9 @@ const ApplicationScreen = () => {
 									as={ChevronRight}
 									size='lg'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}
 								/>
 							</HStack>
@@ -1157,9 +1173,13 @@ const ApplicationScreen = () => {
 							<Card
 								style={{
 									padding: 16,
-									backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+									backgroundColor: isDark
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 									borderWidth: 1,
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 									borderRadius: 12,
 								}}>
 								<HStack
@@ -1189,7 +1209,9 @@ const ApplicationScreen = () => {
 											<Heading
 												size='md'
 												style={{
-													color: isDark ? Colors.dark.text : Colors.light.text,
+													color: isDark
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												{(application?.profiles
 													?.lastname || "") +
@@ -1200,7 +1222,9 @@ const ApplicationScreen = () => {
 											<Text
 												size='sm'
 												style={{
-													color: isDark ? Colors.dark.muted : Colors.light.muted,
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
 												}}>
 												Voir le profil du candidat
 											</Text>
@@ -1210,7 +1234,9 @@ const ApplicationScreen = () => {
 										as={ChevronRight}
 										size='lg'
 										style={{
-											color: isDark ? Colors.dark.muted : Colors.light.muted,
+											color: isDark
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}
 									/>
 								</HStack>
@@ -1222,16 +1248,22 @@ const ApplicationScreen = () => {
 					<Card
 						style={{
 							padding: 20,
-							backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+							backgroundColor: isDark
+								? Colors.dark.cardBackground
+								: Colors.light.cardBackground,
 							borderRadius: 12,
 							borderWidth: 1,
-							borderColor: isDark ? Colors.dark.border : Colors.light.border,
+							borderColor: isDark
+								? Colors.dark.border
+								: Colors.light.border,
 						}}>
 						<VStack space='lg'>
 							<Heading
 								size='lg'
 								style={{
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Suivi de la candidature
 							</Heading>
@@ -1263,7 +1295,13 @@ const ApplicationScreen = () => {
 														borderRadius: 5,
 														backgroundColor:
 															isPending
-																? isDark ? Colors.dark.muted : Colors.light.muted
+																? isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted
 																: config.color,
 													}}
 												/>
@@ -1276,7 +1314,13 @@ const ApplicationScreen = () => {
 															flex: 1,
 															minHeight: 40,
 															backgroundColor:
-																isDark ? Colors.dark.border : Colors.light.border,
+																isDark
+																	? Colors
+																			.dark
+																			.border
+																	: Colors
+																			.light
+																			.border,
 															marginTop: 4,
 														}}
 													/>
@@ -1296,8 +1340,16 @@ const ApplicationScreen = () => {
 													size='sm'
 													style={{
 														color: isPending
-															? isDark ? Colors.dark.muted : Colors.light.muted
-															: isDark ? Colors.dark.text : Colors.light.text,
+															? isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted
+															: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 													}}>
 													{config.title}
 												</Heading>
@@ -1305,8 +1357,16 @@ const ApplicationScreen = () => {
 													size='sm'
 													style={{
 														color: isPending
-															? isDark ? Colors.dark.muted : Colors.light.muted
-															: isDark ? Colors.dark.muted : Colors.light.muted,
+															? isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted
+															: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 													}}>
 													{description}
 												</Text>
@@ -1324,13 +1384,25 @@ const ApplicationScreen = () => {
 																}
 																size='xs'
 																style={{
-																	color: isDark ? Colors.dark.muted : Colors.light.muted,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
 																}}
 															/>
 															<Text
 																size='xs'
 																style={{
-																	color: isDark ? Colors.dark.muted : Colors.light.muted,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
 																}}>
 																{formatDate(
 																	step.created_at,
@@ -1352,10 +1424,14 @@ const ApplicationScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.border : Colors.light.border,
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<TouchableOpacity
 								onPress={() =>
@@ -1389,7 +1465,9 @@ const ApplicationScreen = () => {
 										<Icon
 											as={FileText}
 											size='xl'
-											style={{ color: Colors.light.success }}
+											style={{
+												color: Colors.light.success,
+											}}
 										/>
 									</Box>
 									<VStack style={{ flex: 1 }} space='xs'>
@@ -1397,14 +1475,18 @@ const ApplicationScreen = () => {
 											size='lg'
 											style={{
 												fontWeight: "600",
-												color: isDark ? Colors.dark.text : Colors.light.text,
+												color: isDark
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											Contrat de mission
 										</Text>
 										<Text
 											size='sm'
 											style={{
-												color: isDark ? Colors.dark.muted : Colors.light.muted,
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}>
 											{role === "pro"
 												? draftContractExists &&
@@ -1426,7 +1508,9 @@ const ApplicationScreen = () => {
 										as={ChevronRight}
 										size='lg'
 										style={{
-											color: isDark ? Colors.dark.muted : Colors.light.muted,
+											color: isDark
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}
 									/>
 								</HStack>
@@ -1447,10 +1531,21 @@ const ApplicationScreen = () => {
 											paddingVertical: 13,
 											alignItems: "center",
 											borderWidth: 1,
-											borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
-											backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+											borderColor: isDark
+												? Colors.dark.tint
+												: Colors.light.tint,
+											backgroundColor: isDark
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
 										}}>
-										<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>
+										<Text
+											style={{
+												fontWeight: "700",
+												fontSize: 14,
+												color: isDark
+													? Colors.dark.tint
+													: Colors.light.tint,
+											}}>
 											Sélectionner le candidat
 										</Text>
 									</TouchableOpacity>
@@ -1462,10 +1557,19 @@ const ApplicationScreen = () => {
 											paddingVertical: 13,
 											alignItems: "center",
 											borderWidth: 1,
-											borderColor: isDark ? Colors.dark.danger : Colors.light.danger,
+											borderColor: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
 											backgroundColor: "transparent",
 										}}>
-										<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.danger : Colors.light.danger }}>
+										<Text
+											style={{
+												fontWeight: "700",
+												fontSize: 14,
+												color: isDark
+													? Colors.dark.danger
+													: Colors.light.danger,
+											}}>
 											Refuser la candidature
 										</Text>
 									</TouchableOpacity>
@@ -1492,10 +1596,23 @@ const ApplicationScreen = () => {
 													paddingVertical: 13,
 													alignItems: "center",
 													borderWidth: 1,
-													borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
-													backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+													borderColor: isDark
+														? Colors.dark.tint
+														: Colors.light.tint,
+													backgroundColor: isDark
+														? Colors.dark
+																.cardBackground
+														: Colors.light
+																.cardBackground,
 												}}>
-												<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>
+												<Text
+													style={{
+														fontWeight: "700",
+														fontSize: 14,
+														color: isDark
+															? Colors.dark.tint
+															: Colors.light.tint,
+													}}>
 													Générer le contrat
 												</Text>
 											</TouchableOpacity>
@@ -1508,10 +1625,19 @@ const ApplicationScreen = () => {
 											paddingVertical: 13,
 											alignItems: "center",
 											borderWidth: 1,
-											borderColor: isDark ? Colors.dark.danger : Colors.light.danger,
+											borderColor: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
 											backgroundColor: "transparent",
 										}}>
-										<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.danger : Colors.light.danger }}>
+										<Text
+											style={{
+												fontWeight: "700",
+												fontSize: 14,
+												color: isDark
+													? Colors.dark.danger
+													: Colors.light.danger,
+											}}>
 											Refuser la candidature
 										</Text>
 									</TouchableOpacity>
@@ -1586,7 +1712,9 @@ const ApplicationScreen = () => {
 				<ModalContent
 					style={{
 						maxWidth: 400,
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 						borderRadius: 16,
 						padding: 24,
 					}}>
@@ -1610,7 +1738,9 @@ const ApplicationScreen = () => {
 							<Heading
 								size='xl'
 								style={{
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 									textAlign: "center",
 								}}>
 								Confirmer la sélection
@@ -1618,7 +1748,9 @@ const ApplicationScreen = () => {
 							<Text
 								size='md'
 								style={{
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									textAlign: "center",
 								}}>
 								Êtes-vous sûr de vouloir sélectionner ce
@@ -1638,10 +1770,23 @@ const ApplicationScreen = () => {
 									borderRadius: 10,
 									alignItems: "center",
 									borderWidth: 1,
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
-									backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
+									backgroundColor: isDark
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 								}}>
-								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.muted : Colors.light.muted }}>Annuler</Text>
+								<Text
+									style={{
+										fontWeight: "600",
+										fontSize: 14,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
+									}}>
+									Annuler
+								</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
 								onPress={confirmSelect}
@@ -1652,10 +1797,21 @@ const ApplicationScreen = () => {
 									borderRadius: 10,
 									alignItems: "center",
 									borderWidth: 1,
-									borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
+									borderColor: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
 									backgroundColor: "transparent",
 								}}>
-								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>Confirmer</Text>
+								<Text
+									style={{
+										fontWeight: "600",
+										fontSize: 14,
+										color: isDark
+											? Colors.dark.tint
+											: Colors.light.tint,
+									}}>
+									Confirmer
+								</Text>
 							</TouchableOpacity>
 						</HStack>
 					</VStack>
@@ -1670,7 +1826,9 @@ const ApplicationScreen = () => {
 				<ModalContent
 					style={{
 						maxWidth: 400,
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 						borderRadius: 16,
 						padding: 24,
 					}}>
@@ -1694,7 +1852,9 @@ const ApplicationScreen = () => {
 							<Heading
 								size='xl'
 								style={{
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 									textAlign: "center",
 								}}>
 								Confirmer le refus
@@ -1702,7 +1862,9 @@ const ApplicationScreen = () => {
 							<Text
 								size='md'
 								style={{
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									textAlign: "center",
 								}}>
 								Êtes-vous sûr de vouloir refuser cette
@@ -1721,10 +1883,23 @@ const ApplicationScreen = () => {
 									borderRadius: 10,
 									alignItems: "center",
 									borderWidth: 1,
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
-									backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
+									backgroundColor: isDark
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 								}}>
-								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.muted : Colors.light.muted }}>Annuler</Text>
+								<Text
+									style={{
+										fontWeight: "600",
+										fontSize: 14,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
+									}}>
+									Annuler
+								</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
 								onPress={confirmReject}
@@ -1735,10 +1910,21 @@ const ApplicationScreen = () => {
 									borderRadius: 10,
 									alignItems: "center",
 									borderWidth: 1,
-									borderColor: isDark ? Colors.dark.danger : Colors.light.danger,
+									borderColor: isDark
+										? Colors.dark.danger
+										: Colors.light.danger,
 									backgroundColor: "transparent",
 								}}>
-								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.danger : Colors.light.danger }}>Refuser</Text>
+								<Text
+									style={{
+										fontWeight: "600",
+										fontSize: 14,
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
+									}}>
+									Refuser
+								</Text>
 							</TouchableOpacity>
 						</HStack>
 					</VStack>
@@ -1752,7 +1938,9 @@ const ApplicationScreen = () => {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 						paddingBottom: 32,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
@@ -1786,7 +1974,9 @@ const ApplicationScreen = () => {
 							<Heading
 								size='lg'
 								style={{
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Générer le contrat
 							</Heading>
@@ -1797,7 +1987,9 @@ const ApplicationScreen = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									fontWeight: "600",
 								}}>
 								Taux horaire brut (€/h)
@@ -1806,8 +1998,12 @@ const ApplicationScreen = () => {
 								variant='outline'
 								size='md'
 								style={{
-									backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									backgroundColor: isDark
+										? Colors.dark.background
+										: Colors.light.background,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 								}}>
 								<InputField
 									value={contractHourlyRate}
@@ -1815,10 +2011,14 @@ const ApplicationScreen = () => {
 									keyboardType='numeric'
 									placeholder='Ex: 15.50'
 									placeholderTextColor={
-										isDark ? Colors.dark.muted : Colors.light.muted
+										isDark
+											? Colors.dark.muted
+											: Colors.light.muted
 									}
 									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}
 								/>
 							</Input>
@@ -1829,7 +2029,9 @@ const ApplicationScreen = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									fontWeight: "600",
 								}}>
 								Lieu d'exécution du contrat
@@ -1837,8 +2039,12 @@ const ApplicationScreen = () => {
 							<Textarea
 								size='md'
 								style={{
-									backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									backgroundColor: isDark
+										? Colors.dark.background
+										: Colors.light.background,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 								}}>
 								<TextareaInput
 									value={contractLocation}
@@ -1847,12 +2053,16 @@ const ApplicationScreen = () => {
 										"Ex: Centre commercial Westfield Les 4 Temps\n15 Parvis de la Défense\n92000 Nanterre"
 									}
 									placeholderTextColor={
-										isDark ? Colors.dark.muted : Colors.light.muted
+										isDark
+											? Colors.dark.muted
+											: Colors.light.muted
 									}
 									numberOfLines={3}
 									multiline
 									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 										minHeight: 72,
 										textAlignVertical: "top",
 									}}
@@ -1865,7 +2075,9 @@ const ApplicationScreen = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									fontWeight: "600",
 								}}>
 								Date de début
@@ -1881,8 +2093,12 @@ const ApplicationScreen = () => {
 									isDisabled
 									style={{
 										pointerEvents: "none",
-										backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
-										borderColor: isDark ? Colors.dark.border : Colors.light.border,
+										backgroundColor: isDark
+											? Colors.dark.background
+											: Colors.light.background,
+										borderColor: isDark
+											? Colors.dark.border
+											: Colors.light.border,
 									}}>
 									<InputField
 										value={formatContractDate(
@@ -1891,7 +2107,9 @@ const ApplicationScreen = () => {
 										editable={false}
 										style={{
 											color: contractStartDate
-												? isDark ? Colors.dark.text : Colors.light.text
+												? isDark
+													? Colors.dark.text
+													: Colors.light.text
 												: "#9ca3af",
 										}}
 									/>
@@ -1906,7 +2124,9 @@ const ApplicationScreen = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										fontWeight: "600",
 									}}>
 									Date de fin
@@ -1922,8 +2142,12 @@ const ApplicationScreen = () => {
 										isDisabled
 										style={{
 											pointerEvents: "none",
-											backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
-											borderColor: isDark ? Colors.dark.border : Colors.light.border,
+											backgroundColor: isDark
+												? Colors.dark.background
+												: Colors.light.background,
+											borderColor: isDark
+												? Colors.dark.border
+												: Colors.light.border,
 										}}>
 										<InputField
 											value={formatContractDate(
@@ -1932,7 +2156,9 @@ const ApplicationScreen = () => {
 											editable={false}
 											style={{
 												color: contractEndDate
-													? isDark ? Colors.dark.text : Colors.light.text
+													? isDark
+														? Colors.dark.text
+														: Colors.light.text
 													: "#9ca3af",
 											}}
 										/>
@@ -1944,7 +2170,9 @@ const ApplicationScreen = () => {
 						{/* Boutons */}
 						<HStack space='md' style={{ width: "100%" }}>
 							<TouchableOpacity
-								onPress={() => setShowGenerateContractModal(false)}
+								onPress={() =>
+									setShowGenerateContractModal(false)
+								}
 								activeOpacity={0.75}
 								style={{
 									flex: 1,
@@ -1952,10 +2180,23 @@ const ApplicationScreen = () => {
 									borderRadius: 10,
 									alignItems: "center",
 									borderWidth: 1,
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
-									backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
+									backgroundColor: isDark
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 								}}>
-								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.muted : Colors.light.muted }}>Annuler</Text>
+								<Text
+									style={{
+										fontWeight: "600",
+										fontSize: 14,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
+									}}>
+									Annuler
+								</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
 								onPress={handleSubmitContract}
@@ -1966,10 +2207,21 @@ const ApplicationScreen = () => {
 									borderRadius: 10,
 									alignItems: "center",
 									borderWidth: 1,
-									borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
+									borderColor: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
 									backgroundColor: "transparent",
 								}}>
-								<Text style={{ fontWeight: "600", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>Générer</Text>
+								<Text
+									style={{
+										fontWeight: "600",
+										fontSize: 14,
+										color: isDark
+											? Colors.dark.tint
+											: Colors.light.tint,
+									}}>
+									Générer
+								</Text>
 							</TouchableOpacity>
 						</HStack>
 					</VStack>
@@ -1984,7 +2236,9 @@ const ApplicationScreen = () => {
 				<ActionsheetContent
 					style={{
 						paddingBottom: 32,
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
@@ -2000,7 +2254,9 @@ const ApplicationScreen = () => {
 							style={{
 								fontWeight: "600",
 								fontSize: 16,
-								color: isDark ? Colors.dark.text : Colors.light.text,
+								color: isDark
+									? Colors.dark.text
+									: Colors.light.text,
 							}}>
 							Date de début
 						</Text>
@@ -2014,22 +2270,39 @@ const ApplicationScreen = () => {
 							}}
 							minimumDate={new Date()}
 							style={{ width: "100%" }}
-							textColor={isDark ? Colors.dark.text : Colors.light.text}
+							textColor={
+								isDark ? Colors.dark.text : Colors.light.text
+							}
 						/>
 						<TouchableOpacity
-							onPress={() => setShowContractStartDatePicker(false)}
+							onPress={() =>
+								setShowContractStartDatePicker(false)
+							}
 							activeOpacity={0.75}
 							style={{
-								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
+								borderColor: isDark
+									? Colors.dark.tint
+									: Colors.light.tint,
 								borderRadius: 10,
 								paddingVertical: 11,
 								alignItems: "center",
 								width: "100%",
 								marginTop: 8,
 							}}>
-							<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>Confirmer</Text>
+							<Text
+								style={{
+									fontWeight: "700",
+									fontSize: 14,
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+								}}>
+								Confirmer
+							</Text>
 						</TouchableOpacity>
 					</VStack>
 				</ActionsheetContent>
@@ -2043,7 +2316,9 @@ const ApplicationScreen = () => {
 				<ActionsheetContent
 					style={{
 						paddingBottom: 32,
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
@@ -2059,7 +2334,9 @@ const ApplicationScreen = () => {
 							style={{
 								fontWeight: "600",
 								fontSize: 16,
-								color: isDark ? Colors.dark.text : Colors.light.text,
+								color: isDark
+									? Colors.dark.text
+									: Colors.light.text,
 							}}>
 							Date de fin
 						</Text>
@@ -2077,22 +2354,37 @@ const ApplicationScreen = () => {
 							}}
 							minimumDate={contractStartDate || new Date()}
 							style={{ width: "100%" }}
-							textColor={isDark ? Colors.dark.text : Colors.light.text}
+							textColor={
+								isDark ? Colors.dark.text : Colors.light.text
+							}
 						/>
 						<TouchableOpacity
 							onPress={() => setShowContractEndDatePicker(false)}
 							activeOpacity={0.75}
 							style={{
-								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
+								borderColor: isDark
+									? Colors.dark.tint
+									: Colors.light.tint,
 								borderRadius: 10,
 								paddingVertical: 11,
 								alignItems: "center",
 								width: "100%",
 								marginTop: 8,
 							}}>
-							<Text style={{ fontWeight: "700", fontSize: 14, color: isDark ? Colors.dark.tint : Colors.light.tint }}>Confirmer</Text>
+							<Text
+								style={{
+									fontWeight: "700",
+									fontSize: 14,
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+								}}>
+								Confirmer
+							</Text>
 						</TouchableOpacity>
 					</VStack>
 				</ActionsheetContent>
@@ -2160,7 +2452,9 @@ const ApplicationScreen = () => {
 											<Heading
 												size='md'
 												style={{
-													color: isDark ? Colors.dark.text : Colors.light.text,
+													color: isDark
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												{role === "pro"
 													? `${application?.profiles?.firstname} ${application?.profiles?.lastname}`
@@ -2184,7 +2478,9 @@ const ApplicationScreen = () => {
 										<Text
 											size='sm'
 											style={{
-												color: isDark ? Colors.dark.muted : Colors.light.muted,
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}>
 											{application?.jobs?.title}
 										</Text>
@@ -2198,7 +2494,11 @@ const ApplicationScreen = () => {
 									<Icon
 										as={X}
 										size='xl'
-										color={isDark ? Colors.dark.muted : Colors.light.muted}
+										color={
+											isDark
+												? Colors.dark.muted
+												: Colors.light.muted
+										}
 									/>
 								</Pressable>
 							</HStack>
