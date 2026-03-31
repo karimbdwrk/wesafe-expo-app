@@ -395,7 +395,9 @@ export default function JobsList({
 								paddingHorizontal: 10,
 								paddingVertical: 14,
 								borderBottomWidth: 1,
-								borderBottomColor: isDark ? Colors.dark.background : Colors.light.background,
+								borderBottomColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
 								alignItems: "center",
 								gap: 10,
 							}}>
@@ -410,21 +412,29 @@ export default function JobsList({
 								<Icon
 									as={SlidersHorizontal}
 									size='md'
-									color={isDark ? Colors.dark.tint : Colors.light.tint}
+									color={
+										isDark
+											? Colors.dark.tint
+											: Colors.light.tint
+									}
 								/>
 							</Box>
 							<VStack style={{ gap: 1 }}>
 								<Heading
 									size='md'
 									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Filtres
 								</Heading>
 								<Text
 									size='xs'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}>
 									Localisation, distance, catégories
 								</Text>
@@ -467,7 +477,9 @@ export default function JobsList({
 											size='sm'
 											style={{
 												fontWeight: "600",
-												color: isDark ? Colors.dark.text : Colors.light.text,
+												color: isDark
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											Sélectionnez la ville
 										</Text>
@@ -487,18 +499,38 @@ export default function JobsList({
 																	? isDark
 																		? "#1f2937"
 																		: "#dbeafe"
-																	: isDark ? Colors.dark.background : Colors.light.background,
+																	: isDark
+																		? Colors
+																				.dark
+																				.background
+																		: Colors
+																				.light
+																				.background,
 															borderRadius: 8,
 															borderWidth: 1,
 															borderColor:
 																selectedCityName ===
 																item.nom
-																	? Colors.light.tint
-																	: isDark ? Colors.dark.border : Colors.light.border,
+																	? Colors
+																			.light
+																			.tint
+																	: isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
 														}}>
 														<Text
 															style={{
-																color: isDark ? Colors.dark.text : Colors.light.text,
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
 															}}>
 															{item.nom} (
 															{
@@ -580,17 +612,25 @@ export default function JobsList({
 														borderWidth: 1.5,
 														borderColor: selected
 															? Colors.light.tint
-															: Colors.light.border,
+															: Colors.light
+																	.border,
 														backgroundColor:
 															selected
-																? Colors.light.tint
+																? Colors.light
+																		.tint
 																: "transparent",
 													}}>
 													<Text
 														style={{
 															color: selected
 																? "#fff"
-																: isDark ? Colors.dark.text : Colors.light.muted,
+																: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.muted,
 															fontWeight: selected
 																? "700"
 																: "400",
@@ -647,17 +687,25 @@ export default function JobsList({
 														borderWidth: 1.5,
 														borderColor: selected
 															? Colors.light.tint
-															: Colors.light.border,
+															: Colors.light
+																	.border,
 														backgroundColor:
 															selected
-																? Colors.light.tint
+																? Colors.light
+																		.tint
 																: "transparent",
 													}}>
 													<Text
 														style={{
 															color: selected
 																? "#fff"
-																: isDark ? Colors.dark.text : Colors.light.muted,
+																: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.muted,
 															fontWeight: selected
 																? "700"
 																: "400",
@@ -708,17 +756,25 @@ export default function JobsList({
 														borderWidth: 1.5,
 														borderColor: selected
 															? Colors.light.tint
-															: Colors.light.border,
+															: Colors.light
+																	.border,
 														backgroundColor:
 															selected
-																? Colors.light.tint
+																? Colors.light
+																		.tint
 																: "transparent",
 													}}>
 													<Text
 														style={{
 															color: selected
 																? "#fff"
-																: isDark ? Colors.dark.text : Colors.light.muted,
+																: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.muted,
 															fontWeight: selected
 																? "700"
 																: "400",
@@ -753,7 +809,9 @@ export default function JobsList({
 								paddingHorizontal: 10,
 								paddingVertical: 14,
 								borderBottomWidth: 1,
-								borderBottomColor: isDark ? Colors.dark.background : Colors.light.background,
+								borderBottomColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
 								alignItems: "center",
 								gap: 10,
 							}}>
@@ -768,21 +826,29 @@ export default function JobsList({
 								<Icon
 									as={Search}
 									size='md'
-									color={isDark ? Colors.dark.tint : Colors.light.tint}
+									color={
+										isDark
+											? Colors.dark.tint
+											: Colors.light.tint
+									}
 								/>
 							</Box>
 							<VStack style={{ gap: 1 }}>
 								<Heading
 									size='md'
 									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Recherche
 								</Heading>
 								<Text
 									size='xs'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}>
 									Recherche par mots-clés
 								</Text>
@@ -950,7 +1016,11 @@ export default function JobsList({
 					ref={scrollRef}
 					style={[
 						styles.scrollView,
-						{ backgroundColor: isDark ? Colors.dark.background : Colors.light.background },
+						{
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.background,
+						},
 					]}
 					contentContainerStyle={{
 						paddingBottom: totalPages > 1 ? 80 : 0,
@@ -965,7 +1035,11 @@ export default function JobsList({
 						<Center style={{ paddingVertical: 90 }}>
 							<ActivityIndicator
 								size='large'
-								color={isDark ? Colors.light.tint : Colors.light.tint}
+								color={
+									isDark
+										? Colors.light.tint
+										: Colors.light.tint
+								}
 							/>
 						</Center>
 					) : (
@@ -1042,7 +1116,9 @@ export default function JobsList({
 							left: 0,
 							right: 0,
 							bottom: 0,
-							backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+							backgroundColor: isDark
+								? Colors.dark.cardBackground
+								: Colors.light.cardBackground,
 							shadowColor: "#000",
 							shadowOffset: { width: 0, height: -2 },
 							shadowOpacity: 0.08,
@@ -1063,17 +1139,25 @@ export default function JobsList({
 								onPress={handlePrev}
 								variant='outline'
 								style={{
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 									borderRadius: 12,
 								}}>
 								<ButtonIcon
 									as={ChevronLeft}
-									color={isDark ? Colors.dark.text : Colors.light.text}
+									color={
+										isDark
+											? Colors.dark.text
+											: Colors.light.text
+									}
 								/>
 							</Button>
 							<Text
 								style={{
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 									fontWeight: "600",
 									fontSize: 16,
 								}}>
@@ -1084,12 +1168,18 @@ export default function JobsList({
 								onPress={handleNext}
 								variant='outline'
 								style={{
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 									borderRadius: 12,
 								}}>
 								<ButtonIcon
 									as={ChevronRight}
-									color={isDark ? Colors.dark.text : Colors.light.text}
+									color={
+										isDark
+											? Colors.dark.text
+											: Colors.light.text
+									}
 								/>
 							</Button>
 						</HStack>
@@ -1134,11 +1224,11 @@ const styles = StyleSheet.create({
 	scrollView: {
 		flex: 1,
 		width: "100%",
-		paddingHorizontal: 15,
+		paddingHorizontal: 10,
 	},
 	jobList: {
 		flex: 1,
-		gap: 15,
+		gap: 5,
 		width: "100%",
 		marginVertical: 15,
 	},
