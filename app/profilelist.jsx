@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { today } from "@internationalized/date";
 
 import { Text } from "@/components/ui/text";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
@@ -30,6 +29,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
+import { CNAPS_CARDS } from "@/constants/cnapscards";
+import { CATEGORY } from "@/constants/categories";
+import { JOB_REQUIREMENTS } from "@/constants/jobrequirements";
 
 // Charge tout d'un coup pour pouvoir trier/grouper côté client
 const ITEMS_PER_PAGE = 500;
@@ -40,6 +42,56 @@ const normalize = (str) =>
 		.normalize("NFD")
 		.replace(/[\u0300-\u036f]/g, "")
 		.toUpperCase();
+
+/**
+ * Calcule les métiers accessibles pour un profil à partir de ses documents vérifiés.
+ * Logique identique à SuggestedJobs.jsx.
+ */
+const getEligibleJobs = (profileData) => {
+	const now = new Date();
+
+	const cnapsSet = new Set(
+		(profileData?.user_cnaps_cards ?? [])
+			.filter(
+				(c) =>
+					c.status === "verified" &&
+					(!c.expires_at || new Date(c.expires_at) > now),
+			)
+			.map(
+				(c) =>
+					CNAPS_CARDS[c.type?.toLowerCase()]?.acronym ??
+					c.type?.toUpperCase(),
+			)
+			.filter(Boolean),
+	);
+
+	const diplomasSet = new Set(
+		(profileData?.user_diplomas ?? [])
+			.filter((d) => d.status === "verified")
+			.map((d) => d.type?.toUpperCase())
+			.filter(Boolean),
+	);
+
+	const certsSet = new Set(
+		(profileData?.user_certifications ?? [])
+			.filter((c) => c.status === "verified")
+			.map((c) => c.type?.toUpperCase())
+			.filter(Boolean),
+	);
+
+	return Object.entries(JOB_REQUIREMENTS)
+		.filter(([, req]) => {
+			const hasCnaps =
+				req.cnaps.length === 0 ||
+				req.cnaps.every((c) => cnapsSet.has(c));
+			const hasDiploma =
+				req.diplomas.length === 0 ||
+				req.diplomas.some((d) => diplomasSet.has(d));
+			return hasCnaps && hasDiploma;
+		})
+		.map(([key]) => CATEGORY.find((c) => c.id === key))
+		.filter(Boolean);
+};
 
 const ProfileListScreen = () => {
 	const sectionListRef = useRef(null);
@@ -55,15 +107,82 @@ const ProfileListScreen = () => {
 	const loadData = useCallback(async () => {
 		setIsLoading(true);
 		try {
-			const { data } = await getAll(
+			// 1. Récupérer la liste des profils scannés
+			const { data: listData } = await getAll(
 				"profilelist",
-				"*, profiles(*, procards(*))",
-				`&company_id=eq.${user.id}&profiles.procards.status=eq.verified&profiles.procards.validity_date=gte.${today("UTC").toString()}`,
+				"*, profiles(id, firstname, lastname, avatar_url)",
+				`&company_id=eq.${user.id}`,
 				1,
 				ITEMS_PER_PAGE,
 				"created_at.desc",
 			);
-			setProfileList(data || []);
+			const entries = listData || [];
+
+			if (entries.length === 0) {
+				setProfileList([]);
+				return;
+			}
+
+			// 2. Récupérer les documents de tous les profils en parallèle
+			const userIds = entries.map((e) => e.profiles?.id).filter(Boolean);
+			const inFilter = `(${userIds.join(",")})`;
+
+			const [cnapsRes, diplomasRes, certsRes] = await Promise.all([
+				getAll(
+					"user_cnaps_cards",
+					"user_id,type,status,expires_at",
+					`&user_id=in.${inFilter}`,
+					1,
+					1000,
+				),
+				getAll(
+					"user_diplomas",
+					"user_id,type,status",
+					`&user_id=in.${inFilter}`,
+					1,
+					1000,
+				),
+				getAll(
+					"user_certifications",
+					"user_id,type,status",
+					`&user_id=in.${inFilter}`,
+					1,
+					1000,
+				),
+			]);
+
+			// 3. Indexer par user_id pour récupération O(1)
+			const cnapsMap = {};
+			const diplomasMap = {};
+			const certsMap = {};
+			(cnapsRes.data || []).forEach((r) => {
+				if (!cnapsMap[r.user_id]) cnapsMap[r.user_id] = [];
+				cnapsMap[r.user_id].push(r);
+			});
+			(diplomasRes.data || []).forEach((r) => {
+				if (!diplomasMap[r.user_id]) diplomasMap[r.user_id] = [];
+				diplomasMap[r.user_id].push(r);
+			});
+			(certsRes.data || []).forEach((r) => {
+				if (!certsMap[r.user_id]) certsMap[r.user_id] = [];
+				certsMap[r.user_id].push(r);
+			});
+
+			// 4. Enrichir chaque entrée avec ses documents
+			const enriched = entries.map((e) => {
+				const uid = e.profiles?.id;
+				return {
+					...e,
+					profiles: {
+						...e.profiles,
+						user_cnaps_cards: cnapsMap[uid] ?? [],
+						user_diplomas: diplomasMap[uid] ?? [],
+						user_certifications: certsMap[uid] ?? [],
+					},
+				};
+			});
+
+			setProfileList(enriched);
 		} finally {
 			setIsLoading(false);
 		}
@@ -111,17 +230,19 @@ const ProfileListScreen = () => {
 	}, [profileList]);
 
 	// Styles couleurs
-	const bg          = isDark ? Colors.dark.background     : Colors.light.background;
-	const cardBg      = isDark ? Colors.dark.cardBackground : Colors.light.cardBackground;
-	const elevated    = isDark ? Colors.dark.elevated       : Colors.light.elevated;
-	const borderColor = isDark ? Colors.dark.border         : Colors.light.border;
-	const textPrimary = isDark ? Colors.dark.text           : Colors.light.text;
-	const textMuted   = isDark ? Colors.dark.muted          : Colors.light.muted;
-	const tint        = isDark ? Colors.dark.tint           : Colors.light.tint;
-	const warning     = isDark ? Colors.dark.warning        : Colors.light.warning;
-	const sectionBg   = isDark ? Colors.dark.background     : Colors.light.background;
-	const sectionText = isDark ? Colors.dark.muted          : Colors.light.muted;
-	const indexText   = isDark ? Colors.dark.tint           : Colors.light.tint;
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const elevated = isDark ? Colors.dark.elevated : Colors.light.elevated;
+	const borderColor = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textMuted = isDark ? Colors.dark.muted : Colors.light.muted;
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
+	const warning = isDark ? Colors.dark.warning : Colors.light.warning;
+	const sectionBg = isDark ? Colors.dark.background : Colors.light.background;
+	const sectionText = isDark ? Colors.dark.muted : Colors.light.muted;
+	const indexText = isDark ? Colors.dark.tint : Colors.light.tint;
 
 	const renderItem = ({ item: pro, index, section }) => {
 		const isLast = index === section.data.length - 1;
@@ -131,7 +252,7 @@ const ProfileListScreen = () => {
 			.filter(Boolean)
 			.join("")
 			.toUpperCase();
-		const procards = pro.profiles?.procards || [];
+		const eligibleJobs = getEligibleJobs(pro.profiles);
 
 		return (
 			<TouchableHighlight
@@ -171,21 +292,21 @@ const ProfileListScreen = () => {
 								? lastname + (firstname ? " " + firstname : "")
 								: "—"}
 						</Text>
-						{procards.length > 0 ? (
+						{eligibleJobs.length > 0 ? (
 							<HStack style={{ flexWrap: "wrap", gap: 5 }}>
-								{procards.map((card) => (
+								{eligibleJobs.map((job) => (
 									<Badge
-										key={card.id}
+										key={job.id}
 										size='sm'
 										variant='solid'
 										action='info'>
-										<BadgeText>{card.category}</BadgeText>
+										<BadgeText>{job.acronym}</BadgeText>
 									</Badge>
 								))}
 							</HStack>
 						) : (
 							<Text style={{ fontSize: 12, color: warning }}>
-								Aucune carte valide
+								Aucun métier qualifié
 							</Text>
 						)}
 					</VStack>
@@ -238,10 +359,7 @@ const ProfileListScreen = () => {
 						alignItems: "center",
 						justifyContent: "center",
 					}}>
-					<ActivityIndicator
-						size='large'
-						color={tint}
-					/>
+					<ActivityIndicator size='large' color={tint} />
 				</View>
 			) : !profileList.length ? (
 				<View
@@ -295,46 +413,50 @@ const ProfileListScreen = () => {
 						)}
 					/>
 
-					{/* Index alphabétique latéral */}
-					<View
-						style={{
-							position: "absolute",
-							right: 4,
-							top: 0,
-							bottom: 80,
-							justifyContent: "center",
-							alignItems: "center",
-							gap: 1,
-						}}>
-						{letters.map((letter, i) => (
-							<TouchableOpacity
-								key={letter}
-								hitSlop={{
-									top: 4,
-									bottom: 4,
-									left: 8,
-									right: 8,
-								}}
-								onPress={() => {
-									sectionListRef.current?.scrollToLocation({
-										sectionIndex: i,
-										itemIndex: 0,
-										animated: true,
-										viewOffset: 0,
-									});
-								}}>
-								<RNText
-									style={{
-										fontSize: 11,
-										fontWeight: "600",
-										color: indexText,
-										lineHeight: 14,
+					{/* Index alphabétique latéral — masqué si moins de 10 contacts */}
+					{profileList.length >= 10 && (
+						<View
+							style={{
+								position: "absolute",
+								right: 4,
+								top: 0,
+								bottom: 80,
+								justifyContent: "center",
+								alignItems: "center",
+								gap: 1,
+							}}>
+							{letters.map((letter, i) => (
+								<TouchableOpacity
+									key={letter}
+									hitSlop={{
+										top: 4,
+										bottom: 4,
+										left: 8,
+										right: 8,
+									}}
+									onPress={() => {
+										sectionListRef.current?.scrollToLocation(
+											{
+												sectionIndex: i,
+												itemIndex: 0,
+												animated: true,
+												viewOffset: 0,
+											},
+										);
 									}}>
-									{letter}
-								</RNText>
-							</TouchableOpacity>
-						))}
-					</View>
+									<RNText
+										style={{
+											fontSize: 11,
+											fontWeight: "600",
+											color: indexText,
+											lineHeight: 14,
+										}}>
+										{letter}
+									</RNText>
+								</TouchableOpacity>
+							))}
+						</View>
+					)}
 				</View>
 			)}
 
@@ -353,9 +475,9 @@ const ProfileListScreen = () => {
 							borderRadius: 50,
 							paddingHorizontal: 20,
 							paddingVertical: 0,
-							shadowColor: tint,
-							shadowOffset: { width: 0, height: 4 },
-							shadowOpacity: 0.35,
+							shadowColor: textMuted,
+							shadowOffset: { width: 0, height: 2 },
+							shadowOpacity: 0.15,
 							shadowRadius: 8,
 							elevation: 6,
 						}}>
