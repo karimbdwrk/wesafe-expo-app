@@ -229,20 +229,6 @@ const SubscriptionScreen = () => {
 			style={{ flex: 1, backgroundColor: bg }}
 			contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
 			<VStack space='xl'>
-				{/* Header */}
-				{/* <VStack space='xs'>
-					<Heading
-						size='2xl'
-						style={{ color: textPrimary }}>
-						Mon abonnement
-					</Heading>
-					<Text
-						size='md'
-						style={{ color: muted }}>
-						Gérez votre formule WeSafe
-					</Text>
-				</VStack> */}
-
 				{/* Current plan summary */}
 				{resolvedStatus && (
 					<Box
