@@ -49,6 +49,7 @@ import { ChevronLeft } from "lucide-react-native";
 
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { createSupabaseClient } from "../lib/supabase";
 import OTPForm from "../components/OTPForm";
 
@@ -56,6 +57,15 @@ const SignUpScreen = () => {
 	const { signUp, loading } = useAuth();
 	const router = useRouter();
 	const { isDark } = useTheme();
+	const scheme = isDark ? "dark" : "light";
+	const bg         = Colors[scheme].background;
+	const cardBg     = Colors[scheme].cardBackground;
+	const elevated   = Colors[scheme].elevated;
+	const border     = Colors[scheme].border;
+	const textPrimary = Colors[scheme].text;
+	const muted      = Colors[scheme].muted;
+	const tint       = Colors[scheme].tint;
+	const danger     = Colors[scheme].danger;
 	const initialRef = useRef(null);
 
 	const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
@@ -194,20 +204,20 @@ const SignUpScreen = () => {
 
 	const inputStyle = {
 		borderRadius: 10,
-		backgroundColor: isDark ? "#1f2937" : "#f9fafb",
-		borderColor: isDark ? "#4b5563" : "#d1d5db",
+		backgroundColor: elevated,
+		borderColor: border,
 	};
-	const inputTextStyle = { color: isDark ? "#f3f4f6" : "#111827" };
+	const inputTextStyle = { color: textPrimary };
 	const labelStyle = {
 		fontWeight: "600",
-		color: isDark ? "#d1d5db" : "#374151",
+		color: muted,
 	};
 
 	return (
 		<SafeAreaView
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#111827" : "#f9fafb",
+				backgroundColor: bg,
 			}}>
 			<KeyboardAvoidingView
 				style={{ flex: 1 }}
@@ -235,13 +245,13 @@ const SignUpScreen = () => {
 									as={ChevronLeft}
 									size='sm'
 									style={{
-										color: isDark ? "#60a5fa" : "#2563eb",
+										color: tint,
 									}}
 								/>
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#60a5fa" : "#2563eb",
+										color: tint,
 										fontWeight: "600",
 									}}>
 									Retour
@@ -265,7 +275,7 @@ const SignUpScreen = () => {
 								style={{
 									fontSize: 24,
 									fontWeight: "800",
-									color: isDark ? "#f9fafb" : "#111827",
+									color: textPrimary,
 									marginTop: 16,
 									letterSpacing: -0.5,
 								}}>
@@ -274,7 +284,7 @@ const SignUpScreen = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: muted,
 									marginTop: 6,
 								}}>
 								{step === 1
@@ -287,10 +297,10 @@ const SignUpScreen = () => {
 						<Card
 							style={{
 								padding: 24,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: cardBg,
 								borderRadius: 16,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: border,
 							}}>
 							<VStack space='lg'>
 								{/* STEP 1 — Email */}
@@ -318,7 +328,7 @@ const SignUpScreen = () => {
 												<Text
 													size='xs'
 													style={{
-														color: "#ef4444",
+														color: danger,
 														marginTop: 2,
 														marginBottom: 2,
 													}}>
@@ -341,17 +351,13 @@ const SignUpScreen = () => {
 										{checkingEmail ? (
 											<ActivityIndicator
 												size='large'
-												color={
-													isDark
-														? "#60a5fa"
-														: "#2563eb"
-												}
+												color={tint}
 											/>
 										) : (
 											<Button
 												size='lg'
 												style={{
-													backgroundColor: "#2563eb",
+													backgroundColor: tint,
 													borderRadius: 12,
 													height: 52,
 												}}
@@ -405,9 +411,7 @@ const SignUpScreen = () => {
 												}}>
 												<ButtonText
 													style={{
-														color: isDark
-															? "#60a5fa"
-															: "#2563eb",
+														color: tint,
 														fontSize: 13,
 													}}>
 													Modifier l'email
@@ -509,9 +513,7 @@ const SignUpScreen = () => {
 													</CheckboxIndicator>
 													<CheckboxLabel
 														style={{
-															color: isDark
-																? "#d1d5db"
-																: "#374151",
+															color: muted,
 														}}>
 														Candidat
 													</CheckboxLabel>
@@ -532,9 +534,7 @@ const SignUpScreen = () => {
 													</CheckboxIndicator>
 													<CheckboxLabel
 														style={{
-															color: isDark
-																? "#d1d5db"
-																: "#374151",
+															color: muted,
 														}}>
 														Professionnel
 													</CheckboxLabel>
@@ -545,17 +545,13 @@ const SignUpScreen = () => {
 										{submitting ? (
 											<ActivityIndicator
 												size='large'
-												color={
-													isDark
-														? "#60a5fa"
-														: "#2563eb"
-												}
+												color={tint}
 											/>
 										) : (
 											<Button
 												size='lg'
 												style={{
-													backgroundColor: "#2563eb",
+													backgroundColor: tint,
 													borderRadius: 12,
 													height: 52,
 												}}
@@ -587,7 +583,7 @@ const SignUpScreen = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: muted,
 								}}>
 								Déjà un compte ?
 							</Text>
@@ -595,7 +591,7 @@ const SignUpScreen = () => {
 								<LinkText
 									size='sm'
 									style={{
-										color: isDark ? "#60a5fa" : "#2563eb",
+										color: tint,
 										fontWeight: "600",
 									}}>
 									Me connecter
@@ -618,7 +614,7 @@ const SignUpScreen = () => {
 				<ModalBackdrop />
 				<ModalContent
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: cardBg,
 						borderRadius: 16,
 					}}>
 					<ModalHeader alignItems='flex-start'>
@@ -626,14 +622,14 @@ const SignUpScreen = () => {
 							<Heading
 								size='md'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textPrimary,
 								}}>
 								Vérification par email
 							</Heading>
 							<Text
 								size='xs'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: muted,
 									marginTop: 4,
 								}}>
 								Vous avez reçu un code OTP par e-mail
@@ -655,7 +651,7 @@ const SignUpScreen = () => {
 									size='sm'
 									style={{
 										textAlign: "center",
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: muted,
 										fontStyle: "italic",
 									}}>
 									Renvoyer un code dans {countdown}s
@@ -667,9 +663,7 @@ const SignUpScreen = () => {
 											textDecorationLine: "underline",
 											fontWeight: "300",
 											fontStyle: "italic",
-											color: isDark
-												? "#60a5fa"
-												: "#2563eb",
+											color: tint,
 										}}>
 										Renvoyer un code
 									</ButtonText>

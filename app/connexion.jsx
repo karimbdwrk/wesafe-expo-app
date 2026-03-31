@@ -14,36 +14,47 @@ import { Shield, Briefcase, FileCheck, Users } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
-const Feature = ({ icon, label, isDark }) => (
-	<HStack space='sm' style={{ alignItems: "center" }}>
-		<Box
-			style={{
-				width: 36,
-				height: 36,
-				borderRadius: 18,
-				backgroundColor: isDark ? "#1e3a5f" : "#eff6ff",
-				justifyContent: "center",
-				alignItems: "center",
-			}}>
-			<Icon
-				as={icon}
+const Feature = ({ icon, label, isDark }) => {
+	const tint        = isDark ? Colors.dark.tint    : Colors.light.tint;
+	const tint20      = isDark ? Colors.dark.tint20  : Colors.light.tint20;
+	const textPrimary = isDark ? Colors.dark.text     : Colors.light.text;
+	return (
+		<HStack space='sm' style={{ alignItems: "center" }}>
+			<Box
+				style={{
+					width: 36,
+					height: 36,
+					borderRadius: 18,
+					backgroundColor: tint20,
+					justifyContent: "center",
+					alignItems: "center",
+				}}>
+				<Icon
+					as={icon}
+					size='sm'
+					style={{ color: tint }}
+				/>
+			</Box>
+			<Text
 				size='sm'
-				style={{ color: isDark ? "#60a5fa" : "#2563eb" }}
-			/>
-		</Box>
-		<Text
-			size='sm'
-			style={{ color: isDark ? "#d1d5db" : "#374151", flex: 1 }}>
-			{label}
-		</Text>
-	</HStack>
-);
+				style={{ color: textPrimary, flex: 1 }}>
+				{label}
+			</Text>
+		</HStack>
+	);
+};
 
 export default function Connexion() {
 	const router = useRouter();
 	const { loading: authLoading } = useAuth();
 	const { isDark } = useTheme();
+	const bg          = isDark ? Colors.dark.background     : Colors.light.background;
+	const textPrimary = isDark ? Colors.dark.text           : Colors.light.text;
+	const muted       = isDark ? Colors.dark.muted          : Colors.light.muted;
+	const border      = isDark ? Colors.dark.border         : Colors.light.border;
+	const tint        = isDark ? Colors.dark.tint           : Colors.light.tint;
 
 	if (authLoading) {
 		return (
@@ -52,7 +63,7 @@ export default function Connexion() {
 					flex: 1,
 					justifyContent: "center",
 					alignItems: "center",
-					backgroundColor: isDark ? "#111827" : "#f9fafb",
+					backgroundColor: bg,
 				}}>
 				<Image
 					source={require("@/assets/images/logo-wesafe-v2.png")}
@@ -61,7 +72,7 @@ export default function Connexion() {
 				/>
 				<ActivityIndicator
 					size='large'
-					color={isDark ? "#60a5fa" : "#2563eb"}
+					color={tint}
 				/>
 			</View>
 		);
@@ -71,7 +82,7 @@ export default function Connexion() {
 		<SafeAreaView
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#111827" : "#f9fafb",
+				backgroundColor: bg,
 			}}>
 			<VStack style={{ flex: 1, paddingHorizontal: 28 }}>
 				{/* Logo */}
@@ -90,7 +101,7 @@ export default function Connexion() {
 						style={{
 							fontSize: 28,
 							fontWeight: "800",
-							color: isDark ? "#f9fafb" : "#111827",
+							color: textPrimary,
 							marginTop: 20,
 							letterSpacing: -0.5,
 							lineHeight: 32,
@@ -100,7 +111,7 @@ export default function Connexion() {
 					<Text
 						size='md'
 						style={{
-							color: isDark ? "#9ca3af" : "#6b7280",
+							color: muted,
 							textAlign: "center",
 							marginTop: 8,
 							lineHeight: 18,
@@ -144,7 +155,7 @@ export default function Connexion() {
 					<Button
 						size='lg'
 						style={{
-							backgroundColor: "#2563eb",
+							backgroundColor: tint,
 							borderRadius: 12,
 							height: 52,
 						}}
@@ -165,14 +176,14 @@ export default function Connexion() {
 						style={{
 							borderRadius: 12,
 							height: 52,
-							borderColor: isDark ? "#4b5563" : "#d1d5db",
+							borderColor: border,
 						}}
 						onPress={() => router.push("/signup")}>
 						<ButtonText
 							style={{
 								fontWeight: "600",
 								fontSize: 16,
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: textPrimary,
 							}}>
 							Créer un compte
 						</ButtonText>
@@ -181,7 +192,7 @@ export default function Connexion() {
 					<Text
 						size='xs'
 						style={{
-							color: isDark ? "#6b7280" : "#9ca3af",
+							color: muted,
 							textAlign: "center",
 							marginTop: 8,
 						}}>

@@ -30,11 +30,23 @@ import { EyeIcon, EyeOffIcon, Icon } from "@/components/ui/icon";
 import { ChevronLeft } from "lucide-react-native";
 
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const SignInScreen = () => {
 	const { signIn, loading } = useAuth();
 	const router = useRouter();
 	const { isDark } = useTheme();
+	const bg          = isDark ? Colors.dark.background     : Colors.light.background;
+	const cardBg      = isDark ? Colors.dark.cardBackground : Colors.light.cardBackground;
+	const elevated    = isDark ? Colors.dark.elevated       : Colors.light.elevated;
+	const border      = isDark ? Colors.dark.border         : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text           : Colors.light.text;
+	const muted       = isDark ? Colors.dark.muted          : Colors.light.muted;
+	const tint        = isDark ? Colors.dark.tint           : Colors.light.tint;
+	const danger      = isDark ? Colors.dark.danger         : Colors.light.danger;
+	const danger20    = isDark ? Colors.dark.danger20       : Colors.light.danger20;
+	const success     = isDark ? Colors.dark.success        : Colors.light.success;
+	const success20   = isDark ? Colors.dark.success20      : Colors.light.success20;
 
 	const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
@@ -167,7 +179,7 @@ const SignInScreen = () => {
 		<SafeAreaView
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#111827" : "#f9fafb",
+				backgroundColor: bg,
 			}}>
 			<KeyboardAvoidingView
 				style={{ flex: 1 }}
@@ -195,13 +207,13 @@ const SignInScreen = () => {
 									as={ChevronLeft}
 									size='sm'
 									style={{
-										color: isDark ? "#60a5fa" : "#2563eb",
+										color: tint,
 									}}
 								/>
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#60a5fa" : "#2563eb",
+										color: tint,
 										fontWeight: "600",
 									}}>
 									Retour
@@ -225,7 +237,7 @@ const SignInScreen = () => {
 								style={{
 									fontSize: 24,
 									fontWeight: "800",
-									color: isDark ? "#f9fafb" : "#111827",
+									color: textPrimary,
 									marginTop: 16,
 									letterSpacing: -0.5,
 									lineHeight: 28,
@@ -235,7 +247,7 @@ const SignInScreen = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: muted,
 									marginTop: 6,
 								}}>
 								Content de vous revoir 👋
@@ -246,10 +258,10 @@ const SignInScreen = () => {
 						<Card
 							style={{
 								padding: 24,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: cardBg,
 								borderRadius: 16,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: border,
 							}}>
 							<VStack space='lg'>
 								{/* Email */}
@@ -258,21 +270,15 @@ const SignInScreen = () => {
 										size='sm'
 										style={{
 											fontWeight: "600",
-											color: isDark
-												? "#d1d5db"
-												: "#374151",
+											color: textPrimary,
 										}}>
 										Adresse email
 									</Text>
 									<Input
 										style={{
 											borderRadius: 10,
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#f9fafb",
-											borderColor: isDark
-												? "#4b5563"
-												: "#d1d5db",
+											backgroundColor: elevated,
+											borderColor: border,
 										}}>
 										<InputField
 											type='text'
@@ -282,9 +288,7 @@ const SignInScreen = () => {
 											autoCapitalize='none'
 											keyboardType='email-address'
 											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+												color: textPrimary,
 											}}
 										/>
 									</Input>
@@ -296,21 +300,15 @@ const SignInScreen = () => {
 										size='sm'
 										style={{
 											fontWeight: "600",
-											color: isDark
-												? "#d1d5db"
-												: "#374151",
+											color: textPrimary,
 										}}>
 										Mot de passe
 									</Text>
 									<Input
 										style={{
 											borderRadius: 10,
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#f9fafb",
-											borderColor: isDark
-												? "#4b5563"
-												: "#d1d5db",
+											backgroundColor: elevated,
+											borderColor: border,
 										}}>
 										<InputField
 											type={
@@ -322,9 +320,7 @@ const SignInScreen = () => {
 											value={password}
 											onChangeText={setPassword}
 											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+												color: textPrimary,
 											}}
 										/>
 										<InputSlot
@@ -355,17 +351,13 @@ const SignInScreen = () => {
 									{forgotLoading ? (
 										<ActivityIndicator
 											size='small'
-											color={
-												isDark ? "#60a5fa" : "#2563eb"
-											}
+											color={tint}
 										/>
 									) : (
 										<Text
 											size='sm'
 											style={{
-												color: isDark
-													? "#60a5fa"
-													: "#2563eb",
+												color: tint,
 												fontWeight: "600",
 											}}>
 											Mot de passe oublié ?
@@ -376,14 +368,14 @@ const SignInScreen = () => {
 								{submitting ? (
 									<ActivityIndicator
 										size='large'
-										color={isDark ? "#60a5fa" : "#2563eb"}
+										color={tint}
 										style={{ marginTop: 8 }}
 									/>
 								) : (
 									<Button
 										size='lg'
 										style={{
-											backgroundColor: "#2563eb",
+											backgroundColor: tint,
 											borderRadius: 12,
 											height: 52,
 											marginTop: 8,
@@ -406,18 +398,16 @@ const SignInScreen = () => {
 						{deletedAccount && (
 							<Box
 								style={{
-									backgroundColor: isDark
-										? "#450a0a"
-										: "#fef2f2",
+									backgroundColor: danger20,
 									borderRadius: 12,
 									borderWidth: 1,
-									borderColor: isDark ? "#991b1b" : "#fecaca",
+									borderColor: danger20,
 									padding: 16,
 									marginTop: 16,
 								}}>
 								<Text
 									style={{
-										color: isDark ? "#fca5a5" : "#dc2626",
+										color: danger,
 										fontWeight: "700",
 										fontSize: 15,
 										marginBottom: 4,
@@ -426,7 +416,7 @@ const SignInScreen = () => {
 								</Text>
 								<Text
 									style={{
-										color: isDark ? "#fecaca" : "#991b1b",
+										color: danger,
 										fontSize: 14,
 										lineHeight: 20,
 									}}>
@@ -445,18 +435,16 @@ const SignInScreen = () => {
 						{forgotSent && (
 							<Box
 								style={{
-									backgroundColor: isDark
-										? "#052e16"
-										: "#f0fdf4",
+									backgroundColor: success20,
 									borderRadius: 12,
 									borderWidth: 1,
-									borderColor: isDark ? "#166534" : "#bbf7d0",
+									borderColor: success20,
 									padding: 16,
 									marginTop: 16,
 								}}>
 								<Text
 									style={{
-										color: isDark ? "#86efac" : "#166534",
+										color: success,
 										fontWeight: "700",
 										fontSize: 15,
 										marginBottom: 4,
@@ -465,7 +453,7 @@ const SignInScreen = () => {
 								</Text>
 								<Text
 									style={{
-										color: isDark ? "#bbf7d0" : "#15803d",
+										color: success,
 										fontSize: 14,
 										lineHeight: 20,
 									}}>
@@ -487,7 +475,7 @@ const SignInScreen = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: muted,
 								}}>
 								Pas encore de compte ?
 							</Text>
@@ -495,7 +483,7 @@ const SignInScreen = () => {
 								<LinkText
 									size='sm'
 									style={{
-										color: isDark ? "#60a5fa" : "#2563eb",
+										color: tint,
 										fontWeight: "600",
 									}}>
 									M'inscrire
