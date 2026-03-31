@@ -652,7 +652,11 @@ const AccountScreen = () => {
 				}}>
 				<ScrollView
 					style={{ flex: 1 }}
-					contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+					contentContainerStyle={{
+						padding: 10,
+						paddingBottom: 30,
+						paddingTop: 15,
+					}}>
 					<VStack space='2xl'>
 						{/* Bannière rejet */}
 						{profile?.profile_status === "rejected" && (
