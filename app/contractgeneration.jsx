@@ -91,6 +91,15 @@ const WEEK_DAYS = [
 const ContractGenerationScreen = () => {
 	const { application_id } = useLocalSearchParams();
 	const { isDark } = useTheme();
+	const scheme = isDark ? "dark" : "light";
+	const bg = Colors[scheme].background;
+	const cardBg = Colors[scheme].cardBackground;
+	const border = Colors[scheme].border;
+	const textPrimary = Colors[scheme].text;
+	const muted = Colors[scheme].muted;
+	const tint = Colors[scheme].tint;
+	const success = Colors[scheme].success;
+	const danger = Colors[scheme].danger;
 	const router = useRouter();
 	const toast = useToast();
 	const { accessToken } = useAuth();
@@ -392,7 +401,7 @@ const ContractGenerationScreen = () => {
 				<CustomToast
 					id={id}
 					icon={AlertCircle}
-					color={isDark ? Colors.dark.danger : Colors.light.danger}
+					color={danger}
 					title={message}
 				/>
 			),
@@ -612,7 +621,7 @@ const ContractGenerationScreen = () => {
 					<CustomToast
 						id={id}
 						icon={CheckCircle}
-						color={isDark ? Colors.dark.success : Colors.light.success}
+						color={success}
 						title={status === "published" ? "Contrat publié avec succès" : "Brouillon enregistré"}
 					/>
 				),
@@ -648,7 +657,7 @@ const ContractGenerationScreen = () => {
 
 	// ─── Styles partagés ───────────────────────────────────────────────────────
 	const cardStyle = {
-		backgroundColor: isDark ? "#374151" : "#ffffff",
+		backgroundColor: cardBg,
 		borderRadius: 12,
 		padding: 16,
 		marginBottom: 12,
@@ -656,14 +665,14 @@ const ContractGenerationScreen = () => {
 	const labelStyle = {
 		fontSize: 13,
 		fontWeight: "600",
-		color: isDark ? "#d1d5db" : "#374151",
+		color: textPrimary,
 		marginBottom: 6,
 	};
 	const inputStyle = {
-		backgroundColor: isDark ? "#1f2937" : "#f9fafb",
-		borderColor: isDark ? "#4b5563" : "#d1d5db",
+		backgroundColor: bg,
+		borderColor: border,
 	};
-	const inputTextStyle = { color: isDark ? "#f3f4f6" : "#111827" };
+	const inputTextStyle = { color: textPrimary };
 
 	// ─── Step 1 : Informations du contrat ─────────────────────────────────────
 	const renderStep1 = () => (
@@ -689,14 +698,10 @@ const ContractGenerationScreen = () => {
 								borderWidth: 1.5,
 								borderColor:
 									formData.contract_type === type
-										? "#3b82f6"
-										: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										? tint : border,
 								backgroundColor:
 									formData.contract_type === type
-										? "#3b82f6"
-										: "transparent",
+										? tint : "transparent",
 							}}>
 							<Text
 								style={{
@@ -705,9 +710,7 @@ const ContractGenerationScreen = () => {
 									color:
 										formData.contract_type === type
 											? "#ffffff"
-											: isDark
-												? "#d1d5db"
-												: "#374151",
+											: textPrimary,
 								}}>
 								{type}
 							</Text>
@@ -757,17 +760,13 @@ const ContractGenerationScreen = () => {
 					<Icon
 						as={CalendarDays}
 						size='sm'
-						style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
+						style={{ color: muted }}
 					/>
 					<Text
 						style={{
 							color: formData.start_date
-								? isDark
-									? "#f3f4f6"
-									: "#111827"
-								: isDark
-									? "#6b7280"
-									: "#9ca3af",
+								? textPrimary
+								: muted,
 						}}>
 						{formData.start_date
 							? formatDate(formData.start_date)
@@ -801,17 +800,13 @@ const ContractGenerationScreen = () => {
 						<Icon
 							as={CalendarDays}
 							size='sm'
-							style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
+							style={{ color: muted }}
 						/>
 						<Text
 							style={{
 								color: formData.end_date
-									? isDark
-										? "#f3f4f6"
-										: "#111827"
-									: isDark
-										? "#6b7280"
-										: "#9ca3af",
+									? textPrimary
+									: muted,
 							}}>
 							{formData.end_date
 								? formatDate(formData.end_date)
@@ -860,7 +855,7 @@ const ContractGenerationScreen = () => {
 						style={{
 							fontSize: 13,
 							fontWeight: "600",
-							color: isDark ? "#d1d5db" : "#374151",
+							color: textPrimary,
 						}}>
 						Planning connu ?
 					</Text>
@@ -880,9 +875,7 @@ const ContractGenerationScreen = () => {
 										<Divider
 											style={{
 												marginVertical: 8,
-												backgroundColor: isDark
-													? "#374151"
-													: "#f3f4f6",
+												backgroundColor: border,
 											}}
 										/>
 									)}
@@ -899,9 +892,7 @@ const ContractGenerationScreen = () => {
 											style={{
 												fontSize: 13,
 												fontWeight: "600",
-												color: isDark
-													? "#d1d5db"
-													: "#374151",
+												color: textPrimary,
 												width: 88,
 											}}>
 											{day}
@@ -924,9 +915,7 @@ const ContractGenerationScreen = () => {
 												as={Clock}
 												size='xs'
 												style={{
-													color: isDark
-														? "#6b7280"
-														: "#9ca3af",
+													color: muted,
 												}}
 											/>
 											<TouchableOpacity
@@ -962,12 +951,8 @@ const ContractGenerationScreen = () => {
 														color: formData
 															.week_schedule[day]
 															.start
-															? isDark
-																? "#f3f4f6"
-																: "#111827"
-															: isDark
-																? "#6b7280"
-																: "#9ca3af",
+															? textPrimary
+															: muted,
 													}}>
 													{formData.week_schedule[day]
 														.start || "Début"}
@@ -975,9 +960,7 @@ const ContractGenerationScreen = () => {
 											</TouchableOpacity>
 											<Text
 												style={{
-													color: isDark
-														? "#6b7280"
-														: "#9ca3af",
+													color: muted,
 													fontWeight: "600",
 												}}>
 												→
@@ -1015,12 +998,8 @@ const ContractGenerationScreen = () => {
 														color: formData
 															.week_schedule[day]
 															.end
-															? isDark
-																? "#f3f4f6"
-																: "#111827"
-															: isDark
-																? "#6b7280"
-																: "#9ca3af",
+															? textPrimary
+															: muted,
 													}}>
 													{formData.week_schedule[day]
 														.end || "Fin"}
@@ -1041,9 +1020,7 @@ const ContractGenerationScreen = () => {
 								<Card
 									key={index}
 									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f3f4f6",
+										backgroundColor: bg,
 										borderRadius: 8,
 										padding: 12,
 										marginBottom: 0,
@@ -1058,9 +1035,7 @@ const ContractGenerationScreen = () => {
 											style={{
 												fontSize: 12,
 												fontWeight: "700",
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												color: muted,
 											}}>
 											Vacation {index + 1}
 										</Text>
@@ -1072,7 +1047,7 @@ const ContractGenerationScreen = () => {
 											<Icon
 												as={Trash2}
 												size='sm'
-												style={{ color: "#ef4444" }}
+												style={{ color: danger }}
 											/>
 										</TouchableOpacity>
 									</HStack>
@@ -1099,21 +1074,15 @@ const ContractGenerationScreen = () => {
 											as={CalendarDays}
 											size='xs'
 											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												color: muted,
 											}}
 										/>
 										<Text
 											style={{
 												fontSize: 13,
 												color: vacation.date
-													? isDark
-														? "#f3f4f6"
-														: "#111827"
-													: isDark
-														? "#6b7280"
-														: "#9ca3af",
+													? textPrimary
+													: muted,
 											}}>
 											{vacation.date
 												? formatDate(vacation.date)
@@ -1128,9 +1097,7 @@ const ContractGenerationScreen = () => {
 											as={Clock}
 											size='xs'
 											style={{
-												color: isDark
-													? "#6b7280"
-													: "#9ca3af",
+												color: muted,
 											}}
 										/>
 										<TouchableOpacity
@@ -1164,21 +1131,15 @@ const ContractGenerationScreen = () => {
 												style={{
 													fontSize: 13,
 													color: vacation.start_time
-														? isDark
-															? "#f3f4f6"
-															: "#111827"
-														: isDark
-															? "#6b7280"
-															: "#9ca3af",
+														? textPrimary
+														: muted,
 												}}>
 												{vacation.start_time || "Début"}
 											</Text>
 										</TouchableOpacity>
 										<Text
 											style={{
-												color: isDark
-													? "#6b7280"
-													: "#9ca3af",
+												color: muted,
 												fontWeight: "600",
 											}}>
 											→
@@ -1214,12 +1175,8 @@ const ContractGenerationScreen = () => {
 												style={{
 													fontSize: 13,
 													color: vacation.end_time
-														? isDark
-															? "#f3f4f6"
-															: "#111827"
-														: isDark
-															? "#6b7280"
-															: "#9ca3af",
+														? textPrimary
+														: muted,
 												}}>
 												{vacation.end_time || "Fin"}
 											</Text>
@@ -1240,19 +1197,19 @@ const ContractGenerationScreen = () => {
 									borderRadius: 8,
 									borderWidth: 1.5,
 									borderStyle: "dashed",
-									borderColor: isDark ? "#4b5563" : "#d1d5db",
+									borderColor: border,
 								}}>
 								<Icon
 									as={Plus}
 									size='sm'
 									style={{
-										color: isDark ? "#6b7280" : "#9ca3af",
+										color: muted,
 									}}
 								/>
 								<Text
 									style={{
 										fontSize: 13,
-										color: isDark ? "#6b7280" : "#9ca3af",
+										color: muted,
 									}}>
 									Ajouter une vacation
 								</Text>
@@ -1328,14 +1285,10 @@ const ContractGenerationScreen = () => {
 								borderWidth: 1.5,
 								borderColor:
 									formData.work_location_type === value
-										? "#3b82f6"
-										: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										? tint : border,
 								backgroundColor:
 									formData.work_location_type === value
-										? "#3b82f6"
-										: "transparent",
+										? tint : "transparent",
 							}}>
 							<Text
 								style={{
@@ -1344,9 +1297,7 @@ const ContractGenerationScreen = () => {
 									color:
 										formData.work_location_type === value
 											? "#ffffff"
-											: isDark
-												? "#d1d5db"
-												: "#374151",
+											: textPrimary,
 								}}>
 								{label}
 							</Text>
@@ -1376,7 +1327,7 @@ const ContractGenerationScreen = () => {
 									borderRadius: 8,
 									overflow: "hidden",
 									borderWidth: 1,
-									borderColor: isDark ? "#374151" : "#e5e7eb",
+									borderColor: border,
 								}}>
 								{singleAddressResults.map((item, idx) => (
 									<TouchableOpacity
@@ -1393,24 +1344,18 @@ const ContractGenerationScreen = () => {
 										activeOpacity={0.7}
 										style={{
 											padding: 12,
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#ffffff",
+											backgroundColor: cardBg,
 											borderBottomWidth:
 												idx <
 												singleAddressResults.length - 1
 													? 1
 													: 0,
-											borderBottomColor: isDark
-												? "#374151"
-												: "#e5e7eb",
+											borderBottomColor: border,
 										}}>
 										<Text
 											style={{
 												fontSize: 14,
-												color: isDark
-													? "#e5e7eb"
-													: "#374151",
+												color: textPrimary,
 											}}>
 											{item.label}
 										</Text>
@@ -1432,12 +1377,12 @@ const ContractGenerationScreen = () => {
 								<Icon
 									as={MapPin}
 									size='sm'
-									style={{ color: "#3b82f6" }}
+									style={{ color: tint }}
 								/>
 								<Text
 									style={{
 										fontSize: 14,
-										color: isDark ? "#93c5fd" : "#1d4ed8",
+										color: tint,
 										flex: 1,
 									}}>
 									{singleSelectedAddress.label}
@@ -1518,7 +1463,7 @@ const ContractGenerationScreen = () => {
 											<Icon
 												as={Trash2}
 												size='sm'
-												style={{ color: "#ef4444" }}
+												style={{ color: danger }}
 											/>
 										</TouchableOpacity>
 									)}
@@ -1529,9 +1474,7 @@ const ContractGenerationScreen = () => {
 											borderRadius: 8,
 											overflow: "hidden",
 											borderWidth: 1,
-											borderColor: isDark
-												? "#374151"
-												: "#e5e7eb",
+											borderColor: border,
 										}}>
 										{(multiAddressResults[i] || []).map(
 											(item, idx) => (
@@ -1571,9 +1514,7 @@ const ContractGenerationScreen = () => {
 													activeOpacity={0.7}
 													style={{
 														padding: 12,
-														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
+														backgroundColor: cardBg,
 														borderBottomWidth:
 															idx <
 															(
@@ -1585,16 +1526,12 @@ const ContractGenerationScreen = () => {
 																? 1
 																: 0,
 														borderBottomColor:
-															isDark
-																? "#374151"
-																: "#e5e7eb",
+															border,
 													}}>
 													<Text
 														style={{
 															fontSize: 14,
-															color: isDark
-																? "#e5e7eb"
-																: "#374151",
+															color: textPrimary,
 														}}>
 														{item.label}
 													</Text>
@@ -1617,14 +1554,12 @@ const ContractGenerationScreen = () => {
 										<Icon
 											as={MapPin}
 											size='sm'
-											style={{ color: "#3b82f6" }}
+											style={{ color: tint }}
 										/>
 										<Text
 											style={{
 												fontSize: 14,
-												color: isDark
-													? "#93c5fd"
-													: "#1d4ed8",
+												color: tint,
 												flex: 1,
 											}}>
 											{multiSelectedAddresses[i].label}
@@ -1662,19 +1597,19 @@ const ContractGenerationScreen = () => {
 								borderRadius: 8,
 								borderWidth: 1.5,
 								borderStyle: "dashed",
-								borderColor: isDark ? "#4b5563" : "#d1d5db",
+								borderColor: border,
 							}}>
 							<Icon
 								as={Plus}
 								size='sm'
 								style={{
-									color: isDark ? "#6b7280" : "#9ca3af",
+									color: muted,
 								}}
 							/>
 							<Text
 								style={{
 									fontSize: 13,
-									color: isDark ? "#6b7280" : "#9ca3af",
+									color: muted,
 								}}>
 								Ajouter une adresse
 							</Text>
@@ -1704,7 +1639,7 @@ const ContractGenerationScreen = () => {
 									borderRadius: 8,
 									overflow: "hidden",
 									borderWidth: 1,
-									borderColor: isDark ? "#374151" : "#e5e7eb",
+									borderColor: border,
 								}}>
 								{zoneResults.map((item, idx) => (
 									<TouchableOpacity
@@ -1721,16 +1656,12 @@ const ContractGenerationScreen = () => {
 										activeOpacity={0.7}
 										style={{
 											padding: 12,
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#ffffff",
+											backgroundColor: cardBg,
 											borderBottomWidth:
 												idx < zoneResults.length - 1
 													? 1
 													: 0,
-											borderBottomColor: isDark
-												? "#374151"
-												: "#e5e7eb",
+											borderBottomColor: border,
 										}}>
 										<HStack
 											style={{
@@ -1744,7 +1675,7 @@ const ContractGenerationScreen = () => {
 													color:
 														item.type === "reg"
 															? "#8b5cf6"
-															: "#3b82f6",
+															: tint,
 													paddingHorizontal: 6,
 													paddingVertical: 2,
 													borderRadius: 4,
@@ -1764,9 +1695,7 @@ const ContractGenerationScreen = () => {
 											<Text
 												style={{
 													fontSize: 14,
-													color: isDark
-														? "#e5e7eb"
-														: "#374151",
+													color: textPrimary,
 												}}>
 												{item.label}
 											</Text>
@@ -1797,7 +1726,7 @@ const ContractGenerationScreen = () => {
 										color:
 											zoneSelected.type === "reg"
 												? "#8b5cf6"
-												: "#3b82f6",
+												: tint,
 									}}
 								/>
 								<Text
@@ -1808,9 +1737,7 @@ const ContractGenerationScreen = () => {
 												? isDark
 													? "#c4b5fd"
 													: "#7c3aed"
-												: isDark
-													? "#93c5fd"
-													: "#1d4ed8",
+												: tint,
 										flex: 1,
 									}}>
 									{zoneSelected.label}
@@ -1888,7 +1815,7 @@ const ContractGenerationScreen = () => {
 							<Text
 								style={{
 									fontSize: 12,
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: muted,
 								}}>
 								{label}
 							</Text>
@@ -1928,7 +1855,7 @@ const ContractGenerationScreen = () => {
 							}}>
 							<Text
 								style={{
-									color: isDark ? "#d1d5db" : "#374151",
+									color: textPrimary,
 									fontSize: 14,
 								}}>
 								{label}
@@ -1937,8 +1864,7 @@ const ContractGenerationScreen = () => {
 								value={formData[key]}
 								onValueChange={(v) => updateField(key, v)}
 								trackColor={{
-									false: isDark ? "#4b5563" : "#d1d5db",
-									true: "#3b82f6",
+									false: border, true: tint,
 								}}
 							/>
 						</HStack>
@@ -1973,8 +1899,7 @@ const ContractGenerationScreen = () => {
 							updateField("equipment_provided", v)
 						}
 						trackColor={{
-							false: isDark ? "#4b5563" : "#d1d5db",
-							true: "#3b82f6",
+							false: border, true: tint,
 						}}
 					/>
 				</HStack>
@@ -1983,7 +1908,7 @@ const ContractGenerationScreen = () => {
 						<Text
 							style={{
 								fontSize: 12,
-								color: isDark ? "#9ca3af" : "#6b7280",
+								color: muted,
 								marginTop: 12,
 								marginBottom: 6,
 							}}>
@@ -2043,14 +1968,14 @@ const ContractGenerationScreen = () => {
 					style={{
 						fontSize: 16,
 						fontWeight: "700",
-						color: isDark ? "#f3f4f6" : "#111827",
+						color: textPrimary,
 					}}>
 					Vérifiez les informations
 				</Text>
 				<Text
 					style={{
 						fontSize: 13,
-						color: isDark ? "#9ca3af" : "#6b7280",
+						color: muted,
 					}}>
 					Confirmez avant de générer le contrat.
 				</Text>
@@ -2060,13 +1985,13 @@ const ContractGenerationScreen = () => {
 				style={{
 					...cardStyle,
 					borderWidth: 1,
-					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+					borderColor: border,
 				}}>
 				<Text
 					style={{
 						fontSize: 12,
 						fontWeight: "700",
-						color: isDark ? "#93c5fd" : "#1d4ed8",
+						color: tint,
 						marginBottom: 10,
 						textTransform: "uppercase",
 						letterSpacing: 0.5,
@@ -2125,7 +2050,7 @@ const ContractGenerationScreen = () => {
 								<Text
 									style={{
 										fontSize: 13,
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: muted,
 									}}>
 									{label}
 								</Text>
@@ -2133,7 +2058,7 @@ const ContractGenerationScreen = () => {
 									style={{
 										fontSize: 13,
 										fontWeight: "600",
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										maxWidth: "55%",
 										textAlign: "right",
 									}}>
@@ -2149,13 +2074,13 @@ const ContractGenerationScreen = () => {
 				style={{
 					...cardStyle,
 					borderWidth: 1,
-					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+					borderColor: border,
 				}}>
 				<Text
 					style={{
 						fontSize: 12,
 						fontWeight: "700",
-						color: isDark ? "#93c5fd" : "#1d4ed8",
+						color: tint,
 						marginBottom: 10,
 						textTransform: "uppercase",
 						letterSpacing: 0.5,
@@ -2189,7 +2114,7 @@ const ContractGenerationScreen = () => {
 								<Text
 									style={{
 										fontSize: 13,
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: muted,
 									}}>
 									{label}
 								</Text>
@@ -2197,7 +2122,7 @@ const ContractGenerationScreen = () => {
 									style={{
 										fontSize: 13,
 										fontWeight: "600",
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										maxWidth: "55%",
 										textAlign: "right",
 									}}>
@@ -2213,13 +2138,13 @@ const ContractGenerationScreen = () => {
 				style={{
 					...cardStyle,
 					borderWidth: 1,
-					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+					borderColor: border,
 				}}>
 				<Text
 					style={{
 						fontSize: 12,
 						fontWeight: "700",
-						color: isDark ? "#93c5fd" : "#1d4ed8",
+						color: tint,
 						marginBottom: 10,
 						textTransform: "uppercase",
 						letterSpacing: 0.5,
@@ -2293,7 +2218,7 @@ const ContractGenerationScreen = () => {
 								<Text
 									style={{
 										fontSize: 13,
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: muted,
 									}}>
 									{label}
 								</Text>
@@ -2301,7 +2226,7 @@ const ContractGenerationScreen = () => {
 									style={{
 										fontSize: 13,
 										fontWeight: "600",
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 									}}>
 									{value}
 								</Text>
@@ -2315,13 +2240,13 @@ const ContractGenerationScreen = () => {
 				style={{
 					...cardStyle,
 					borderWidth: 1,
-					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+					borderColor: border,
 				}}>
 				<Text
 					style={{
 						fontSize: 12,
 						fontWeight: "700",
-						color: isDark ? "#93c5fd" : "#1d4ed8",
+						color: tint,
 						marginBottom: 10,
 						textTransform: "uppercase",
 						letterSpacing: 0.5,
@@ -2357,7 +2282,7 @@ const ContractGenerationScreen = () => {
 								<Text
 									style={{
 										fontSize: 13,
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: muted,
 									}}>
 									{label}
 								</Text>
@@ -2365,7 +2290,7 @@ const ContractGenerationScreen = () => {
 									style={{
 										fontSize: 13,
 										fontWeight: "600",
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										maxWidth: "55%",
 										textAlign: "right",
 									}}>
@@ -2388,7 +2313,7 @@ const ContractGenerationScreen = () => {
 				<Box
 					style={{
 						flex: 1,
-						backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+						backgroundColor: bg,
 					}}>
 					{/* ── Progress Bar ── */}
 					<Box
@@ -2396,9 +2321,9 @@ const ContractGenerationScreen = () => {
 							paddingTop: 14,
 							paddingHorizontal: 20,
 							paddingBottom: 14,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: cardBg,
 							borderBottomWidth: 1,
-							borderBottomColor: isDark ? "#4b5563" : "#e5e7eb",
+							borderBottomColor: border,
 						}}>
 						<VStack space='sm'>
 							<HStack
@@ -2410,14 +2335,14 @@ const ContractGenerationScreen = () => {
 									style={{
 										fontSize: 14,
 										fontWeight: "600",
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 									}}>
 									{STEPS[currentStep - 1].title}
 								</Text>
 								<Text
 									style={{
 										fontSize: 12,
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: muted,
 									}}>
 									Étape {currentStep}/{STEPS.length}
 								</Text>
@@ -2426,9 +2351,7 @@ const ContractGenerationScreen = () => {
 								style={{
 									width: "100%",
 									height: 8,
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
+									backgroundColor: border,
 									borderRadius: 4,
 									overflow: "hidden",
 								}}>
@@ -2439,7 +2362,7 @@ const ContractGenerationScreen = () => {
 											outputRange: ["0%", "100%"],
 										}),
 										height: "100%",
-										backgroundColor: "#3b82f6",
+										backgroundColor: tint,
 										borderRadius: 4,
 									}}
 								/>
@@ -2483,9 +2406,9 @@ const ContractGenerationScreen = () => {
 							right: 0,
 							padding: 16,
 							paddingBottom: Platform.OS === "ios" ? 32 : 20,
-							backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+							backgroundColor: bg,
 							borderTopWidth: 1,
-							borderTopColor: isDark ? "#374151" : "#e5e7eb",
+							borderTopColor: border,
 						}}>
 						<HStack space='md'>
 							{currentStep > 1 ? (
@@ -2494,23 +2417,17 @@ const ContractGenerationScreen = () => {
 									onPress={goToPreviousStep}
 									style={{
 										flex: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										borderColor: border,
 									}}>
 									<ButtonIcon
 										as={ChevronLeft}
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 										}}
 									/>
 									<ButtonText
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 										}}>
 										Précédent
 									</ButtonText>
@@ -2522,7 +2439,7 @@ const ContractGenerationScreen = () => {
 									onPress={validateStep}
 									style={{
 										flex: 2,
-										backgroundColor: "#3b82f6",
+										backgroundColor: tint,
 									}}>
 									<ButtonText style={{ color: "#ffffff" }}>
 										Suivant
@@ -2539,8 +2456,8 @@ const ContractGenerationScreen = () => {
 									style={{
 										flex: 2,
 										backgroundColor: isSubmitting
-											? "#6b7280"
-											: "#16a34a",
+												? muted
+												: success,
 									}}>
 									<ButtonIcon
 										as={CheckCircle}
@@ -2565,7 +2482,7 @@ const ContractGenerationScreen = () => {
 				<AlertDialogBackdrop />
 				<AlertDialogContent
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: cardBg,
 						borderRadius: 16,
 						margin: 24,
 					}}>
@@ -2574,7 +2491,7 @@ const ContractGenerationScreen = () => {
 							style={{
 								fontSize: 17,
 								fontWeight: "700",
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: textPrimary,
 							}}>
 							{existingContractStatus === "published"
 								? "Enregistrer les modifications"
@@ -2585,7 +2502,7 @@ const ContractGenerationScreen = () => {
 						<Text
 							style={{
 								fontSize: 14,
-								color: isDark ? "#9ca3af" : "#6b7280",
+								color: muted,
 								lineHeight: 20,
 								marginBottom: 16,
 							}}>
@@ -2593,7 +2510,7 @@ const ContractGenerationScreen = () => {
 							<Text
 								style={{
 									fontWeight: "700",
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textPrimary,
 								}}>
 								{applicationData?.profiles?.firstname}{" "}
 								{applicationData?.profiles?.lastname}
@@ -2602,7 +2519,7 @@ const ContractGenerationScreen = () => {
 							<Text
 								style={{
 									fontWeight: "700",
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textPrimary,
 								}}>
 								{formData.job_title}
 							</Text>
@@ -2618,22 +2535,16 @@ const ContractGenerationScreen = () => {
 									activeOpacity={0.7}
 									style={{
 										borderWidth: 1.5,
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										borderColor: border,
 										borderRadius: 12,
 										padding: 14,
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f9fafb",
+										backgroundColor: bg,
 									}}>
 									<Text
 										style={{
 											fontSize: 14,
 											fontWeight: "700",
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 											marginBottom: 4,
 										}}>
 										📝 Enregistrer en brouillon
@@ -2641,9 +2552,7 @@ const ContractGenerationScreen = () => {
 									<Text
 										style={{
 											fontSize: 12,
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+											color: muted,
 											lineHeight: 18,
 										}}>
 										Sauvegarder pour compléter ou modifier
@@ -2661,7 +2570,7 @@ const ContractGenerationScreen = () => {
 								activeOpacity={0.7}
 								style={{
 									borderWidth: 1.5,
-									borderColor: "#16a34a",
+									borderColor: success,
 									borderRadius: 12,
 									padding: 14,
 									backgroundColor: isDark
@@ -2672,7 +2581,7 @@ const ContractGenerationScreen = () => {
 									style={{
 										fontSize: 14,
 										fontWeight: "700",
-										color: "#16a34a",
+										color: success,
 										marginBottom: 4,
 									}}>
 									{existingContractStatus === "published"
@@ -2698,11 +2607,11 @@ const ContractGenerationScreen = () => {
 							onPress={() => setShowConfirmDialog(false)}
 							style={{
 								flex: 1,
-								borderColor: isDark ? "#4b5563" : "#d1d5db",
+								borderColor: border,
 							}}>
 							<ButtonText
 								style={{
-									color: isDark ? "#f3f4f6" : "#374151",
+									color: textPrimary,
 								}}>
 								Annuler
 							</ButtonText>
@@ -2718,7 +2627,7 @@ const ContractGenerationScreen = () => {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: cardBg,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
@@ -2734,7 +2643,7 @@ const ContractGenerationScreen = () => {
 							style={{
 								fontSize: 16,
 								fontWeight: "700",
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: textPrimary,
 								textAlign: "center",
 							}}>
 							{showContractDatePicker === "start"
@@ -2760,7 +2669,7 @@ const ContractGenerationScreen = () => {
 								setShowContractDatePicker(null);
 							}}
 							style={{
-								backgroundColor: "#3b82f6",
+								backgroundColor: tint,
 								borderRadius: 12,
 							}}>
 							<ButtonText
@@ -2779,7 +2688,7 @@ const ContractGenerationScreen = () => {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: cardBg,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
@@ -2795,7 +2704,7 @@ const ContractGenerationScreen = () => {
 							style={{
 								fontSize: 16,
 								fontWeight: "700",
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: textPrimary,
 								textAlign: "center",
 							}}>
 							{showTimePicker?.field === "start" ||
@@ -2835,7 +2744,7 @@ const ContractGenerationScreen = () => {
 								setShowTimePicker(null);
 							}}
 							style={{
-								backgroundColor: "#3b82f6",
+								backgroundColor: tint,
 								borderRadius: 12,
 							}}>
 							<ButtonText
@@ -2854,7 +2763,7 @@ const ContractGenerationScreen = () => {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: cardBg,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
@@ -2870,7 +2779,7 @@ const ContractGenerationScreen = () => {
 							style={{
 								fontSize: 16,
 								fontWeight: "700",
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: textPrimary,
 								textAlign: "center",
 							}}>
 							Date de la vacation
@@ -2896,7 +2805,7 @@ const ContractGenerationScreen = () => {
 								setShowVacationDatePicker(null);
 							}}
 							style={{
-								backgroundColor: "#3b82f6",
+								backgroundColor: tint,
 								borderRadius: 12,
 							}}>
 							<ButtonText
