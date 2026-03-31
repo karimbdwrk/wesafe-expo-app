@@ -482,7 +482,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='subscription'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Mon abonnement",
+								}}
 							/>
 							<Stack.Screen
 								name='contract'
