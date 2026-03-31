@@ -306,7 +306,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='updatecompany'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Mettre à jour mon entreprise",
+								}}
 							/>
 							<Stack.Screen
 								name='stamp'
