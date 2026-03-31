@@ -31,7 +31,10 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
-import { MARK_ALL_NOTIFICATIONS_READ, VIEW_NOTIFICATION } from "@/utils/activityEvents";
+import {
+	MARK_ALL_NOTIFICATIONS_READ,
+	VIEW_NOTIFICATION,
+} from "@/utils/activityEvents";
 import { useNotifications } from "@/context/NotificationsContext";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
@@ -139,7 +142,10 @@ const Notifications = () => {
 
 	const handleNotificationPress = async (notification) => {
 		console.log("Notification pressed:", notification);
-		trackActivity(VIEW_NOTIFICATION, { type: notification.type, notification_id: notification.id });
+		trackActivity(VIEW_NOTIFICATION, {
+			type: notification.type,
+			notification_id: notification.id,
+		});
 
 		// Marquer la notification comme lue
 		if (!notification.is_read) {
@@ -264,7 +270,9 @@ const Notifications = () => {
 		<ScrollView
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.background,
 			}}>
 			<Stack.Screen
 				options={{
@@ -281,9 +289,14 @@ const Notifications = () => {
 											paddingHorizontal: 10,
 											paddingVertical: 6,
 											borderRadius: 8,
-											backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+											backgroundColor: isDark
+												? Colors.dark.background
+												: Colors.light.background,
 										}}>
-										<CheckCheck size={14} color={Colors.light.tint} />
+										<CheckCheck
+											size={14}
+											color={Colors.light.tint}
+										/>
 										<RNText
 											style={{
 												color: Colors.light.tint,
@@ -297,87 +310,9 @@ const Notifications = () => {
 							: undefined,
 				}}
 			/>
-			<VStack space='lg' style={{ padding: 20 }}>
-				{/* Header Card */}
-				{/* <Card
-					style={{
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
-						borderRadius: 12,
-						padding: 20,
-					}}>
-					<HStack
-						space='md'
-						style={{
-							alignItems: "center",
-							justifyContent: "space-between",
-						}}>
-						<HStack
-							space='md'
-							style={{ alignItems: "center", flex: 1 }}>
-							<Box
-								style={{
-									width: 48,
-									height: 48,
-									borderRadius: 24,
-									backgroundColor: Colors.light.tint,
-									justifyContent: "center",
-									alignItems: "center",
-								}}>
-								<Icon as={Bell} size={24} color='#ffffff' />
-							</Box>
-							<VStack style={{ flex: 1 }}>
-								<Heading
-									size='lg'
-									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
-									}}>
-									Notifications
-								</Heading>
-								<Text
-									size='sm'
-									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
-										marginTop: 2,
-									}}>
-									{unreadCount > 0
-										? `${unreadCount} non lue${unreadCount > 1 ? "s" : ""}`
-										: "Aucune notification non lue"}
-								</Text>
-							</VStack>
-						</HStack>
-						{unreadCount > 0 && (
-							<TouchableOpacity onPress={handleMarkAllAsRead}>
-								<Box
-									style={{
-										paddingHorizontal: 12,
-										paddingVertical: 8,
-										borderRadius: 8,
-										backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
-									}}>
-									<HStack
-										space='xs'
-										style={{ alignItems: "center" }}>
-										<Icon
-											as={CheckCheck}
-											size={16}
-											color={Colors.light.tint}
-										/>
-										<Text
-											size='xs'
-											style={{
-												color: Colors.light.tint,
-												fontWeight: "600",
-											}}>
-											Tout lire
-										</Text>
-									</HStack>
-								</Box>
-							</TouchableOpacity>
-						)}
-					</HStack>
-				</Card> */}
-
-				{/* Notifications List */}
+			<VStack
+				space='lg'
+				style={{ padding: 10, paddingTop: 15, paddingBottom: 30 }}>
 				{notifications.length > 0 ? (
 					<VStack space='md'>
 						{notifications.map((notification) => (
@@ -390,7 +325,9 @@ const Notifications = () => {
 								<Card
 									style={{
 										backgroundColor: notification.is_read
-											? isDark ? Colors.dark.cardBackground : Colors.light.cardBackground
+											? isDark
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground
 											: isDark
 												? "#1e3a5f"
 												: "#eff6ff",
@@ -412,7 +349,11 @@ const Notifications = () => {
 												borderRadius: 20,
 												backgroundColor:
 													notification.is_read
-														? isDark ? Colors.dark.background : Colors.light.background
+														? isDark
+															? Colors.dark
+																	.background
+															: Colors.light
+																	.background
 														: "#dbeafe",
 												justifyContent: "center",
 												alignItems: "center",
@@ -425,7 +366,9 @@ const Notifications = () => {
 												size={20}
 												color={
 													notification.is_read
-														? isDark ? Colors.dark.muted : Colors.light.muted
+														? isDark
+															? Colors.dark.muted
+															: Colors.light.muted
 														: "#2563eb"
 												}
 											/>
@@ -464,7 +407,11 @@ const Notifications = () => {
 														size='sm'
 														style={{
 															fontWeight: "700",
-															color: isDark ? Colors.dark.text : Colors.light.text,
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
 														}}>
 														{notification.title}
 													</Text>
@@ -474,7 +421,13 @@ const Notifications = () => {
 															style={{
 																fontWeight:
 																	"600",
-																color: isDark ? Colors.dark.muted : Colors.light.muted,
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
 															}}>
 															{notification.body}
 														</Text>
@@ -483,7 +436,10 @@ const Notifications = () => {
 												<Text
 													size='xs'
 													style={{
-														color: isDark ? Colors.dark.muted : Colors.light.muted,
+														color: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 														marginLeft: 8,
 													}}>
 													{formatDate(
@@ -495,7 +451,10 @@ const Notifications = () => {
 												<Text
 													size='sm'
 													style={{
-														color: isDark ? Colors.dark.muted : Colors.light.muted,
+														color: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 														lineHeight: 18,
 													}}>
 													{notification.message}
@@ -510,7 +469,9 @@ const Notifications = () => {
 				) : (
 					<Card
 						style={{
-							backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+							backgroundColor: isDark
+								? Colors.dark.cardBackground
+								: Colors.light.cardBackground,
 							borderRadius: 12,
 							padding: 40,
 						}}>
@@ -524,28 +485,38 @@ const Notifications = () => {
 									width: 80,
 									height: 80,
 									borderRadius: 40,
-									backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+									backgroundColor: isDark
+										? Colors.dark.background
+										: Colors.light.background,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
 								<Icon
 									as={MailOpen}
 									size={40}
-									color={isDark ? Colors.dark.muted : Colors.light.muted}
+									color={
+										isDark
+											? Colors.dark.muted
+											: Colors.light.muted
+									}
 								/>
 							</Box>
 							<VStack space='xs' style={{ alignItems: "center" }}>
 								<Heading
 									size='md'
 									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Aucune notification
 								</Heading>
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 									}}>
 									Vous êtes à jour !
