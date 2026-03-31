@@ -362,7 +362,7 @@ const DashboardScreen = () => {
 						: Colors.light.background,
 				}}
 				showsVerticalScrollIndicator={false}>
-				<Box style={{ padding: 20, paddingBottom: 40 }}>
+				<Box style={{ padding: 10, paddingBottom: 30, paddingTop: 15 }}>
 					<VStack space='2xl'>
 						{/* Bannière rejet */}
 						{company?.company_status === "rejected" && (
