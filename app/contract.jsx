@@ -863,6 +863,7 @@ const ContractScreen = () => {
 				{contract?.job_title ? (
 					<Box style={{ marginBottom: 16 }}>
 						<Heading
+							className='font-extrabold'
 							style={{
 								fontSize: 22,
 								color: textPrimary,
