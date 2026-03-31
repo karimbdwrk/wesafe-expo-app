@@ -352,10 +352,14 @@ export default function Tab1() {
 			<Card
 				style={{
 					padding: 16,
-					backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+					backgroundColor: isDark
+						? Colors.dark.cardBackground
+						: Colors.light.cardBackground,
 					borderRadius: 12,
 					borderWidth: 1,
-					borderColor: isDark ? Colors.dark.border : Colors.light.border,
+					borderColor: isDark
+						? Colors.dark.border
+						: Colors.light.border,
 				}}>
 				<HStack
 					style={{
@@ -370,7 +374,9 @@ export default function Tab1() {
 								width: 48,
 								height: 48,
 								borderRadius: 24,
-								backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
 								justifyContent: "center",
 								alignItems: "center",
 							}}>
@@ -378,7 +384,9 @@ export default function Tab1() {
 								as={icon}
 								size='xl'
 								style={{
-									color: isDark ? Colors.dark.tint : Colors.light.tint,
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
 								}}
 							/>
 						</Box>
@@ -387,7 +395,9 @@ export default function Tab1() {
 								size='md'
 								style={{
 									fontWeight: "600",
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								{title}
 							</Text>
@@ -395,7 +405,9 @@ export default function Tab1() {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}>
 									{subtitle}
 								</Text>
@@ -412,7 +424,9 @@ export default function Tab1() {
 							as={ChevronRight}
 							size='lg'
 							style={{
-								color: isDark ? Colors.dark.muted : Colors.light.muted,
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 							}}
 						/>
 					</HStack>
@@ -433,7 +447,9 @@ export default function Tab1() {
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.cardBackground,
 				borderRadius: 16,
 				borderWidth: 1,
 				borderColor: isDark ? Colors.dark.border : Colors.light.border,
@@ -497,9 +513,12 @@ export default function Tab1() {
 	if (role === "pro") {
 		return (
 			<ScrollView
+				showsVerticalScrollIndicator={false}
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.background,
 				}}
 				refreshControl={
 					<RefreshControl
@@ -525,7 +544,9 @@ export default function Tab1() {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									fontWeight: "500",
 								}}>
 								{getGreeting()}
@@ -533,7 +554,9 @@ export default function Tab1() {
 							<Heading
 								size='2xl'
 								style={{
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 									lineHeight: 34,
 								}}>
 								{userCompany?.name || "Tableau de bord"}
@@ -546,24 +569,32 @@ export default function Tab1() {
 						<Card
 							style={{
 								padding: 24,
-								backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
 								borderRadius: 16,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.danger : Colors.light.danger,
+								borderColor: isDark
+									? Colors.dark.danger
+									: Colors.light.danger,
 							}}>
 							<VStack space='md' style={{ alignItems: "center" }}>
 								<Icon
 									as={XCircle}
 									size='xl'
 									style={{
-										color: isDark ? Colors.dark.danger : Colors.light.danger,
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
 									}}
 								/>
 								<Text
 									style={{
 										fontSize: 18,
 										fontWeight: "700",
-										color: isDark ? Colors.dark.danger : Colors.light.danger,
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
 										textAlign: "center",
 									}}>
 									Compte refusé
@@ -571,7 +602,9 @@ export default function Tab1() {
 								<Text
 									style={{
 										fontSize: 14,
-										color: isDark ? Colors.dark.danger : Colors.light.danger,
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
 										textAlign: "center",
 										lineHeight: 22,
 									}}>
@@ -581,7 +614,9 @@ export default function Tab1() {
 								<Text
 									style={{
 										fontSize: 13,
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 										fontStyle: "italic",
 									}}>
@@ -593,24 +628,32 @@ export default function Tab1() {
 						<Card
 							style={{
 								padding: 24,
-								backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
 								borderRadius: 16,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.border : Colors.light.border,
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<VStack space='md' style={{ alignItems: "center" }}>
 								<Icon
 									as={Ban}
 									size='xl'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}
 								/>
 								<Text
 									style={{
 										fontSize: 18,
 										fontWeight: "700",
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 									}}>
 									Compte suspendu
@@ -618,7 +661,9 @@ export default function Tab1() {
 								<Text
 									style={{
 										fontSize: 14,
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 										lineHeight: 22,
 									}}>
@@ -629,7 +674,9 @@ export default function Tab1() {
 								<Text
 									style={{
 										fontSize: 13,
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 										fontStyle: "italic",
 									}}>
@@ -641,24 +688,32 @@ export default function Tab1() {
 						<Card
 							style={{
 								padding: 24,
-								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.background,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.background,
 								borderRadius: 16,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.warning : Colors.light.warning,
+								borderColor: isDark
+									? Colors.dark.warning
+									: Colors.light.warning,
 							}}>
 							<VStack space='md' style={{ alignItems: "center" }}>
 								<Icon
 									as={Clock}
 									size='xl'
 									style={{
-										color: isDark ? Colors.dark.warning : Colors.light.warning,
+										color: isDark
+											? Colors.dark.warning
+											: Colors.light.warning,
 									}}
 								/>
 								<Text
 									style={{
 										fontSize: 18,
 										fontWeight: "700",
-										color: isDark ? Colors.dark.warning : Colors.light.warning,
+										color: isDark
+											? Colors.dark.warning
+											: Colors.light.warning,
 										textAlign: "center",
 									}}>
 									Compte en attente de validation
@@ -666,7 +721,9 @@ export default function Tab1() {
 								<Text
 									style={{
 										fontSize: 14,
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 										lineHeight: 22,
 									}}>
@@ -678,7 +735,9 @@ export default function Tab1() {
 								<Text
 									style={{
 										fontSize: 13,
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 										fontStyle: "italic",
 									}}>
@@ -703,10 +762,14 @@ export default function Tab1() {
 									<Card
 										style={{
 											padding: 24,
-											backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.background,
+											backgroundColor: isDark
+												? Colors.dark.cardBackground
+												: Colors.light.background,
 											borderRadius: 16,
 											borderWidth: 1,
-											borderColor: isDark ? Colors.dark.tint : Colors.light.tint,
+											borderColor: isDark
+												? Colors.dark.tint
+												: Colors.light.tint,
 										}}>
 										<VStack
 											space='md'
@@ -715,14 +778,18 @@ export default function Tab1() {
 												as={TrendingUp}
 												size='xl'
 												style={{
-													color: isDark ? Colors.dark.tint : Colors.light.tint,
+													color: isDark
+														? Colors.dark.tint
+														: Colors.light.tint,
 												}}
 											/>
 											<Text
 												style={{
 													fontSize: 18,
 													fontWeight: "700",
-													color: isDark ? Colors.dark.tint : Colors.light.tint,
+													color: isDark
+														? Colors.dark.tint
+														: Colors.light.tint,
 													textAlign: "center",
 												}}>
 												Pas encore assez de données
@@ -730,7 +797,9 @@ export default function Tab1() {
 											<Text
 												style={{
 													fontSize: 14,
-													color: isDark ? Colors.dark.muted : Colors.light.muted,
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
 													textAlign: "center",
 													lineHeight: 22,
 												}}>
@@ -746,7 +815,9 @@ export default function Tab1() {
 											<Text
 												style={{
 													fontSize: 13,
-													color: isDark ? Colors.dark.muted : Colors.light.muted,
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
 													textAlign: "center",
 													fontStyle: "italic",
 												}}>
@@ -773,9 +844,12 @@ export default function Tab1() {
 			style={{ flex: 1 }}
 			keyboardVerticalOffset={100}>
 			<ScrollView
+				showsVerticalScrollIndicator={false}
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.background,
 				}}
 				refreshControl={
 					<RefreshControl
@@ -795,7 +869,9 @@ export default function Tab1() {
 							style={{
 								alignItems: "center",
 								justifyContent: "space-between",
-								backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								paddingHorizontal: 16,
 								paddingVertical: 12,
@@ -804,7 +880,9 @@ export default function Tab1() {
 									? isDark
 										? Colors.dark.success
 										: Colors.light.success
-									: isDark ? Colors.dark.border : Colors.light.border,
+									: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 							}}>
 							<HStack
 								space='sm'
@@ -824,7 +902,9 @@ export default function Tab1() {
 										size='sm'
 										style={{
 											fontWeight: "600",
-											color: isDark ? Colors.dark.text : Colors.light.text,
+											color: isDark
+												? Colors.dark.text
+												: Colors.light.text,
 										}}>
 										{isAvailable
 											? "Disponible"
@@ -833,7 +913,9 @@ export default function Tab1() {
 									<Text
 										size='xs'
 										style={{
-											color: isDark ? Colors.dark.muted : Colors.light.muted,
+											color: isDark
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										{isAvailable
 											? "Visible par les recruteurs"
@@ -846,7 +928,9 @@ export default function Tab1() {
 								onValueChange={toggleAvailability}
 								disabled={availableLoading}
 								trackColor={{
-									false: isDark ? Colors.dark.border : Colors.light.border,
+									false: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 									true: Colors.light.success,
 								}}
 								thumbColor={
@@ -864,17 +948,23 @@ export default function Tab1() {
 						<Card
 							style={{
 								padding: 12,
-								backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.danger : Colors.light.danger,
+								borderColor: isDark
+									? Colors.dark.danger
+									: Colors.light.danger,
 							}}>
 							<HStack space='sm' style={{ alignItems: "center" }}>
 								<Icon
 									as={XCircle}
 									size='sm'
 									style={{
-										color: isDark ? Colors.dark.danger : Colors.light.danger,
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
 									}}
 								/>
 								<VStack style={{ flex: 1 }}>
@@ -882,14 +972,18 @@ export default function Tab1() {
 										style={{
 											fontSize: 13,
 											fontWeight: "700",
-											color: isDark ? Colors.dark.danger : Colors.light.danger,
+											color: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
 										}}>
 										Profil refusé
 									</Text>
 									<Text
 										style={{
 											fontSize: 12,
-											color: isDark ? Colors.dark.danger : Colors.light.danger,
+											color: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
 											lineHeight: 18,
 										}}>
 										{userProfile?.reject_message ||
@@ -902,17 +996,23 @@ export default function Tab1() {
 						<Card
 							style={{
 								padding: 12,
-								backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.border : Colors.light.border,
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<HStack space='sm' style={{ alignItems: "center" }}>
 								<Icon
 									as={Ban}
 									size='sm'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}
 								/>
 								<VStack style={{ flex: 1 }}>
@@ -920,14 +1020,18 @@ export default function Tab1() {
 										style={{
 											fontSize: 13,
 											fontWeight: "700",
-											color: isDark ? Colors.dark.muted : Colors.light.muted,
+											color: isDark
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										Compte suspendu
 									</Text>
 									<Text
 										style={{
 											fontSize: 12,
-											color: isDark ? Colors.dark.muted : Colors.light.muted,
+											color: isDark
+												? Colors.dark.muted
+												: Colors.light.muted,
 											lineHeight: 18,
 										}}>
 										Votre compte est suspendu. Contactez
@@ -940,17 +1044,23 @@ export default function Tab1() {
 						<Card
 							style={{
 								padding: 12,
-								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.background,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.background,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.warning : Colors.light.warning,
+								borderColor: isDark
+									? Colors.dark.warning
+									: Colors.light.warning,
 							}}>
 							<HStack space='sm' style={{ alignItems: "center" }}>
 								<Icon
 									as={Clock}
 									size='sm'
 									style={{
-										color: isDark ? Colors.dark.warning : Colors.light.warning,
+										color: isDark
+											? Colors.dark.warning
+											: Colors.light.warning,
 									}}
 								/>
 								<VStack style={{ flex: 1 }}>
@@ -958,14 +1068,18 @@ export default function Tab1() {
 										style={{
 											fontSize: 13,
 											fontWeight: "700",
-											color: isDark ? Colors.dark.warning : Colors.light.warning,
+											color: isDark
+												? Colors.dark.warning
+												: Colors.light.warning,
 										}}>
 										Profil en cours de vérification
 									</Text>
 									<Text
 										style={{
 											fontSize: 12,
-											color: isDark ? Colors.dark.muted : Colors.light.muted,
+											color: isDark
+												? Colors.dark.muted
+												: Colors.light.muted,
 											lineHeight: 18,
 										}}>
 										Vous serez notifié dès que votre profil
@@ -988,7 +1102,9 @@ export default function Tab1() {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										fontWeight: "500",
 									}}>
 									{getGreeting()}
@@ -996,7 +1112,9 @@ export default function Tab1() {
 								<Heading
 									size='2xl'
 									style={{
-										color: isDark ? Colors.dark.text : Colors.light.text,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 										lineHeight: 34,
 									}}>
 									Trouvez votre emploi
@@ -1004,7 +1122,9 @@ export default function Tab1() {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}>
 									Les meilleures offres dans la sécurité
 								</Text>
@@ -1016,8 +1136,12 @@ export default function Tab1() {
 							<Input
 								variant='outline'
 								style={{
-									backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
-									borderColor: isDark ? Colors.dark.border : Colors.light.border,
+									backgroundColor: isDark
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 									borderRadius: 12,
 								}}>
 								<InputField
@@ -1035,11 +1159,15 @@ export default function Tab1() {
 								<VStack
 									style={{
 										marginTop: 15,
-										backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+										backgroundColor: isDark
+											? Colors.dark.background
+											: Colors.light.cardBackground,
 										borderRadius: 12,
 										padding: 12,
 										borderWidth: 1,
-										borderColor: isDark ? Colors.dark.border : Colors.light.border,
+										borderColor: isDark
+											? Colors.dark.border
+											: Colors.light.border,
 									}}>
 									{filteredJobs.length > 0 ? (
 										<>
@@ -1055,7 +1183,11 @@ export default function Tab1() {
 														paddingVertical: 8,
 														borderBottomWidth: 1,
 														borderBottomColor:
-															isDark ? Colors.dark.cardBackground : Colors.light.background,
+															isDark
+																? Colors.dark
+																		.cardBackground
+																: Colors.light
+																		.background,
 													}}>
 													<HStack
 														space='sm'
@@ -1096,7 +1228,13 @@ export default function Tab1() {
 															style={{ flex: 1 }}>
 															<Text
 																style={{
-																	color: isDark ? Colors.dark.text : Colors.light.text,
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
 																	fontWeight:
 																		"600",
 																	fontSize: 14,
@@ -1112,12 +1250,24 @@ export default function Tab1() {
 																<MapPin
 																	size={12}
 																	color={
-																		isDark ? Colors.dark.muted : Colors.light.muted
+																		isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted
 																	}
 																/>
 																<Text
 																	style={{
-																		color: isDark ? Colors.dark.muted : Colors.light.muted,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 																		fontSize: 12,
 																	}}>
 																	{job.city}
@@ -1176,7 +1326,13 @@ export default function Tab1() {
 															as={ChevronRight}
 															size='sm'
 															color={
-																isDark ? Colors.dark.muted : Colors.light.muted
+																isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted
 															}
 														/>
 													</HStack>
@@ -1200,7 +1356,8 @@ export default function Tab1() {
 												style={{ marginTop: 8 }}>
 												<ButtonText
 													style={{
-														color: Colors.light.tint,
+														color: Colors.light
+															.tint,
 														fontSize: 13,
 													}}>
 													Voir tous les résultats
@@ -1218,12 +1375,16 @@ export default function Tab1() {
 												as={AlertCircle}
 												size='xl'
 												color={
-													isDark ? Colors.dark.muted : Colors.light.muted
+													isDark
+														? Colors.dark.muted
+														: Colors.light.muted
 												}
 											/>
 											<Text
 												style={{
-													color: isDark ? Colors.dark.muted : Colors.light.muted,
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
 													marginTop: 8,
 													fontSize: 14,
 													textAlign: "center",
