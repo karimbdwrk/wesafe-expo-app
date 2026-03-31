@@ -862,15 +862,14 @@ const ContractScreen = () => {
 				{/* Titre et description du poste */}
 				{contract?.job_title ? (
 					<Box style={{ marginBottom: 16 }}>
-						<Text
+						<Heading
 							style={{
 								fontSize: 22,
-								fontWeight: "700",
 								color: textPrimary,
 								lineHeight: 30,
 							}}>
 							{contract.job_title}
-						</Text>
+						</Heading>
 						{contract?.job_description ? (
 							<Text
 								style={{
