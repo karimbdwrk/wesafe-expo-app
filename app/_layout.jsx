@@ -9,7 +9,13 @@ import {
 	DefaultTheme,
 	ThemeProvider,
 } from "@react-navigation/native";
-import { useFonts } from "expo-font";
+import {
+	useFonts,
+	Inter_400Regular,
+	Inter_500Medium,
+	Inter_600SemiBold,
+	Inter_700Bold,
+} from "@expo-google-fonts/inter";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState, useRef } from "react";
 import { Slot, Stack, usePathname, router } from "expo-router";
@@ -38,9 +44,16 @@ export { ErrorBoundary } from "expo-router";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-	const [loaded, error] = useFonts({
-		SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-		...FontAwesome.font,
+	// const [loaded, error] = useFonts({
+	// 	SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+	// 	...FontAwesome.font,
+	// });
+
+	const [fontsLoaded, error] = useFonts({
+		Inter_400Regular,
+		Inter_500Medium,
+		Inter_600SemiBold,
+		Inter_700Bold,
 	});
 
 	useEffect(() => {
@@ -48,12 +61,13 @@ export default function RootLayout() {
 	}, [error]);
 
 	useEffect(() => {
-		if (loaded) {
+		if (fontsLoaded) {
 			SplashScreen.hideAsync();
 		}
-	}, [loaded]);
+	}, [fontsLoaded]);
 
-	if (!loaded) return null;
+	// if (!loaded) return null;
+	if (!fontsLoaded) return null;
 
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
