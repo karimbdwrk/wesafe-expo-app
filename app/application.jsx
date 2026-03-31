@@ -1458,7 +1458,9 @@ const ApplicationScreen = () => {
 											width: 48,
 											height: 48,
 											borderRadius: 24,
-											backgroundColor: "#dcfce7",
+											backgroundColor: isDark
+												? "#1e3a5f"
+												: "#dbeafe",
 											justifyContent: "center",
 											alignItems: "center",
 										}}>
@@ -1466,7 +1468,9 @@ const ApplicationScreen = () => {
 											as={FileText}
 											size='xl'
 											style={{
-												color: Colors.light.success,
+												color: isDark
+													? Colors.dark.tint
+													: Colors.light.tint,
 											}}
 										/>
 									</Box>
