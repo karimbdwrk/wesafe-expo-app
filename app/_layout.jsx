@@ -364,7 +364,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='kbisdocumentverification'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Vérification KBIS",
+								}}
 							/>
 							<Stack.Screen
 								name='account'
