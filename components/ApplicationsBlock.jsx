@@ -1,13 +1,13 @@
 import React, { useState, useCallback } from "react";
-import { TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 
+import { TouchableOpacity } from "react-native";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
 import { Box } from "@/components/ui/box";
-import { Pressable } from "@/components/ui/pressable";
+import { Button, ButtonText } from "@/components/ui/button";
 
 import {
 	CheckCircle,
@@ -92,7 +92,9 @@ const ApplicationsBlock = () => {
 	return (
 		<Box
 			style={{
-				backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.cardBackground,
 				borderRadius: 12,
 				borderWidth: 1,
 				borderColor: isDark ? Colors.dark.border : Colors.light.border,
@@ -100,40 +102,17 @@ const ApplicationsBlock = () => {
 			}}>
 			<VStack space='sm'>
 				{/* Header */}
-				<HStack
+				<Text
+					size='md'
 					style={{
-						justifyContent: "space-between",
-						alignItems: "center",
+						fontWeight: "700",
+						color: isDark ? Colors.dark.text : Colors.light.text,
 					}}>
-					<Text
-						size='md'
-						style={{
-							fontWeight: "700",
-							color: isDark ? Colors.dark.text : Colors.light.text,
-						}}>
-						Candidatures actives
-					</Text>
-					<TouchableOpacity
-						onPress={() => router.push("/applications")}>
-						<HStack space='xs' style={{ alignItems: "center" }}>
-							<Text
-								size='sm'
-								style={{
-									color: isDark ? Colors.dark.tint : Colors.light.tint,
-									fontWeight: "500",
-								}}>
-								Voir tout
-							</Text>
-							<ChevronRight
-								size={14}
-								color={isDark ? Colors.dark.tint : Colors.light.tint}
-							/>
-						</HStack>
-					</TouchableOpacity>
-				</HStack>
+					Candidatures actives
+				</Text>
 
 				{/* Lignes de comptage */}
-				<VStack space='xs'>
+				<VStack space='xs' className='mb-2'>
 					{selectedCount > 0 && (
 						<HStack space='sm' style={{ alignItems: "center" }}>
 							<Box
@@ -147,13 +126,18 @@ const ApplicationsBlock = () => {
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
-								<CheckCircle size={14} color={Colors.light.tint} />
+								<CheckCircle
+									size={14}
+									color={Colors.light.tint}
+								/>
 							</Box>
 							<Text
 								size='sm'
 								style={{
 									flex: 1,
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 								}}>
 								<Text
 									size='sm'
@@ -183,13 +167,18 @@ const ApplicationsBlock = () => {
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
-								<FileText size={14} color={Colors.dark.warning} />
+								<FileText
+									size={14}
+									color={Colors.dark.warning}
+								/>
 							</Box>
 							<Text
 								size='sm'
 								style={{
 									flex: 1,
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 								}}>
 								<Text
 									size='sm'
@@ -217,13 +206,18 @@ const ApplicationsBlock = () => {
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
-								<MessageCircle size={14} color={Colors.light.tint} />
+								<MessageCircle
+									size={14}
+									color={Colors.light.tint}
+								/>
 							</Box>
 							<Text
 								size='sm'
 								style={{
 									flex: 1,
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 								}}>
 								<Text
 									size='sm'
@@ -239,40 +233,43 @@ const ApplicationsBlock = () => {
 						</HStack>
 					)}
 				</VStack>
+
+				<TouchableOpacity
+					onPress={() => router.push("/applications")}
+					activeOpacity={0.75}
+					style={{
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
+						borderRadius: 10,
+						paddingVertical: 11,
+						alignItems: "center",
+						borderWidth: 1,
+						borderColor: isDark
+							? Colors.dark.border
+							: Colors.light.border,
+						flexDirection: "row",
+						justifyContent: "center",
+						gap: 6,
+					}}>
+					<Text
+						style={{
+							fontWeight: "700",
+							fontSize: 14,
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
+						}}>
+						Voir candidatures
+					</Text>
+					<ChevronRight
+						size={16}
+						color={isDark ? Colors.dark.muted : Colors.light.muted}
+					/>
+				</TouchableOpacity>
 			</VStack>
 		</Box>
 	);
 };
-
-// export default ApplicationsBlock;
-
-// const STATUS_CONFIG = {
-// 	selected: {
-// 		label: "Profil sélectionné",
-// 		color: Colors.light.tint,
-// 		bg: { dark: "#1e3a5f", light: "#eff6ff" },
-// 		icon: CheckCircle,
-// 	},
-// 	contract_sent: {
-// 		label: "Contrat envoyé",
-// 		color: Colors.light.warning,
-// 		bg: { dark: "#451a03", light: "#fefce8" },
-// 		icon: FileText,
-// 	},
-// 	contract_signed_candidate: {
-// 		label: "Contrat signé (vous)",
-// 		color: "#10b981",
-// 		bg: { dark: "#064e3b", light: "#ecfdf5" },
-// 		icon: CheckCircle,
-// 	},
-// 	contract_signed_pro: {
-// 		label: "Contrat finalisé",
-// 		color: "#10b981",
-// 		bg: { dark: "#064e3b", light: "#ecfdf5" },
-// 		icon: CheckCircle,
-// 	},
-// };
-
-// const ACTIVE_STATUSES = Object.keys(STATUS_CONFIG);
 
 export default ApplicationsBlock;
