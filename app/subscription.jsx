@@ -34,6 +34,7 @@ import SubscriptionPaymentSheet from "../components/SubscriptionPaymentSheet";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const PLANS = [
 	{
@@ -104,6 +105,19 @@ const SubscriptionScreen = () => {
 	const { getAll } = useDataContext();
 	const { isDark } = useTheme();
 	const router = useRouter();
+
+	const bg            = isDark ? Colors.dark.background     : Colors.light.background;
+	const cardBg        = isDark ? Colors.dark.cardBackground : Colors.light.cardBackground;
+	const elevated      = isDark ? Colors.dark.elevated       : Colors.light.elevated;
+	const border        = isDark ? Colors.dark.border         : Colors.light.border;
+	const textPrimary   = isDark ? Colors.dark.text           : Colors.light.text;
+	const textSecondary = isDark ? Colors.dark.textSecondary  : Colors.light.textSecondary;
+	const muted         = isDark ? Colors.dark.muted          : Colors.light.muted;
+	const success       = isDark ? Colors.dark.success        : Colors.light.success;
+	const success20     = isDark ? Colors.dark.success20      : Colors.light.success20;
+	const danger        = isDark ? Colors.dark.danger         : Colors.light.danger;
+	const danger20      = isDark ? Colors.dark.danger20       : Colors.light.danger20;
+	const danger50      = isDark ? Colors.dark.danger50       : Colors.light.danger50;
 
 	const [subscriptions, setSubscriptions] = useState([]);
 	const [interval, setInterval] = useState("monthly");
@@ -208,19 +222,19 @@ const SubscriptionScreen = () => {
 
 	return (
 		<ScrollView
-			style={{ flex: 1, backgroundColor: isDark ? "#111827" : "#f9fafb" }}
+			style={{ flex: 1, backgroundColor: bg }}
 			contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
 			<VStack space='xl'>
 				{/* Header */}
 				<VStack space='xs'>
 					<Heading
 						size='2xl'
-						style={{ color: isDark ? "#f3f4f6" : "#111827" }}>
+						style={{ color: textPrimary }}>
 						Mon abonnement
 					</Heading>
 					<Text
 						size='md'
-						style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+						style={{ color: muted }}>
 						Gérez votre formule WeSafe
 					</Text>
 				</VStack>
@@ -246,7 +260,7 @@ const SubscriptionScreen = () => {
 								<Text
 									size='xs'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: muted,
 										textTransform: "uppercase",
 										letterSpacing: 1,
 									}}>
@@ -289,9 +303,7 @@ const SubscriptionScreen = () => {
 									<Text
 										size='sm'
 										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+											color: muted,
 										}}>
 										{activePrice}€ /{" "}
 										{activeInterval === "yearly"
@@ -309,15 +321,13 @@ const SubscriptionScreen = () => {
 										<Calendar
 											size={13}
 											color={
-												isDark ? "#9ca3af" : "#6b7280"
+												muted
 											}
 										/>
 										<Text
 											size='xs'
 											style={{
-												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												color: muted,
 											}}>
 											{activeSub.status === "active"
 												? "Renouvellement le "
@@ -359,14 +369,14 @@ const SubscriptionScreen = () => {
 							style={{
 								fontWeight: "700",
 								fontSize: 16,
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: textPrimary,
 							}}>
 							Nos formules
 						</Text>
 						{/* Toggle mensuel / annuel */}
 						<HStack
 							style={{
-								backgroundColor: isDark ? "#374151" : "#f3f4f6",
+								backgroundColor: elevated,
 								borderRadius: 20,
 								padding: 3,
 							}}>
@@ -378,9 +388,7 @@ const SubscriptionScreen = () => {
 									borderRadius: 18,
 									backgroundColor:
 										interval === "monthly"
-											? isDark
-												? "#111827"
-												: "#ffffff"
+											? cardBg
 											: "transparent",
 								}}>
 								<Text
@@ -392,12 +400,8 @@ const SubscriptionScreen = () => {
 												: "400",
 										color:
 											interval === "monthly"
-												? isDark
-													? "#f3f4f6"
-													: "#111827"
-												: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												? textPrimary
+												: muted,
 									}}>
 									Mensuel
 								</Text>
@@ -410,9 +414,7 @@ const SubscriptionScreen = () => {
 									borderRadius: 18,
 									backgroundColor:
 										interval === "yearly"
-											? isDark
-												? "#111827"
-												: "#ffffff"
+											? cardBg
 											: "transparent",
 								}}>
 								<Text
@@ -424,12 +426,8 @@ const SubscriptionScreen = () => {
 												: "400",
 										color:
 											interval === "yearly"
-												? isDark
-													? "#f3f4f6"
-													: "#111827"
-												: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												? textPrimary
+												: muted,
 									}}>
 									Annuel
 								</Text>
@@ -450,12 +448,8 @@ const SubscriptionScreen = () => {
 									borderWidth: isCurrent ? 2 : 1,
 									borderColor: isCurrent
 										? plan.borderActive
-										: isDark
-											? "#374151"
-											: "#e5e7eb",
-									backgroundColor: isDark
-										? "#1f2937"
-										: "#ffffff",
+										: border,
+									backgroundColor: cardBg,
 									overflow: "hidden",
 								}}>
 								{/* Plan header */}
@@ -468,9 +462,7 @@ const SubscriptionScreen = () => {
 												: plan.bgLight
 											: "transparent",
 										borderBottomWidth: 1,
-										borderBottomColor: isDark
-											? "#374151"
-											: "#f3f4f6",
+										borderBottomColor: elevated,
 									}}>
 									<HStack
 										style={{
@@ -489,26 +481,20 @@ const SubscriptionScreen = () => {
 														? isDark
 															? plan.bgDark
 															: plan.bgLight
-														: isDark
-															? "#374151"
-															: "#f9fafb",
+														: elevated,
 													justifyContent: "center",
 													alignItems: "center",
 													borderWidth: isCurrent
 														? 0
 														: 1,
-													borderColor: isDark
-														? "#4b5563"
-														: "#e5e7eb",
+													borderColor: border,
 												}}>
 												<plan.Icon
 													size={18}
 													color={
 														isCurrent
 															? plan.color
-															: isDark
-																? "#9ca3af"
-																: "#6b7280"
+															: muted
 													}
 												/>
 											</Box>
@@ -519,18 +505,14 @@ const SubscriptionScreen = () => {
 														fontSize: 17,
 														color: isCurrent
 															? plan.color
-															: isDark
-																? "#f3f4f6"
-																: "#111827",
+															: textPrimary,
 													}}>
 													{plan.label}
 												</Text>
 												<Text
 													size='xs'
 													style={{
-														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+														color: muted,
 													}}>
 													{plan.subtitle}
 												</Text>
@@ -573,9 +555,7 @@ const SubscriptionScreen = () => {
 										paddingHorizontal: 16,
 										paddingVertical: 14,
 										borderBottomWidth: 1,
-										borderBottomColor: isDark
-											? "#374151"
-											: "#f3f4f6",
+										borderBottomColor: elevated,
 									}}>
 									{plan.priceMonthly === null ? (
 										<Text
@@ -608,9 +588,7 @@ const SubscriptionScreen = () => {
 												<Text
 													size='sm'
 													style={{
-														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+														color: muted,
 														marginBottom: 2,
 													}}>
 													{interval === "yearly"
@@ -622,7 +600,7 @@ const SubscriptionScreen = () => {
 												<Box
 													style={{
 														backgroundColor:
-															"#dcfce7",
+															success20,
 														borderRadius: 6,
 														paddingHorizontal: 6,
 														paddingVertical: 2,
@@ -632,7 +610,7 @@ const SubscriptionScreen = () => {
 														size='xs'
 														style={{
 															fontWeight: "700",
-															color: "#16a34a",
+															color: success,
 														}}>
 														-
 														{Math.round(
@@ -649,18 +627,14 @@ const SubscriptionScreen = () => {
 												<Text
 													size='xs'
 													style={{
-														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+														color: muted,
 													}}>
 													ou{" "}
 													<Text
 														size='xs'
 														style={{
 															fontWeight: "700",
-															color: isDark
-																? "#f3f4f6"
-																: "#111827",
+															color: textPrimary,
 														}}>
 														{plan.priceYearly}€
 													</Text>{" "}
@@ -669,7 +643,7 @@ const SubscriptionScreen = () => {
 														size='xs'
 														style={{
 															fontWeight: "700",
-															color: "#16a34a",
+															color: success,
 														}}>
 														(-
 														{Math.round(
@@ -699,17 +673,13 @@ const SubscriptionScreen = () => {
 												color={
 													isCurrent
 														? plan.color
-														: isDark
-															? "#4b5563"
-															: "#d1d5db"
+														: border
 												}
 											/>
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#d1d5db"
-														: "#374151",
+													color: textSecondary,
 												}}>
 												{feat}
 											</Text>
@@ -741,8 +711,8 @@ const SubscriptionScreen = () => {
 								borderRadius: 14,
 								borderWidth: 1,
 								padding: 16,
-								backgroundColor: isDark ? "#1f2937" : "#ffffff",
-								borderColor: isDark ? "#374151" : "#e5e7eb",
+								backgroundColor: cardBg,
+								borderColor: border,
 							}}>
 							<VStack space='md'>
 								<VStack space='xs'>
@@ -757,9 +727,7 @@ const SubscriptionScreen = () => {
 											style={{
 												fontWeight: "700",
 												fontSize: 15,
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+												color: textPrimary,
 											}}>
 											Résilier l'abonnement
 										</Text>
@@ -767,9 +735,7 @@ const SubscriptionScreen = () => {
 									<Text
 										size='sm'
 										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+											color: muted,
 										}}>
 										L'accès reste actif jusqu'à la fin de la
 										période en cours.
@@ -779,22 +745,18 @@ const SubscriptionScreen = () => {
 									onPress={() => setShowCancelDialog(true)}
 									activeOpacity={0.75}
 									style={{
-										backgroundColor: isDark
-											? "#450a0a"
-											: "#fef2f2",
+										backgroundColor: danger20,
 										borderRadius: 10,
 										paddingVertical: 12,
 										alignItems: "center",
 										borderWidth: 1,
-										borderColor: isDark
-											? "#7f1d1d"
-											: "#fecaca",
+										borderColor: danger50,
 									}}>
 									<Text
 										style={{
 											fontWeight: "700",
 											fontSize: 14,
-											color: "#ef4444",
+											color: danger,
 										}}>
 										Annuler l'abonnement
 									</Text>
@@ -806,9 +768,7 @@ const SubscriptionScreen = () => {
 									<AlertDialogBackdrop />
 									<AlertDialogContent
 										style={{
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#ffffff",
+											backgroundColor: cardBg,
 											borderRadius: 14,
 											padding: 24,
 										}}>
@@ -816,9 +776,7 @@ const SubscriptionScreen = () => {
 											<Heading
 												size='md'
 												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+													color: textPrimary,
 												}}>
 												Annuler l'abonnement
 											</Heading>
@@ -827,9 +785,7 @@ const SubscriptionScreen = () => {
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#d1d5db"
-														: "#4b5563",
+													color: textSecondary,
 													marginTop: 8,
 												}}>
 												Votre abonnement sera résilié
