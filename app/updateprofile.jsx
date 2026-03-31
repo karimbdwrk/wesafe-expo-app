@@ -430,7 +430,9 @@ const UpdateProfile = () => {
 			<ScrollView
 				style={{ flex: 1 }}
 				contentContainerStyle={{ paddingBottom: 100 }}>
-				<VStack space='lg' style={{ padding: 20 }}>
+				<VStack
+					space='lg'
+					style={{ padding: 10, paddingTop: 15, paddingBottom: 30 }}>
 					{/* Header Card */}
 					{/* <Card
 					style={{
