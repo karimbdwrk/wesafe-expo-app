@@ -1014,6 +1014,7 @@ export default function JobsList({
 				{/* main list */}
 				<ScrollView
 					ref={scrollRef}
+					showsVerticalScrollIndicator={false}
 					style={[
 						styles.scrollView,
 						{
