@@ -37,7 +37,6 @@ import { Divider } from "@/components/ui/divider";
 import { useToast } from "@/components/ui/toast";
 import CustomToast from "@/components/CustomToast";
 import { Icon } from "@/components/ui/icon";
-import { width } from "dom-helpers";
 
 const UpdateCompany = () => {
 	const router = useRouter();
@@ -45,6 +44,15 @@ const UpdateCompany = () => {
 	const { update, getById, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const toast = useToast();
+
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const cardBorder = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
 
 	const [name, setName] = useState("");
 	// const [siret, setSiret] = useState("");
@@ -140,8 +148,10 @@ const UpdateCompany = () => {
 					<CustomToast
 						id={id}
 						icon={AlertCircle}
-						color={isDark ? Colors.dark.danger : Colors.light.danger}
-						title="Champs obligatoires"
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title='Champs obligatoires'
 						description="Veuillez remplir le nom, le SIRET et l'email de l'entreprise."
 					/>
 				),
@@ -171,14 +181,22 @@ const UpdateCompany = () => {
 					<CustomToast
 						id={id}
 						icon={CheckCircle}
-						color={isDark ? Colors.dark.success : Colors.light.success}
-						title="Entreprise mise à jour !"
-						description="Les informations ont été enregistrées avec succès."
+						color={
+							isDark ? Colors.dark.success : Colors.light.success
+						}
+						title='Entreprise mise à jour !'
+						description='Les informations ont été enregistrées avec succès.'
 					/>
 				),
 			});
 			trackActivity("update_profile");
-			setTimeout(() => router.back(), 1500);
+			setTimeout(() => {
+				try {
+					router.back();
+				} catch {
+					router.replace("/account");
+				}
+			}, 1500);
 		} catch (error) {
 			console.log("error update company", error);
 			toast.show({
@@ -188,8 +206,10 @@ const UpdateCompany = () => {
 					<CustomToast
 						id={id}
 						icon={AlertCircle}
-						color={isDark ? Colors.dark.danger : Colors.light.danger}
-						title="Erreur"
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title='Erreur'
 						description="Impossible de mettre à jour l'entreprise."
 					/>
 				),
@@ -246,8 +266,12 @@ const UpdateCompany = () => {
 						<CustomToast
 							id={id}
 							icon={AlertCircle}
-							color={isDark ? Colors.dark.danger : Colors.light.danger}
-							title="Erreur"
+							color={
+								isDark
+									? Colors.dark.danger
+									: Colors.light.danger
+							}
+							title='Erreur'
 							description="Impossible de charger les données de l'entreprise."
 						/>
 					),
@@ -270,14 +294,14 @@ const UpdateCompany = () => {
 				keyboardShouldPersistTaps='handled'
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					backgroundColor: bg,
 				}}
 				contentContainerStyle={{ paddingBottom: 100 }}>
 				<VStack space='lg' style={{ padding: 20 }}>
 					{/* Header Card */}
 					<Card
 						style={{
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: cardBg,
 							borderRadius: 12,
 							padding: 20,
 						}}>
@@ -287,7 +311,7 @@ const UpdateCompany = () => {
 									width: 48,
 									height: 48,
 									borderRadius: 24,
-									backgroundColor: "#2563eb",
+									backgroundColor: tint,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
@@ -301,14 +325,14 @@ const UpdateCompany = () => {
 								<Heading
 									size='lg'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 									}}>
 									Modifier l'entreprise
 								</Heading>
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: textSecondary,
 										marginTop: 4,
 									}}>
 									Mettez à jour les informations de votre
@@ -321,7 +345,7 @@ const UpdateCompany = () => {
 					{/* Form Card */}
 					<Card
 						style={{
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: cardBg,
 							borderRadius: 12,
 							padding: 20,
 							paddingBottom: 40,
@@ -332,27 +356,21 @@ const UpdateCompany = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										fontWeight: "600",
 									}}>
 									Nom de l'entreprise *
 								</Text>
 								<Input
 									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f9fafb",
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										backgroundColor: bg,
+										borderColor: cardBorder,
 									}}>
 									<InputSlot style={{ paddingLeft: 12 }}>
 										<InputIcon
 											as={Building2}
 											size={20}
-											color={
-												isDark ? "#9ca3af" : "#6b7280"
-											}
+											color={textSecondary}
 										/>
 									</InputSlot>
 									<InputField
@@ -364,9 +382,7 @@ const UpdateCompany = () => {
 											scrollToInput(nameInputRef)
 										}
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 										}}
 									/>
 								</Input>
@@ -374,9 +390,7 @@ const UpdateCompany = () => {
 
 							<Divider
 								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
+									backgroundColor: cardBorder,
 								}}
 							/>
 
@@ -385,19 +399,15 @@ const UpdateCompany = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										fontWeight: "600",
 									}}>
 									Nom du représentant légal
 								</Text>
 								<Input
 									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f9fafb",
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										backgroundColor: bg,
+										borderColor: cardBorder,
 									}}>
 									<InputField
 										type='text'
@@ -408,9 +418,7 @@ const UpdateCompany = () => {
 											scrollToInput(legalLastnameInputRef)
 										}
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 										}}
 									/>
 								</Input>
@@ -418,9 +426,7 @@ const UpdateCompany = () => {
 
 							<Divider
 								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
+									backgroundColor: cardBorder,
 								}}
 							/>
 
@@ -429,19 +435,15 @@ const UpdateCompany = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										fontWeight: "600",
 									}}>
 									Prénom du représentant légal
 								</Text>
 								<Input
 									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f9fafb",
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										backgroundColor: bg,
+										borderColor: cardBorder,
 									}}>
 									<InputField
 										type='text'
@@ -454,9 +456,7 @@ const UpdateCompany = () => {
 											)
 										}
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 										}}
 									/>
 								</Input>
@@ -464,9 +464,7 @@ const UpdateCompany = () => {
 
 							<Divider
 								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
+									backgroundColor: cardBorder,
 								}}
 							/>
 
@@ -475,26 +473,22 @@ const UpdateCompany = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										fontWeight: "600",
 									}}>
 									SIRET *
 								</Text>
 								<Input
 									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f9fafb",
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										backgroundColor: bg,
+										borderColor: cardBorder,
 									}}>
 									<InputSlot style={{ paddingLeft: 12 }}>
 										<InputIcon
 											as={Hash}
 											size={20}
 											color={
-												isDark ? "#9ca3af" : "#6b7280"
+												textSecondary
 											}
 										/>
 									</InputSlot>
@@ -508,9 +502,7 @@ const UpdateCompany = () => {
 										}
 										keyboardType='numeric'
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 										}}
 									/>
 								</Input>
@@ -518,9 +510,7 @@ const UpdateCompany = () => {
 							{/* 
 							<Divider
 								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
+									backgroundColor: cardBorder,
 								}}
 							/> */}
 
@@ -529,7 +519,7 @@ const UpdateCompany = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										fontWeight: "600",
 									}}>
 									Email *
@@ -538,20 +528,14 @@ const UpdateCompany = () => {
 									isReadOnly
 									isDisabled
 									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f9fafb",
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										backgroundColor: bg,
+										borderColor: cardBorder,
 									}}>
 									<InputSlot style={{ paddingLeft: 12 }}>
 										<InputIcon
 											as={Mail}
 											size={20}
-											color={
-												isDark ? "#9ca3af" : "#6b7280"
-											}
+											color={textSecondary}
 										/>
 									</InputSlot>
 									<InputField
@@ -565,9 +549,7 @@ const UpdateCompany = () => {
 										keyboardType='email-address'
 										autoCapitalize='none'
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 										}}
 									/>
 								</Input>
@@ -575,9 +557,7 @@ const UpdateCompany = () => {
 
 							<Divider
 								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
+									backgroundColor: cardBorder,
 								}}
 							/>
 
@@ -586,27 +566,21 @@ const UpdateCompany = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										fontWeight: "600",
 									}}>
 									Adresse
 								</Text>
 								<Input
 									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f9fafb",
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										backgroundColor: bg,
+										borderColor: cardBorder,
 									}}>
 									<InputSlot style={{ paddingLeft: 12 }}>
 										<InputIcon
 											as={MapPin}
 											size={20}
-											color={
-												isDark ? "#9ca3af" : "#6b7280"
-											}
+											color={textSecondary}
 										/>
 									</InputSlot>
 									<InputField
@@ -628,23 +602,17 @@ const UpdateCompany = () => {
 										}
 										autoCapitalize='none'
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 										}}
 									/>
 								</Input>
 								{addressResults.length > 0 && (
 									<Box
 										style={{
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#ffffff",
+											backgroundColor: cardBg,
 											borderRadius: 8,
 											borderWidth: 1,
-											borderColor: isDark
-												? "#4b5563"
-												: "#d1d5db",
+											borderColor: cardBorder,
 											overflow: "hidden",
 										}}>
 										{addressResults.map((item, i) => (
@@ -671,15 +639,12 @@ const UpdateCompany = () => {
 															1
 															? 1
 															: 0,
-													borderBottomColor: isDark
-														? "#374151"
-														: "#e5e7eb",
+													borderBottomColor:
+														cardBorder,
 												}}>
 												<Text
 													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
+														color: textPrimary,
 														fontSize: 14,
 													}}>
 													{item.label}
@@ -692,13 +657,11 @@ const UpdateCompany = () => {
 									<Box
 										style={{
 											backgroundColor: isDark
-												? "#1e3a5f"
+												? Colors.dark.elevated
 												: "#eff6ff",
 											borderRadius: 10,
 											borderWidth: 1,
-											borderColor: isDark
-												? "#2563eb"
-												: "#bfdbfe",
+											borderColor: tint,
 											padding: 12,
 											marginTop: 4,
 										}}>
@@ -710,16 +673,14 @@ const UpdateCompany = () => {
 											<Icon
 												as={MapPin}
 												size={14}
-												color='#3b82f6'
+												color={tint}
 												style={{ marginTop: 4 }}
 											/>
 											<VStack>
 												<Text
 													style={{
 														fontSize: 14,
-														color: isDark
-															? "#93c5fd"
-															: "#1d4ed8",
+														color: tint,
 														flexShrink: 1,
 													}}>
 													{selectedAddress.street}
@@ -727,9 +688,7 @@ const UpdateCompany = () => {
 												<Text
 													style={{
 														fontSize: 14,
-														color: isDark
-															? "#93c5fd"
-															: "#1d4ed8",
+														color: tint,
 														flexShrink: 1,
 													}}>
 													{[
@@ -747,9 +706,7 @@ const UpdateCompany = () => {
 
 							<Divider
 								style={{
-									backgroundColor: isDark
-										? "#4b5563"
-										: "#e5e7eb",
+									backgroundColor: cardBorder,
 								}}
 							/>
 
@@ -758,19 +715,15 @@ const UpdateCompany = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 										fontWeight: "600",
 									}}>
 									Description
 								</Text>
 								<Textarea
 									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f9fafb",
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										backgroundColor: bg,
+										borderColor: cardBorder,
 										minHeight: 120,
 									}}>
 									<TextareaInput
@@ -781,16 +734,14 @@ const UpdateCompany = () => {
 											scrollToInput(descriptionInputRef)
 										}
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 										}}
 									/>
 								</Textarea>
 								<Text
 									size='xs'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: textSecondary,
 									}}>
 									Une brève description de votre activité
 								</Text>
@@ -809,15 +760,15 @@ const UpdateCompany = () => {
 					right: 0,
 					padding: 16,
 					paddingBottom: 32,
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					backgroundColor: bg,
 					borderTopWidth: 1,
-					borderTopColor: isDark ? "#374151" : "#e5e7eb",
+					borderTopColor: cardBorder,
 				}}>
 				<Button
 					onPress={handleUpdateCompany}
 					disabled={isSubmitting}
 					style={{
-						backgroundColor: "#2563eb",
+						backgroundColor: tint,
 						width: "100%",
 					}}>
 					{isSubmitting ? (
