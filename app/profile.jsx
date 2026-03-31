@@ -427,7 +427,9 @@ const ProfileScreen = () => {
 				}}
 			/>
 			<ScrollView style={{ flex: 1 }}>
-				<VStack space='lg' style={{ padding: 20, paddingBottom: 90 }}>
+				<VStack
+					space='lg'
+					style={{ padding: 10, paddingBottom: 30, paddingTop: 15 }}>
 					{/* ── Informations personnelles ── */}
 					<Card
 						style={{
