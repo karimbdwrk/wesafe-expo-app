@@ -40,6 +40,7 @@ import {
 	X,
 	FileUp,
 	Building2,
+	Lightbulb,
 } from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
@@ -56,6 +57,22 @@ export default function KBISDocumentVerification() {
 	const { user, userCompany, accessToken, loadUserData } = useAuth();
 	const { update, getById, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const elevated = isDark ? Colors.dark.elevated : Colors.light.elevated;
+	const border = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const muted = isDark ? Colors.dark.muted : Colors.light.muted;
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
+	const tint20 = isDark ? Colors.dark.tint20 : Colors.light.tint20;
+	const success = isDark ? Colors.dark.success : Colors.light.success;
+	const success20 = isDark ? Colors.dark.success20 : Colors.light.success20;
+	const warning = isDark ? Colors.dark.warning : Colors.light.warning;
+	const warning20 = isDark ? Colors.dark.warning20 : Colors.light.warning20;
+	const danger = isDark ? Colors.dark.danger : Colors.light.danger;
+	const danger20 = isDark ? Colors.dark.danger20 : Colors.light.danger20;
 	const toast = useToast();
 
 	const [kbisImage, setKbisImage] = useState(null);
@@ -317,23 +334,16 @@ export default function KBISDocumentVerification() {
 		<ScrollView
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				backgroundColor: bg,
 			}}
 			contentContainerStyle={{ padding: 20 }}>
 			<VStack space='xl'>
 				{/* Header */}
 				<VStack space='md'>
-					<Heading
-						size='2xl'
-						style={{
-							color: isDark ? "#f3f4f6" : "#111827",
-						}}>
-						Vérification KBIS
-					</Heading>
 					<Text
 						size='md'
 						style={{
-							color: isDark ? "#9ca3af" : "#6b7280",
+							color: muted,
 						}}>
 						Téléchargez votre extrait KBIS de moins de 3 mois
 					</Text>
@@ -343,11 +353,11 @@ export default function KBISDocumentVerification() {
 				{kbisUploadedStatus && (
 					<Card
 						style={{
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: cardBg,
 							borderRadius: 12,
 							padding: 24,
 							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							borderColor: border,
 						}}>
 						<VStack space='lg'>
 							<HStack
@@ -360,18 +370,14 @@ export default function KBISDocumentVerification() {
 									<Heading
 										size='lg'
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 										}}>
 										Statut du document
 									</Heading>
 									<Text
 										size='sm'
 										style={{
-											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+											color: muted,
 										}}>
 										KBIS téléchargé
 									</Text>
@@ -379,9 +385,7 @@ export default function KBISDocumentVerification() {
 										<Text
 											size='sm'
 											style={{
-												color: isDark
-													? "#d1d5db"
-													: "#374151",
+												color: textPrimary,
 												fontWeight: "600",
 												fontFamily: "monospace",
 											}}>
@@ -408,15 +412,11 @@ export default function KBISDocumentVerification() {
 											);
 										}}
 										style={{
-											backgroundColor: isDark
-												? "#1f2937"
-												: "#f3f4f6",
+											backgroundColor: elevated,
 											borderRadius: 8,
 											padding: 16,
 											borderWidth: 1,
-											borderColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
+											borderColor: border,
 										}}>
 										<HStack
 											space='sm'
@@ -427,17 +427,13 @@ export default function KBISDocumentVerification() {
 												as={FileText}
 												size='lg'
 												style={{
-													color: isDark
-														? "#60a5fa"
-														: "#2563eb",
+													color: tint,
 												}}
 											/>
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+													color: textPrimary,
 													fontWeight: "500",
 													flex: 1,
 												}}
@@ -455,9 +451,7 @@ export default function KBISDocumentVerification() {
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#fca5a5"
-														: "#dc2626",
+													color: danger,
 													fontWeight: "600",
 												}}>
 												⚠️ Document rejeté
@@ -465,9 +459,7 @@ export default function KBISDocumentVerification() {
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#fecaca"
-														: "#991b1b",
+													color: danger,
 													lineHeight: 20,
 												}}>
 												Votre document a été rejeté.
@@ -486,11 +478,11 @@ export default function KBISDocumentVerification() {
 				{kbisUploadedStatus !== "verified" && (
 					<Card
 						style={{
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: cardBg,
 							borderRadius: 12,
 							padding: 24,
 							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							borderColor: border,
 						}}>
 						<VStack space='lg'>
 							<VStack space='sm'>
@@ -498,13 +490,13 @@ export default function KBISDocumentVerification() {
 									as={FileText}
 									size='xl'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: muted,
 									}}
 								/>
 								<Heading
 									size='lg'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: textPrimary,
 									}}>
 									{kbisUploadedStatus
 										? "Soumettre un nouveau KBIS"
@@ -513,7 +505,7 @@ export default function KBISDocumentVerification() {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: muted,
 									}}>
 									L'extrait KBIS doit dater de moins de 3 mois
 								</Text>
@@ -525,18 +517,14 @@ export default function KBISDocumentVerification() {
 									size='sm'
 									style={{
 										fontWeight: "600",
-										color: isDark ? "#d1d5db" : "#374151",
+										color: textPrimary,
 									}}>
 									Numéro SIRET *
 								</Text>
 								<Input
 									style={{
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f9fafb",
-										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+										backgroundColor: bg,
+										borderColor: border,
 										borderRadius: 8,
 										borderWidth: 1,
 									}}>
@@ -553,9 +541,7 @@ export default function KBISDocumentVerification() {
 										keyboardType='numeric'
 										maxLength={18}
 										style={{
-											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+											color: textPrimary,
 										}}
 									/>
 								</Input>
@@ -564,10 +550,8 @@ export default function KBISDocumentVerification() {
 									style={{
 										color:
 											siret.length === 14
-												? "#10b981"
-												: isDark
-													? "#9ca3af"
-													: "#6b7280",
+												? success
+												: muted,
 									}}>
 									{siret.length}/14 chiffres
 								</Text>
@@ -579,15 +563,11 @@ export default function KBISDocumentVerification() {
 									style={{
 										alignItems: "center",
 										justifyContent: "space-between",
-										backgroundColor: isDark
-											? "#1f2937"
-											: "#f3f4f6",
+										backgroundColor: elevated,
 										borderRadius: 8,
 										padding: 16,
 										borderWidth: 1,
-										borderColor: isDark
-											? "#4b5563"
-											: "#e5e7eb",
+										borderColor: border,
 									}}>
 									<HStack
 										space='sm'
@@ -599,17 +579,13 @@ export default function KBISDocumentVerification() {
 											as={FileText}
 											size='lg'
 											style={{
-												color: isDark
-													? "#60a5fa"
-													: "#2563eb",
+												color: tint,
 											}}
 										/>
 										<Text
 											size='sm'
 											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+												color: textPrimary,
 												fontWeight: "500",
 												flex: 1,
 											}}
@@ -626,9 +602,7 @@ export default function KBISDocumentVerification() {
 											as={X}
 											size='lg'
 											style={{
-												color: isDark
-													? "#ef4444"
-													: "#dc2626",
+												color: danger,
 											}}
 										/>
 									</TouchableOpacity>
@@ -642,11 +616,11 @@ export default function KBISDocumentVerification() {
 									action='primary'
 									onPress={() => setShowActionsheet(true)}
 									style={{
-										backgroundColor: "#3b82f6",
+										backgroundColor: tint,
 										borderRadius: 8,
 									}}>
-									<ButtonIcon as={Upload} />
-									<ButtonText>
+									<ButtonIcon as={Upload} color='#ffffff' />
+									<ButtonText style={{ color: "#ffffff" }}>
 										Sélectionner un document
 									</ButtonText>
 								</Button>
@@ -662,11 +636,14 @@ export default function KBISDocumentVerification() {
 										isSubmitting || siret.length !== 14
 									}
 									style={{
-										backgroundColor: "#10b981",
+										backgroundColor: success,
 										borderRadius: 8,
 									}}>
-									<ButtonIcon as={CheckCircle} />
-									<ButtonText>
+									<ButtonIcon
+										as={CheckCircle}
+										color='#ffffff'
+									/>
+									<ButtonText style={{ color: "#ffffff" }}>
 										{isSubmitting
 											? "Envoi en cours..."
 											: "Soumettre le KBIS"}
@@ -680,29 +657,28 @@ export default function KBISDocumentVerification() {
 				{/* Info Card */}
 				<Card
 					style={{
-						backgroundColor: isDark
-							? "rgba(59, 130, 246, 0.1)"
-							: "rgba(59, 130, 246, 0.05)",
+						backgroundColor: tint20,
 						borderRadius: 12,
 						padding: 16,
 						borderWidth: 1,
-						borderColor: isDark
-							? "rgba(59, 130, 246, 0.3)"
-							: "rgba(59, 130, 246, 0.2)",
+						borderColor: tint20,
 					}}>
 					<VStack space='sm'>
+						<HStack space='sm' style={{ alignItems: "center" }}>
+							<Lightbulb color={tint} size={14} />
+							<Text
+								size='sm'
+								style={{
+									color: tint,
+									fontWeight: "600",
+								}}>
+								À propos du KBIS
+							</Text>
+						</HStack>
 						<Text
 							size='sm'
 							style={{
-								color: isDark ? "#93c5fd" : "#2563eb",
-								fontWeight: "600",
-							}}>
-							💡 À propos du KBIS
-						</Text>
-						<Text
-							size='sm'
-							style={{
-								color: isDark ? "#bfdbfe" : "#1e40af",
+								color: tint,
 								lineHeight: 20,
 							}}>
 							L'extrait KBIS est la carte d'identité de votre
@@ -721,7 +697,7 @@ export default function KBISDocumentVerification() {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: cardBg,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
@@ -731,7 +707,7 @@ export default function KBISDocumentVerification() {
 						<Heading
 							size='xl'
 							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: textPrimary,
 							}}>
 							Choisir une source
 						</Heading>
@@ -741,13 +717,13 @@ export default function KBISDocumentVerification() {
 								as={Camera}
 								size='lg'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: tint,
 									marginRight: 12,
 								}}
 							/>
 							<ActionsheetItemText
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textPrimary,
 								}}>
 								Prendre une photo
 							</ActionsheetItemText>
@@ -758,13 +734,13 @@ export default function KBISDocumentVerification() {
 								as={ImageIcon}
 								size='lg'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: tint,
 									marginRight: 12,
 								}}
 							/>
 							<ActionsheetItemText
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textPrimary,
 								}}>
 								Galerie photo
 							</ActionsheetItemText>
@@ -775,13 +751,13 @@ export default function KBISDocumentVerification() {
 								as={FileUp}
 								size='lg'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: tint,
 									marginRight: 12,
 								}}
 							/>
 							<ActionsheetItemText
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textPrimary,
 								}}>
 								Fichiers
 							</ActionsheetItemText>
