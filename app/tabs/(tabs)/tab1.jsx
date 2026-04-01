@@ -865,7 +865,7 @@ export default function Tab1() {
 						paddingBottom: 40,
 					}}>
 					{/* Disponibilité – visible uniquement si profil vérifié */}
-					{userProfile?.profile_status === "verified" && (
+					{/* {userProfile?.profile_status === "verified" && (
 						<HStack
 							style={{
 								alignItems: "center",
@@ -943,7 +943,7 @@ export default function Tab1() {
 								}
 							/>
 						</HStack>
-					)}
+					)} */}
 					{/* Statut du profil */}
 					{userProfile?.profile_status === "rejected" ? (
 						<Card
