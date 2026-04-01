@@ -553,11 +553,13 @@ export default function Tab1() {
 							</Text>
 							<Heading
 								size='2xl'
+								className='font-extrabold'
 								style={{
 									color: isDark
 										? Colors.dark.text
 										: Colors.light.text,
 									lineHeight: 34,
+									fontFamily: "Inter_800ExtraBold",
 								}}>
 								{userCompany?.name || "Tableau de bord"}
 							</Heading>
