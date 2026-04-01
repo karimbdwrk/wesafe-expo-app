@@ -41,6 +41,13 @@ import {
 	SelectItem,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
+import {
+	Actionsheet,
+	ActionsheetBackdrop,
+	ActionsheetContent,
+	ActionsheetDragIndicatorWrapper,
+	ActionsheetDragIndicator,
+} from "@/components/ui/actionsheet";
 import CustomToast from "@/components/CustomToast";
 import {
 	Plus,
@@ -85,7 +92,7 @@ const CurriculumScreen = () => {
 	const [expToDelete, setExpToDelete] = useState(null);
 
 	// États pour le formulaire
-	const [isFormVisible, setIsFormVisible] = useState(false);
+	const [isSheetOpen, setIsSheetOpen] = useState(false);
 	const [editingId, setEditingId] = useState(null);
 	const [title, setTitle] = useState("");
 	const [company, setCompany] = useState("");
@@ -100,18 +107,19 @@ const CurriculumScreen = () => {
 		useState(false);
 
 	const scrollViewRef = useRef(null);
+	const formScrollRef = useRef(null);
 	const titleRef = useRef(null);
 	const companyRef = useRef(null);
 	const locationRef = useRef(null);
 	const descriptionRef = useRef(null);
 
 	const scrollToInput = (inputRef, offset = 120) => {
-		if (inputRef.current && scrollViewRef.current) {
+		if (inputRef.current && formScrollRef.current) {
 			setTimeout(() => {
 				inputRef.current.measureLayout(
-					scrollViewRef.current,
+					formScrollRef.current,
 					(x, y) => {
-						scrollViewRef.current.scrollTo({
+						formScrollRef.current.scrollTo({
 							y: y - offset,
 							animated: true,
 						});
@@ -153,7 +161,7 @@ const CurriculumScreen = () => {
 		setEndDate("");
 		setCategory("");
 		setEditingId(null);
-		setIsFormVisible(false);
+		setIsSheetOpen(false);
 	};
 
 	const handleEdit = (exp) => {
@@ -165,7 +173,7 @@ const CurriculumScreen = () => {
 		setStartDate(exp.start_date || "");
 		setEndDate(exp.end_date || "");
 		setCategory(exp.category || "");
-		setIsFormVisible(true);
+		setIsSheetOpen(true);
 	};
 
 	const handleDelete = (exp) => {
@@ -332,14 +340,18 @@ const CurriculumScreen = () => {
 			behavior={Platform.OS === "ios" ? "padding" : "height"}
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#111827" : "#ffffff",
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.background,
 			}}>
 			<ScrollView
 				ref={scrollViewRef}
 				keyboardShouldPersistTaps='handled'
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? "#111827" : "#ffffff",
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.background,
 				}}>
 				<VStack
 					space='lg'
@@ -348,382 +360,50 @@ const CurriculumScreen = () => {
 					}}>
 					{/* En-tête */}
 					<HStack
-						space='md'
 						style={{
 							justifyContent: "space-between",
 							alignItems: "center",
 						}}>
-						<Heading
-							size='xl'
-							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
-							}}>
-							Mes expériences
-						</Heading>
+						<HStack space='sm' style={{ alignItems: "center" }}>
+							<Box
+								style={{
+									width: 32,
+									height: 32,
+									borderRadius: 10,
+									backgroundColor: isDark
+										? Colors.dark.tint20
+										: Colors.light.tint20,
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Briefcase
+									size={16}
+									color={
+										isDark
+											? Colors.dark.tint
+											: Colors.light.tint
+									}
+								/>
+							</Box>
+							<Text
+								size='lg'
+								style={{
+									fontWeight: "700",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
+								}}>
+								Mes expériences
+							</Text>
+						</HStack>
 						<Button
 							size='sm'
 							action='primary'
-							onPress={() => setIsFormVisible(!isFormVisible)}>
-							<ButtonIcon as={isFormVisible ? X : Plus} />
-							<ButtonText>
-								{isFormVisible ? "Annuler" : "Ajouter"}
-							</ButtonText>
+							onPress={() => setIsSheetOpen(true)}>
+							<ButtonIcon as={Plus} />
+							<ButtonText>Ajouter</ButtonText>
 						</Button>
 					</HStack>
-
-					{/* Formulaire d'ajout/modification */}
-					{isFormVisible && (
-						<Card
-							size='md'
-							variant='elevated'
-							style={{
-								backgroundColor: isDark ? "#1f2937" : "#ffffff",
-							}}>
-							<VStack space='md' style={{ padding: 16 }}>
-								<Text
-									size='lg'
-									style={{
-										fontWeight: "600",
-										color: isDark ? "#f3f4f6" : "#111827",
-									}}>
-									{editingId
-										? "Modifier l'expérience"
-										: "Nouvelle expérience"}
-								</Text>
-
-								<Divider />
-
-								{/* Titre */}
-								<VStack space='xs'>
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "500",
-											color: isDark
-												? "#d1d5db"
-												: "#374151",
-										}}>
-										Titre du poste *
-									</Text>
-									<Input
-										variant='outline'
-										size='md'
-										style={{
-											backgroundColor: isDark
-												? "#374151"
-												: "#f9fafb",
-										}}>
-										<InputField
-											ref={titleRef}
-											placeholder='Ex: Agent de sécurité'
-											value={title}
-											onChangeText={setTitle}
-											onFocus={() =>
-												scrollToInput(titleRef)
-											}
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}
-										/>
-									</Input>
-								</VStack>
-
-								{/* Entreprise */}
-								<VStack space='xs'>
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "500",
-											color: isDark
-												? "#d1d5db"
-												: "#374151",
-										}}>
-										Entreprise
-									</Text>
-									<Input
-										variant='outline'
-										size='md'
-										style={{
-											backgroundColor: isDark
-												? "#374151"
-												: "#f9fafb",
-										}}>
-										<InputField
-											ref={companyRef}
-											placeholder='Ex: Société de sécurité XYZ'
-											value={company}
-											onChangeText={setCompany}
-											onFocus={() =>
-												scrollToInput(companyRef)
-											}
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}
-										/>
-									</Input>
-								</VStack>
-
-								{/* Lieu */}
-								<VStack space='xs'>
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "500",
-											color: isDark
-												? "#d1d5db"
-												: "#374151",
-										}}>
-										Lieu
-									</Text>
-									<Input
-										variant='outline'
-										size='md'
-										style={{
-											backgroundColor: isDark
-												? "#374151"
-												: "#f9fafb",
-										}}>
-										<InputField
-											ref={locationRef}
-											placeholder='Ex: Paris, France'
-											value={location}
-											onChangeText={setLocation}
-											onFocus={() =>
-												scrollToInput(locationRef)
-											}
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}
-										/>
-									</Input>
-								</VStack>
-
-								{/* Catégorie */}
-								<VStack space='xs'>
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "500",
-											color: isDark
-												? "#d1d5db"
-												: "#374151",
-										}}>
-										Catégorie *
-									</Text>
-									<Select
-										selectedValue={category}
-										onValueChange={(value) =>
-											setCategory(value)
-										}>
-										<SelectTrigger
-											variant='outline'
-											size='md'>
-											<SelectInput
-												placeholder='Sélectionner une catégorie'
-												style={{
-													color: isDark
-														? "#f3f4f6"
-														: "#111827",
-												}}
-											/>
-											<SelectIcon
-												as={ChevronDownIcon}
-												mr='$3'
-											/>
-										</SelectTrigger>
-										<SelectPortal>
-											<SelectBackdrop />
-											<SelectContent>
-												<SelectDragIndicatorWrapper>
-													<SelectDragIndicator />
-												</SelectDragIndicatorWrapper>
-												{EXPERIENCE_CATEGORIES.map(
-													(cat) => (
-														<SelectItem
-															key={cat.value}
-															label={cat.label}
-															value={cat.value}
-														/>
-													),
-												)}
-											</SelectContent>
-										</SelectPortal>
-									</Select>
-								</VStack>
-
-								{/* Dates */}
-								<HStack space='md'>
-									<VStack space='xs' style={{ flex: 1 }}>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "500",
-												color: isDark
-													? "#d1d5db"
-													: "#374151",
-											}}>
-											Date de début *
-										</Text>
-										<TouchableOpacity
-											onPress={() =>
-												setStartDatePickerVisibility(
-													true,
-												)
-											}>
-											<Input
-												variant='outline'
-												size='md'
-												isReadOnly
-												pointerEvents='none'
-												style={{
-													backgroundColor: isDark
-														? "#374151"
-														: "#f9fafb",
-												}}>
-												<InputField
-													placeholder='Sélectionner'
-													value={
-														startDate
-															? formatDate(
-																	startDate,
-																)
-															: ""
-													}
-													editable={false}
-													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}
-												/>
-												<InputSlot pr='$3'>
-													<InputIcon as={Calendar} />
-												</InputSlot>
-											</Input>
-										</TouchableOpacity>
-									</VStack>
-
-									<VStack space='xs' style={{ flex: 1 }}>
-										<Text
-											size='sm'
-											style={{
-												fontWeight: "500",
-												color: isDark
-													? "#d1d5db"
-													: "#374151",
-											}}>
-											Date de fin
-										</Text>
-										<TouchableOpacity
-											onPress={() =>
-												setEndDatePickerVisibility(true)
-											}>
-											<Input
-												variant='outline'
-												size='md'
-												isReadOnly
-												pointerEvents='none'
-												style={{
-													backgroundColor: isDark
-														? "#374151"
-														: "#f9fafb",
-												}}>
-												<InputField
-													placeholder='Actuel'
-													value={
-														endDate
-															? formatDate(
-																	endDate,
-																)
-															: ""
-													}
-													editable={false}
-													style={{
-														color: isDark
-															? "#f3f4f6"
-															: "#111827",
-													}}
-												/>
-												<InputSlot pr='$3'>
-													<InputIcon as={Calendar} />
-												</InputSlot>
-											</Input>
-										</TouchableOpacity>
-									</VStack>
-								</HStack>
-
-								{/* Description */}
-								<VStack space='xs'>
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "500",
-											color: isDark
-												? "#d1d5db"
-												: "#374151",
-										}}>
-										Description
-									</Text>
-									<Textarea
-										size='md'
-										style={{
-											minHeight: 100,
-											backgroundColor: isDark
-												? "#374151"
-												: "#f9fafb",
-										}}>
-										<TextareaInput
-											ref={descriptionRef}
-											placeholder='Décrivez vos missions et responsabilités...'
-											value={description}
-											onChangeText={setDescription}
-											onFocus={() =>
-												scrollToInput(
-													descriptionRef,
-													80,
-												)
-											}
-											style={{
-												color: isDark
-													? "#f3f4f6"
-													: "#111827",
-											}}
-										/>
-									</Textarea>
-								</VStack>
-
-								{/* Boutons */}
-								<HStack space='md' style={{ marginTop: 8 }}>
-									<Button
-										flex={1}
-										action='secondary'
-										variant='outline'
-										onPress={resetForm}>
-										<ButtonText>Annuler</ButtonText>
-									</Button>
-									<Button
-										flex={1}
-										action='primary'
-										onPress={handleSubmit}
-										isDisabled={loading}>
-										<ButtonText>
-											{loading
-												? "Enregistrement..."
-												: editingId
-													? "Modifier"
-													: "Ajouter"}
-										</ButtonText>
-									</Button>
-								</HStack>
-							</VStack>
-						</Card>
-					)}
 
 					{/* DatePickers */}
 					<DateTimePickerModal
@@ -760,19 +440,27 @@ const CurriculumScreen = () => {
 							size='md'
 							variant='outline'
 							style={{
-								backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+								backgroundColor: isDark
+									? Colors.dark.elevated
+									: Colors.light.elevated,
 								padding: 32,
 								alignItems: "center",
 							}}>
 							<VStack space='md' style={{ alignItems: "center" }}>
 								<Briefcase
 									size={48}
-									color={isDark ? "#6b7280" : "#9ca3af"}
+									color={
+										isDark
+											? Colors.dark.muted
+											: Colors.light.muted
+									}
 								/>
 								<Text
 									size='md'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 									}}>
 									Aucune expérience pour le moment
@@ -780,7 +468,9 @@ const CurriculumScreen = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#6b7280" : "#9ca3af",
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 									}}>
 									Ajoutez votre première expérience
@@ -797,8 +487,8 @@ const CurriculumScreen = () => {
 									variant='elevated'
 									style={{
 										backgroundColor: isDark
-											? "#1f2937"
-											: "#ffffff",
+											? Colors.dark.elevated
+											: Colors.light.cardBackground,
 									}}>
 									<VStack space='md' style={{ padding: 16 }}>
 										{/* En-tête de l'expérience */}
@@ -815,8 +505,8 @@ const CurriculumScreen = () => {
 													style={{
 														fontWeight: "600",
 														color: isDark
-															? "#f3f4f6"
-															: "#111827",
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													{exp.title}
 												</Text>
@@ -825,8 +515,10 @@ const CurriculumScreen = () => {
 														size='md'
 														style={{
 															color: isDark
-																? "#d1d5db"
-																: "#374151",
+																? Colors.dark
+																		.textSecondary
+																: Colors.light
+																		.textSecondary,
 														}}>
 														{exp.company}
 													</Text>
@@ -843,15 +535,23 @@ const CurriculumScreen = () => {
 															borderRadius: 8,
 															backgroundColor:
 																isDark
-																	? "#374151"
-																	: "#f3f4f6",
+																	? Colors
+																			.dark
+																			.elevated
+																	: Colors
+																			.light
+																			.elevated,
 														}}>
 														<Edit
 															size={18}
 															color={
 																isDark
-																	? "#60a5fa"
-																	: "#3b82f6"
+																	? Colors
+																			.dark
+																			.tint
+																	: Colors
+																			.light
+																			.tint
 															}
 														/>
 													</Box>
@@ -866,15 +566,23 @@ const CurriculumScreen = () => {
 															borderRadius: 8,
 															backgroundColor:
 																isDark
-																	? "#374151"
-																	: "#f3f4f6",
+																	? Colors
+																			.dark
+																			.elevated
+																	: Colors
+																			.light
+																			.elevated,
 														}}>
 														<Trash2
 															size={18}
 															color={
 																isDark
-																	? "#f87171"
-																	: "#ef4444"
+																	? Colors
+																			.dark
+																			.danger
+																	: Colors
+																			.light
+																			.danger
 															}
 														/>
 													</Box>
@@ -894,16 +602,20 @@ const CurriculumScreen = () => {
 														size={16}
 														color={
 															isDark
-																? "#9ca3af"
-																: "#6b7280"
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted
 														}
 													/>
 													<Text
 														size='sm'
 														style={{
 															color: isDark
-																? "#9ca3af"
-																: "#6b7280",
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 														}}>
 														{exp.location}
 													</Text>
@@ -918,16 +630,17 @@ const CurriculumScreen = () => {
 													size={16}
 													color={
 														isDark
-															? "#9ca3af"
-															: "#6b7280"
+															? Colors.dark.muted
+															: Colors.light.muted
 													}
 												/>
 												<Text
 													size='sm'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}>
 													{formatDate(exp.start_date)}{" "}
 													-{" "}
@@ -967,8 +680,10 @@ const CurriculumScreen = () => {
 													size='sm'
 													style={{
 														color: isDark
-															? "#d1d5db"
-															: "#4b5563",
+															? Colors.dark
+																	.textSecondary
+															: Colors.light
+																	.textSecondary,
 														lineHeight: 20,
 													}}>
 													{exp.description}
@@ -992,13 +707,17 @@ const CurriculumScreen = () => {
 					<AlertDialogBackdrop />
 					<AlertDialogContent
 						style={{
-							backgroundColor: isDark ? "#1f2937" : "#ffffff",
+							backgroundColor: isDark
+								? Colors.dark.elevated
+								: Colors.light.cardBackground,
 						}}>
 						<AlertDialogHeader>
 							<Heading
 								size='md'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Confirmer la suppression
 							</Heading>
@@ -1008,7 +727,9 @@ const CurriculumScreen = () => {
 								<Text
 									size='md'
 									style={{
-										color: isDark ? "#d1d5db" : "#374151",
+										color: isDark
+											? Colors.dark.textSecondary
+											: Colors.light.textSecondary,
 									}}>
 									Êtes-vous sûr de vouloir supprimer cette
 									expérience ?
@@ -1018,8 +739,8 @@ const CurriculumScreen = () => {
 										style={{
 											padding: 12,
 											backgroundColor: isDark
-												? "#374151"
-												: "#f3f4f6",
+												? Colors.dark.elevated
+												: Colors.light.elevated,
 											borderRadius: 8,
 											marginTop: 8,
 										}}>
@@ -1028,8 +749,8 @@ const CurriculumScreen = () => {
 											style={{
 												fontWeight: "600",
 												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											{expToDelete.title}
 										</Text>
@@ -1038,8 +759,8 @@ const CurriculumScreen = () => {
 												size='xs'
 												style={{
 													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+														? Colors.dark.muted
+														: Colors.light.muted,
 													marginTop: 4,
 												}}>
 												{expToDelete.company}
@@ -1050,7 +771,9 @@ const CurriculumScreen = () => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										marginTop: 8,
 									}}>
 									Cette action est irréversible.
@@ -1080,6 +803,427 @@ const CurriculumScreen = () => {
 					</AlertDialogContent>
 				</AlertDialog>
 			</ScrollView>
+
+			{/* Actionsheet formulaire ajout/modification expérience */}
+			<Actionsheet isOpen={isSheetOpen} onClose={resetForm}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						backgroundColor: isDark
+							? Colors.dark.elevated
+							: Colors.light.cardBackground,
+						paddingBottom: 0,
+						maxHeight: "92%",
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+
+					{/* Header */}
+					<HStack
+						style={{
+							width: "100%",
+							justifyContent: "space-between",
+							alignItems: "center",
+							paddingHorizontal: 16,
+							paddingTop: 8,
+							paddingBottom: 16,
+						}}>
+						<HStack space='sm' style={{ alignItems: "center" }}>
+							<Box
+								style={{
+									width: 32,
+									height: 32,
+									borderRadius: 10,
+									backgroundColor: isDark
+										? Colors.dark.tint20
+										: Colors.light.tint20,
+									justifyContent: "center",
+									alignItems: "center",
+								}}>
+								<Briefcase
+									size={16}
+									color={
+										isDark
+											? Colors.dark.tint
+											: Colors.light.tint
+									}
+								/>
+							</Box>
+							<Text
+								style={{
+									fontWeight: "700",
+									fontSize: 16,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
+								}}>
+								{editingId
+									? "Modifier l'expérience"
+									: "Nouvelle expérience"}
+							</Text>
+						</HStack>
+						<TouchableOpacity
+							onPress={resetForm}
+							activeOpacity={0.7}>
+							<X
+								size={20}
+								color={
+									isDark
+										? Colors.dark.muted
+										: Colors.light.muted
+								}
+							/>
+						</TouchableOpacity>
+					</HStack>
+
+					<KeyboardAvoidingView
+						behavior={Platform.OS === "ios" ? "padding" : "height"}
+						style={{ width: "100%" }}>
+						<ScrollView
+							ref={formScrollRef}
+							keyboardShouldPersistTaps='handled'
+							showsVerticalScrollIndicator={false}
+							contentContainerStyle={{
+								paddingHorizontal: 16,
+								paddingBottom: 48,
+							}}>
+							<VStack space='md'>
+								{/* Titre */}
+								<VStack space='xs'>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "500",
+											color: isDark
+												? Colors.dark.textSecondary
+												: Colors.light.textSecondary,
+										}}>
+										Titre du poste *
+									</Text>
+									<Input
+										variant='outline'
+										size='md'
+										style={{
+											backgroundColor: isDark
+												? Colors.dark.elevated
+												: Colors.light.elevated,
+										}}>
+										<InputField
+											ref={titleRef}
+											placeholder='Ex: Agent de sécurité'
+											value={title}
+											onChangeText={setTitle}
+											onFocus={() =>
+												scrollToInput(titleRef)
+											}
+											style={{
+												color: isDark
+													? Colors.dark.text
+													: Colors.light.text,
+											}}
+										/>
+									</Input>
+								</VStack>
+
+								{/* Entreprise */}
+								<VStack space='xs'>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "500",
+											color: isDark
+												? Colors.dark.textSecondary
+												: Colors.light.textSecondary,
+										}}>
+										Entreprise
+									</Text>
+									<Input
+										variant='outline'
+										size='md'
+										style={{
+											backgroundColor: isDark
+												? Colors.dark.elevated
+												: Colors.light.elevated,
+										}}>
+										<InputField
+											ref={companyRef}
+											placeholder='Ex: Société de sécurité XYZ'
+											value={company}
+											onChangeText={setCompany}
+											onFocus={() =>
+												scrollToInput(companyRef)
+											}
+											style={{
+												color: isDark
+													? Colors.dark.text
+													: Colors.light.text,
+											}}
+										/>
+									</Input>
+								</VStack>
+
+								{/* Lieu */}
+								<VStack space='xs'>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "500",
+											color: isDark
+												? Colors.dark.textSecondary
+												: Colors.light.textSecondary,
+										}}>
+										Lieu
+									</Text>
+									<Input
+										variant='outline'
+										size='md'
+										style={{
+											backgroundColor: isDark
+												? Colors.dark.elevated
+												: Colors.light.elevated,
+										}}>
+										<InputField
+											ref={locationRef}
+											placeholder='Ex: Paris, France'
+											value={location}
+											onChangeText={setLocation}
+											onFocus={() =>
+												scrollToInput(locationRef)
+											}
+											style={{
+												color: isDark
+													? Colors.dark.text
+													: Colors.light.text,
+											}}
+										/>
+									</Input>
+								</VStack>
+
+								{/* Catégorie */}
+								<VStack space='xs'>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "500",
+											color: isDark
+												? Colors.dark.textSecondary
+												: Colors.light.textSecondary,
+										}}>
+										Catégorie *
+									</Text>
+									<Select
+										selectedValue={category}
+										onValueChange={(value) =>
+											setCategory(value)
+										}>
+										<SelectTrigger
+											variant='outline'
+											size='md'>
+											<SelectInput
+												placeholder='Sélectionner une catégorie'
+												style={{
+													color: isDark
+														? Colors.dark.text
+														: Colors.light.text,
+												}}
+											/>
+											<SelectIcon
+												as={ChevronDownIcon}
+												mr='$3'
+											/>
+										</SelectTrigger>
+										<SelectPortal>
+											<SelectBackdrop />
+											<SelectContent>
+												<SelectDragIndicatorWrapper>
+													<SelectDragIndicator />
+												</SelectDragIndicatorWrapper>
+												{EXPERIENCE_CATEGORIES.map(
+													(cat) => (
+														<SelectItem
+															key={cat.value}
+															label={cat.label}
+															value={cat.value}
+														/>
+													),
+												)}
+											</SelectContent>
+										</SelectPortal>
+									</Select>
+								</VStack>
+
+								{/* Dates */}
+								<HStack space='md'>
+									<VStack space='xs' style={{ flex: 1 }}>
+										<Text
+											size='sm'
+											style={{
+												fontWeight: "500",
+												color: isDark
+													? Colors.dark.textSecondary
+													: Colors.light
+															.textSecondary,
+											}}>
+											Date de début *
+										</Text>
+										<TouchableOpacity
+											onPress={() =>
+												setStartDatePickerVisibility(
+													true,
+												)
+											}>
+											<Input
+												variant='outline'
+												size='md'
+												isReadOnly
+												pointerEvents='none'
+												style={{
+													backgroundColor: isDark
+														? Colors.dark.elevated
+														: Colors.light.elevated,
+												}}>
+												<InputField
+													placeholder='Sélectionner'
+													value={
+														startDate
+															? formatDate(
+																	startDate,
+																)
+															: ""
+													}
+													editable={false}
+													style={{
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
+													}}
+												/>
+												<InputSlot pr='$3'>
+													<InputIcon as={Calendar} />
+												</InputSlot>
+											</Input>
+										</TouchableOpacity>
+									</VStack>
+
+									<VStack space='xs' style={{ flex: 1 }}>
+										<Text
+											size='sm'
+											style={{
+												fontWeight: "500",
+												color: isDark
+													? Colors.dark.textSecondary
+													: Colors.light
+															.textSecondary,
+											}}>
+											Date de fin
+										</Text>
+										<TouchableOpacity
+											onPress={() =>
+												setEndDatePickerVisibility(true)
+											}>
+											<Input
+												variant='outline'
+												size='md'
+												isReadOnly
+												pointerEvents='none'
+												style={{
+													backgroundColor: isDark
+														? Colors.dark.elevated
+														: Colors.light.elevated,
+												}}>
+												<InputField
+													placeholder='Actuel'
+													value={
+														endDate
+															? formatDate(
+																	endDate,
+																)
+															: ""
+													}
+													editable={false}
+													style={{
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
+													}}
+												/>
+												<InputSlot pr='$3'>
+													<InputIcon as={Calendar} />
+												</InputSlot>
+											</Input>
+										</TouchableOpacity>
+									</VStack>
+								</HStack>
+
+								{/* Description */}
+								<VStack space='xs'>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "500",
+											color: isDark
+												? Colors.dark.textSecondary
+												: Colors.light.textSecondary,
+										}}>
+										Description
+									</Text>
+									<Textarea
+										size='md'
+										style={{
+											minHeight: 100,
+											backgroundColor: isDark
+												? Colors.dark.elevated
+												: Colors.light.elevated,
+										}}>
+										<TextareaInput
+											ref={descriptionRef}
+											placeholder='Décrivez vos missions et responsabilités...'
+											value={description}
+											onChangeText={setDescription}
+											onFocus={() =>
+												scrollToInput(
+													descriptionRef,
+													80,
+												)
+											}
+											style={{
+												color: isDark
+													? Colors.dark.text
+													: Colors.light.text,
+											}}
+										/>
+									</Textarea>
+								</VStack>
+
+								{/* Boutons */}
+								<HStack space='md' style={{ marginTop: 8 }}>
+									<Button
+										flex={1}
+										action='secondary'
+										variant='outline'
+										onPress={resetForm}>
+										<ButtonText>Annuler</ButtonText>
+									</Button>
+									<Button
+										flex={1}
+										action='primary'
+										onPress={handleSubmit}
+										isDisabled={loading}>
+										<ButtonText>
+											{loading
+												? "Enregistrement..."
+												: editingId
+													? "Modifier"
+													: "Ajouter"}
+										</ButtonText>
+									</Button>
+								</HStack>
+							</VStack>
+						</ScrollView>
+					</KeyboardAvoidingView>
+				</ActionsheetContent>
+			</Actionsheet>
 		</KeyboardAvoidingView>
 	);
 };
