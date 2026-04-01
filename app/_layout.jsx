@@ -399,7 +399,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='documents'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Mes documents",
+								}}
 							/>
 							<Stack.Screen
 								name='iddocumentverification'
@@ -449,7 +452,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='prodocs'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Documents professionnels",
+								}}
 							/>
 							<Stack.Screen
 								name='procards'
