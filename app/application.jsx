@@ -76,6 +76,7 @@ import {
 	Building2,
 	BadgeEuro,
 	Clock,
+	AlertTriangle,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -86,6 +87,8 @@ import {
 	GENERATE_CONTRACT,
 } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 
 import { sendApplicationSelectedEmail } from "@/utils/sendApplicationSelectedEmail";
 import { sendRecruitmentStatusEmail } from "@/utils/sendRecruitmentStatusEmail";
@@ -162,8 +165,9 @@ const ApplicationScreen = () => {
 	const navigation = useNavigation();
 	const { id, title, company_id, category, apply_id, name, openMessaging } =
 		useLocalSearchParams();
-	const { user, role, accessToken } = useAuth();
+	const { user, role, accessToken, userProfile } = useAuth();
 	const { isDark } = useTheme();
+	const toast = useToast();
 	const {
 		toggleWishlistJob,
 		getWishlistJobs,
@@ -440,6 +444,31 @@ const ApplicationScreen = () => {
 	useEffect(() => {
 		hasAutoOpenedMessaging.current = false;
 	}, [apply_id]);
+
+	// Guard : candidat non vérifié
+	useEffect(() => {
+		if (
+			role === "candidat" &&
+			userProfile &&
+			userProfile.profile_status !== "verified"
+		) {
+			toast.show({
+				placement: "top",
+				render: ({ id: toastId }) => (
+					<CustomToast
+						id={toastId}
+						icon={AlertTriangle}
+						color={
+							isDark ? Colors.dark.warning : Colors.light.warning
+						}
+						title='Profil non vérifié'
+						description='Votre profil doit être vérifié pour accéder à vos candidatures.'
+					/>
+				),
+			});
+			router.back();
+		}
+	}, [role, userProfile?.profile_status]);
 
 	// useEffect(() => {
 	// 	if (title) {
