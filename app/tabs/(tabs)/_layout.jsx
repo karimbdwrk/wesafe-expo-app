@@ -20,7 +20,7 @@ import {
 	Text as RNText,
 	AppState,
 } from "react-native";
-import Svg, { Path, G } from "react-native-svg";
+import Svg, { Path, G, Defs, LinearGradient, Stop } from "react-native-svg";
 import {
 	Avatar,
 	AvatarBadge,
@@ -96,9 +96,22 @@ const TOKEN_API_ENDPOINT =
 	"https://hzvbylhdptwgblpdondm.supabase.co/functions/v1/store-push-token";
 
 function LogoTitle({ colorScheme }) {
-	const fillColor = colorScheme === "dark" ? "#f3f4f6" : "#111827";
+	const startColor = colorScheme === "dark" ? "#f3f4f6" : "#9ca3af";
+	const endColor = colorScheme === "dark" ? "#6b7280" : "#111827";
 	return (
 		<Svg viewBox='0 0 264.3 297.85' width={60} height={60}>
+			<Defs>
+				<LinearGradient
+					id='logoGradient'
+					gradientUnits='userSpaceOnUse'
+					x1='54'
+					y1='112.65'
+					x2='211.7'
+					y2='188.07'>
+					<Stop offset='0' stopColor={startColor} />
+					<Stop offset='1' stopColor={endColor} />
+				</LinearGradient>
+			</Defs>
 			<G>
 				{/* <Path
 					fill={"#333333"}
@@ -106,11 +119,11 @@ function LogoTitle({ colorScheme }) {
 				/> */}
 				<G>
 					<Path
-						fill={fillColor}
+						fill='url(#logoGradient)'
 						d='M108.85,167.5v-54.85h20.57v75.42H54v-75.42h20.57v54.85h6.86v-54.85h20.57v54.85h6.86Z'
 					/>
 					<Path
-						fill={fillColor}
+						fill='url(#logoGradient)'
 						d='M211.7,133.22h-75.42v-20.57h75.42v20.57ZM211.7,160.65h-75.42v-20.57h75.42v20.57ZM211.7,188.07h-75.42v-20.57h75.42v20.57Z'
 					/>
 				</G>
@@ -640,8 +653,11 @@ export default function TabLayout({ theme = "light" }) {
 					{userCompany.company_status === "active" && (
 						<Button
 							size='xl'
-							className={`rounded-full p-3.5`}
+							className='rounded-full p-3.5'
 							style={{
+								backgroundColor: isDark
+									? Colors.dark.tint
+									: Colors.light.tint,
 								transform: [
 									{
 										translateY:
@@ -652,14 +668,17 @@ export default function TabLayout({ theme = "light" }) {
 							onPress={() => {
 								router.push("/postjob");
 							}}>
-							<ButtonIcon size='xl' as={Plus} />
+							<ButtonIcon size='xl' as={Plus} color='#ffffff' />
 						</Button>
 					)}
 					{userCompany.company_status !== "active" && (
 						<Button
 							size='xl'
-							className={`rounded-full p-3.5 bg-slate-400`}
+							className='rounded-full p-3.5'
 							style={{
+								backgroundColor: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 								transform: [
 									{
 										translateY:
@@ -685,7 +704,7 @@ export default function TabLayout({ theme = "light" }) {
 									),
 								});
 							}}>
-							<ButtonIcon size='xl' as={Plus} />
+							<ButtonIcon size='xl' as={Plus} color='#ffffff' />
 						</Button>
 					)}
 				</View>
