@@ -861,8 +861,9 @@ export default function Tab1() {
 				<VStack
 					space='xl'
 					style={{
-						padding: 16,
+						padding: 10,
 						paddingBottom: 40,
+						paddingTop: 15,
 					}}>
 					{/* Disponibilité – visible uniquement si profil vérifié */}
 					{/* {userProfile?.profile_status === "verified" && (
@@ -1142,7 +1143,7 @@ export default function Tab1() {
 						</HStack>
 
 						{/* Search Bar */}
-						<VStack>
+						<VStack className='mb-4'>
 							<Input
 								variant='outline'
 								style={{
@@ -1179,7 +1180,22 @@ export default function Tab1() {
 											? Colors.dark.border
 											: Colors.light.border,
 									}}>
-									{filteredJobs.length > 0 ? (
+									{searchLoading ? (
+										<VStack
+											style={{
+												alignItems: "center",
+												paddingVertical: 24,
+											}}>
+											<Spinner
+												size='small'
+												color={
+													isDark
+														? Colors.dark.muted
+														: Colors.light.muted
+												}
+											/>
+										</VStack>
+									) : filteredJobs.length > 0 ? (
 										<>
 											{filteredJobs.map((job) => (
 												<Pressable
