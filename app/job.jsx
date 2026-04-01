@@ -49,6 +49,8 @@ import { useDataContext } from "@/context/DataContext";
 import { TOGGLE_WISHLIST_JOB, ARCHIVE_JOB } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 
 import {
 	Bookmark,
@@ -69,6 +71,7 @@ import {
 	ChevronUp,
 	CheckCircle,
 	Zap,
+	AlertTriangle,
 } from "lucide-react-native";
 import { position } from "dom-helpers";
 
@@ -99,6 +102,7 @@ const JobScreen = () => {
 	const { id, title, company_id, category } = useLocalSearchParams();
 	const { user, role, userProfile } = useAuth();
 	const { isDark } = useTheme();
+	const profileToast = useToast();
 	const navigation = useNavigation();
 	const {
 		toggleWishlistJob,
@@ -272,6 +276,23 @@ const JobScreen = () => {
 	};
 
 	const handleApply = () => {
+		if (role === "candidat" && userProfile?.profile_status !== "verified") {
+			profileToast.show({
+				placement: "top",
+				render: ({ id: toastId }) => (
+					<CustomToast
+						id={toastId}
+						icon={AlertTriangle}
+						color={
+							isDark ? Colors.dark.warning : Colors.light.warning
+						}
+						title='Profil non vérifié'
+						description='Votre profil doit être vérifié pour pouvoir postuler à une offre.'
+					/>
+				),
+			});
+			return;
+		}
 		setShowApplyModal(true);
 	};
 
