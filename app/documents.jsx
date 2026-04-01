@@ -21,6 +21,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const Documents = () => {
 	const { user, userProfile, accessToken, loadUserData } = useAuth();
@@ -75,20 +76,30 @@ const Documents = () => {
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.background,
 				padding: 20,
 			}}>
 			<VStack space='2xl'>
 				{/* Header */}
 				<VStack space='md'>
-					<Heading
+					{/* <Heading
 						size='2xl'
-						style={{ color: isDark ? "#f3f4f6" : "#111827" }}>
+						style={{
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
+						}}>
 						Mes documents
-					</Heading>
+					</Heading> */}
 					<Text
 						size='md'
-						style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+						style={{
+							color: isDark
+								? Colors.dark.muted
+								: Colors.light.muted,
+						}}>
 						Gérez vos documents d'identité et de sécurité sociale
 					</Text>
 				</VStack>
@@ -102,10 +113,14 @@ const Documents = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<HStack
 								style={{
@@ -120,14 +135,20 @@ const Documents = () => {
 											width: 48,
 											height: 48,
 											borderRadius: 24,
-											backgroundColor: "#dbeafe",
+											backgroundColor: isDark
+												? Colors.dark.tint20
+												: Colors.light.tint20,
 											justifyContent: "center",
 											alignItems: "center",
 										}}>
 										<Icon
 											as={CreditCard}
 											size='xl'
-											style={{ color: "#2563eb" }}
+											style={{
+												color: isDark
+													? Colors.dark.tint
+													: Colors.light.tint,
+											}}
 										/>
 									</Box>
 									<VStack style={{ flex: 1 }} space='xs'>
@@ -136,8 +157,8 @@ const Documents = () => {
 											style={{
 												fontWeight: "600",
 												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											Document d'identité
 										</Text>
@@ -145,8 +166,8 @@ const Documents = () => {
 											size='sm'
 											style={{
 												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}>
 											Passeport ou carte d'identité
 										</Text>
@@ -161,8 +182,8 @@ const Documents = () => {
 										size='lg'
 										style={{
 											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}
 									/>
 								</HStack>
@@ -179,10 +200,14 @@ const Documents = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<HStack
 								style={{
@@ -197,14 +222,20 @@ const Documents = () => {
 											width: 48,
 											height: 48,
 											borderRadius: 24,
-											backgroundColor: "#dcfce7",
+											backgroundColor: isDark
+												? Colors.dark.success20
+												: Colors.light.success20,
 											justifyContent: "center",
 											alignItems: "center",
 										}}>
 										<Icon
 											as={FileText}
 											size='xl'
-											style={{ color: "#16a34a" }}
+											style={{
+												color: isDark
+													? Colors.dark.success
+													: Colors.light.success,
+											}}
 										/>
 									</Box>
 									<VStack style={{ flex: 1 }} space='xs'>
@@ -213,8 +244,8 @@ const Documents = () => {
 											style={{
 												fontWeight: "600",
 												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											Sécurité sociale
 										</Text>
@@ -222,8 +253,8 @@ const Documents = () => {
 											size='sm'
 											style={{
 												color: isDark
-													? "#9ca3af"
-													: "#6b7280",
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}>
 											Carte Vitale ou attestation
 										</Text>
@@ -238,8 +269,8 @@ const Documents = () => {
 										size='lg'
 										style={{
 											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}
 									/>
 								</HStack>
