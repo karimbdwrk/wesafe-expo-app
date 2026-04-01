@@ -1,10 +1,11 @@
-import { View, Text } from "react-native";
+import { View, Text, useWindowDimensions } from "react-native";
 import { Icon } from "@/components/ui/icon";
 import { useColorScheme } from "nativewind";
 import Colors from "@/constants/Colors";
 
 const CustomToast = ({ id, icon, color, title, description }) => {
 	const { colorScheme } = useColorScheme();
+	const { width: screenWidth } = useWindowDimensions();
 	const isDark = colorScheme === "dark";
 	const cardBg = isDark
 		? Colors.dark.cardBackground
@@ -22,23 +23,32 @@ const CustomToast = ({ id, icon, color, title, description }) => {
 				borderColor: color,
 				padding: 12,
 				flexDirection: "row",
-				alignItems: "center",
+				alignItems: "flex-start",
 				gap: 8,
 				shadowColor: "#000",
 				shadowOffset: { width: 0, height: 2 },
 				shadowOpacity: 0.15,
 				shadowRadius: 4,
 				elevation: 4,
-				minWidth: 260,
-				maxWidth: 340,
+				width: screenWidth - 20,
 			}}>
 			<Icon as={icon} color={color} />
 			<View style={{ flex: 1 }}>
-				<Text style={{ color: textPrimary, fontWeight: "600", fontSize: 14 }}>
+				<Text
+					style={{
+						color: textPrimary,
+						fontWeight: "600",
+						fontSize: 14,
+					}}>
 					{title}
 				</Text>
 				{description ? (
-					<Text style={{ color: textSecondary, fontSize: 13, marginTop: 2 }}>
+					<Text
+						style={{
+							color: textSecondary,
+							fontSize: 13,
+							marginTop: 2,
+						}}>
 						{description}
 					</Text>
 				) : null}
