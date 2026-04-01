@@ -122,13 +122,13 @@ const getExpiryInfo = (expiresAt) => {
 	if (exp < now)
 		return {
 			label: `Expiré le ${formatDate(expiresAt)}`,
-			color: "#ef4444",
+			color: isDark ? Colors.dark.danger : Colors.light.danger,
 			icon: "expired",
 		};
 	if (exp <= inSixMonths)
 		return {
 			label: `Expire le ${formatDate(expiresAt)}`,
-			color: "#f59e0b",
+			color: isDark ? Colors.dark.warning : Colors.light.warning,
 			icon: "soon",
 		};
 	return {
@@ -144,10 +144,21 @@ const getCategoryIcon = (cat) => {
 	return Award;
 };
 
-const getCategoryColor = (cat) => {
-	if (cat === "cnaps") return { bg: "#eff6ff", icon: "#2563eb" };
-	if (cat === "diploma") return { bg: "#f0fdf4", icon: "#16a34a" };
-	return { bg: "#fdf4ff", icon: "#9333ea" };
+const getCategoryColor = (cat, isDark) => {
+	if (cat === "cnaps")
+		return {
+			bg: isDark ? Colors.dark.tint20 : Colors.light.tint20,
+			icon: isDark ? Colors.dark.tint : Colors.light.tint,
+		};
+	if (cat === "diploma")
+		return {
+			bg: isDark ? Colors.dark.success20 : Colors.light.success20,
+			icon: isDark ? Colors.dark.success : Colors.light.success,
+		};
+	return {
+		bg: isDark ? Colors.dark.tint20 : Colors.light.tint20,
+		icon: isDark ? Colors.dark.tint : Colors.light.tint,
+	};
 };
 
 const getDocInfo = (category, typeCode) => {
@@ -379,9 +390,11 @@ const ProDocs = ({ navigation }) => {
 					<CustomToast
 						id={id}
 						icon={AlertCircle}
-						color={isDark ? Colors.dark.warning : Colors.light.warning}
-						title="Document déjà soumis"
-						description="Ce document est déjà dans votre dossier."
+						color={
+							isDark ? Colors.dark.warning : Colors.light.warning
+						}
+						title='Document déjà soumis'
+						description='Ce document est déjà dans votre dossier.'
 					/>
 				),
 			});
@@ -466,9 +479,11 @@ const ProDocs = ({ navigation }) => {
 					<CustomToast
 						id={id}
 						icon={CheckCircle}
-						color={isDark ? Colors.dark.success : Colors.light.success}
-						title="Document soumis !"
-						description="Votre document est en cours de vérification."
+						color={
+							isDark ? Colors.dark.success : Colors.light.success
+						}
+						title='Document soumis !'
+						description='Votre document est en cours de vérification.'
 					/>
 				),
 			});
@@ -481,9 +496,11 @@ const ProDocs = ({ navigation }) => {
 					<CustomToast
 						id={id}
 						icon={AlertCircle}
-						color={isDark ? Colors.dark.danger : Colors.light.danger}
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
 						title="Erreur lors de l'envoi"
-						description="Veuillez réessayer."
+						description='Veuillez réessayer.'
 					/>
 				),
 			});
@@ -531,13 +548,17 @@ const ProDocs = ({ navigation }) => {
 								as={ChevronLeft}
 								size='sm'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
 								}}
 							/>
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
 									fontWeight: "600",
 								}}>
 								Retour
@@ -558,7 +579,7 @@ const ProDocs = ({ navigation }) => {
 				<Heading
 					size='2xl'
 					style={{
-						color: isDark ? "#f3f4f6" : "#111827",
+						color: isDark ? Colors.dark.text : Colors.light.text,
 						lineHeight: 32,
 					}}>
 					{title}
@@ -566,7 +587,11 @@ const ProDocs = ({ navigation }) => {
 				{subtitle && (
 					<Text
 						size='sm'
-						style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+						style={{
+							color: isDark
+								? Colors.dark.muted
+								: Colors.light.muted,
+						}}>
 						{subtitle}
 					</Text>
 				)}
@@ -591,19 +616,19 @@ const ProDocs = ({ navigation }) => {
 				key: "cnaps",
 				label: "Carte CNAPS",
 				icon: CreditCard,
-				color: getCategoryColor("cnaps"),
+				color: getCategoryColor("cnaps", isDark),
 			},
 			{
 				key: "diploma",
 				label: "Diplômes",
 				icon: GraduationCap,
-				color: getCategoryColor("diploma"),
+				color: getCategoryColor("diploma", isDark),
 			},
 			{
 				key: "certification",
 				label: "Certifications",
 				icon: Award,
-				color: getCategoryColor("certification"),
+				color: getCategoryColor("certification", isDark),
 			},
 		];
 
@@ -613,12 +638,20 @@ const ProDocs = ({ navigation }) => {
 				<VStack space='sm'>
 					<Heading
 						size='2xl'
-						style={{ color: isDark ? "#f3f4f6" : "#111827" }}>
+						style={{
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
+						}}>
 						Documents professionnels
 					</Heading>
 					<Text
 						size='md'
-						style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+						style={{
+							color: isDark
+								? Colors.dark.muted
+								: Colors.light.muted,
+						}}>
 						Cartes CNAPS, diplômes et certifications
 					</Text>
 				</VStack>
@@ -627,7 +660,12 @@ const ProDocs = ({ navigation }) => {
 				<Button
 					size='lg'
 					onPress={() => setStep("category")}
-					style={{ borderRadius: 12, backgroundColor: "#2563eb" }}>
+					style={{
+						borderRadius: 12,
+						backgroundColor: isDark
+							? Colors.dark.tint
+							: Colors.light.tint,
+					}}>
 					<ButtonIcon as={Upload} />
 					<ButtonText style={{ fontWeight: "700" }}>
 						Ajouter un document
@@ -644,7 +682,7 @@ const ProDocs = ({ navigation }) => {
 									height: 32,
 									borderRadius: 8,
 									backgroundColor: isDark
-										? "#374151"
+										? Colors.dark.elevated
 										: color.bg,
 									justifyContent: "center",
 									alignItems: "center",
@@ -659,7 +697,9 @@ const ProDocs = ({ navigation }) => {
 								style={{
 									fontWeight: "700",
 									fontSize: 15,
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								{label}
 							</Text>
@@ -670,14 +710,16 @@ const ProDocs = ({ navigation }) => {
 								style={{
 									padding: 16,
 									backgroundColor: isDark
-										? "#374151"
-										: "#ffffff",
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 									borderRadius: 12,
 								}}>
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 									}}>
 									Aucun document ajouté
@@ -691,8 +733,8 @@ const ProDocs = ({ navigation }) => {
 										style={{
 											padding: 16,
 											backgroundColor: isDark
-												? "#374151"
-												: "#ffffff",
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
 											borderRadius: 12,
 											shadowColor: "#000",
 											shadowOffset: {
@@ -728,8 +770,12 @@ const ProDocs = ({ navigation }) => {
 																			"800",
 																		fontSize: 15,
 																		color: isDark
-																			? "#f3f4f6"
-																			: "#111827",
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	{
 																		info.acronym
@@ -740,8 +786,12 @@ const ProDocs = ({ navigation }) => {
 																size='sm'
 																style={{
 																	color: isDark
-																		? "#9ca3af"
-																		: "#6b7280",
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
 																	lineHeight: 18,
 																}}>
 																{info.name}
@@ -755,8 +805,10 @@ const ProDocs = ({ navigation }) => {
 														size='xs'
 														style={{
 															color: isDark
-																? "#60a5fa"
-																: "#2563eb",
+																? Colors.dark
+																		.tint
+																: Colors.light
+																		.tint,
 															fontWeight: "700",
 															letterSpacing: 2,
 														}}>
@@ -784,7 +836,13 @@ const ProDocs = ({ navigation }) => {
 																	}
 																	size='2xs'
 																	style={{
-																		color: "#ef4444",
+																		color: isDark
+																			? Colors
+																					.dark
+																					.danger
+																			: Colors
+																					.light
+																					.danger,
 																	}}
 																/>
 															) : exp.icon ===
@@ -793,7 +851,13 @@ const ProDocs = ({ navigation }) => {
 																	as={Clock}
 																	size='2xs'
 																	style={{
-																		color: "#f59e0b",
+																		color: isDark
+																			? Colors
+																					.dark
+																					.warning
+																			: Colors
+																					.light
+																					.warning,
 																	}}
 																/>
 															) : null}
@@ -807,8 +871,12 @@ const ProDocs = ({ navigation }) => {
 																	color:
 																		exp.color ??
 																		(isDark
-																			? "#9ca3af"
-																			: "#6b7280"),
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted),
 																}}>
 																{exp.label}
 															</Text>
@@ -819,8 +887,9 @@ const ProDocs = ({ navigation }) => {
 													size='xs'
 													style={{
 														color: isDark
-															? "#6b7280"
-															: "#9ca3af",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}>
 													Soumis le{" "}
 													{formatDate(doc.created_at)}
@@ -849,21 +918,21 @@ const ProDocs = ({ navigation }) => {
 				label: "Carte professionnelle CNAPS",
 				subtitle: "Carte d'agent privé de sécurité — validité 5 ans",
 				icon: CreditCard,
-				color: getCategoryColor("cnaps"),
+				color: getCategoryColor("cnaps", isDark),
 			},
 			{
 				key: "diploma",
 				label: "Diplôme professionnel",
 				subtitle: "TFP APS, SSIAP 1/2/3, TFP ASC…",
 				icon: GraduationCap,
-				color: getCategoryColor("diploma"),
+				color: getCategoryColor("diploma", isDark),
 			},
 			{
 				key: "certification",
 				label: "Certification",
 				subtitle: "SST, H0B0, PSE1/2, MAC SSIAP…",
 				icon: Award,
-				color: getCategoryColor("certification"),
+				color: getCategoryColor("certification", isDark),
 			},
 		];
 
@@ -886,10 +955,14 @@ const ProDocs = ({ navigation }) => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								borderWidth: 2,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<HStack space='md' style={{ alignItems: "center" }}>
 								<Box
@@ -898,7 +971,7 @@ const ProDocs = ({ navigation }) => {
 										height: 52,
 										borderRadius: 26,
 										backgroundColor: isDark
-											? "#1f2937"
+											? Colors.dark.background
 											: color.bg,
 										justifyContent: "center",
 										alignItems: "center",
@@ -915,8 +988,8 @@ const ProDocs = ({ navigation }) => {
 										style={{
 											fontWeight: "700",
 											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+												? Colors.dark.text
+												: Colors.light.text,
 										}}>
 										{label}
 									</Text>
@@ -924,8 +997,8 @@ const ProDocs = ({ navigation }) => {
 										size='sm'
 										style={{
 											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										{subtitle}
 									</Text>
@@ -934,7 +1007,9 @@ const ProDocs = ({ navigation }) => {
 									as={ChevronRight}
 									size='md'
 									style={{
-										color: isDark ? "#6b7280" : "#9ca3af",
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}
 								/>
 							</HStack>
@@ -1020,19 +1095,21 @@ const ProDocs = ({ navigation }) => {
 									style={{
 										padding: 16,
 										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
 										borderRadius: 12,
 										borderWidth: 1,
 										borderColor: isExpired
-											? "#f59e0b"
+											? isDark
+												? Colors.dark.warning
+												: Colors.light.warning
 											: alreadyAdded
 												? isDark
-													? "#374151"
-													: "#f3f4f6"
+													? Colors.dark.elevated
+													: Colors.light.elevated
 												: isDark
-													? "#4b5563"
-													: "#e5e7eb",
+													? Colors.dark.border
+													: Colors.light.border,
 										opacity:
 											alreadyAdded && !isExpired
 												? 0.55
@@ -1052,8 +1129,8 @@ const ProDocs = ({ navigation }) => {
 														fontWeight: "800",
 														fontSize: 15,
 														color: isDark
-															? "#f3f4f6"
-															: "#111827",
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													{item.acronym}
 												</Text>
@@ -1062,8 +1139,8 @@ const ProDocs = ({ navigation }) => {
 												size='sm'
 												style={{
 													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+														? Colors.dark.muted
+														: Colors.light.muted,
 													lineHeight: 18,
 												}}>
 												{item.name}
@@ -1073,8 +1150,8 @@ const ProDocs = ({ navigation }) => {
 													size='xs'
 													style={{
 														color: isDark
-															? "#60a5fa"
-															: "#2563eb",
+															? Colors.dark.tint
+															: Colors.light.tint,
 													}}>
 													Validité :{" "}
 													{item.validity_years} an
@@ -1113,8 +1190,8 @@ const ProDocs = ({ navigation }) => {
 												size='md'
 												style={{
 													color: isDark
-														? "#6b7280"
-														: "#9ca3af",
+														? Colors.dark.muted
+														: Colors.light.muted,
 												}}
 											/>
 										)}
@@ -1154,21 +1231,29 @@ const ProDocs = ({ navigation }) => {
 				<Card
 					style={{
 						padding: 16,
-						backgroundColor: isDark ? "#065f46" : "#dcfce7",
+						backgroundColor: isDark
+							? Colors.dark.success20
+							: Colors.light.success20,
 						borderRadius: 12,
 					}}>
 					<HStack space='sm' style={{ alignItems: "center" }}>
 						<Icon
 							as={CategoryIcon}
 							size='lg'
-							style={{ color: isDark ? "#d1fae5" : "#16a34a" }}
+							style={{
+								color: isDark
+									? Colors.dark.success
+									: Colors.light.success,
+							}}
 						/>
 						<VStack style={{ flex: 1 }} space='xs'>
 							<Text
 								style={{
 									fontWeight: "700",
 									fontSize: 15,
-									color: isDark ? "#d1fae5" : "#14532d",
+									color: isDark
+										? Colors.dark.success
+										: Colors.light.success,
 								}}>
 								{selectedType?.acronym || selectedType?.name}
 							</Text>
@@ -1176,7 +1261,9 @@ const ProDocs = ({ navigation }) => {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#a7f3d0" : "#166534",
+										color: isDark
+											? Colors.dark.success
+											: Colors.light.success,
 									}}>
 									{selectedType.name}
 								</Text>
@@ -1190,7 +1277,9 @@ const ProDocs = ({ navigation }) => {
 					<Card
 						style={{
 							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: isDark
+								? Colors.dark.cardBackground
+								: Colors.light.cardBackground,
 							borderRadius: 12,
 						}}>
 						<VStack space='md'>
@@ -1199,14 +1288,18 @@ const ProDocs = ({ navigation }) => {
 									style={{
 										fontWeight: "600",
 										fontSize: 15,
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Date de fin de validité
 								</Text>
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}>
 									Durée de validité :{" "}
 									{selectedType.validity_years} an
@@ -1224,25 +1317,31 @@ const ProDocs = ({ navigation }) => {
 										borderRadius: 10,
 										borderWidth: 1.5,
 										borderColor: validityDate
-											? "#2563eb"
+											? isDark
+												? Colors.dark.tint
+												: Colors.light.tint
 											: isDark
-												? "#4b5563"
-												: "#d1d5db",
+												? Colors.dark.border
+												: Colors.light.border,
 										backgroundColor: validityDate
 											? isDark
-												? "#1e3a8a"
-												: "#eff6ff"
+												? Colors.dark.tint20
+												: Colors.light.tint20
 											: isDark
-												? "#1f2937"
-												: "#f9fafb",
+												? Colors.dark.background
+												: Colors.light.background,
 									}}>
 									<Icon
 										as={CalendarDays}
 										size='md'
 										style={{
 											color: validityDate
-												? "#2563eb"
-												: "#9ca3af",
+												? isDark
+													? Colors.dark.tint
+													: Colors.light.tint
+												: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
 										}}
 									/>
 									<Text
@@ -1251,9 +1350,11 @@ const ProDocs = ({ navigation }) => {
 											fontSize: 15,
 											color: validityDate
 												? isDark
-													? "#f3f4f6"
-													: "#111827"
-												: "#9ca3af",
+													? Colors.dark.text
+													: Colors.light.text
+												: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
 										}}>
 										{validityDate
 											? validityDate.toLocaleDateString(
@@ -1269,7 +1370,11 @@ const ProDocs = ({ navigation }) => {
 											<Icon
 												as={X}
 												size='sm'
-												style={{ color: "#dc2626" }}
+												style={{
+													color: isDark
+														? Colors.dark.danger
+														: Colors.light.danger,
+												}}
 											/>
 										</TouchableOpacity>
 									) : null}
@@ -1296,7 +1401,9 @@ const ProDocs = ({ navigation }) => {
 					<Card
 						style={{
 							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: isDark
+								? Colors.dark.cardBackground
+								: Colors.light.cardBackground,
 							borderRadius: 12,
 						}}>
 						<VStack space='md'>
@@ -1305,14 +1412,18 @@ const ProDocs = ({ navigation }) => {
 									style={{
 										fontWeight: "600",
 										fontSize: 15,
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Numéro de carte
 								</Text>
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? "#9ca3af" : "#6b7280",
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}>
 									Saisissez les 7 derniers chiffres du numéro
 									indiqué sur votre carte
@@ -1325,15 +1436,19 @@ const ProDocs = ({ navigation }) => {
 									borderRadius: 10,
 									borderColor:
 										cnapsCardNumber.length === 7
-											? "#10b981"
+											? isDark
+												? Colors.dark.success
+												: Colors.light.success
 											: cnapsCardNumber.length > 0
-												? "#f59e0b"
+												? isDark
+													? Colors.dark.warning
+													: Colors.light.warning
 												: isDark
-													? "#4b5563"
-													: "#d1d5db",
+													? Colors.dark.border
+													: Colors.light.border,
 									backgroundColor: isDark
-										? "#1f2937"
-										: "#f9fafb",
+										? Colors.dark.background
+										: Colors.light.background,
 								}}>
 								<InputField
 									value={cnapsCardNumber}
@@ -1345,9 +1460,15 @@ const ProDocs = ({ navigation }) => {
 									keyboardType='numeric'
 									maxLength={7}
 									placeholder='1234567'
-									placeholderTextColor='#9ca3af'
+									placeholderTextColor={
+										isDark
+											? Colors.dark.muted
+											: Colors.light.muted
+									}
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 										fontSize: 18,
 										letterSpacing: 4,
 										fontWeight: "700",
@@ -1356,7 +1477,13 @@ const ProDocs = ({ navigation }) => {
 							</Input>
 							{cnapsCardNumber.length > 0 &&
 							cnapsCardNumber.length < 7 ? (
-								<Text size='xs' style={{ color: "#f59e0b" }}>
+								<Text
+									size='xs'
+									style={{
+										color: isDark
+											? Colors.dark.warning
+											: Colors.light.warning,
+									}}>
 									{7 - cnapsCardNumber.length} chiffre
 									{7 - cnapsCardNumber.length > 1
 										? "s"
@@ -1373,14 +1500,18 @@ const ProDocs = ({ navigation }) => {
 				<Card
 					style={{
 						padding: 20,
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 						borderRadius: 12,
 						borderWidth: 2,
 						borderColor: docImage
-							? "#10b981"
+							? isDark
+								? Colors.dark.success
+								: Colors.light.success
 							: isDark
-								? "#4b5563"
-								: "#e5e7eb",
+								? Colors.dark.border
+								: Colors.light.border,
 						borderStyle: docImage ? "solid" : "dashed",
 					}}>
 					<VStack space='md'>
@@ -1393,7 +1524,9 @@ const ProDocs = ({ navigation }) => {
 								style={{
 									fontWeight: "600",
 									fontSize: 15,
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Photo / Fichier
 							</Text>
@@ -1405,14 +1538,20 @@ const ProDocs = ({ navigation }) => {
 											width: 32,
 											height: 32,
 											borderRadius: 16,
-											backgroundColor: "#fee2e2",
+											backgroundColor: isDark
+												? Colors.dark.danger20
+												: Colors.light.danger20,
 											justifyContent: "center",
 											alignItems: "center",
 										}}>
 										<Icon
 											as={X}
 											size='sm'
-											style={{ color: "#dc2626" }}
+											style={{
+												color: isDark
+													? Colors.dark.danger
+													: Colors.light.danger,
+											}}
 										/>
 									</Box>
 								</TouchableOpacity>
@@ -1427,22 +1566,26 @@ const ProDocs = ({ navigation }) => {
 										alignItems: "center",
 										padding: 16,
 										backgroundColor: isDark
-											? "#1f2937"
-											: "#f3f4f6",
+											? Colors.dark.elevated
+											: Colors.light.elevated,
 										borderRadius: 8,
 									}}>
 									<Icon
 										as={FileText}
 										size='xl'
-										style={{ color: "#2563eb" }}
+										style={{
+											color: isDark
+												? Colors.dark.tint
+												: Colors.light.tint,
+										}}
 									/>
 									<Text
 										size='sm'
 										style={{
 											flex: 1,
 											color: isDark
-												? "#d1d5db"
-												: "#374151",
+												? Colors.dark.text
+												: Colors.light.text,
 										}}>
 										{docImage.name || "document.pdf"}
 									</Text>
@@ -1471,8 +1614,8 @@ const ProDocs = ({ navigation }) => {
 									height: 120,
 									borderRadius: 8,
 									backgroundColor: isDark
-										? "#1f2937"
-										: "#f9fafb",
+										? Colors.dark.background
+										: Colors.light.background,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
@@ -1480,12 +1623,19 @@ const ProDocs = ({ navigation }) => {
 									as={ImageIcon}
 									size='xl'
 									style={{
-										color: isDark ? "#6b7280" : "#d1d5db",
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 									}}
 								/>
 								<Text
 									size='sm'
-									style={{ color: "#9ca3af", marginTop: 8 }}>
+									style={{
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
+										marginTop: 8,
+									}}>
 									Aucun fichier sélectionné
 								</Text>
 							</Box>
@@ -1510,7 +1660,9 @@ const ProDocs = ({ navigation }) => {
 								style={{
 									flex: 1,
 									borderRadius: 8,
-									backgroundColor: "#16a34a",
+									backgroundColor: isDark
+										? Colors.dark.success
+										: Colors.light.success,
 								}}
 								onPress={() =>
 									navigation?.navigate("CameraScreen", {
@@ -1541,8 +1693,12 @@ const ProDocs = ({ navigation }) => {
 							!isSubmitting &&
 							(selectedCategory !== "cnaps" ||
 								cnapsCardNumber.trim().length === 7)
-								? "#16a34a"
-								: "#d1d5db",
+								? isDark
+									? Colors.dark.success
+									: Colors.light.success
+								: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 					}}>
 					<ButtonIcon as={Upload} />
 					<ButtonText style={{ fontSize: 16, fontWeight: "700" }}>
@@ -1554,7 +1710,9 @@ const ProDocs = ({ navigation }) => {
 					<Text
 						size='sm'
 						style={{
-							color: isDark ? "#9ca3af" : "#6b7280",
+							color: isDark
+								? Colors.dark.muted
+								: Colors.light.muted,
 							textAlign: "center",
 						}}>
 						Veuillez ajouter une photo ou un fichier du document
@@ -1575,7 +1733,9 @@ const ProDocs = ({ navigation }) => {
 			<ScrollView
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.background,
 				}}
 				keyboardShouldPersistTaps='handled'
 				showsVerticalScrollIndicator={false}>
