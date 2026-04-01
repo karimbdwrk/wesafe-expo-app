@@ -356,10 +356,12 @@ const CurriculumScreen = () => {
 				<VStack
 					space='lg'
 					style={{
-						padding: 16,
+						padding: 10,
+						paddingTop: 15,
+						paddingBottom: 30,
 					}}>
 					{/* En-tête */}
-					<HStack
+					{/* <HStack
 						style={{
 							justifyContent: "space-between",
 							alignItems: "center",
@@ -396,14 +398,7 @@ const CurriculumScreen = () => {
 								Mes expériences
 							</Text>
 						</HStack>
-						<Button
-							size='sm'
-							action='primary'
-							onPress={() => setIsSheetOpen(true)}>
-							<ButtonIcon as={Plus} />
-							<ButtonText>Ajouter</ButtonText>
-						</Button>
-					</HStack>
+					</HStack> */}
 
 					{/* DatePickers */}
 					<DateTimePickerModal
@@ -433,7 +428,7 @@ const CurriculumScreen = () => {
 					/>
 
 					{/* Liste des expériences */}
-					<Divider />
+					{/* <Divider /> */}
 
 					{experiences.length === 0 ? (
 						<Card
@@ -443,7 +438,7 @@ const CurriculumScreen = () => {
 								backgroundColor: isDark
 									? Colors.dark.elevated
 									: Colors.light.elevated,
-								padding: 32,
+								padding: 15,
 								alignItems: "center",
 							}}>
 							<VStack space='md' style={{ alignItems: "center" }}>
@@ -490,7 +485,7 @@ const CurriculumScreen = () => {
 											? Colors.dark.elevated
 											: Colors.light.cardBackground,
 									}}>
-									<VStack space='md' style={{ padding: 16 }}>
+									<VStack space='md' style={{ padding: 5 }}>
 										{/* En-tête de l'expérience */}
 										<HStack
 											style={{
@@ -524,15 +519,20 @@ const CurriculumScreen = () => {
 													</Text>
 												)}
 											</VStack>
-											<HStack space='sm'>
+											<HStack
+												space='xs'
+												// style={{
+												// 	backgroundColor: "pink",
+												// }}
+											>
 												<TouchableOpacity
 													onPress={() =>
 														handleEdit(exp)
 													}>
 													<Box
 														style={{
-															padding: 8,
-															borderRadius: 8,
+															padding: 5,
+															borderRadius: 5,
 															backgroundColor:
 																isDark
 																	? Colors
@@ -543,7 +543,7 @@ const CurriculumScreen = () => {
 																			.elevated,
 														}}>
 														<Edit
-															size={18}
+															size={14}
 															color={
 																isDark
 																	? Colors
@@ -562,8 +562,8 @@ const CurriculumScreen = () => {
 													}>
 													<Box
 														style={{
-															padding: 8,
-															borderRadius: 8,
+															padding: 5,
+															borderRadius: 5,
 															backgroundColor:
 																isDark
 																	? Colors
@@ -574,7 +574,7 @@ const CurriculumScreen = () => {
 																			.elevated,
 														}}>
 														<Trash2
-															size={18}
+															size={14}
 															color={
 																isDark
 																	? Colors
@@ -825,9 +825,14 @@ const CurriculumScreen = () => {
 							width: "100%",
 							justifyContent: "space-between",
 							alignItems: "center",
-							paddingHorizontal: 16,
+							paddingHorizontal: 5,
 							paddingTop: 8,
 							paddingBottom: 16,
+							marginBottom: 15,
+							borderBottomWidth: 1,
+							borderBottomColor: isDark
+								? Colors.dark.border
+								: Colors.light.border,
 						}}>
 						<HStack space='sm' style={{ alignItems: "center" }}>
 							<Box
@@ -885,7 +890,7 @@ const CurriculumScreen = () => {
 							keyboardShouldPersistTaps='handled'
 							showsVerticalScrollIndicator={false}
 							contentContainerStyle={{
-								paddingHorizontal: 16,
+								paddingHorizontal: 5,
 								paddingBottom: 48,
 							}}>
 							<VStack space='md'>
@@ -1224,6 +1229,31 @@ const CurriculumScreen = () => {
 					</KeyboardAvoidingView>
 				</ActionsheetContent>
 			</Actionsheet>
+
+			{/* FAB — Ajouter une expérience */}
+			<TouchableOpacity
+				onPress={() => setIsSheetOpen(true)}
+				activeOpacity={0.85}
+				style={{
+					position: "absolute",
+					bottom: 32,
+					right: 24,
+					width: 42,
+					height: 42,
+					borderRadius: 21,
+					backgroundColor: isDark
+						? Colors.dark.tint
+						: Colors.light.tint,
+					justifyContent: "center",
+					alignItems: "center",
+					shadowColor: "#000",
+					shadowOffset: { width: 0, height: 4 },
+					shadowOpacity: 0.2,
+					shadowRadius: 8,
+					elevation: 6,
+				}}>
+				<Plus size={18} color='#fff' />
+			</TouchableOpacity>
 		</KeyboardAvoidingView>
 	);
 };
