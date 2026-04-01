@@ -1,12 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useRouter } from "expo-router";
-import { ScrollView } from "react-native";
+import { ScrollView, TouchableOpacity } from "react-native";
 
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
-import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
-import { Button, ButtonText } from "@/components/ui/button";
+import { Box } from "@/components/ui/box";
 import { Badge, BadgeIcon, BadgeText } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -16,8 +15,10 @@ import { useDataContext } from "@/context/DataContext";
 import { JOB_REQUIREMENTS } from "@/constants/jobrequirements";
 import { CNAPS_CARDS } from "@/constants/cnapscards";
 import { DIPLOMAS } from "@/constants/diplomas";
+import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
-import { Sparkles, Info, IdCard, MapPin, Zap } from "lucide-react-native";
+import { Info, IdCard, MapPin, Zap, ChevronRight } from "lucide-react-native";
 
 const REGION_NAMES = {
 	11: "Île-de-France",
@@ -44,6 +45,7 @@ const LastMinuteJobs = () => {
 	const { user, userProfile } = useAuth();
 	const { getAll } = useDataContext();
 	const router = useRouter();
+	const { isDark } = useTheme();
 
 	const [suggestedJobs, setSuggestedJobs] = useState([]);
 	const [eligibleCategories, setEligibleCategories] = useState([]);
@@ -168,129 +170,213 @@ const LastMinuteJobs = () => {
 		loadSuggestedJobs();
 	}, [loadSuggestedJobs]);
 
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textMuted = isDark ? Colors.dark.muted : Colors.light.muted;
+	const cardBg = isDark
+		? Colors.dark.background
+		: Colors.light.cardBackground;
+	const borderColor = isDark ? Colors.dark.border : Colors.light.border;
+
 	if (loading) {
 		return (
-			<VStack style={{ padding: 20, alignItems: "center" }}>
+			<Box
+				style={{
+					backgroundColor: cardBg,
+					borderRadius: 12,
+					borderWidth: 1,
+					borderColor,
+					padding: 14,
+					alignItems: "center",
+					minHeight: 80,
+					justifyContent: "center",
+				}}>
 				<Spinner size='small' />
-			</VStack>
+			</Box>
 		);
 	}
 
 	return (
-		<VStack style={{ gap: 12 }}>
-			<VStack style={{ alignItems: "flex-start", gap: 4 }}>
+		<Box
+			style={{
+				backgroundColor: cardBg,
+				borderRadius: 12,
+				borderWidth: 1,
+				borderColor,
+				padding: 14,
+			}}>
+			<VStack space='sm'>
+				{/* Header */}
 				<HStack
-					space='sm'
-					alignItems='center'
-					justifyContent='flex-start'
-					width='100%'>
-					<Zap size={18} color='orange' />
-					<Heading size='sm'>Offres Last Minute</Heading>
+					style={{
+						justifyContent: "space-between",
+						alignItems: "center",
+					}}>
+					<HStack space='sm' style={{ alignItems: "center" }}>
+						<Box
+							style={{
+								width: 28,
+								height: 28,
+								borderRadius: 8,
+								backgroundColor: isDark ? "#3d2002" : "#fff7ed",
+								justifyContent: "center",
+								alignItems: "center",
+							}}>
+							<Zap size={14} color='#f97316' />
+						</Box>
+						<Text
+							size='md'
+							style={{
+								fontWeight: "700",
+								color: textPrimary,
+								fontFamily: "Inter_700Bold",
+							}}>
+							Offres Last Minute
+						</Text>
+					</HStack>
+					{/* <TouchableOpacity
+						onPress={() => router.push("suggestions")}
+						activeOpacity={0.7}>
+						<HStack space='xs' style={{ alignItems: "center" }}>
+							<Text
+								size='sm'
+								style={{ color: tint, fontWeight: "500" }}>
+								Voir tout
+							</Text>
+							<ChevronRight size={14} color={tint} />
+						</HStack>
+					</TouchableOpacity> */}
 				</HStack>
-				<Text size='xs' color='muted' style={{ fontStyle: "italic" }}>
-					Suggestions d'emplois basées sur votre région et vos
-					qualifications.
-				</Text>
-			</VStack>
 
-			{(userCnapsList.length > 0 ||
-				userDiplomasList.length > 0 ||
-				userProfile?.region_code) && (
-				<ScrollView
-					horizontal
-					showsHorizontalScrollIndicator={false}
-					contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
-					{userProfile?.region_code && (
-						<Badge size='sm' variant='solid' action='info'>
-							<BadgeIcon as={MapPin} className='mr-1' />
-							<BadgeText>
-								{REGION_NAMES[userProfile.region_code] ??
-									userProfile.region_code}
-							</BadgeText>
-						</Badge>
-					)}
-					{userCnapsList.map((type, id) => {
-						const card = CNAPS_CARDS[type?.toLowerCase()];
-						return (
-							<Badge
-								key={`cnaps-${id}-${type}`}
-								size='sm'
-								variant='solid'
-								action='info'>
-								<BadgeIcon as={IdCard} className='mr-1' />
-								<BadgeText>{card?.acronym ?? type}</BadgeText>
-							</Badge>
-						);
-					})}
-					{userDiplomasList.map((type) => {
-						const diploma = DIPLOMAS[type?.toLowerCase()];
-						return (
-							<Badge
-								key={`diploma-${type}`}
-								size='sm'
-								variant='solid'
-								action='success'>
-								<BadgeIcon as={IdCard} className='mr-1' />
+				{/* Badges qualifications */}
+				{(userCnapsList.length > 0 ||
+					userDiplomasList.length > 0 ||
+					userProfile?.region_code) && (
+					<ScrollView
+						horizontal
+						showsHorizontalScrollIndicator={false}
+						contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
+						{userProfile?.region_code && (
+							<Badge size='sm' variant='solid' action='info'>
+								<BadgeIcon as={MapPin} className='mr-1' />
 								<BadgeText>
-									{diploma?.acronym ?? type}
+									{REGION_NAMES[userProfile.region_code] ??
+										userProfile.region_code}
 								</BadgeText>
 							</Badge>
-						);
-					})}
-				</ScrollView>
-			)}
+						)}
+						{userCnapsList.map((type, id) => {
+							const card = CNAPS_CARDS[type?.toLowerCase()];
+							return (
+								<Badge
+									key={`cnaps-${id}-${type}`}
+									size='sm'
+									variant='solid'
+									action='info'>
+									<BadgeIcon as={IdCard} className='mr-1' />
+									<BadgeText>
+										{card?.acronym ?? type}
+									</BadgeText>
+								</Badge>
+							);
+						})}
+						{userDiplomasList.map((type) => {
+							const diploma = DIPLOMAS[type?.toLowerCase()];
+							return (
+								<Badge
+									key={`diploma-${type}`}
+									size='sm'
+									variant='solid'
+									action='success'>
+									<BadgeIcon as={IdCard} className='mr-1' />
+									<BadgeText>
+										{diploma?.acronym ?? type}
+									</BadgeText>
+								</Badge>
+							);
+						})}
+					</ScrollView>
+				)}
 
-			{suggestedJobs.length === 0 ? (
-				<Badge size='md' variant='solid' action='muted'>
-					<BadgeIcon as={Info} className='mr-2' />
-					<BadgeText>
-						Aucune offre correspondant à votre profil
-					</BadgeText>
-				</Badge>
-			) : (
-				<VStack style={{ gap: 12 }}>
-					{suggestedJobs.map((job) => (
-						<JobCard
-							key={job.id}
-							id={job.id}
-							title={job.title}
-							category={job.category}
-							company_id={job.company_id}
-							company_name={job.companies?.name}
-							city={job.city}
-							postcode={job.postcode}
-							department={job.department_code}
-							isLastMinute={job.isLastMinute}
-							logo={job.companies?.logo_url}
-							contract_type={job?.contract_type}
-							working_time={job?.work_time}
-							salary_hourly={job?.salary_hourly}
-							salary_amount={job?.salary_amount}
-							salary_min={job?.salary_min}
-							salary_max={job?.salary_max}
-							salary_type={job?.salary_type}
-							salary_monthly_fixed={job?.salary_monthly_fixed}
-							salary_monthly_min={job?.salary_monthly_min}
-							salary_monthly_max={job?.salary_monthly_max}
-							salary_annual_fixed={job?.salary_annual_fixed}
-							salary_annual_min={job?.salary_annual_min}
-							salary_annual_max={job?.salary_annual_max}
-							vacations={job?.vacations}
-							date_mode={job?.date_mode}
-							start_date_asap={job?.start_date_asap}
-							start_date={job?.start_date}
-							end_date={job?.end_date}
-							sponsorship_date={job?.sponsorship_date}
-						/>
-					))}
-				</VStack>
-			)}
-			<Button
-				onPress={() => router.push("suggestions")}
-				variant='outline'>
-				<ButtonText>Voir toutes les offres</ButtonText>
-			</Button>
-		</VStack>
+				{/* Contenu */}
+				{suggestedJobs.length === 0 ? (
+					<Text
+						size='sm'
+						style={{
+							color: textMuted,
+							paddingVertical: 8,
+							textAlign: "center",
+						}}>
+						Aucune offre Last Minute pour votre profil
+					</Text>
+				) : (
+					<VStack style={{ gap: 8 }}>
+						{suggestedJobs.map((job) => (
+							<JobCard
+								key={job.id}
+								id={job.id}
+								title={job.title}
+								category={job.category}
+								company_id={job.company_id}
+								company_name={job.companies?.name}
+								city={job.city}
+								postcode={job.postcode}
+								department={job.department_code}
+								isLastMinute={job.isLastMinute}
+								logo={job.companies?.logo_url}
+								contract_type={job?.contract_type}
+								working_time={job?.work_time}
+								salary_hourly={job?.salary_hourly}
+								salary_amount={job?.salary_amount}
+								salary_min={job?.salary_min}
+								salary_max={job?.salary_max}
+								salary_type={job?.salary_type}
+								salary_monthly_fixed={job?.salary_monthly_fixed}
+								salary_monthly_min={job?.salary_monthly_min}
+								salary_monthly_max={job?.salary_monthly_max}
+								salary_annual_fixed={job?.salary_annual_fixed}
+								salary_annual_min={job?.salary_annual_min}
+								salary_annual_max={job?.salary_annual_max}
+								vacations={job?.vacations}
+								date_mode={job?.date_mode}
+								start_date_asap={job?.start_date_asap}
+								start_date={job?.start_date}
+								end_date={job?.end_date}
+								sponsorship_date={job?.sponsorship_date}
+							/>
+						))}
+					</VStack>
+				)}
+
+				{/* CTA */}
+				<TouchableOpacity
+					onPress={() => router.push("suggestions")}
+					activeOpacity={0.75}
+					style={{
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
+						borderRadius: 10,
+						paddingVertical: 11,
+						alignItems: "center",
+						borderWidth: 1,
+						borderColor: isDark
+							? Colors.dark.border
+							: Colors.light.border,
+						marginTop: 4,
+					}}>
+					<Text
+						size='sm'
+						style={{
+							fontWeight: "600",
+							color: textPrimary,
+							fontSize: 14,
+						}}>
+						Voir toutes les offres Last Minute
+					</Text>
+				</TouchableOpacity>
+			</VStack>
+		</Box>
 	);
 };
 
