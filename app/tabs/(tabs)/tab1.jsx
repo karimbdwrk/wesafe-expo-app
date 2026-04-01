@@ -553,7 +553,6 @@ export default function Tab1() {
 							</Text>
 							<Heading
 								size='2xl'
-								className='font-extrabold'
 								style={{
 									color: isDark
 										? Colors.dark.text
