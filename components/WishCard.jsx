@@ -3,6 +3,7 @@ import { TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { toast } from "sonner-native";
@@ -94,12 +95,16 @@ const WishCard = ({
 			activeOpacity={0.7}>
 			<Card
 				style={{
-					backgroundColor: isDark ? "#374151" : "#ffffff",
+					backgroundColor: isDark
+						? Colors.dark.cardBackground
+						: Colors.light.cardBackground,
 					borderRadius: 8,
 					padding: 16,
 					marginBottom: 12,
 					borderWidth: 1,
-					borderColor: isDark ? "#4b5563" : "#e5e7eb",
+					borderColor: isDark
+						? Colors.dark.border
+						: Colors.light.border,
 				}}>
 				{isLastMinute && (
 					<Timer
@@ -123,10 +128,10 @@ const WishCard = ({
 							size='xl'
 							style={{
 								color: isInWishlist
-									? "#3b82f6"
+									? Colors.light.tint
 									: isDark
-										? "#9ca3af"
-										: "#6b7280",
+										? Colors.dark.muted
+										: Colors.light.muted,
 							}}
 						/>
 					</TouchableOpacity>
@@ -135,7 +140,9 @@ const WishCard = ({
 					<Heading
 						size='lg'
 						style={{
-							color: isDark ? "#f3f4f6" : "#111827",
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
 							lineHeight: 24,
 						}}>
 						{title}
@@ -160,7 +167,9 @@ const WishCard = ({
 								<Text
 									size='md'
 									style={{
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 										fontWeight: "500",
 									}}>
 									{company_name || "Entreprise"}
@@ -177,8 +186,8 @@ const WishCard = ({
 										size='sm'
 										style={{
 											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										{city + " (" + postcode + ")"}
 									</Text>
