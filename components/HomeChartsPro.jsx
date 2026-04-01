@@ -609,7 +609,7 @@ const HomeChartsPro = () => {
 	}
 
 	return (
-		<VStack space='lg'>
+		<VStack space='lg' style={{ paddingBottom: 30 }}>
 			{/* KPIs */}
 			<VStack space='sm'>
 				{/* Row 1 */}
