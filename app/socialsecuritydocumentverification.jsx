@@ -41,6 +41,7 @@ import { useDataContext } from "@/context/DataContext";
 import { SUBMIT_SOCIAL_SECURITY_DOCUMENT } from "@/utils/activityEvents";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const DOCUMENTS_BUCKET = "social-security-documents";
@@ -240,7 +241,9 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 				ref={scrollViewRef}
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					backgroundColor: isDark
+						? Colors.dark.background
+						: Colors.light.background,
 				}}
 				keyboardShouldPersistTaps='handled'
 				showsVerticalScrollIndicator={false}>
@@ -251,14 +254,18 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 							<Heading
 								size='2xl'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Sécurité Sociale
 							</Heading>
 							<Text
 								size='md'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 								}}>
 								Téléchargez votre Carte Vitale ou une
 								attestation de Sécurité Sociale
@@ -271,8 +278,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 								style={{
 									padding: 20,
 									backgroundColor: isDark
-										? "#374151"
-										: "#ffffff",
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 									borderRadius: 12,
 									shadowColor: "#000",
 									shadowOffset: { width: 0, height: 2 },
@@ -291,8 +298,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 											style={{
 												fontWeight: "600",
 												color: isDark
-													? "#f3f4f6"
-													: "#111827",
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											Document actuel
 										</Text>
@@ -315,15 +322,15 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 												size='sm'
 												style={{
 													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+														? Colors.dark.muted
+														: Colors.light.muted,
 												}}
 											/>
 											<Text
 												style={{
 													color: isDark
-														? "#d1d5db"
-														: "#374151",
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												{getDocumentLabel(uploadedType)}
 											</Text>
@@ -339,15 +346,16 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 													size='sm'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}
 												/>
 												<Text
 													style={{
 														color: isDark
-															? "#d1d5db"
-															: "#374151",
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													N°{" "}
 													{formatSSN(
@@ -367,7 +375,9 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 									size='lg'
 									style={{
 										fontWeight: "600",
-										color: isDark ? "#f3f4f6" : "#111827",
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
 									}}>
 									Choisissez votre document
 								</Text>
@@ -381,13 +391,13 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 										style={{
 											padding: 20,
 											backgroundColor: isDark
-												? "#374151"
-												: "#ffffff",
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
 											borderRadius: 12,
 											borderWidth: 2,
 											borderColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
+												? Colors.dark.border
+												: Colors.light.border,
 										}}>
 										<HStack
 											space='md'
@@ -397,14 +407,23 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 													width: 48,
 													height: 48,
 													borderRadius: 24,
-													backgroundColor: "#dcfce7",
+													backgroundColor: isDark
+														? Colors.dark.success20
+														: Colors.light
+																.success20,
 													justifyContent: "center",
 													alignItems: "center",
 												}}>
 												<Icon
 													as={CreditCard}
 													size='xl'
-													style={{ color: "#16a34a" }}
+													style={{
+														color: isDark
+															? Colors.dark
+																	.success
+															: Colors.light
+																	.success,
+													}}
 												/>
 											</Box>
 											<VStack
@@ -415,8 +434,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 													style={{
 														fontWeight: "600",
 														color: isDark
-															? "#f3f4f6"
-															: "#111827",
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													Carte Vitale
 												</Text>
@@ -424,8 +443,9 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 													size='sm'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}>
 													Carte d'assurance maladie
 													française
@@ -446,13 +466,13 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 										style={{
 											padding: 20,
 											backgroundColor: isDark
-												? "#374151"
-												: "#ffffff",
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
 											borderRadius: 12,
 											borderWidth: 2,
 											borderColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
+												? Colors.dark.border
+												: Colors.light.border,
 										}}>
 										<HStack
 											space='md'
@@ -462,14 +482,20 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 													width: 48,
 													height: 48,
 													borderRadius: 24,
-													backgroundColor: "#dbeafe",
+													backgroundColor: isDark
+														? Colors.dark.tint20
+														: Colors.light.tint20,
 													justifyContent: "center",
 													alignItems: "center",
 												}}>
 												<Icon
 													as={FileText}
 													size='xl'
-													style={{ color: "#2563eb" }}
+													style={{
+														color: isDark
+															? Colors.dark.tint
+															: Colors.light.tint,
+													}}
 												/>
 											</Box>
 											<VStack
@@ -480,8 +506,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 													style={{
 														fontWeight: "600",
 														color: isDark
-															? "#f3f4f6"
-															: "#111827",
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													Attestation de Sécurité
 													Sociale
@@ -490,8 +516,9 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 													size='sm'
 													style={{
 														color: isDark
-															? "#9ca3af"
-															: "#6b7280",
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													}}>
 													Document officiel
 													d'attestation
@@ -510,8 +537,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 									style={{
 										padding: 16,
 										backgroundColor: isDark
-											? "#065f46"
-											: "#dcfce7",
+											? Colors.dark.success20
+											: Colors.light.success20,
 										borderRadius: 12,
 									}}>
 									<HStack
@@ -532,8 +559,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 												size='lg'
 												style={{
 													color: isDark
-														? "#d1fae5"
-														: "#16a34a",
+														? Colors.dark.success
+														: Colors.light.success,
 												}}
 											/>
 											<Text
@@ -541,8 +568,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 												style={{
 													fontWeight: "600",
 													color: isDark
-														? "#d1fae5"
-														: "#14532d",
+														? Colors.dark.success
+														: Colors.light.success,
 												}}>
 												{getDocumentLabel(documentType)}
 											</Text>
@@ -581,8 +608,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 									style={{
 										padding: 20,
 										backgroundColor: isDark
-											? "#374151"
-											: "#ffffff",
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
 										borderRadius: 12,
 										shadowColor: "#000",
 										shadowOffset: { width: 0, height: 2 },
@@ -599,8 +626,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 												size='md'
 												style={{
 													color: isDark
-														? "#60a5fa"
-														: "#2563eb",
+														? Colors.dark.tint
+														: Colors.light.tint,
 												}}
 											/>
 											<Text
@@ -608,8 +635,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 												style={{
 													fontWeight: "600",
 													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Numéro de sécurité sociale
 											</Text>
@@ -619,13 +646,16 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 											size='md'
 											style={{
 												backgroundColor: isDark
-													? "#1f2937"
-													: "#ffffff",
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
 												borderColor: ssnError
-													? "#ef4444"
+													? isDark
+														? Colors.dark.danger
+														: Colors.light.danger
 													: isDark
-														? "#4b5563"
-														: "#e5e7eb",
+														? Colors.dark.border
+														: Colors.light.border,
 											}}>
 											<InputField
 												placeholder='1 23 45 67 890 123 45'
@@ -647,8 +677,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 												}}
 												style={{
 													color: isDark
-														? "#f3f4f6"
-														: "#111827",
+														? Colors.dark.text
+														: Colors.light.text,
 													letterSpacing: 1,
 												}}
 											/>
@@ -656,7 +686,11 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 										{ssnError && (
 											<Text
 												size='sm'
-												style={{ color: "#ef4444" }}>
+												style={{
+													color: isDark
+														? Colors.dark.danger
+														: Colors.light.danger,
+												}}>
 												{ssnError}
 											</Text>
 										)}
@@ -671,8 +705,12 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 									style={{
 										borderRadius: 12,
 										backgroundColor: documentImage
-											? "#16a34a"
-											: "#d1d5db",
+											? isDark
+												? Colors.dark.success
+												: Colors.light.success
+											: isDark
+												? Colors.dark.border
+												: Colors.light.border,
 									}}>
 									<ButtonIcon as={Upload} />
 									<ButtonText
@@ -689,8 +727,8 @@ export default function SocialSecurityDocumentVerification({ navigation }) {
 										size='sm'
 										style={{
 											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+												? Colors.dark.muted
+												: Colors.light.muted,
 											textAlign: "center",
 										}}>
 										Veuillez ajouter une photo du document
@@ -714,10 +752,18 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 		<Card
 			style={{
 				padding: 20,
-				backgroundColor: isDark ? "#374151" : "#ffffff",
+				backgroundColor: isDark
+					? Colors.dark.cardBackground
+					: Colors.light.cardBackground,
 				borderRadius: 12,
 				borderWidth: 2,
-				borderColor: image ? "#10b981" : isDark ? "#4b5563" : "#e5e7eb",
+				borderColor: image
+					? isDark
+						? Colors.dark.success
+						: Colors.light.success
+					: isDark
+						? Colors.dark.border
+						: Colors.light.border,
 				borderStyle: image ? "solid" : "dashed",
 			}}>
 			<VStack space='md'>
@@ -730,7 +776,9 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 						size='md'
 						style={{
 							fontWeight: "600",
-							color: isDark ? "#f3f4f6" : "#111827",
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
 						}}>
 						{label}
 					</Text>
@@ -741,14 +789,20 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 									width: 32,
 									height: 32,
 									borderRadius: 16,
-									backgroundColor: "#fee2e2",
+									backgroundColor: isDark
+										? Colors.dark.danger20
+										: Colors.light.danger20,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
 								<Icon
 									as={X}
 									size='sm'
-									style={{ color: "#dc2626" }}
+									style={{
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
+									}}
 								/>
 							</Box>
 						</TouchableOpacity>
@@ -760,7 +814,9 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 						style={{
 							borderRadius: 8,
 							overflow: "hidden",
-							backgroundColor: isDark ? "#1f2937" : "#f3f4f6",
+							backgroundColor: isDark
+								? Colors.dark.elevated
+								: Colors.light.elevated,
 						}}>
 						<Image
 							source={{ uri: image.uri }}
@@ -778,19 +834,27 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 						style={{
 							height: 140,
 							borderRadius: 8,
-							backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.background,
 							justifyContent: "center",
 							alignItems: "center",
 						}}>
 						<Icon
 							as={ImageIcon}
 							size='xl'
-							style={{ color: isDark ? "#6b7280" : "#d1d5db" }}
+							style={{
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
+							}}
 						/>
 						<Text
 							size='sm'
 							style={{
-								color: "#9ca3af",
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 								marginTop: 8,
 							}}>
 							Aucun fichier sélectionné
@@ -810,7 +874,9 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 						style={{
 							flex: 1,
 							borderRadius: 8,
-							backgroundColor: "#16a34a",
+							backgroundColor: isDark
+								? Colors.dark.success
+								: Colors.light.success,
 						}}
 						onPress={onCamera}>
 						<ButtonIcon as={Camera} />
