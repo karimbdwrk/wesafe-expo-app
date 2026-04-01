@@ -958,11 +958,14 @@ export default function Tab1() {
 									? Colors.dark.danger
 									: Colors.light.danger,
 							}}>
-							<HStack space='sm' style={{ alignItems: "center" }}>
+							<HStack
+								space='sm'
+								style={{ alignItems: "flex-start" }}>
 								<Icon
 									as={XCircle}
 									size='sm'
 									style={{
+										marginTop: 3,
 										color: isDark
 											? Colors.dark.danger
 											: Colors.light.danger,
@@ -1006,11 +1009,14 @@ export default function Tab1() {
 									? Colors.dark.border
 									: Colors.light.border,
 							}}>
-							<HStack space='sm' style={{ alignItems: "center" }}>
+							<HStack
+								space='sm'
+								style={{ alignItems: "flex-start" }}>
 								<Icon
 									as={Ban}
 									size='sm'
 									style={{
+										marginTop: 3,
 										color: isDark
 											? Colors.dark.muted
 											: Colors.light.muted,
@@ -1054,11 +1060,14 @@ export default function Tab1() {
 									? Colors.dark.warning
 									: Colors.light.warning,
 							}}>
-							<HStack space='sm' style={{ alignItems: "center" }}>
+							<HStack
+								space='sm'
+								style={{ alignItems: "flex-start" }}>
 								<Icon
 									as={Clock}
 									size='sm'
 									style={{
+										marginTop: 3,
 										color: isDark
 											? Colors.dark.warning
 											: Colors.light.warning,
