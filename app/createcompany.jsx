@@ -10,6 +10,7 @@ import {
 	TouchableOpacity,
 	Animated,
 	TextInput,
+	useWindowDimensions,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -64,6 +65,7 @@ const CreateCompany = () => {
 		useAuth();
 	const { create, update, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
+	const { height: screenHeight } = useWindowDimensions();
 
 	const [step, setStep] = useState(1);
 	const [submitting, setSubmitting] = useState(false);
@@ -910,13 +912,16 @@ const CreateCompany = () => {
 						backgroundColor: isDark
 							? Colors.dark.elevated
 							: Colors.light.cardBackground,
-						maxHeight: "80%",
-						paddingBottom: 32,
+						paddingBottom: 0,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
 					</ActionsheetDragIndicatorWrapper>
-					<VStack style={{ width: "100%", paddingTop: 8 }} space='sm'>
+					<VStack
+						style={{
+							width: "100%",
+							paddingTop: 8,
+						}}>
 						<HStack
 							style={{
 								alignItems: "center",
@@ -947,7 +952,10 @@ const CreateCompany = () => {
 						</HStack>
 						<ActionsheetScrollView
 							showsVerticalScrollIndicator={false}
-							style={{ width: "100%" }}>
+							style={{
+								width: "100%",
+								height: screenHeight * 0.5,
+							}}>
 							<VStack space='xs' style={{ paddingBottom: 16 }}>
 								{LANGUAGES.map((lang) => {
 									const isSel = selectedLanguages.includes(
@@ -1058,17 +1066,28 @@ const CreateCompany = () => {
 								})}
 							</VStack>
 						</ActionsheetScrollView>
-						<Button
+						<Box
 							style={{
-								backgroundColor: Colors.light.tint,
-								marginTop: 8,
-							}}
-							onPress={() => setShowLanguageSheet(false)}>
-							<ButtonText
-								style={{ color: Colors.light.cardBackground }}>
-								Confirmer
-							</ButtonText>
-						</Button>
+								paddingHorizontal: 0,
+								paddingTop: 12,
+								paddingBottom: 32,
+								backgroundColor: isDark
+									? Colors.dark.elevated
+									: Colors.light.cardBackground,
+							}}>
+							<Button
+								style={{
+									backgroundColor: Colors.light.tint,
+								}}
+								onPress={() => setShowLanguageSheet(false)}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
+									Valider
+								</ButtonText>
+							</Button>
+						</Box>
 					</VStack>
 				</ActionsheetContent>
 			</Actionsheet>
