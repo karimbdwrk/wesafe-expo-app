@@ -19,7 +19,6 @@ import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Input, InputField, InputSlot, InputIcon } from "@/components/ui/input";
 import { Textarea, TextareaInput } from "@/components/ui/textarea";
 import { Divider } from "@/components/ui/divider";
-import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import {
 	AlertDialog,
 	AlertDialogBackdrop,
@@ -28,19 +27,10 @@ import {
 	AlertDialogBody,
 	AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
-import {
-	Select,
-	SelectTrigger,
-	SelectInput,
-	SelectIcon,
-	SelectPortal,
-	SelectBackdrop,
-	SelectContent,
-	SelectDragIndicator,
-	SelectDragIndicatorWrapper,
-	SelectItem,
-} from "@/components/ui/select";
+
 import { useToast } from "@/components/ui/toast";
+import { Pressable } from "@/components/ui/pressable";
+import { Icon } from "@/components/ui/icon";
 import {
 	Actionsheet,
 	ActionsheetBackdrop,
@@ -48,6 +38,10 @@ import {
 	ActionsheetDragIndicatorWrapper,
 	ActionsheetDragIndicator,
 } from "@/components/ui/actionsheet";
+import {
+	CATEGORY as CATEGORIES,
+	getCategoryLabel,
+} from "@/constants/categories";
 import CustomToast from "@/components/CustomToast";
 import {
 	Plus,
@@ -68,21 +62,18 @@ import Colors from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
-const EXPERIENCE_CATEGORIES = [
-	{ label: "Sécurité", value: "Sécurité" },
-	{ label: "Agent de sécurité", value: "Agent de sécurité" },
-	{ label: "Agent cynophile", value: "Agent cynophile" },
-	{ label: "Rondier", value: "Rondier" },
-	{ label: "SSIAP", value: "SSIAP" },
-	{ label: "Surveillance", value: "Surveillance" },
-	{ label: "Accueil", value: "Accueil" },
-	{ label: "Autre", value: "Autre" },
-];
-
 const CurriculumScreen = () => {
 	const { user } = useAuth();
 	const { getAll, create, update, remove, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const cardBorder = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
 	const toast = useToast();
 	const router = useRouter();
 
@@ -92,6 +83,7 @@ const CurriculumScreen = () => {
 	const [expToDelete, setExpToDelete] = useState(null);
 
 	// États pour le formulaire
+	const [showCategorySheet, setShowCategorySheet] = useState(false);
 	const [isSheetOpen, setIsSheetOpen] = useState(false);
 	const [editingId, setEditingId] = useState(null);
 	const [title, setTitle] = useState("");
@@ -391,9 +383,7 @@ const CurriculumScreen = () => {
 								size='lg'
 								style={{
 									fontWeight: "700",
-									color: isDark
-										? Colors.dark.text
-										: Colors.light.text,
+									color: textPrimary,
 								}}>
 								Mes expériences
 							</Text>
@@ -655,21 +645,35 @@ const CurriculumScreen = () => {
 
 										{/* Catégorie */}
 										{exp.category && (
-											<Badge
-												size='sm'
-												variant='solid'
-												action='info'
+											<Box
 												style={{
 													alignSelf: "flex-start",
+													paddingHorizontal: 8,
+													paddingVertical: 4,
+													borderRadius: 6,
+													borderWidth: 1,
+													borderColor: isDark
+														? Colors.dark.border
+														: Colors.light.border,
+													backgroundColor: isDark
+														? Colors.dark
+																.cardBackground
+														: Colors.light
+																.background,
 												}}>
-												<BadgeIcon
-													as={Briefcase}
-													className='mr-2'
-												/>
-												<BadgeText>
-													{exp.category}
-												</BadgeText>
-											</Badge>
+												<Text
+													style={{
+														fontSize: 12,
+														fontWeight: "700",
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
+													}}>
+													{getCategoryLabel(
+														exp.category,
+													)}
+												</Text>
+											</Box>
 										)}
 
 										{/* Description */}
@@ -715,9 +719,7 @@ const CurriculumScreen = () => {
 							<Heading
 								size='md'
 								style={{
-									color: isDark
-										? Colors.dark.text
-										: Colors.light.text,
+									color: textPrimary,
 								}}>
 								Confirmer la suppression
 							</Heading>
@@ -809,9 +811,7 @@ const CurriculumScreen = () => {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark
-							? Colors.dark.elevated
-							: Colors.light.cardBackground,
+						backgroundColor: cardBg,
 						paddingBottom: 0,
 						maxHeight: "92%",
 					}}>
@@ -859,9 +859,7 @@ const CurriculumScreen = () => {
 								style={{
 									fontWeight: "700",
 									fontSize: 16,
-									color: isDark
-										? Colors.dark.text
-										: Colors.light.text,
+									color: textPrimary,
 								}}>
 								{editingId
 									? "Modifier l'expérience"
@@ -895,24 +893,19 @@ const CurriculumScreen = () => {
 							}}>
 							<VStack space='md'>
 								{/* Titre */}
-								<VStack space='xs'>
+								<VStack space='sm'>
 									<Text
 										size='sm'
 										style={{
-											fontWeight: "500",
-											color: isDark
-												? Colors.dark.textSecondary
-												: Colors.light.textSecondary,
+											fontWeight: "600",
+											color: textPrimary,
 										}}>
 										Titre du poste *
 									</Text>
 									<Input
-										variant='outline'
-										size='md'
 										style={{
-											backgroundColor: isDark
-												? Colors.dark.elevated
-												: Colors.light.elevated,
+											backgroundColor: bg,
+											borderColor: cardBorder,
 										}}>
 										<InputField
 											ref={titleRef}
@@ -923,33 +916,26 @@ const CurriculumScreen = () => {
 												scrollToInput(titleRef)
 											}
 											style={{
-												color: isDark
-													? Colors.dark.text
-													: Colors.light.text,
+												color: textPrimary,
 											}}
 										/>
 									</Input>
 								</VStack>
 
 								{/* Entreprise */}
-								<VStack space='xs'>
+								<VStack space='sm'>
 									<Text
 										size='sm'
 										style={{
-											fontWeight: "500",
-											color: isDark
-												? Colors.dark.textSecondary
-												: Colors.light.textSecondary,
+											fontWeight: "600",
+											color: textPrimary,
 										}}>
 										Entreprise
 									</Text>
 									<Input
-										variant='outline'
-										size='md'
 										style={{
-											backgroundColor: isDark
-												? Colors.dark.elevated
-												: Colors.light.elevated,
+											backgroundColor: bg,
+											borderColor: cardBorder,
 										}}>
 										<InputField
 											ref={companyRef}
@@ -960,33 +946,26 @@ const CurriculumScreen = () => {
 												scrollToInput(companyRef)
 											}
 											style={{
-												color: isDark
-													? Colors.dark.text
-													: Colors.light.text,
+												color: textPrimary,
 											}}
 										/>
 									</Input>
 								</VStack>
 
 								{/* Lieu */}
-								<VStack space='xs'>
+								<VStack space='sm'>
 									<Text
 										size='sm'
 										style={{
-											fontWeight: "500",
-											color: isDark
-												? Colors.dark.textSecondary
-												: Colors.light.textSecondary,
+											fontWeight: "600",
+											color: textPrimary,
 										}}>
 										Lieu
 									</Text>
 									<Input
-										variant='outline'
-										size='md'
 										style={{
-											backgroundColor: isDark
-												? Colors.dark.elevated
-												: Colors.light.elevated,
+											backgroundColor: bg,
+											borderColor: cardBorder,
 										}}>
 										<InputField
 											ref={locationRef}
@@ -997,65 +976,65 @@ const CurriculumScreen = () => {
 												scrollToInput(locationRef)
 											}
 											style={{
-												color: isDark
-													? Colors.dark.text
-													: Colors.light.text,
+												color: textPrimary,
 											}}
 										/>
 									</Input>
 								</VStack>
 
 								{/* Catégorie */}
-								<VStack space='xs'>
+								<VStack space='sm'>
 									<Text
 										size='sm'
 										style={{
-											fontWeight: "500",
-											color: isDark
-												? Colors.dark.textSecondary
-												: Colors.light.textSecondary,
+											fontWeight: "600",
+											color: textPrimary,
 										}}>
 										Catégorie *
 									</Text>
-									<Select
-										selectedValue={category}
-										onValueChange={(value) =>
-											setCategory(value)
+									<TouchableOpacity
+										activeOpacity={0.7}
+										onPress={() =>
+											setShowCategorySheet(true)
 										}>
-										<SelectTrigger
-											variant='outline'
-											size='md'>
-											<SelectInput
-												placeholder='Sélectionner une catégorie'
+										<Box
+											style={{
+												flexDirection: "row",
+												alignItems: "center",
+												justifyContent: "space-between",
+												padding: 12,
+												borderRadius: 8,
+												borderWidth: 1,
+												borderColor: category
+													? Colors.light.tint
+													: cardBorder,
+												backgroundColor: bg,
+											}}>
+											<Text
 												style={{
-													color: isDark
-														? Colors.dark.text
-														: Colors.light.text,
+													flex: 1,
+													color: category
+														? Colors.light.tint
+														: textSecondary,
+													fontWeight: category
+														? "600"
+														: "400",
+												}}>
+												{category
+													? getCategoryLabel(category)
+													: "Sélectionnez une catégorie"}
+											</Text>
+											<Icon
+												as={ChevronDownIcon}
+												size='sm'
+												style={{
+													color: category
+														? Colors.light.tint
+														: textSecondary,
 												}}
 											/>
-											<SelectIcon
-												as={ChevronDownIcon}
-												mr='$3'
-											/>
-										</SelectTrigger>
-										<SelectPortal>
-											<SelectBackdrop />
-											<SelectContent>
-												<SelectDragIndicatorWrapper>
-													<SelectDragIndicator />
-												</SelectDragIndicatorWrapper>
-												{EXPERIENCE_CATEGORIES.map(
-													(cat) => (
-														<SelectItem
-															key={cat.value}
-															label={cat.label}
-															value={cat.value}
-														/>
-													),
-												)}
-											</SelectContent>
-										</SelectPortal>
-									</Select>
+										</Box>
+									</TouchableOpacity>
 								</VStack>
 
 								{/* Dates */}
@@ -1079,14 +1058,11 @@ const CurriculumScreen = () => {
 												)
 											}>
 											<Input
-												variant='outline'
-												size='md'
 												isReadOnly
 												pointerEvents='none'
 												style={{
-													backgroundColor: isDark
-														? Colors.dark.elevated
-														: Colors.light.elevated,
+													backgroundColor: bg,
+													borderColor: cardBorder,
 												}}>
 												<InputField
 													placeholder='Sélectionner'
@@ -1099,13 +1075,14 @@ const CurriculumScreen = () => {
 													}
 													editable={false}
 													style={{
-														color: isDark
-															? Colors.dark.text
-															: Colors.light.text,
+														color: textPrimary,
 													}}
 												/>
 												<InputSlot pr='$3'>
-													<InputIcon as={Calendar} />
+													<InputIcon
+														as={Calendar}
+														color={textSecondary}
+													/>
 												</InputSlot>
 											</Input>
 										</TouchableOpacity>
@@ -1128,14 +1105,11 @@ const CurriculumScreen = () => {
 												setEndDatePickerVisibility(true)
 											}>
 											<Input
-												variant='outline'
-												size='md'
 												isReadOnly
 												pointerEvents='none'
 												style={{
-													backgroundColor: isDark
-														? Colors.dark.elevated
-														: Colors.light.elevated,
+													backgroundColor: bg,
+													borderColor: cardBorder,
 												}}>
 												<InputField
 													placeholder='Actuel'
@@ -1148,13 +1122,14 @@ const CurriculumScreen = () => {
 													}
 													editable={false}
 													style={{
-														color: isDark
-															? Colors.dark.text
-															: Colors.light.text,
+														color: textPrimary,
 													}}
 												/>
 												<InputSlot pr='$3'>
-													<InputIcon as={Calendar} />
+													<InputIcon
+														as={Calendar}
+														color={textSecondary}
+													/>
 												</InputSlot>
 											</Input>
 										</TouchableOpacity>
@@ -1162,14 +1137,12 @@ const CurriculumScreen = () => {
 								</HStack>
 
 								{/* Description */}
-								<VStack space='xs'>
+								<VStack space='sm'>
 									<Text
 										size='sm'
 										style={{
-											fontWeight: "500",
-											color: isDark
-												? Colors.dark.textSecondary
-												: Colors.light.textSecondary,
+											fontWeight: "600",
+											color: textPrimary,
 										}}>
 										Description
 									</Text>
@@ -1177,9 +1150,8 @@ const CurriculumScreen = () => {
 										size='md'
 										style={{
 											minHeight: 100,
-											backgroundColor: isDark
-												? Colors.dark.elevated
-												: Colors.light.elevated,
+											backgroundColor: bg,
+											borderColor: cardBorder,
 										}}>
 										<TextareaInput
 											ref={descriptionRef}
@@ -1193,9 +1165,7 @@ const CurriculumScreen = () => {
 												)
 											}
 											style={{
-												color: isDark
-													? Colors.dark.text
-													: Colors.light.text,
+												color: textPrimary,
 											}}
 										/>
 									</Textarea>
@@ -1205,17 +1175,27 @@ const CurriculumScreen = () => {
 								<HStack space='md' style={{ marginTop: 8 }}>
 									<Button
 										flex={1}
-										action='secondary'
 										variant='outline'
-										onPress={resetForm}>
-										<ButtonText>Annuler</ButtonText>
+										onPress={resetForm}
+										style={{
+											borderColor: cardBorder,
+											backgroundColor: cardBg,
+										}}>
+										<ButtonText
+											style={{ color: textPrimary }}>
+											Annuler
+										</ButtonText>
 									</Button>
 									<Button
 										flex={1}
-										action='primary'
 										onPress={handleSubmit}
-										isDisabled={loading}>
-										<ButtonText>
+										isDisabled={loading}
+										style={{ backgroundColor: tint }}>
+										<ButtonText
+											style={{
+												color: Colors.light
+													.cardBackground,
+											}}>
 											{loading
 												? "Enregistrement..."
 												: editingId
@@ -1227,6 +1207,216 @@ const CurriculumScreen = () => {
 							</VStack>
 						</ScrollView>
 					</KeyboardAvoidingView>
+				</ActionsheetContent>
+			</Actionsheet>
+
+			{/* Actionsheet — Catégorie */}
+			<Actionsheet
+				isOpen={showCategorySheet}
+				onClose={() => setShowCategorySheet(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						backgroundColor: isDark
+							? Colors.dark.background
+							: Colors.light.cardBackground,
+						maxHeight: "80%",
+						paddingBottom: 32,
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack style={{ width: "100%", paddingTop: 8 }} space='sm'>
+						<Text
+							style={{
+								fontWeight: "700",
+								fontSize: 17,
+								color: isDark
+									? Colors.dark.text
+									: Colors.light.text,
+								paddingHorizontal: 4,
+								marginBottom: 8,
+							}}>
+							Catégorie du poste
+						</Text>
+						<ScrollView
+							showsVerticalScrollIndicator={false}
+							style={{ width: "100%" }}>
+							<VStack space='lg' style={{ paddingBottom: 60 }}>
+								{(() => {
+									const CATEGORY_GROUP_LABELS = {
+										surveillance_humaine:
+											"Surveillance humaine",
+										securite_incendie: "Sécurité Incendie",
+										cynophile: "Cynophile",
+										protection_rapprochee:
+											"Protection Rapprochée",
+										transport_fonds: "Transport de Fonds",
+										videoprotection: "Vidéoprotection",
+										surete_aeroportuaire:
+											"Sûreté Aéroportuaire",
+										encadrement: "Encadrement",
+										specialisation: "Spécialisations",
+									};
+									const grouped = CATEGORIES.reduce(
+										(acc, cat) => {
+											if (!acc[cat.category])
+												acc[cat.category] = [];
+											acc[cat.category].push(cat);
+											return acc;
+										},
+										{},
+									);
+									return Object.entries(grouped).map(
+										([groupKey, items]) => (
+											<VStack key={groupKey} space='sm'>
+												<Text
+													style={{
+														fontSize: 12,
+														fontWeight: "700",
+														letterSpacing: 0.8,
+														textTransform:
+															"uppercase",
+														color: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
+														paddingHorizontal: 4,
+													}}>
+													{CATEGORY_GROUP_LABELS[
+														groupKey
+													] || groupKey}
+												</Text>
+												<VStack space='xs'>
+													{items.map((cat) => {
+														const isSelected =
+															category === cat.id;
+														return (
+															<Pressable
+																key={cat.id}
+																onPress={() => {
+																	setCategory(
+																		cat.id,
+																	);
+																	setShowCategorySheet(
+																		false,
+																	);
+																}}>
+																<Box
+																	style={{
+																		padding: 14,
+																		borderRadius: 10,
+																		borderWidth: 2,
+																		borderColor:
+																			isSelected
+																				? Colors
+																						.light
+																						.tint
+																				: isDark
+																					? Colors
+																							.dark
+																							.border
+																					: Colors
+																							.light
+																							.border,
+																		backgroundColor:
+																			isSelected
+																				? isDark
+																					? Colors
+																							.dark
+																							.tint
+																					: "#dbeafe"
+																				: isDark
+																					? Colors
+																							.dark
+																							.cardBackground
+																					: Colors
+																							.light
+																							.background,
+																	}}>
+																	<HStack
+																		space='sm'
+																		style={{
+																			alignItems:
+																				"center",
+																		}}>
+																		<Box
+																			style={{
+																				paddingHorizontal: 8,
+																				paddingVertical: 3,
+																				borderRadius: 6,
+																				backgroundColor:
+																					isSelected
+																						? Colors
+																								.light
+																								.tint
+																						: isDark
+																							? Colors
+																									.dark
+																									.border
+																							: Colors
+																									.light
+																									.border,
+																			}}>
+																			<Text
+																				style={{
+																					fontSize: 11,
+																					fontWeight:
+																						"800",
+																					color: isSelected
+																						? Colors
+																								.light
+																								.cardBackground
+																						: isDark
+																							? Colors
+																									.dark
+																									.muted
+																							: Colors
+																									.light
+																									.muted,
+																				}}>
+																				{
+																					cat.acronym
+																				}
+																			</Text>
+																		</Box>
+																		<Text
+																			style={{
+																				flex: 1,
+																				fontSize: 14,
+																				color: isSelected
+																					? Colors
+																							.light
+																							.tint
+																					: isDark
+																						? Colors
+																								.dark
+																								.text
+																						: Colors
+																								.light
+																								.text,
+																				fontWeight:
+																					isSelected
+																						? "600"
+																						: "400",
+																			}}>
+																			{
+																				cat.name
+																			}
+																		</Text>
+																	</HStack>
+																</Box>
+															</Pressable>
+														);
+													})}
+												</VStack>
+											</VStack>
+										),
+									);
+								})()}
+							</VStack>
+						</ScrollView>
+					</VStack>
 				</ActionsheetContent>
 			</Actionsheet>
 
