@@ -3,11 +3,13 @@ import {
 	Image,
 	KeyboardAvoidingView,
 	Platform,
+	Pressable,
 	ScrollView,
 	ActivityIndicator,
 	Alert,
 	TouchableOpacity,
 	Animated,
+	useWindowDimensions,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
@@ -27,19 +29,27 @@ import {
 	ActionsheetContent,
 	ActionsheetDragIndicator,
 	ActionsheetDragIndicatorWrapper,
+	ActionsheetScrollView,
 } from "@/components/ui/actionsheet";
 import {
 	ChevronLeft,
 	ChevronRight,
-	Plus,
-	X,
+	ChevronDown,
 	MapPin,
+	Languages,
+	Car,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
+import { createSupabaseClient } from "@/lib/supabase";
 import { useDataContext } from "@/context/DataContext";
 import { CREATE_PROFILE } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
+import { DRIVING_LICENSES } from "@/constants/drivinglicences";
+import { languages as LANGUAGES } from "@/constants/languages";
+import { departements } from "@/constants/departements";
+import { regions } from "@/constants/regions";
 
 const GENDERS = [
 	{ label: "Homme", value: "male" },
@@ -48,15 +58,40 @@ const GENDERS = [
 
 const CreateProfile = () => {
 	const router = useRouter();
-	const { user, setJustSignup, loadSession, role } = useAuth();
-	const { create, trackActivity } = useDataContext();
+	const { user, setJustSignup, loadSession, role, accessToken } = useAuth();
+	const { create, getAll, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
+	const { height: screenHeight } = useWindowDimensions();
 
 	const [step, setStep] = useState(1);
 	const [submitting, setSubmitting] = useState(false);
 
 	const PROGRESS_VALUES = [0, 33, 67, 100];
 	const progressAnim = useRef(new Animated.Value(0)).current;
+
+	const scrollRef = useRef(null);
+	const firstnameRef = useRef(null);
+	const lastnameRef = useRef(null);
+	const postcodeRef = useRef(null);
+	const heightRef = useRef(null);
+	const weightRef = useRef(null);
+
+	const scrollToInput = (ref) => {
+		if (ref?.current && scrollRef.current) {
+			setTimeout(() => {
+				ref.current.measureLayout(
+					scrollRef.current,
+					(x, y) => {
+						scrollRef.current.scrollTo({
+							y: y - 100,
+							animated: true,
+						});
+					},
+					() => {},
+				);
+			}, 100);
+		}
+	};
 
 	useEffect(() => {
 		Animated.timing(progressAnim, {
@@ -98,10 +133,26 @@ const CreateProfile = () => {
 	// Step 3
 	const [height, setHeight] = useState("");
 	const [weight, setWeight] = useState("");
-	const [licenseInput, setLicenseInput] = useState("");
-	const [licenses, setLicenses] = useState([]);
-	const [languageInput, setLanguageInput] = useState("");
+	const [drivingLicenses, setDrivingLicenses] = useState([]);
+	const [showDrivingLicenseSheet, setShowDrivingLicenseSheet] =
+		useState(false);
 	const [languages, setLanguages] = useState([]);
+	const [showLanguageSheet, setShowLanguageSheet] = useState(false);
+
+	const toCommune = (city) => {
+		const dept = departements.find((d) => d.code === city.department_code);
+		const reg = regions.find((r) => r.code === city.region_code);
+		return {
+			nom: city.nom,
+			code: city.code,
+			codesPostaux: [city.postcode],
+			codeDepartement: city.department_code,
+			codeRegion: city.region_code,
+			departement: { nom: dept?.nom || city.department || "" },
+			region: { nom: reg?.nom || city.region || "" },
+			centre: { coordinates: [city.longitude, city.latitude] },
+		};
+	};
 
 	const fetchCommunes = async () => {
 		if (postalCode.length < 5) {
@@ -114,6 +165,26 @@ const CreateProfile = () => {
 		setCommuneError("");
 		setCommunes([]);
 		setSelectedCommune(null);
+
+		// 1. Vérifier le cache Supabase
+		try {
+			const { data: cached } = await getAll(
+				"cities",
+				"*",
+				`&postcode=eq.${postalCode}`,
+				1,
+				50,
+			);
+			if (cached && cached.length > 0) {
+				setCommunes(cached.map(toCommune));
+				setFetchingCommunes(false);
+				return;
+			}
+		} catch (cacheErr) {
+			console.warn("Cache cities inaccessible:", cacheErr?.message);
+		}
+
+		// 2. Fallback API geo.gouv.fr
 		try {
 			const res = await fetch(
 				`https://geo.api.gouv.fr/communes?codePostal=${postalCode}&fields=nom,code,codesPostaux,codeDepartement,codeRegion,departement,region,centre&format=json`,
@@ -123,6 +194,31 @@ const CreateProfile = () => {
 				setCommuneError("Aucune ville trouvée pour ce code postal");
 			} else {
 				setCommunes(data);
+				// 3. Sauvegarder dans Supabase en batch (sans bloquer l'affichage)
+				const supabase = createSupabaseClient(accessToken);
+				supabase
+					.from("cities")
+					.insert(
+						data.map((c) => ({
+							postcode: postalCode,
+							code: c.code,
+							nom: c.nom,
+							department_code: c.codeDepartement,
+							region_code: c.codeRegion,
+							latitude: c.centre?.coordinates?.[1] ?? null,
+							longitude: c.centre?.coordinates?.[0] ?? null,
+						})),
+					)
+					.then((res) => {
+						console.log("upsert cities response:", res);
+						if (res.error)
+							console.warn(
+								"Erreur save cities:",
+								res.error.message,
+								res.error.code,
+								res.error.details,
+							);
+					});
 			}
 		} catch {
 			setCommuneError("Erreur lors de la recherche");
@@ -131,17 +227,7 @@ const CreateProfile = () => {
 		}
 	};
 
-	const addLicense = () => {
-		const val = licenseInput.trim().toUpperCase();
-		if (val && !licenses.includes(val)) setLicenses([...licenses, val]);
-		setLicenseInput("");
-	};
-
-	const addLanguage = () => {
-		const val = languageInput.trim();
-		if (val && !languages.includes(val)) setLanguages([...languages, val]);
-		setLanguageInput("");
-	};
+	const addLicense = () => {};
 
 	const handleCreateProfile = async () => {
 		if (!firstname.trim() || !lastname.trim()) {
@@ -169,8 +255,8 @@ const CreateProfile = () => {
 				}),
 				...(height && { height: parseFloat(height) }),
 				...(weight && { weight: parseFloat(weight) }),
-				...(licenses.length > 0 && {
-					driving_licenses: licenses.join(", "),
+				...(drivingLicenses.length > 0 && {
+					driving_licenses: drivingLicenses.join(", "),
 				}),
 				...(languages.length > 0 && {
 					languages: languages.join(", "),
@@ -192,20 +278,28 @@ const CreateProfile = () => {
 		}
 	};
 
-	const bg = isDark ? "#111827" : "#f9fafb";
-	const cardBg = isDark ? "#374151" : "#ffffff";
-	const cardBorder = isDark ? "#4b5563" : "#e5e7eb";
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const cardBorder = isDark ? Colors.dark.border : Colors.light.border;
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
+	const muted = isDark ? Colors.dark.muted : Colors.light.muted;
 	const inputStyle = {
 		borderRadius: 10,
-		backgroundColor: isDark ? "#1f2937" : "#f9fafb",
-		borderColor: isDark ? "#4b5563" : "#d1d5db",
+		backgroundColor: isDark
+			? Colors.dark.elevated
+			: Colors.light.background,
+		borderColor: isDark ? Colors.dark.border : Colors.light.border,
 	};
-	const inputTextStyle = { color: isDark ? "#f3f4f6" : "#111827" };
+	const inputTextStyle = {
+		color: isDark ? Colors.dark.text : Colors.light.text,
+	};
 	const labelStyle = {
 		fontWeight: "600",
-		color: isDark ? "#d1d5db" : "#374151",
+		color: isDark ? Colors.dark.textSecondary : Colors.light.textSecondary,
 	};
-	const textColor = isDark ? "#f3f4f6" : "#111827";
+	const textColor = isDark ? Colors.dark.text : Colors.light.text;
 
 	const canAdvance =
 		step === 1
@@ -236,12 +330,13 @@ const CreateProfile = () => {
 				style={{ flex: 1 }}
 				behavior={Platform.OS === "ios" ? "padding" : "height"}>
 				<ScrollView
+					ref={scrollRef}
 					contentContainerStyle={{ flexGrow: 1 }}
 					keyboardShouldPersistTaps='handled'>
 					<VStack
 						style={{
 							flex: 1,
-							paddingHorizontal: 24,
+							paddingHorizontal: 10,
 							paddingBottom: 120,
 						}}>
 						{/* Header */}
@@ -269,7 +364,7 @@ const CreateProfile = () => {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: muted,
 									marginTop: 6,
 								}}>
 								Étape {step} / 4 — {STEP_LABELS[step - 1]}
@@ -280,7 +375,9 @@ const CreateProfile = () => {
 						<Box
 							style={{
 								height: 4,
-								backgroundColor: isDark ? "#374151" : "#e5e7eb",
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.border,
 								borderRadius: 2,
 								marginBottom: 24,
 							}}>
@@ -291,7 +388,7 @@ const CreateProfile = () => {
 										inputRange: [0, 100],
 										outputRange: ["0%", "100%"],
 									}),
-									backgroundColor: "#2563eb",
+									backgroundColor: tint,
 									borderRadius: 2,
 								}}
 							/>
@@ -301,7 +398,8 @@ const CreateProfile = () => {
 						{step === 1 && (
 							<Card
 								style={{
-									padding: 24,
+									paddingHorizontal: 15,
+									paddingVertical: 20,
 									backgroundColor: cardBg,
 									borderRadius: 16,
 									borderWidth: 1,
@@ -315,6 +413,10 @@ const CreateProfile = () => {
 										<Input style={inputStyle}>
 											<InputField
 												placeholder='Jean'
+												ref={firstnameRef}
+												onFocus={() =>
+													scrollToInput(firstnameRef)
+												}
 												value={firstname}
 												onChangeText={(val) =>
 													setFirstname(
@@ -333,6 +435,10 @@ const CreateProfile = () => {
 										<Input style={inputStyle}>
 											<InputField
 												placeholder='Dupont'
+												ref={lastnameRef}
+												onFocus={() =>
+													scrollToInput(lastnameRef)
+												}
 												value={lastname}
 												onChangeText={(val) =>
 													setLastname(formatName(val))
@@ -363,12 +469,8 @@ const CreateProfile = () => {
 											<Text
 												style={{
 													color: birthdaySet
-														? isDark
-															? "#f3f4f6"
-															: "#111827"
-														: isDark
-															? "#6b7280"
-															: "#9ca3af",
+														? textColor
+														: muted,
 													fontSize: 15,
 												}}>
 												{birthdaySet
@@ -381,17 +483,18 @@ const CreateProfile = () => {
 										{Platform.OS === "ios" && (
 											<Actionsheet
 												isOpen={showDatePicker}
-												onClose={() => {
-													setBirthdaySet(true);
-													setShowDatePicker(false);
-												}}>
+												onClose={() =>
+													setShowDatePicker(false)
+												}>
 												<ActionsheetBackdrop />
 												<ActionsheetContent
 													style={{
 														paddingBottom: 32,
 														backgroundColor: isDark
-															? "#1f2937"
-															: "#ffffff",
+															? Colors.dark
+																	.elevated
+															: Colors.light
+																	.cardBackground,
 													}}>
 													<ActionsheetDragIndicatorWrapper>
 														<ActionsheetDragIndicator />
@@ -414,12 +517,36 @@ const CreateProfile = () => {
 														style={{
 															width: "100%",
 														}}
-														textColor={
-															isDark
-																? "#f3f4f6"
-																: "#111827"
-														}
+														textColor={textColor}
 													/>
+													<Button
+														onPress={() => {
+															setBirthdaySet(
+																true,
+															);
+															setShowDatePicker(
+																false,
+															);
+														}}
+														style={{
+															backgroundColor:
+																tint,
+															borderRadius: 12,
+															height: 52,
+															marginHorizontal: 16,
+															marginTop: 8,
+															width: "100%",
+														}}>
+														<ButtonText
+															style={{
+																color: "#ffffff",
+																fontWeight:
+																	"700",
+																fontSize: 16,
+															}}>
+															Valider
+														</ButtonText>
+													</Button>
 												</ActionsheetContent>
 											</Actionsheet>
 										)}
@@ -477,15 +604,23 @@ const CreateProfile = () => {
 														borderWidth: 1.5,
 														borderColor:
 															gender === value
-																? "#2563eb"
+																? tint
 																: isDark
-																	? "#4b5563"
-																	: "#d1d5db",
+																	? Colors
+																			.dark
+																			.border
+																	: Colors
+																			.light
+																			.border,
 														backgroundColor:
 															gender === value
 																? isDark
-																	? "#1e3a5f"
-																	: "#eff6ff"
+																	? Colors
+																			.dark
+																			.tint20
+																	: Colors
+																			.light
+																			.tint20
 																: "transparent",
 													}}>
 													<Text
@@ -494,11 +629,15 @@ const CreateProfile = () => {
 															color:
 																gender === value
 																	? isDark
-																		? "#60a5fa"
-																		: "#2563eb"
+																		? tint
+																		: tint
 																	: isDark
-																		? "#d1d5db"
-																		: "#374151",
+																		? Colors
+																				.dark
+																				.textSecondary
+																		: Colors
+																				.light
+																				.textSecondary,
 															fontWeight:
 																gender === value
 																	? "600"
@@ -518,7 +657,8 @@ const CreateProfile = () => {
 						{step === 2 && (
 							<Card
 								style={{
-									padding: 24,
+									paddingHorizontal: 15,
+									paddingVertical: 20,
 									backgroundColor: cardBg,
 									borderRadius: 16,
 									borderWidth: 1,
@@ -539,6 +679,12 @@ const CreateProfile = () => {
 												}}>
 												<InputField
 													placeholder='75001'
+													ref={postcodeRef}
+													onFocus={() =>
+														scrollToInput(
+															postcodeRef,
+														)
+													}
 													value={postalCode}
 													onChangeText={(t) => {
 														setPostalCode(t);
@@ -558,10 +704,12 @@ const CreateProfile = () => {
 												style={{
 													backgroundColor:
 														postalCode.length === 5
-															? "#2563eb"
+															? tint
 															: isDark
-																? "#374151"
-																: "#e5e7eb",
+																? Colors.dark
+																		.cardBackground
+																: Colors.light
+																		.border,
 													borderRadius: 10,
 													paddingHorizontal: 16,
 													height: 44,
@@ -575,9 +723,7 @@ const CreateProfile = () => {
 															postalCode.length ===
 															5
 																? "#ffffff"
-																: isDark
-																	? "#6b7280"
-																	: "#9ca3af",
+																: muted,
 														fontWeight: "700",
 													}}>
 													Chercher
@@ -587,7 +733,11 @@ const CreateProfile = () => {
 										{communeError ? (
 											<Text
 												size='xs'
-												style={{ color: "#ef4444" }}>
+												style={{
+													color: isDark
+														? Colors.dark.danger
+														: Colors.light.danger,
+												}}>
 												{communeError}
 											</Text>
 										) : null}
@@ -596,9 +746,7 @@ const CreateProfile = () => {
 									{fetchingCommunes && (
 										<ActivityIndicator
 											size='large'
-											color={
-												isDark ? "#60a5fa" : "#2563eb"
-											}
+											color={tint}
 										/>
 									)}
 
@@ -627,18 +775,30 @@ const CreateProfile = () => {
 																borderWidth: 2,
 																borderColor:
 																	selected
-																		? "#2563eb"
+																		? tint
 																		: isDark
-																			? "#4b5563"
-																			: "#e5e7eb",
+																			? Colors
+																					.dark
+																					.border
+																			: Colors
+																					.light
+																					.border,
 																backgroundColor:
 																	selected
 																		? isDark
-																			? "#1e3a5f"
-																			: "#eff6ff"
+																			? Colors
+																					.dark
+																					.tint20
+																			: Colors
+																					.light
+																					.tint20
 																		: isDark
-																			? "#1f2937"
-																			: "#f9fafb",
+																			? Colors
+																					.dark
+																					.elevated
+																			: Colors
+																					.light
+																					.background,
 															}}>
 															<HStack
 																space='sm'
@@ -651,10 +811,8 @@ const CreateProfile = () => {
 																	size='sm'
 																	style={{
 																		color: selected
-																			? "#2563eb"
-																			: isDark
-																				? "#9ca3af"
-																				: "#6b7280",
+																			? tint
+																			: muted,
 																	}}
 																/>
 																<VStack>
@@ -670,20 +828,19 @@ const CreateProfile = () => {
 																	<Text
 																		size='xs'
 																		style={{
-																			color: isDark
-																				? "#9ca3af"
-																				: "#6b7280",
+																			color: muted,
 																		}}>
+																		{
+																			c
+																				.codesPostaux?.[0]
+																		}{" "}
+																		—{" "}
 																		{
 																			c
 																				.departement
 																				?.nom
 																		}{" "}
-																		(
-																		{
-																			c.codeDepartement
-																		}
-																		) —{" "}
+																		—{" "}
 																		{
 																			c
 																				.region
@@ -706,7 +863,8 @@ const CreateProfile = () => {
 						{step === 3 && (
 							<Card
 								style={{
-									padding: 24,
+									paddingHorizontal: 15,
+									paddingVertical: 20,
 									backgroundColor: cardBg,
 									borderRadius: 16,
 									borderWidth: 1,
@@ -721,6 +879,10 @@ const CreateProfile = () => {
 											<Input style={inputStyle}>
 												<InputField
 													placeholder='175'
+													ref={heightRef}
+													onFocus={() =>
+														scrollToInput(heightRef)
+													}
 													value={height}
 													onChangeText={setHeight}
 													keyboardType='numeric'
@@ -735,6 +897,10 @@ const CreateProfile = () => {
 											<Input style={inputStyle}>
 												<InputField
 													placeholder='70'
+													ref={weightRef}
+													onFocus={() =>
+														scrollToInput(weightRef)
+													}
 													value={weight}
 													onChangeText={setWeight}
 													keyboardType='numeric'
@@ -745,227 +911,214 @@ const CreateProfile = () => {
 									</HStack>
 
 									{/* Langues */}
-									<VStack space='xs'>
-										<Text size='sm' style={labelStyle}>
-											Langues parlées *
-										</Text>
+									<VStack space='sm'>
 										<HStack
 											space='sm'
 											style={{ alignItems: "center" }}>
-											<Input
-												style={{
-													...inputStyle,
-													flex: 1,
-												}}>
-												<InputField
-													placeholder='Français, Anglais...'
-													value={languageInput}
-													onChangeText={
-														setLanguageInput
-													}
-													onSubmitEditing={
-														addLanguage
-													}
-													style={inputTextStyle}
-												/>
-											</Input>
-											<TouchableOpacity
-												onPress={addLanguage}
-												style={{
-													width: 44,
-													height: 44,
-													borderRadius: 10,
-													backgroundColor: "#2563eb",
-													justifyContent: "center",
-													alignItems: "center",
-												}}>
-												<Icon
-													as={Plus}
-													size='sm'
-													style={{ color: "#ffffff" }}
-												/>
-											</TouchableOpacity>
+											<Icon
+												as={Languages}
+												size='md'
+												style={{ color: tint }}
+											/>
+											<Text size='sm' style={labelStyle}>
+												Langues parlées *
+											</Text>
 										</HStack>
+										<TouchableOpacity
+											activeOpacity={0.7}
+											onPress={() =>
+												setShowLanguageSheet(true)
+											}>
+											<Box
+												style={{
+													flexDirection: "row",
+													alignItems: "center",
+													justifyContent:
+														"space-between",
+													padding: 12,
+													borderRadius: 8,
+													borderWidth: 1,
+													borderColor:
+														languages.length > 0
+															? tint
+															: cardBorder,
+													backgroundColor: cardBg,
+												}}>
+												<Text
+													style={{
+														flex: 1,
+														color:
+															languages.length > 0
+																? tint
+																: muted,
+														fontWeight:
+															languages.length > 0
+																? "600"
+																: "400",
+													}}>
+													{languages.length > 0
+														? `${languages.length} langue${
+																languages.length >
+																1
+																	? "s"
+																	: ""
+															} sélectionnée${
+																languages.length >
+																1
+																	? "s"
+																	: ""
+															}`
+														: "Sélectionner des langues"}
+												</Text>
+												<Icon
+													as={ChevronDown}
+													size='sm'
+													style={{
+														color:
+															languages.length > 0
+																? tint
+																: muted,
+													}}
+												/>
+											</Box>
+										</TouchableOpacity>
 										{languages.length > 0 && (
 											<HStack
+												space='xs'
 												style={{
 													flexWrap: "wrap",
-													gap: 6,
 													marginTop: 6,
 												}}>
-												{languages.map((l) => (
-													<TouchableOpacity
-														key={l}
-														onPress={() =>
-															setLanguages(
-																languages.filter(
-																	(x) =>
-																		x !== l,
-																),
-															)
-														}
+												{languages.map((code) => (
+													<Box
+														key={code}
 														style={{
-															flexDirection:
-																"row",
-															alignItems:
-																"center",
-															paddingHorizontal: 10,
-															paddingVertical: 6,
-															borderRadius: 16,
+															paddingHorizontal: 8,
+															paddingVertical: 3,
+															borderRadius: 6,
+															borderWidth: 1,
+															borderColor:
+																cardBorder,
 															backgroundColor:
-																isDark
-																	? "#1a2e1a"
-																	: "#f0fdf4",
-															gap: 4,
+																cardBg,
+															marginBottom: 4,
 														}}>
 														<Text
-															size='xs'
 															style={{
-																color: isDark
-																	? "#4ade80"
-																	: "#16a34a",
+																fontSize: 11,
 																fontWeight:
-																	"600",
+																	"700",
+																color: textColor,
 															}}>
-															{l}
+															{code}
 														</Text>
-														<Icon
-															as={X}
-															size='xs'
-															style={{
-																color: isDark
-																	? "#4ade80"
-																	: "#16a34a",
-															}}
-														/>
-													</TouchableOpacity>
+													</Box>
 												))}
 											</HStack>
-										)}
-										{languages.length > 0 && (
-											<Text
-												size='xs'
-												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
-													fontStyle: "italic",
-												}}>
-												Enregistré :{" "}
-												{languages.join(", ")}
-											</Text>
 										)}
 									</VStack>
 
 									{/* Permis de conduire */}
-									<VStack space='xs'>
-										<Text size='sm' style={labelStyle}>
-											Permis de conduire
-										</Text>
+									<VStack space='sm'>
 										<HStack
 											space='sm'
 											style={{ alignItems: "center" }}>
-											<Input
-												style={{
-													...inputStyle,
-													flex: 1,
-												}}>
-												<InputField
-													placeholder='B, A2...'
-													value={licenseInput}
-													onChangeText={
-														setLicenseInput
-													}
-													onSubmitEditing={addLicense}
-													autoCapitalize='characters'
-													style={inputTextStyle}
-												/>
-											</Input>
-											<TouchableOpacity
-												onPress={addLicense}
-												style={{
-													width: 44,
-													height: 44,
-													borderRadius: 10,
-													backgroundColor: "#2563eb",
-													justifyContent: "center",
-													alignItems: "center",
-												}}>
-												<Icon
-													as={Plus}
-													size='sm'
-													style={{ color: "#ffffff" }}
-												/>
-											</TouchableOpacity>
+											<Icon
+												as={Car}
+												size='md'
+												style={{ color: { tint } }}
+											/>
+											<Text size='sm' style={labelStyle}>
+												Permis de conduire
+											</Text>
 										</HStack>
-										{licenses.length > 0 && (
+										<TouchableOpacity
+											activeOpacity={0.7}
+											onPress={() =>
+												setShowDrivingLicenseSheet(true)
+											}>
+											<Box
+												style={{
+													flexDirection: "row",
+													alignItems: "center",
+													justifyContent:
+														"space-between",
+													padding: 12,
+													borderRadius: 8,
+													borderWidth: 1,
+													borderColor:
+														drivingLicenses.length >
+														0
+															? tint
+															: cardBorder,
+													backgroundColor: cardBg,
+												}}>
+												<Text
+													style={{
+														flex: 1,
+														color:
+															drivingLicenses.length >
+															0
+																? tint
+																: muted,
+														fontWeight:
+															drivingLicenses.length >
+															0
+																? "600"
+																: "400",
+													}}>
+													{drivingLicenses.length > 0
+														? `${drivingLicenses.length} permis sélectionné${drivingLicenses.length > 1 ? "s" : ""}`
+														: "Sélectionnez vos permis"}
+												</Text>
+												<Icon
+													as={ChevronDown}
+													size='sm'
+													style={{
+														color:
+															drivingLicenses.length >
+															0
+																? tint
+																: muted,
+													}}
+												/>
+											</Box>
+										</TouchableOpacity>
+										{drivingLicenses.length > 0 && (
 											<HStack
+												space='xs'
 												style={{
 													flexWrap: "wrap",
-													gap: 6,
 													marginTop: 6,
 												}}>
-												{licenses.map((l) => (
-													<TouchableOpacity
-														key={l}
-														onPress={() =>
-															setLicenses(
-																licenses.filter(
-																	(x) =>
-																		x !== l,
-																),
-															)
-														}
-														style={{
-															flexDirection:
-																"row",
-															alignItems:
-																"center",
-															paddingHorizontal: 10,
-															paddingVertical: 6,
-															borderRadius: 16,
-															backgroundColor:
-																isDark
-																	? "#1e3a5f"
-																	: "#eff6ff",
-															gap: 4,
-														}}>
-														<Text
-															size='xs'
+												{drivingLicenses.map(
+													(acronym) => (
+														<Box
+															key={acronym}
 															style={{
-																color: isDark
-																	? "#60a5fa"
-																	: "#2563eb",
-																fontWeight:
-																	"600",
+																paddingHorizontal: 8,
+																paddingVertical: 3,
+																borderRadius: 6,
+																borderWidth: 1,
+																borderColor:
+																	cardBorder,
+																backgroundColor:
+																	cardBg,
+																marginBottom: 4,
 															}}>
-															{l}
-														</Text>
-														<Icon
-															as={X}
-															size='xs'
-															style={{
-																color: isDark
-																	? "#60a5fa"
-																	: "#2563eb",
-															}}
-														/>
-													</TouchableOpacity>
-												))}
+															<Text
+																style={{
+																	fontSize: 11,
+																	fontWeight:
+																		"700",
+																	color: textColor,
+																}}>
+																{acronym}
+															</Text>
+														</Box>
+													),
+												)}
 											</HStack>
-										)}
-										{licenses.length > 0 && (
-											<Text
-												size='xs'
-												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
-													fontStyle: "italic",
-												}}>
-												Enregistré :{" "}
-												{licenses.join(", ")}
-											</Text>
 										)}
 									</VStack>
 								</VStack>
@@ -976,11 +1129,14 @@ const CreateProfile = () => {
 						{step === 4 && (
 							<Card
 								style={{
-									padding: 24,
+									paddingHorizontal: 15,
+									paddingVertical: 20,
 									backgroundColor: cardBg,
 									borderRadius: 16,
 									borderWidth: 1,
-									borderColor: isDark ? "#4b5563" : "#e5e7eb",
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
 								}}>
 								<VStack space='md'>
 									<Text
@@ -996,8 +1152,8 @@ const CreateProfile = () => {
 										style={{
 											height: 1,
 											backgroundColor: isDark
-												? "#4b5563"
-												: "#e5e7eb",
+												? Colors.dark.border
+												: Colors.light.border,
 											marginBottom: 4,
 										}}
 									/>
@@ -1018,12 +1174,18 @@ const CreateProfile = () => {
 													? "Femme"
 													: "—",
 										],
+										[
+											"Code postal",
+											selectedCommune
+												?.codesPostaux?.[0] ||
+												postalCode ||
+												"—",
+										],
 										["Ville", selectedCommune?.nom || "—"],
 										[
 											"Département",
-											selectedCommune
-												? `${selectedCommune.departement?.nom} (${selectedCommune.codeDepartement})`
-												: "—",
+											selectedCommune?.departement?.nom ||
+												"—",
 										],
 										[
 											"Région",
@@ -1039,8 +1201,8 @@ const CreateProfile = () => {
 										],
 										[
 											"Permis",
-											licenses.length > 0
-												? licenses.join(", ")
+											drivingLicenses.length > 0
+												? drivingLicenses.join(", ")
 												: "—",
 										],
 										[
@@ -1058,15 +1220,13 @@ const CreateProfile = () => {
 												paddingVertical: 8,
 												borderBottomWidth: 1,
 												borderBottomColor: isDark
-													? "#374151"
-													: "#f3f4f6",
+													? Colors.dark.cardBackground
+													: Colors.light.elevated,
 											}}>
 											<Text
 												size='sm'
 												style={{
-													color: isDark
-														? "#9ca3af"
-														: "#6b7280",
+													color: muted,
 													fontWeight: "600",
 													flex: 1,
 												}}>
@@ -1103,8 +1263,8 @@ const CreateProfile = () => {
 										borderRadius: 12,
 										height: 52,
 										borderColor: isDark
-											? "#4b5563"
-											: "#d1d5db",
+											? Colors.dark.border
+											: Colors.light.border,
 									}}
 									onPress={() => setStep(step - 1)}>
 									<HStack
@@ -1115,15 +1275,17 @@ const CreateProfile = () => {
 											size='sm'
 											style={{
 												color: isDark
-													? "#d1d5db"
-													: "#374151",
+													? Colors.dark.textSecondary
+													: Colors.light
+															.textSecondary,
 											}}
 										/>
 										<ButtonText
 											style={{
 												color: isDark
-													? "#d1d5db"
-													: "#374151",
+													? Colors.dark.textSecondary
+													: Colors.light
+															.textSecondary,
 											}}>
 											Précédent
 										</ButtonText>
@@ -1136,10 +1298,10 @@ const CreateProfile = () => {
 									style={{
 										flex: 1,
 										backgroundColor: canAdvance
-											? "#2563eb"
+											? tint
 											: isDark
-												? "#374151"
-												: "#e5e7eb",
+												? Colors.dark.cardBackground
+												: Colors.light.border,
 										borderRadius: 12,
 										height: 52,
 									}}
@@ -1154,9 +1316,7 @@ const CreateProfile = () => {
 											style={{
 												color: canAdvance
 													? "#ffffff"
-													: isDark
-														? "#6b7280"
-														: "#9ca3af",
+													: muted,
 												fontWeight: "700",
 												fontSize: 16,
 											}}>
@@ -1168,9 +1328,7 @@ const CreateProfile = () => {
 											style={{
 												color: canAdvance
 													? "#ffffff"
-													: isDark
-														? "#6b7280"
-														: "#9ca3af",
+													: muted,
 											}}
 										/>
 									</HStack>
@@ -1178,14 +1336,14 @@ const CreateProfile = () => {
 							) : submitting ? (
 								<ActivityIndicator
 									size='large'
-									color={isDark ? "#60a5fa" : "#2563eb"}
+									color={tint}
 									style={{ flex: 1 }}
 								/>
 							) : (
 								<Button
 									style={{
 										flex: 1,
-										backgroundColor: "#2563eb",
+										backgroundColor: tint,
 										borderRadius: 12,
 										height: 52,
 									}}
@@ -1204,6 +1362,382 @@ const CreateProfile = () => {
 					</VStack>
 				</ScrollView>
 			</KeyboardAvoidingView>
+
+			{/* Actionsheet — Langues */}
+			<Actionsheet
+				isOpen={showLanguageSheet}
+				onClose={() => setShowLanguageSheet(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						backgroundColor: isDark
+							? Colors.dark.background
+							: Colors.light.cardBackground,
+						paddingBottom: 0,
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack style={{ width: "100%", paddingTop: 8 }}>
+						<HStack
+							style={{
+								alignItems: "center",
+								justifyContent: "space-between",
+								paddingHorizontal: 4,
+								marginBottom: 8,
+							}}>
+							<Text
+								style={{
+									fontWeight: "700",
+									fontSize: 17,
+									color: textColor,
+								}}>
+								Langues parlées
+							</Text>
+							{languages.length > 0 && (
+								<Pressable onPress={() => setLanguages([])}>
+									<Text
+										style={{
+											fontSize: 13,
+											color: Colors.dark.danger,
+										}}>
+										Tout effacer
+									</Text>
+								</Pressable>
+							)}
+						</HStack>
+						<ActionsheetScrollView
+							showsVerticalScrollIndicator={false}
+							style={{
+								width: "100%",
+								height: screenHeight * 0.5,
+							}}>
+							<VStack space='xs' style={{ paddingBottom: 16 }}>
+								{LANGUAGES.map((lang) => {
+									const isSel = languages.includes(lang.code);
+									return (
+										<Pressable
+											key={lang.code}
+											onPress={() =>
+												setLanguages((prev) =>
+													isSel
+														? prev.filter(
+																(v) =>
+																	v !==
+																	lang.code,
+															)
+														: [...prev, lang.code],
+												)
+											}>
+											<Box
+												style={{
+													padding: 14,
+													borderRadius: 10,
+													borderWidth: 2,
+													borderColor: isSel
+														? Colors.light.tint
+														: cardBorder,
+													backgroundColor: isSel
+														? isDark
+															? Colors.dark.tint20
+															: "#dbeafe"
+														: cardBg,
+												}}>
+												<HStack
+													space='sm'
+													style={{
+														alignItems: "center",
+													}}>
+													<Box
+														style={{
+															paddingHorizontal: 8,
+															paddingVertical: 3,
+															borderRadius: 6,
+															backgroundColor:
+																isSel
+																	? Colors
+																			.light
+																			.tint
+																	: cardBorder,
+														}}>
+														<Text
+															style={{
+																fontSize: 11,
+																fontWeight:
+																	"800",
+																color: isSel
+																	? Colors
+																			.light
+																			.cardBackground
+																	: muted,
+															}}>
+															{lang.code}
+														</Text>
+													</Box>
+													<Text
+														style={{
+															flex: 1,
+															fontSize: 14,
+															color: isSel
+																? Colors.light
+																		.tint
+																: textColor,
+															fontWeight: isSel
+																? "600"
+																: "400",
+														}}>
+														{lang.name}
+													</Text>
+												</HStack>
+											</Box>
+										</Pressable>
+									);
+								})}
+							</VStack>
+						</ActionsheetScrollView>
+						<Box
+							style={{
+								paddingTop: 12,
+								paddingBottom: 32,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.cardBackground,
+							}}>
+							<Button
+								style={{ backgroundColor: tint }}
+								onPress={() => setShowLanguageSheet(false)}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
+									Valider
+								</ButtonText>
+							</Button>
+						</Box>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
+
+			{/* Actionsheet — Permis de conduire */}
+			<Actionsheet
+				isOpen={showDrivingLicenseSheet}
+				onClose={() => setShowDrivingLicenseSheet(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						backgroundColor: isDark
+							? Colors.dark.background
+							: Colors.light.cardBackground,
+						paddingBottom: 0,
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack style={{ width: "100%", paddingTop: 8 }}>
+						<HStack
+							style={{
+								alignItems: "center",
+								justifyContent: "space-between",
+								paddingHorizontal: 4,
+								marginBottom: 8,
+							}}>
+							<Text
+								style={{
+									fontWeight: "700",
+									fontSize: 17,
+									color: textColor,
+								}}>
+								Permis de conduire
+							</Text>
+							{drivingLicenses.length > 0 && (
+								<Pressable
+									onPress={() => setDrivingLicenses([])}>
+									<Text
+										style={{
+											fontSize: 13,
+											color: Colors.dark.danger,
+										}}>
+										Tout effacer
+									</Text>
+								</Pressable>
+							)}
+						</HStack>
+						<ActionsheetScrollView
+							showsVerticalScrollIndicator={false}
+							style={{
+								width: "100%",
+								height: screenHeight * 0.5,
+							}}>
+							<VStack space='lg' style={{ paddingBottom: 16 }}>
+								{(() => {
+									const DL_GROUP_LABELS = {
+										moto: "Moto",
+										vehicule_leger: "Véhicule léger",
+										poids_lourd: "Poids lourd",
+										transport_personnes:
+											"Transport de personnes",
+									};
+									const grouped = Object.entries(
+										DRIVING_LICENSES,
+									).reduce((acc, [key, dl]) => {
+										if (!acc[dl.category])
+											acc[dl.category] = [];
+										acc[dl.category].push({ key, ...dl });
+										return acc;
+									}, {});
+									return Object.entries(grouped).map(
+										([groupKey, items]) => (
+											<VStack key={groupKey} space='sm'>
+												<Text
+													style={{
+														fontSize: 12,
+														fontWeight: "700",
+														letterSpacing: 0.8,
+														textTransform:
+															"uppercase",
+														color: muted,
+														paddingHorizontal: 4,
+													}}>
+													{DL_GROUP_LABELS[
+														groupKey
+													] || groupKey}
+												</Text>
+												<VStack space='xs'>
+													{items.map((dl) => {
+														const isSel =
+															drivingLicenses.includes(
+																dl.acronym,
+															);
+														return (
+															<Pressable
+																key={dl.key}
+																onPress={() =>
+																	setDrivingLicenses(
+																		(
+																			prev,
+																		) =>
+																			isSel
+																				? prev.filter(
+																						(
+																							v,
+																						) =>
+																							v !==
+																							dl.acronym,
+																					)
+																				: [
+																						...prev,
+																						dl.acronym,
+																					],
+																	)
+																}>
+																<Box
+																	style={{
+																		padding: 14,
+																		borderRadius: 10,
+																		borderWidth: 2,
+																		borderColor:
+																			isSel
+																				? Colors
+																						.light
+																						.tint
+																				: cardBorder,
+																		backgroundColor:
+																			isSel
+																				? isDark
+																					? Colors
+																							.dark
+																							.tint20
+																					: "#dbeafe"
+																				: cardBg,
+																	}}>
+																	<HStack
+																		space='sm'
+																		style={{
+																			alignItems:
+																				"center",
+																		}}>
+																		<Box
+																			style={{
+																				paddingHorizontal: 8,
+																				paddingVertical: 3,
+																				borderRadius: 6,
+																				backgroundColor:
+																					isSel
+																						? Colors
+																								.light
+																								.tint
+																						: cardBorder,
+																			}}>
+																			<Text
+																				style={{
+																					fontSize: 11,
+																					fontWeight:
+																						"800",
+																					color: isSel
+																						? Colors
+																								.light
+																								.cardBackground
+																						: muted,
+																				}}>
+																				{
+																					dl.acronym
+																				}
+																			</Text>
+																		</Box>
+																		<Text
+																			style={{
+																				flex: 1,
+																				fontSize: 14,
+																				color: isSel
+																					? Colors
+																							.light
+																							.tint
+																					: textColor,
+																				fontWeight:
+																					isSel
+																						? "600"
+																						: "400",
+																			}}>
+																			{
+																				dl.name
+																			}
+																		</Text>
+																	</HStack>
+																</Box>
+															</Pressable>
+														);
+													})}
+												</VStack>
+											</VStack>
+										),
+									);
+								})()}
+							</VStack>
+						</ActionsheetScrollView>
+						<Box
+							style={{
+								paddingTop: 12,
+								paddingBottom: 32,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.cardBackground,
+							}}>
+							<Button
+								style={{ backgroundColor: tint }}
+								onPress={() =>
+									setShowDrivingLicenseSheet(false)
+								}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
+									Valider
+								</ButtonText>
+							</Button>
+						</Box>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
 		</SafeAreaView>
 	);
 };
