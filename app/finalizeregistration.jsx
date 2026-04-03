@@ -15,6 +15,7 @@ import { Briefcase, User, LogOut } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const FinalizeRegistrationScreen = () => {
 	const router = useRouter();
@@ -25,7 +26,7 @@ const FinalizeRegistrationScreen = () => {
 		<SafeAreaView
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#111827" : "#f9fafb",
+				backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
 			}}>
 			<VStack
 				style={{ flex: 1, paddingHorizontal: 24, paddingBottom: 32 }}>
@@ -42,11 +43,11 @@ const FinalizeRegistrationScreen = () => {
 						<Icon
 							as={LogOut}
 							size='sm'
-							style={{ color: "#ef4444" }}
+							style={{ color: isDark ? Colors.dark.danger : Colors.light.danger }}
 						/>
 						<Text
 							size='sm'
-							style={{ color: "#ef4444", fontWeight: "600" }}>
+							style={{ color: isDark ? Colors.dark.danger : Colors.light.danger, fontWeight: "600" }}>
 							Déconnexion
 						</Text>
 					</HStack>
@@ -68,7 +69,7 @@ const FinalizeRegistrationScreen = () => {
 						style={{
 							fontSize: 24,
 							fontWeight: "800",
-							color: isDark ? "#f9fafb" : "#111827",
+							color: isDark ? Colors.dark.text : Colors.light.text,
 							marginTop: 20,
 							letterSpacing: -0.5,
 							textAlign: "center",
@@ -79,7 +80,7 @@ const FinalizeRegistrationScreen = () => {
 					<Text
 						size='sm'
 						style={{
-							color: isDark ? "#9ca3af" : "#6b7280",
+							color: isDark ? Colors.dark.muted : Colors.light.muted,
 							textAlign: "center",
 							marginTop: 8,
 							lineHeight: 16,
@@ -99,10 +100,10 @@ const FinalizeRegistrationScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 								borderRadius: 16,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark ? Colors.dark.border : Colors.light.border,
 							}}>
 							<HStack space='md' style={{ alignItems: "center" }}>
 								<Box
@@ -111,8 +112,8 @@ const FinalizeRegistrationScreen = () => {
 										height: 48,
 										borderRadius: 24,
 										backgroundColor: isDark
-											? "#1e3a5f"
-											: "#eff6ff",
+											? Colors.dark.tint20
+											: Colors.light.tint20,
 										justifyContent: "center",
 										alignItems: "center",
 									}}>
@@ -121,8 +122,8 @@ const FinalizeRegistrationScreen = () => {
 										size='lg'
 										style={{
 											color: isDark
-												? "#60a5fa"
-												: "#2563eb",
+												? Colors.dark.tint
+												: Colors.light.tint,
 										}}
 									/>
 								</Box>
@@ -132,8 +133,8 @@ const FinalizeRegistrationScreen = () => {
 											fontWeight: "700",
 											fontSize: 16,
 											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+												? Colors.dark.text
+												: Colors.light.text,
 										}}>
 										Je suis un candidat
 									</Text>
@@ -141,8 +142,8 @@ const FinalizeRegistrationScreen = () => {
 										size='sm'
 										style={{
 											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										Agent de sécurité, SSIAP, vigile...
 									</Text>
@@ -157,10 +158,10 @@ const FinalizeRegistrationScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? "#374151" : "#ffffff",
+								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
 								borderRadius: 16,
 								borderWidth: 1,
-								borderColor: isDark ? "#4b5563" : "#e5e7eb",
+								borderColor: isDark ? Colors.dark.border : Colors.light.border,
 							}}>
 							<HStack space='md' style={{ alignItems: "center" }}>
 								<Box
@@ -169,8 +170,8 @@ const FinalizeRegistrationScreen = () => {
 										height: 48,
 										borderRadius: 24,
 										backgroundColor: isDark
-											? "#1a2e1a"
-											: "#f0fdf4",
+											? Colors.dark.success20
+											: Colors.light.success20,
 										justifyContent: "center",
 										alignItems: "center",
 									}}>
@@ -179,8 +180,8 @@ const FinalizeRegistrationScreen = () => {
 										size='lg'
 										style={{
 											color: isDark
-												? "#4ade80"
-												: "#16a34a",
+												? Colors.dark.success
+												: Colors.light.success,
 										}}
 									/>
 								</Box>
@@ -190,8 +191,8 @@ const FinalizeRegistrationScreen = () => {
 											fontWeight: "700",
 											fontSize: 16,
 											color: isDark
-												? "#f3f4f6"
-												: "#111827",
+												? Colors.dark.text
+												: Colors.light.text,
 										}}>
 										Je suis une entreprise
 									</Text>
@@ -199,8 +200,8 @@ const FinalizeRegistrationScreen = () => {
 										size='sm'
 										style={{
 											color: isDark
-												? "#9ca3af"
-												: "#6b7280",
+												? Colors.dark.muted
+												: Colors.light.muted,
 										}}>
 										Société de sécurité, donneur d'ordre...
 									</Text>
