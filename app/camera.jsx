@@ -29,11 +29,20 @@ import {
 
 import { useImage } from "@/context/ImageContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 export default function CameraScreen() {
 	const router = useRouter();
 	const { setImage } = useImage();
 	const { isDark } = useTheme();
+
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark ? Colors.dark.elevated : Colors.light.cardBackground;
+	const cardBorder = isDark ? Colors.dark.border : Colors.light.border;
+	const textColor = isDark ? Colors.dark.text : Colors.light.text;
+	const muted = isDark ? Colors.dark.muted : Colors.light.muted;
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
+	const danger = isDark ? Colors.dark.danger : Colors.light.danger;
 
 	const [facing, setFacing] = useState("front");
 	const [permission, requestPermission] = useCameraPermissions();
@@ -48,7 +57,7 @@ export default function CameraScreen() {
 					flex: 1,
 					justifyContent: "center",
 					alignItems: "center",
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					backgroundColor: bg,
 				}}
 			/>
 		);
@@ -60,17 +69,17 @@ export default function CameraScreen() {
 			<Box
 				style={{
 					flex: 1,
-					backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+					backgroundColor: bg,
 					padding: 20,
 					justifyContent: "center",
 				}}>
 				<Card
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: cardBg,
 						borderRadius: 16,
 						padding: 32,
 						borderWidth: 1,
-						borderColor: isDark ? "#4b5563" : "#e5e7eb",
+						borderColor: cardBorder,
 						alignItems: "center",
 					}}>
 					<VStack space='xl' style={{ alignItems: "center" }}>
@@ -80,22 +89,22 @@ export default function CameraScreen() {
 								height: 80,
 								borderRadius: 40,
 								backgroundColor: isDark
-									? "rgba(239,68,68,0.15)"
-									: "rgba(239,68,68,0.08)",
+									? Colors.dark.danger20
+									: Colors.light.danger20,
 								justifyContent: "center",
 								alignItems: "center",
 							}}>
 							<Icon
 								as={ShieldAlert}
 								size='xl'
-								style={{ color: "#ef4444" }}
+								style={{ color: danger }}
 							/>
 						</Box>
 						<VStack space='sm' style={{ alignItems: "center" }}>
 							<Heading
 								size='xl'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textColor,
 									textAlign: "center",
 								}}>
 								Accès caméra requis
@@ -103,7 +112,7 @@ export default function CameraScreen() {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: muted,
 									textAlign: "center",
 									lineHeight: 20,
 								}}>
@@ -115,12 +124,20 @@ export default function CameraScreen() {
 							size='lg'
 							onPress={requestPermission}
 							style={{
-								backgroundColor: "#3b82f6",
+								backgroundColor: tint,
 								borderRadius: 10,
-								width: "100%",
+								justifyContent: "center",
 							}}>
-							<ButtonIcon as={Camera} style={{ color: "#fff" }} />
-							<ButtonText style={{ color: "#fff" }}>
+							<ButtonIcon
+								as={Camera}
+								style={{
+									color: Colors.light.cardBackground,
+								}}
+							/>
+							<ButtonText
+								style={{
+									color: Colors.light.cardBackground,
+								}}>
 								Autoriser l'accès
 							</ButtonText>
 						</Button>
@@ -128,7 +145,7 @@ export default function CameraScreen() {
 							<Text
 								size='sm'
 								style={{
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: muted,
 									textDecorationLine: "underline",
 								}}>
 								Annuler
@@ -271,7 +288,7 @@ export default function CameraScreen() {
 									flex: 2,
 									height: 52,
 									borderRadius: 12,
-									backgroundColor: "#3b82f6",
+									backgroundColor: tint,
 									justifyContent: "center",
 									alignItems: "center",
 									flexDirection: "row",
@@ -395,7 +412,6 @@ export default function CameraScreen() {
 							alignItems: "center",
 							paddingBottom: 28,
 						}}>
-						{/* Bouton shutter */}
 						<TouchableOpacity
 							onPress={takePhoto}
 							style={{
