@@ -1,14 +1,13 @@
 import React, { useRef, useState } from "react";
-import { View, TextInput, StyleSheet } from "react-native";
-import { Box } from "@/components/ui/box";
-import { Button, ButtonText } from "@/components/ui/button";
+import { View, TextInput } from "react-native";
 import { HStack } from "@/components/ui/hstack";
-import { Input } from "@/components/ui/input";
-import { Text } from "@/components/ui/text";
+import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 export default function OTPForm({ onSubmit }) {
 	const [otp, setOtp] = useState(new Array(6).fill(""));
 	const inputs = useRef([]);
+	const { isDark } = useTheme();
 
 	const handleChange = (text, index) => {
 		if (/^\d$/.test(text)) {
@@ -44,7 +43,23 @@ export default function OTPForm({ onSubmit }) {
 					<TextInput
 						key={index}
 						ref={(ref) => (inputs.current[index] = ref)}
-						style={styles.input}
+						style={{
+							width: 40,
+							height: 50,
+							borderWidth: 1,
+							borderColor: isDark
+								? Colors.dark.border
+								: Colors.light.border,
+							borderRadius: 5,
+							fontSize: 18,
+							textAlign: "center",
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
+							backgroundColor: isDark
+								? Colors.dark.elevated
+								: Colors.light.elevated,
+						}}
 						keyboardType='number-pad'
 						maxLength={1}
 						value={digit}
@@ -57,15 +72,3 @@ export default function OTPForm({ onSubmit }) {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	input: {
-		width: 40,
-		height: 50,
-		borderWidth: 1,
-		borderColor: "#ccc",
-		borderRadius: 5,
-		fontSize: 18,
-		// marginHorizontal: 5,
-	},
-});

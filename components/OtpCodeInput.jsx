@@ -1,6 +1,8 @@
 import React, { useRef } from "react";
 import { Input, InputField } from "@/components/ui/input";
 import { HStack } from "@/components/ui/hstack";
+import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 export const OtpCodeInput = ({
 	value,
@@ -10,6 +12,7 @@ export const OtpCodeInput = ({
 	// onComplete,
 }) => {
 	const inputsRef = useRef([]);
+	const { isDark } = useTheme();
 
 	const handleChange = (text, index) => {
 		// On ne garde qu'un chiffre
@@ -74,6 +77,11 @@ export const OtpCodeInput = ({
 						onFocus={() => handleFocus(index)}
 						textAlign='center'
 						fontSize={18}
+						style={{
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
+						}}
 					/>
 				</Input>
 			))}
