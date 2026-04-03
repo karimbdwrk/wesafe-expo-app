@@ -4,6 +4,7 @@ import {
 	View,
 	TouchableOpacity,
 	ActivityIndicator,
+	useWindowDimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
@@ -20,8 +21,7 @@ import {
 	AlertCircle,
 	ChevronDown,
 	Ruler,
-	Plus,
-	Trash2,
+	Weight,
 } from "lucide-react-native";
 
 import { useDataContext } from "@/context/DataContext";
@@ -66,6 +66,7 @@ import {
 	ActionsheetScrollView,
 } from "@/components/ui/actionsheet";
 import { DRIVING_LICENSES } from "@/constants/drivinglicences";
+import { languages as LANGUAGES } from "@/constants/languages";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/services/twilioApi";
 
 const UpdateProfile = () => {
@@ -73,6 +74,7 @@ const UpdateProfile = () => {
 	const { user } = useAuth();
 	const { update, getById, getAll, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
+	const { height: screenHeight } = useWindowDimensions();
 	const bg = isDark ? Colors.dark.background : Colors.light.background;
 	const cardBg = isDark
 		? Colors.dark.cardBackground
@@ -99,10 +101,10 @@ const UpdateProfile = () => {
 	const [longitude, setLongitude] = useState(null);
 	const [formerSoldier, setFormerSoldier] = useState(false);
 	const [drivingLicenses, setDrivingLicenses] = useState([]);
-	const [currentLanguage, setCurrentLanguage] = useState("");
 	const [languages, setLanguages] = useState([]);
 	const [showDrivingLicenseSheet, setShowDrivingLicenseSheet] =
 		useState(false);
+	const [showLanguageSheet, setShowLanguageSheet] = useState(false);
 	const [height, setHeight] = useState("");
 	const [weight, setWeight] = useState("");
 	const [phone, setPhone] = useState("");
@@ -218,16 +220,6 @@ const UpdateProfile = () => {
 			setPostcode(cityData.codesPostaux[0]);
 		}
 		setCities([]);
-	};
-
-	const addLanguage = () => {
-		if (currentLanguage.trim()) {
-			setLanguages((prev) => [...prev, currentLanguage.trim()]);
-			setCurrentLanguage("");
-		}
-	};
-	const removeLanguage = (index) => {
-		setLanguages((prev) => prev.filter((_, i) => i !== index));
 	};
 
 	const handleUpdateProfile = async () => {
@@ -1398,7 +1390,7 @@ const UpdateProfile = () => {
 													color:
 														drivingLicenses.length >
 														0
-															? Colors.light.tint
+															? tint
 															: textSecondary,
 													fontWeight:
 														drivingLicenses.length >
@@ -1485,92 +1477,91 @@ const UpdateProfile = () => {
 											Langues parlées
 										</Text>
 									</HStack>
-									<HStack space='sm'>
-										<Input
+									<TouchableOpacity
+										activeOpacity={0.7}
+										onPress={() =>
+											setShowLanguageSheet(true)
+										}>
+										<Box
 											style={{
-												flex: 1,
-												backgroundColor: bg,
-												borderColor: cardBorder,
-											}}>
-											<InputField
-												placeholder='Ex: Anglais, Espagnol'
-												value={currentLanguage}
-												onChangeText={
-													setCurrentLanguage
-												}
-												style={{ color: textPrimary }}
-											/>
-										</Input>
-										<Button
-											size='md'
-											variant='outline'
-											onPress={addLanguage}
-											style={{
-												borderColor: cardBorder,
+												flexDirection: "row",
+												alignItems: "center",
+												justifyContent: "space-between",
+												padding: 12,
+												borderRadius: 8,
+												borderWidth: 1,
+												borderColor:
+													languages.length > 0
+														? tint
+														: cardBorder,
 												backgroundColor: cardBg,
 											}}>
-											<ButtonIcon
-												as={Plus}
-												style={{ color: textSecondary }}
+											<Text
+												style={{
+													flex: 1,
+													color:
+														languages.length > 0
+															? tint
+															: textSecondary,
+													fontWeight:
+														languages.length > 0
+															? "600"
+															: "400",
+												}}>
+												{languages.length > 0
+													? `${languages.length} langue${
+															languages.length > 1
+																? "s"
+																: ""
+														} sélectionnée${
+															languages.length > 1
+																? "s"
+																: ""
+														}`
+													: "Sélectionner des langues"}
+											</Text>
+											<Icon
+												as={ChevronDown}
+												size='sm'
+												style={{
+													color:
+														languages.length > 0
+															? tint
+															: textSecondary,
+												}}
 											/>
-										</Button>
-									</HStack>
+										</Box>
+									</TouchableOpacity>
 									{languages.length > 0 && (
-										<VStack
+										<HStack
 											space='xs'
-											style={{ marginTop: 8 }}>
-											{languages.map(
-												(language, index) => (
-													<HStack
-														key={index}
-														space='sm'
+											style={{
+												flexWrap: "wrap",
+												marginTop: 6,
+											}}>
+											{languages.map((code) => (
+												<Box
+													key={code}
+													style={{
+														paddingHorizontal: 8,
+														paddingVertical: 3,
+														borderRadius: 6,
+														borderWidth: 1,
+														borderColor: cardBorder,
+														backgroundColor: cardBg,
+														marginBottom: 4,
+													}}>
+													<Text
 														style={{
-															alignItems:
-																"center",
-															padding: 8,
-															backgroundColor: bg,
-															borderRadius: 8,
+															fontSize: 11,
+															fontWeight: "700",
+															color: textPrimary,
 														}}>
-														<Box
-															style={{
-																width: 6,
-																height: 6,
-																borderRadius: 3,
-																backgroundColor:
-																	Colors.light
-																		.tint,
-															}}
-														/>
-														<Text
-															size='sm'
-															style={{
-																flex: 1,
-																color: textPrimary,
-															}}>
-															{language}
-														</Text>
-														<Button
-															size='xs'
-															variant='link'
-															onPress={() =>
-																removeLanguage(
-																	index,
-																)
-															}>
-															<ButtonIcon
-																as={Trash2}
-																size='sm'
-																style={{
-																	color: Colors
-																		.dark
-																		.danger,
-																}}
-															/>
-														</Button>
-													</HStack>
-												),
-											)}
-										</VStack>
+														{code}
+													</Text>
+												</Box>
+											))}
+										</HStack>
 									)}
 								</VStack>
 								<Divider
@@ -1644,7 +1635,7 @@ const UpdateProfile = () => {
 										}}>
 										<InputSlot style={{ paddingLeft: 12 }}>
 											<InputIcon
-												as={Ruler}
+												as={Weight}
 												size={20}
 												color={textSecondary}
 											/>
@@ -1729,13 +1720,12 @@ const UpdateProfile = () => {
 						backgroundColor: isDark
 							? Colors.dark.background
 							: Colors.light.cardBackground,
-						maxHeight: "80%",
-						paddingBottom: 32,
+						paddingBottom: 0,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
 					</ActionsheetDragIndicatorWrapper>
-					<VStack style={{ width: "100%", paddingTop: 8 }} space='sm'>
+					<VStack style={{ width: "100%", paddingTop: 8 }}>
 						<HStack
 							style={{
 								alignItems: "center",
@@ -1747,9 +1737,7 @@ const UpdateProfile = () => {
 								style={{
 									fontWeight: "700",
 									fontSize: 17,
-									color: isDark
-										? Colors.dark.text
-										: Colors.light.text,
+									color: textPrimary,
 								}}>
 								Permis de conduire
 							</Text>
@@ -1768,13 +1756,15 @@ const UpdateProfile = () => {
 						</HStack>
 						<ActionsheetScrollView
 							showsVerticalScrollIndicator={false}
-							style={{ width: "100%" }}>
+							style={{
+								width: "100%",
+								height: screenHeight * 0.5,
+							}}>
 							<VStack space='lg' style={{ paddingBottom: 16 }}>
 								{(() => {
 									const DL_GROUP_LABELS = {
 										moto: "Moto",
-										vehicule_leger:
-											"V\u00e9hicule l\u00e9ger",
+										vehicule_leger: "Véhicule léger",
 										poids_lourd: "Poids lourd",
 										transport_personnes:
 											"Transport de personnes",
@@ -1797,10 +1787,7 @@ const UpdateProfile = () => {
 														letterSpacing: 0.8,
 														textTransform:
 															"uppercase",
-														color: isDark
-															? Colors.dark.muted
-															: Colors.light
-																	.muted,
+														color: textSecondary,
 														paddingHorizontal: 4,
 													}}>
 													{DL_GROUP_LABELS[
@@ -1845,27 +1832,15 @@ const UpdateProfile = () => {
 																				? Colors
 																						.light
 																						.tint
-																				: isDark
-																					? Colors
-																							.dark
-																							.border
-																					: Colors
-																							.light
-																							.border,
+																				: cardBorder,
 																		backgroundColor:
 																			isSel
 																				? isDark
 																					? Colors
 																							.dark
-																							.tint
+																							.tint20
 																					: "#dbeafe"
-																				: isDark
-																					? Colors
-																							.dark
-																							.cardBackground
-																					: Colors
-																							.light
-																							.background,
+																				: cardBg,
 																	}}>
 																	<HStack
 																		space='sm'
@@ -1883,13 +1858,7 @@ const UpdateProfile = () => {
 																						? Colors
 																								.light
 																								.tint
-																						: isDark
-																							? Colors
-																									.dark
-																									.border
-																							: Colors
-																									.light
-																									.border,
+																						: cardBorder,
 																			}}>
 																			<Text
 																				style={{
@@ -1900,13 +1869,7 @@ const UpdateProfile = () => {
 																						? Colors
 																								.light
 																								.cardBackground
-																						: isDark
-																							? Colors
-																									.dark
-																									.muted
-																							: Colors
-																									.light
-																									.muted,
+																						: textSecondary,
 																				}}>
 																				{
 																					dl.acronym
@@ -1921,13 +1884,7 @@ const UpdateProfile = () => {
 																					? Colors
 																							.light
 																							.tint
-																					: isDark
-																						? Colors
-																								.dark
-																								.text
-																						: Colors
-																								.light
-																								.text,
+																					: textPrimary,
 																				fontWeight:
 																					isSel
 																						? "600"
@@ -1949,17 +1906,182 @@ const UpdateProfile = () => {
 								})()}
 							</VStack>
 						</ActionsheetScrollView>
-						<Button
+						<Box
 							style={{
-								backgroundColor: Colors.light.tint,
-								marginTop: 8,
-							}}
-							onPress={() => setShowDrivingLicenseSheet(false)}>
-							<ButtonText
-								style={{ color: Colors.light.cardBackground }}>
-								Confirmer
-							</ButtonText>
-						</Button>
+								paddingTop: 12,
+								paddingBottom: 32,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.cardBackground,
+							}}>
+							<Button
+								style={{ backgroundColor: tint }}
+								onPress={() =>
+									setShowDrivingLicenseSheet(false)
+								}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
+									Valider
+								</ButtonText>
+							</Button>
+						</Box>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
+
+			{/* Actionsheet — Langues */}
+			<Actionsheet
+				isOpen={showLanguageSheet}
+				onClose={() => setShowLanguageSheet(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						backgroundColor: isDark
+							? Colors.dark.background
+							: Colors.light.cardBackground,
+						paddingBottom: 0,
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack style={{ width: "100%", paddingTop: 8 }}>
+						<HStack
+							style={{
+								alignItems: "center",
+								justifyContent: "space-between",
+								paddingHorizontal: 4,
+								marginBottom: 8,
+							}}>
+							<Text
+								style={{
+									fontWeight: "700",
+									fontSize: 17,
+									color: textPrimary,
+								}}>
+								Langues parlées
+							</Text>
+							{languages.length > 0 && (
+								<Pressable onPress={() => setLanguages([])}>
+									<Text
+										style={{
+											fontSize: 13,
+											color: Colors.dark.danger,
+										}}>
+										Tout effacer
+									</Text>
+								</Pressable>
+							)}
+						</HStack>
+						<ActionsheetScrollView
+							showsVerticalScrollIndicator={false}
+							style={{
+								width: "100%",
+								height: screenHeight * 0.5,
+							}}>
+							<VStack space='xs' style={{ paddingBottom: 16 }}>
+								{LANGUAGES.map((lang) => {
+									const isSel = languages.includes(lang.code);
+									return (
+										<Pressable
+											key={lang.code}
+											onPress={() =>
+												setLanguages((prev) =>
+													isSel
+														? prev.filter(
+																(v) =>
+																	v !==
+																	lang.code,
+															)
+														: [...prev, lang.code],
+												)
+											}>
+											<Box
+												style={{
+													padding: 14,
+													borderRadius: 10,
+													borderWidth: 2,
+													borderColor: isSel
+														? Colors.light.tint
+														: cardBorder,
+													backgroundColor: isSel
+														? isDark
+															? Colors.dark.tint20
+															: "#dbeafe"
+														: cardBg,
+												}}>
+												<HStack
+													space='sm'
+													style={{
+														alignItems: "center",
+													}}>
+													<Box
+														style={{
+															paddingHorizontal: 8,
+															paddingVertical: 3,
+															borderRadius: 6,
+															backgroundColor:
+																isSel
+																	? Colors
+																			.light
+																			.tint
+																	: cardBorder,
+														}}>
+														<Text
+															style={{
+																fontSize: 11,
+																fontWeight:
+																	"800",
+																color: isSel
+																	? Colors
+																			.light
+																			.cardBackground
+																	: textSecondary,
+															}}>
+															{lang.code}
+														</Text>
+													</Box>
+													<Text
+														style={{
+															flex: 1,
+															fontSize: 14,
+															color: isSel
+																? Colors.light
+																		.tint
+																: textPrimary,
+															fontWeight: isSel
+																? "600"
+																: "400",
+														}}>
+														{lang.name}
+													</Text>
+												</HStack>
+											</Box>
+										</Pressable>
+									);
+								})}
+							</VStack>
+						</ActionsheetScrollView>
+						<Box
+							style={{
+								paddingTop: 12,
+								paddingBottom: 32,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.cardBackground,
+							}}>
+							<Button
+								style={{ backgroundColor: tint }}
+								onPress={() => setShowLanguageSheet(false)}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
+									Valider
+								</ButtonText>
+							</Button>
+						</Box>
 					</VStack>
 				</ActionsheetContent>
 			</Actionsheet>
