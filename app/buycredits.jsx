@@ -17,7 +17,7 @@ import { Text } from "@/components/ui/text";
 import { Button, ButtonText, ButtonSpinner } from "@/components/ui/button";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
-import { Coins, CreditCard, Check, Zap } from "lucide-react-native";
+import { Coins, CreditCard, Check, Zap, Lightbulb } from "lucide-react-native";
 
 const BuyCreditsScreen = () => {
 	const { user, loadUserData, accessToken } = useAuth();
@@ -271,11 +271,17 @@ const BuyCreditsScreen = () => {
 						borderColor: warning50,
 					}}>
 					<VStack space='sm'>
-						<Text
-							size='sm'
-							style={{ color: warning, fontWeight: "600" }}>
-							💡 À propos des crédits Last Minute
-						</Text>
+						<HStack space='xs' style={{ alignItems: "center" }}>
+							<Lightbulb size={16} color={warning} />
+							<Text
+								size='sm'
+								style={{
+									color: warning,
+									fontFamily: "Inter_700Bold",
+								}}>
+								À propos des crédits Last Minute
+							</Text>
+						</HStack>
 						<Text
 							size='sm'
 							style={{ color: warning, lineHeight: 20 }}>
