@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
+	KeyboardAvoidingView,
+	Platform,
 	ScrollView,
 	View,
 	TouchableOpacity,
@@ -8,7 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 import {
 	User,
@@ -118,6 +120,30 @@ const UpdateProfile = () => {
 	const [otpError, setOtpError] = useState(null); // null | 'wrong_code' | 'expired' | 'server'
 	const [resendCooldown, setResendCooldown] = useState(0); // secondes restantes avant de pouvoir renvoyer
 	const resendTimerRef = useRef(null);
+	const scrollViewRef = useRef(null);
+	const firstnameRef = useRef(null);
+	const lastnameRef = useRef(null);
+	const phoneRef = useRef(null);
+	const postcodeRef = useRef(null);
+	const heightRef = useRef(null);
+	const weightRef = useRef(null);
+
+	const scrollToInput = (inputRef, offset = 120) => {
+		if (inputRef.current && scrollViewRef.current) {
+			setTimeout(() => {
+				inputRef.current.measureLayout(
+					scrollViewRef.current,
+					(x, y) => {
+						scrollViewRef.current.scrollTo({
+							y: y - offset,
+							animated: true,
+						});
+					},
+					() => {},
+				);
+			}, 100);
+		}
+	};
 	const [cities, setCities] = useState([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [loading, setLoading] = useState(true);
@@ -388,15 +414,6 @@ const UpdateProfile = () => {
 		}
 	};
 
-	const handleConfirmDate = (selectedDate) => {
-		setShowDatePicker(false);
-		setBirthday(selectedDate);
-	};
-
-	const handleCancelDate = () => {
-		setShowDatePicker(false);
-	};
-
 	const handlePhoneChange = (text) => {
 		// Garder seulement les chiffres
 		let digits = text.replace(/\D/g, "");
@@ -477,8 +494,13 @@ const UpdateProfile = () => {
 	return (
 		<>
 			<View style={{ flex: 1, backgroundColor: bg }}>
+				<KeyboardAvoidingView
+					behavior={Platform.OS === "ios" ? "padding" : undefined}
+					style={{ flex: 1 }}>
 				<ScrollView
+					ref={scrollViewRef}
 					style={{ flex: 1 }}
+					keyboardShouldPersistTaps='handled'
 					contentContainerStyle={{ paddingBottom: 100 }}>
 					<VStack
 						space='lg'
@@ -545,6 +567,7 @@ const UpdateProfile = () => {
 										Prénom *
 									</Text>
 									<Input
+										ref={firstnameRef}
 										style={{
 											backgroundColor: bg,
 											borderColor: cardBorder,
@@ -561,6 +584,7 @@ const UpdateProfile = () => {
 											placeholder='Entrez votre prénom'
 											value={firstname}
 											onChangeText={setFirstname}
+											onFocus={() => scrollToInput(firstnameRef)}
 											style={{
 												color: textPrimary,
 											}}
@@ -585,6 +609,7 @@ const UpdateProfile = () => {
 										Nom *
 									</Text>
 									<Input
+										ref={lastnameRef}
 										style={{
 											backgroundColor: bg,
 											borderColor: cardBorder,
@@ -601,6 +626,7 @@ const UpdateProfile = () => {
 											placeholder='Entrez votre nom'
 											value={lastname}
 											onChangeText={setLastname}
+											onFocus={() => scrollToInput(lastnameRef)}
 											style={{
 												color: textPrimary,
 											}}
@@ -649,6 +675,7 @@ const UpdateProfile = () => {
 										</Box>
 										{/* Numéro */}
 										<Input
+											ref={phoneRef}
 											style={{
 												flex: 1,
 												backgroundColor: bg,
@@ -714,6 +741,7 @@ const UpdateProfile = () => {
 												placeholder='06 12 34 56 78'
 												value={phone}
 												onChangeText={handlePhoneChange}
+												onFocus={() => scrollToInput(phoneRef)}
 												maxLength={14}
 												style={{ color: textPrimary }}
 											/>
@@ -1090,57 +1118,115 @@ const UpdateProfile = () => {
 
 								{/* Date de naissance */}
 								<VStack space='sm'>
-									<Pressable
-										onPress={() => setShowDatePicker(true)}>
-										<VStack space='sm'>
-											<Text
-												size='sm'
+									<Text
+										size='sm'
+										style={{
+											color: textPrimary,
+											fontWeight: "600",
+										}}>
+										Date de naissance
+									</Text>
+									<TouchableOpacity
+										onPress={() => setShowDatePicker(true)}
+										activeOpacity={0.7}>
+										<Input
+											isReadOnly
+											pointerEvents='none'
+											style={{
+												backgroundColor: bg,
+												borderColor: cardBorder,
+											}}>
+											<InputSlot
+												style={{ paddingLeft: 12 }}>
+												<InputIcon
+													as={Calendar}
+													size={20}
+													color={textSecondary}
+												/>
+											</InputSlot>
+											<InputField
+												value={birthday.toLocaleDateString(
+													"fr-FR",
+												)}
+												editable={false}
 												style={{
 													color: textPrimary,
-													fontWeight: "600",
-													marginBottom: 6,
-												}}>
-												Date de naissance
-											</Text>
-											<Input
-												// isDisabled
-												isReadOnly
-												pointerEvents='none'
+												}}
+											/>
+										</Input>
+									</TouchableOpacity>
+
+									{/* iOS : Actionsheet */}
+									{Platform.OS === "ios" && (
+										<Actionsheet
+											isOpen={showDatePicker}
+											onClose={() =>
+												setShowDatePicker(false)
+											}>
+											<ActionsheetBackdrop />
+											<ActionsheetContent
 												style={{
-													backgroundColor: bg,
-													borderColor: cardBorder,
+													paddingBottom: 32,
+													backgroundColor: isDark
+														? Colors.dark.background
+														: Colors.light.cardBackground,
 												}}>
-												<InputSlot
-													style={{ paddingLeft: 12 }}>
-													<InputIcon
-														as={Calendar}
-														size={20}
-														color={textSecondary}
-													/>
-												</InputSlot>
-												<InputField
-													value={birthday.toLocaleDateString(
-														"fr-FR",
-													)}
-													editable={false}
-													style={{
-														color: textPrimary,
+												<ActionsheetDragIndicatorWrapper>
+													<ActionsheetDragIndicator />
+												</ActionsheetDragIndicatorWrapper>
+												<DateTimePicker
+													value={birthday}
+													mode='date'
+													display='spinner'
+													locale='fr-FR'
+													maximumDate={new Date()}
+													minimumDate={new Date(1920, 0, 1)}
+													onChange={(_, d) => {
+														if (d) setBirthday(d);
 													}}
+													style={{ width: "100%" }}
+													textColor={textPrimary}
 												/>
-											</Input>
-										</VStack>
-									</Pressable>
-									<DateTimePickerModal
-										isVisible={showDatePicker}
-										mode='date'
-										date={birthday}
-										onConfirm={handleConfirmDate}
-										onCancel={handleCancelDate}
-										maximumDate={new Date()}
-										locale='fr_FR'
-										cancelTextIOS='Annuler'
-										confirmTextIOS='Confirmer'
-									/>
+												<Button
+													onPress={() =>
+														setShowDatePicker(false)
+													}
+													style={{
+														backgroundColor: tint,
+														borderRadius: 12,
+														height: 52,
+														marginHorizontal: 16,
+														marginTop: 8,
+														width: "100%",
+													}}>
+													<ButtonText
+														style={{
+															color: "#ffffff",
+															fontWeight: "700",
+															fontSize: 16,
+														}}>
+														Valider
+													</ButtonText>
+												</Button>
+											</ActionsheetContent>
+										</Actionsheet>
+									)}
+
+									{/* Android : picker natif */}
+									{Platform.OS === "android" &&
+										showDatePicker && (
+											<DateTimePicker
+												value={birthday}
+												mode='date'
+												display='calendar'
+												maximumDate={new Date()}
+												minimumDate={new Date(1920, 0, 1)}
+												onChange={(_, d) => {
+													setShowDatePicker(false);
+													if (d) setBirthday(d);
+												}}
+											/>
+										)}
 								</VStack>
 								<Divider
 									style={{
@@ -1159,6 +1245,7 @@ const UpdateProfile = () => {
 										Code Postal
 									</Text>
 									<Input
+										ref={postcodeRef}
 										style={{
 											backgroundColor: bg,
 											borderColor: cardBorder,
@@ -1178,6 +1265,7 @@ const UpdateProfile = () => {
 												setPostcodeSearch(text);
 												searchCities(text);
 											}}
+											onFocus={() => scrollToInput(postcodeRef)}
 											keyboardType='numeric'
 											maxLength={5}
 											style={{
@@ -1581,6 +1669,7 @@ const UpdateProfile = () => {
 										Taille
 									</Text>
 									<Input
+										ref={heightRef}
 										style={{
 											backgroundColor: bg,
 											borderColor: cardBorder,
@@ -1597,6 +1686,7 @@ const UpdateProfile = () => {
 											placeholder='Votre taille en cm'
 											value={height}
 											onChangeText={setHeight}
+											onFocus={() => scrollToInput(heightRef)}
 											keyboardType='numeric'
 											style={{
 												color: textPrimary,
@@ -1629,6 +1719,7 @@ const UpdateProfile = () => {
 										Poids
 									</Text>
 									<Input
+										ref={weightRef}
 										style={{
 											backgroundColor: bg,
 											borderColor: cardBorder,
@@ -1645,6 +1736,7 @@ const UpdateProfile = () => {
 											placeholder='Votre poids en kg'
 											value={weight}
 											onChangeText={setWeight}
+											onFocus={() => scrollToInput(weightRef)}
 											keyboardType='numeric'
 											style={{
 												color: textPrimary,
@@ -1663,6 +1755,7 @@ const UpdateProfile = () => {
 						</Card>
 					</VStack>
 				</ScrollView>
+				</KeyboardAvoidingView>
 				{/* Bouton fixe bas de page */}
 				<View
 					style={{
