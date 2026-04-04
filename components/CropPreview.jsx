@@ -27,6 +27,7 @@ export default function CropPreview({
 	naturalHeight,
 	screenWidth,
 	tint,
+	frameRatio = 4 / 3,
 	onConfirm,
 	onCancel,
 	onClose,
@@ -34,7 +35,7 @@ export default function CropPreview({
 	const [containerH, setContainerH] = useState(0);
 
 	const FRAME_W = Math.round(screenWidth * 0.88);
-	const FRAME_H = Math.round(FRAME_W * 0.75);
+	const FRAME_H = Math.round(FRAME_W / frameRatio);
 
 	// Animated values
 	const pan = useRef(new Animated.ValueXY()).current;
