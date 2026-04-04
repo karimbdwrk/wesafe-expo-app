@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
 	Image,
 	KeyboardAvoidingView,
@@ -36,17 +36,24 @@ const SignInScreen = () => {
 	const { signIn, loading } = useAuth();
 	const router = useRouter();
 	const { isDark } = useTheme();
-	const bg          = isDark ? Colors.dark.background     : Colors.light.background;
-	const cardBg      = isDark ? Colors.dark.cardBackground : Colors.light.cardBackground;
-	const elevated    = isDark ? Colors.dark.elevated       : Colors.light.elevated;
-	const border      = isDark ? Colors.dark.border         : Colors.light.border;
-	const textPrimary = isDark ? Colors.dark.text           : Colors.light.text;
-	const muted       = isDark ? Colors.dark.muted          : Colors.light.muted;
-	const tint        = isDark ? Colors.dark.tint           : Colors.light.tint;
-	const danger      = isDark ? Colors.dark.danger         : Colors.light.danger;
-	const danger20    = isDark ? Colors.dark.danger20       : Colors.light.danger20;
-	const success     = isDark ? Colors.dark.success        : Colors.light.success;
-	const success20   = isDark ? Colors.dark.success20      : Colors.light.success20;
+	const scrollViewRef = useRef(null);
+	const handleInputFocus = () =>
+		scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+	const handlePasswordFocus = () =>
+		scrollViewRef.current?.scrollTo({ y: 120, animated: true });
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const elevated = isDark ? Colors.dark.elevated : Colors.light.elevated;
+	const border = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const muted = isDark ? Colors.dark.muted : Colors.light.muted;
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
+	const danger = isDark ? Colors.dark.danger : Colors.light.danger;
+	const danger20 = isDark ? Colors.dark.danger20 : Colors.light.danger20;
+	const success = isDark ? Colors.dark.success : Colors.light.success;
+	const success20 = isDark ? Colors.dark.success20 : Colors.light.success20;
 
 	const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
@@ -185,6 +192,7 @@ const SignInScreen = () => {
 				style={{ flex: 1 }}
 				behavior={Platform.OS === "ios" ? "padding" : "height"}>
 				<ScrollView
+					ref={scrollViewRef}
 					contentContainerStyle={{ flexGrow: 1 }}
 					keyboardShouldPersistTaps='handled'>
 					<VStack
@@ -285,6 +293,7 @@ const SignInScreen = () => {
 											placeholder='exemple@wesafeapp.com'
 											value={email}
 											onChangeText={setEmail}
+											onFocus={handleInputFocus}
 											autoCapitalize='none'
 											keyboardType='email-address'
 											style={{
@@ -319,6 +328,7 @@ const SignInScreen = () => {
 											placeholder='MonMotDePasse$'
 											value={password}
 											onChangeText={setPassword}
+											onFocus={handlePasswordFocus}
 											style={{
 												color: textPrimary,
 											}}
