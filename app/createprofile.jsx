@@ -246,6 +246,7 @@ const CreateProfile = () => {
 				...(gender && { gender }),
 				...(selectedCommune && {
 					city: selectedCommune.nom,
+					postcode: selectedCommune.codesPostaux?.[0] || postalCode,
 					department: selectedCommune.departement?.nom,
 					region: selectedCommune.region?.nom,
 					department_code: selectedCommune.codeDepartement,
