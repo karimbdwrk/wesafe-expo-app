@@ -544,7 +544,7 @@ export default function KBISDocumentVerification() {
 												as={FileText}
 												size='lg'
 												style={{
-													color: tint,
+													color: textPrimary,
 												}}
 											/>
 											<Text
@@ -602,7 +602,7 @@ export default function KBISDocumentVerification() {
 											}}>
 											<ButtonIcon
 												as={Upload}
-												color='#ffffff'
+												style={{ color: "#ffffff" }}
 											/>
 											<ButtonText
 												style={{ color: "#ffffff" }}>
