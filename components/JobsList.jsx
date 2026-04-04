@@ -101,6 +101,7 @@ export default function JobsList({
 	isLastMinute = false,
 }) {
 	const scrollRef = useRef(null);
+	const keywordsInputRef = useRef(null);
 	const { userProfile } = useAuth();
 	const { getAll, create } = useDataContext();
 	const { isDark } = useTheme();
@@ -164,6 +165,13 @@ export default function JobsList({
 		}
 	};
 	const handleCloseSheet = () => setActiveSheet(null);
+
+	useEffect(() => {
+		if (activeSheet === "keywords") {
+			const t = setTimeout(() => keywordsInputRef.current?.focus(), 300);
+			return () => clearTimeout(t);
+		}
+	}, [activeSheet]);
 
 	// Recherche par code postal — cache Supabase d'abord, sinon API gouv
 	useEffect(() => {
@@ -855,7 +863,7 @@ export default function JobsList({
 							</VStack>
 						</HStack>
 
-						<ActionsheetScrollView style={{ paddingBottom: 20 }}>
+						<ActionsheetScrollView style={{ paddingBottom: 0 }}>
 							<VStack
 								style={{
 									paddingHorizontal: 5,
@@ -863,6 +871,7 @@ export default function JobsList({
 								}}>
 								<Input style={{ borderRadius: 12 }}>
 									<InputField
+										ref={keywordsInputRef}
 										placeholder='Search...'
 										value={keywords}
 										onChangeText={(text) => {
@@ -926,8 +935,20 @@ export default function JobsList({
 					workingTimes.length > 0 ||
 					keywords ||
 					(selectedCityName && distanceKm > 0)) && (
-					<VStack style={styles.filtersRow}>
-						<HStack style={styles.filterWrap}>
+					<VStack
+						style={{
+							...styles.filtersRow,
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.background,
+						}}>
+						<HStack
+							style={{
+								...styles.filterWrap,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.background,
+							}}>
 							{values.map((value) => (
 								<Badge
 									key={value}
