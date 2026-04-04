@@ -452,7 +452,10 @@ const SignatureScreen = () => {
 									backgroundColor: tint,
 									borderRadius: 8,
 								}}>
-								<ButtonIcon as={Edit3} color='#ffffff' />
+								<ButtonIcon
+									as={Edit3}
+									style={{ color: "#ffffff" }}
+								/>
 								<ButtonText style={{ color: "#ffffff" }}>
 									{signatureImg
 										? "Modifier"
