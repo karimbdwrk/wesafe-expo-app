@@ -177,9 +177,6 @@ const MessageThread = ({
 			if (handleOwnKeyboard) {
 				setKeyboardHeight(e.endCoordinates.height);
 			}
-			setTimeout(() => {
-				scrollViewRef.current?.scrollToEnd({ animated: true });
-			}, 100);
 		});
 
 		const hideListener = Keyboard.addListener(hideEvent, () => {
@@ -1159,6 +1156,9 @@ const MessageThread = ({
 				}}
 				contentContainerStyle={{ padding: 16, flexGrow: 1 }}
 				keyboardShouldPersistTaps='handled'
+				onLayout={() => {
+					scrollViewRef.current?.scrollToEnd({ animated: true });
+				}}
 				onContentSizeChange={() => {
 					scrollViewRef.current?.scrollToEnd({ animated: true });
 				}}>
