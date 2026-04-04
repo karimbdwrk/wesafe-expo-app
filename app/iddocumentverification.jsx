@@ -49,6 +49,7 @@ import { SUBMIT_ID_DOCUMENT } from "@/utils/activityEvents";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
+import CropPreview from "@/components/CropPreview";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const DOCUMENTS_BUCKET = "identity-documents";
@@ -93,14 +94,15 @@ export default function IDDocumentVerification() {
 	const [showCameraSheet, setShowCameraSheet] = useState(false);
 	const [cameraTarget, setCameraTarget] = useState(null);
 	const [facing, setFacing] = useState("back");
+	const [rawPhoto, setRawPhoto] = useState(null);
+	const [pickSource, setPickSource] = useState("camera");
 
 	const captureDocument = async () => {
 		if (!cameraRef.current) return;
 		try {
 			const photo = await cameraRef.current.takePictureAsync({ quality: 0.85 });
-			if (cameraTarget === "front") setFrontImage(photo);
-			if (cameraTarget === "back") setBackImage(photo);
-			setShowCameraSheet(false);
+			setPickSource("camera");
+			setRawPhoto(photo);
 		} catch (e) {
 			console.error("captureDocument error:", e);
 		}
@@ -223,13 +225,15 @@ export default function IDDocumentVerification() {
 
 		const result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: ImagePicker.MediaTypeOptions.Images,
-			quality: 0.8,
+			quality: 1,
 		});
 
 		if (!result.canceled) {
 			const asset = result.assets[0];
-			if (side === "front") setFrontImage(asset);
-			if (side === "back") setBackImage(asset);
+			setCameraTarget(side);
+			setPickSource("gallery");
+			setRawPhoto({ uri: asset.uri, width: asset.width, height: asset.height });
+			setShowCameraSheet(true);
 		}
 	};
 
@@ -1370,17 +1374,44 @@ export default function IDDocumentVerification() {
 		<Modal
 			visible={showCameraSheet}
 			animationType="slide"
-			presentationStyle="pageSheet"
+			presentationStyle="fullScreen"
 			onRequestClose={() => setShowCameraSheet(false)}>
 			<Box style={StyleSheet.absoluteFill}>
-				{cameraPermission?.granted ? (
+				{rawPhoto ? (
+					<CropPreview
+						uri={rawPhoto.uri}
+						naturalWidth={rawPhoto.width}
+						naturalHeight={rawPhoto.height}
+						screenWidth={screenWidth}
+						tint={isDark ? Colors.dark.tint : Colors.light.tint}
+						onConfirm={(result) => {
+							if (cameraTarget === "front") setFrontImage(result);
+							if (cameraTarget === "back") setBackImage(result);
+							setRawPhoto(null);
+							setShowCameraSheet(false);
+						}}
+						onCancel={() => {
+							setRawPhoto(null);
+							if (pickSource === "gallery") {
+								setShowCameraSheet(false);
+								const side = cameraTarget;
+								setTimeout(() => pickImage(side), 350);
+							}
+							// camera : rawPhoto=null → retour vue caméra
+						}}
+						onClose={() => {
+							setRawPhoto(null);
+							setShowCameraSheet(false);
+						}}
+					/>
+				) : cameraPermission?.granted ? (
 					<Box style={{ flex: 1, backgroundColor: "#000" }}>
 						{/* Fermer */}
 						<TouchableOpacity
 							onPress={() => setShowCameraSheet(false)}
 							style={{
 								position: "absolute",
-								top: 16,
+								top: 56,
 								right: 16,
 								zIndex: 10,
 								backgroundColor: "rgba(0,0,0,0.5)",
@@ -1435,6 +1466,7 @@ export default function IDDocumentVerification() {
 								padding: 20,
 								paddingBottom: 40,
 								backgroundColor: "#000",
+								zIndex: 10,
 							}}>
 							<Button
 								onPress={captureDocument}
@@ -1443,7 +1475,7 @@ export default function IDDocumentVerification() {
 									borderRadius: 12,
 									height: 52,
 								}}>
-								<ButtonIcon as={Camera} />
+								<ButtonIcon as={Camera} style={{ color: "#ffffff" }} />
 								<ButtonText
 									style={{
 										color: "#ffffff",
