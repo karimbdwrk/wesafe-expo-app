@@ -39,11 +39,12 @@ const SignatureCapture = ({ onSave }) => {
 					style={{ flex: 1 }}
 					webStyle={`
 						.m-signature-pad--footer { display: none; }
-						body { margin: 0; }
-						.m-signature-pad { box-shadow: none; border: none; margin: 0; width: 100%; height: 100%; }
-						.m-signature-pad--body { border: none; width: 100%; height: 100%; }`}
-					backgroundColor={isDark ? "#374151" : "#ffffff"}
-					penColor={isDark ? "#f3f4f6" : "#111827"}
+						body { margin: 0; background: #ffffff; }
+						.m-signature-pad { box-shadow: none; border: none; margin: 0; width: 100%; height: 100%; background: #ffffff; }
+						.m-signature-pad--body { border: none; width: 100%; height: 100%; background: #ffffff; }
+						canvas { background: #ffffff; }`}
+					backgroundColor='#ffffff'
+					penColor='#111827'
 				/>
 			</View>
 
