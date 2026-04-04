@@ -14,7 +14,7 @@ import {
 	View,
 } from "react-native";
 import * as ImageManipulator from "expo-image-manipulator";
-import { X } from "lucide-react-native";
+import { X, RotateCw } from "lucide-react-native";
 import { Button, ButtonText } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { Box } from "@/components/ui/box";
@@ -33,6 +33,16 @@ export default function CropPreview({
 	onClose,
 }) {
 	const [containerH, setContainerH] = useState(0);
+	const [rotatedUri, setRotatedUri] = useState(uri);
+	const [rotatedNW, setRotatedNW] = useState(naturalWidth);
+	const [rotatedNH, setRotatedNH] = useState(naturalHeight);
+	const [rotating, setRotating] = useState(false);
+
+	useEffect(() => {
+		setRotatedUri(uri);
+		setRotatedNW(naturalWidth);
+		setRotatedNH(naturalHeight);
+	}, [uri]);
 
 	const FRAME_W = Math.round(screenWidth * 0.88);
 	const FRAME_H = Math.round(FRAME_W / frameRatio);
@@ -40,6 +50,8 @@ export default function CropPreview({
 	// Animated values
 	const pan = useRef(new Animated.ValueXY()).current;
 	const scale = useRef(new Animated.Value(1)).current;
+	const rotateAnim = useRef(new Animated.Value(0)).current;
+	const opacityAnim = useRef(new Animated.Value(1)).current;
 
 	// Refs to read current values synchronously
 	const panVal = useRef({ x: 0, y: 0 });
@@ -104,29 +116,80 @@ export default function CropPreview({
 		}),
 	).current;
 
+	const handleRotate = async () => {
+		if (rotating) return;
+		setRotating(true);
+		// 1. Lancer l'animation visuelle et le traitement en parallèle
+		Animated.timing(rotateAnim, {
+			toValue: 1,
+			duration: 350,
+			useNativeDriver: true,
+		}).start();
+		try {
+			const result = await ImageManipulator.manipulateAsync(
+				rotatedUri,
+				[{ rotate: 90 }],
+				{ compress: 1, format: ImageManipulator.SaveFormat.JPEG },
+			);
+			// 2. Attendre la fin de l'animation visuelle
+			await new Promise((resolve) => setTimeout(resolve, 360));
+			// 3. Fade out rapide pour masquer le swap
+			await new Promise((resolve) =>
+				Animated.timing(opacityAnim, {
+					toValue: 0,
+					duration: 80,
+					useNativeDriver: true,
+				}).start(resolve),
+			);
+			// 4. Swap instantané (image invisible)
+			rotateAnim.setValue(0);
+			setRotatedUri(result.uri);
+			setRotatedNW(result.width);
+			setRotatedNH(result.height);
+			pan.setValue({ x: 0, y: 0 });
+			pan.flattenOffset();
+			panVal.current = { x: 0, y: 0 };
+			scale.setValue(1);
+			scaleVal.current = 1;
+			// 5. Laisser React re-render puis fade in
+			await new Promise((resolve) => setTimeout(resolve, 50));
+			Animated.timing(opacityAnim, {
+				toValue: 1,
+				duration: 180,
+				useNativeDriver: true,
+			}).start();
+		} catch (e) {
+			console.error("CropPreview rotate error:", e);
+			rotateAnim.setValue(0);
+			opacityAnim.setValue(1);
+		} finally {
+			setRotating(false);
+		}
+	};
+
 	const handleConfirm = async () => {
-		if (!containerH || !naturalWidth || !naturalHeight) return;
+		if (!containerH || !rotatedNW || !rotatedNH) return;
 		// s0 = scale initiale qui couvre le cadre
-		const s0 = Math.max(FRAME_W / naturalWidth, FRAME_H / naturalHeight);
+		const s0 = Math.max(FRAME_W / rotatedNW, FRAME_H / rotatedNH);
 		const totalScale = s0 * scaleVal.current;
 		// Dimensions de la zone cropée en pixels image
 		const cropW = FRAME_W / totalScale;
 		const cropH = FRAME_H / totalScale;
 		// Centre du cadre en coordonnées image
-		const cx = naturalWidth / 2 - panVal.current.x / totalScale;
-		const cy = naturalHeight / 2 - panVal.current.y / totalScale;
+		const cx = rotatedNW / 2 - panVal.current.x / totalScale;
+		const cy = rotatedNH / 2 - panVal.current.y / totalScale;
 		// Origine du crop (clampée)
 		const originX = Math.round(
-			Math.max(0, Math.min(naturalWidth - cropW, cx - cropW / 2)),
+			Math.max(0, Math.min(rotatedNW - cropW, cx - cropW / 2)),
 		);
 		const originY = Math.round(
-			Math.max(0, Math.min(naturalHeight - cropH, cy - cropH / 2)),
+			Math.max(0, Math.min(rotatedNH - cropH, cy - cropH / 2)),
 		);
-		const safeCropW = Math.round(Math.min(cropW, naturalWidth - originX));
-		const safeCropH = Math.round(Math.min(cropH, naturalHeight - originY));
+		const safeCropW = Math.round(Math.min(cropW, rotatedNW - originX));
+		const safeCropH = Math.round(Math.min(cropH, rotatedNH - originY));
 		try {
 			const result = await ImageManipulator.manipulateAsync(
-				uri,
+				rotatedUri,
 				[
 					{
 						crop: {
@@ -147,11 +210,11 @@ export default function CropPreview({
 
 	// s0 : scale initiale minimum pour couvrir le cadre
 	const s0 =
-		naturalWidth > 0 && naturalHeight > 0
-			? Math.max(FRAME_W / naturalWidth, FRAME_H / naturalHeight)
+		rotatedNW > 0 && rotatedNH > 0
+			? Math.max(FRAME_W / rotatedNW, FRAME_H / rotatedNH)
 			: 1;
-	const imgW = naturalWidth * s0;
-	const imgH = naturalHeight * s0;
+	const imgW = rotatedNW * s0;
+	const imgH = rotatedNH * s0;
 	const frameTop = containerH > 0 ? (containerH - FRAME_H) / 2 : 0;
 
 	return (
@@ -162,17 +225,24 @@ export default function CropPreview({
 				<>
 					{/* Image animée */}
 					<Animated.Image
-						source={{ uri }}
+						source={{ uri: rotatedUri }}
 						style={{
 							position: "absolute",
 							width: imgW,
 							height: imgH,
 							left: (screenWidth - imgW) / 2,
 							top: (containerH - imgH) / 2,
+							opacity: opacityAnim,
 							transform: [
 								{ translateX: pan.x },
 								{ translateY: pan.y },
 								{ scale },
+								{
+									rotate: rotateAnim.interpolate({
+										inputRange: [0, 1],
+										outputRange: ["0deg", "90deg"],
+									}),
+								},
 							],
 						}}
 						resizeMode='cover'
@@ -244,6 +314,23 @@ export default function CropPreview({
 							padding: 8,
 						}}>
 						<X size={22} color='#fff' />
+					</TouchableOpacity>
+
+					{/* Bouton rotation */}
+					<TouchableOpacity
+						onPress={handleRotate}
+						disabled={rotating}
+						style={{
+							position: "absolute",
+							top: 56,
+							left: 16,
+							zIndex: 20,
+							backgroundColor: "rgba(0,0,0,0.5)",
+							borderRadius: 20,
+							padding: 8,
+							opacity: rotating ? 0.4 : 1,
+						}}>
+						<RotateCw size={22} color='#fff' />
 					</TouchableOpacity>
 
 					{/* Couche geste (hors barre boutons) */}
