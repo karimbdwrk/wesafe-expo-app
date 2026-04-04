@@ -5,11 +5,13 @@ import {
 	Pressable,
 	PanResponder,
 	Platform,
+	View,
+	Text,
+	useWindowDimensions,
 } from "react-native";
-import { HStack } from "@/components/ui/hstack";
-import { VStack } from "@/components/ui/vstack";
-import { Text } from "@/components/ui/text";
 import { Icon } from "@/components/ui/icon";
+import { useColorScheme } from "nativewind";
+import Colors from "@/constants/Colors";
 import {
 	Bell,
 	Briefcase,
@@ -18,7 +20,15 @@ import {
 } from "lucide-react-native";
 
 const NotificationToast = ({ notification, onPress, onDismiss }) => {
-	const translateY = useRef(new Animated.Value(-100)).current;
+	const translateY = useRef(new Animated.Value(-120)).current;
+	const { colorScheme } = useColorScheme();
+	const { width: screenWidth } = useWindowDimensions();
+	const isDark = colorScheme === "dark";
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
 
 	useEffect(() => {
 		// Animation d'entrée
@@ -111,13 +121,30 @@ const NotificationToast = ({ notification, onPress, onDismiss }) => {
 			case "contract_signed_pro":
 				return FileText;
 			case "message":
+			case "new_message":
 				return MessageCircleMore;
 			default:
 				return Bell;
 		}
 	};
 
+	const getNotificationColor = (type) => {
+		switch (type) {
+			case "application_selected":
+			case "contract_signed_pro":
+				return isDark ? Colors.dark.success : Colors.light.success;
+			case "application_rejected":
+				return isDark ? Colors.dark.danger : Colors.light.danger;
+			case "message":
+			case "new_message":
+				return isDark ? Colors.dark.tint : Colors.light.tint;
+			default:
+				return isDark ? Colors.dark.tint : Colors.light.tint;
+		}
+	};
+
 	const IconComponent = getNotificationIcon(notification.type);
+	const accentColor = getNotificationColor(notification.type);
 
 	return (
 		<SafeAreaView
@@ -132,46 +159,50 @@ const NotificationToast = ({ notification, onPress, onDismiss }) => {
 				{...panResponder.panHandlers}
 				style={{
 					transform: [{ translateY }],
+					marginHorizontal: 10,
+					marginTop: 8,
 				}}>
-				<HStack
+				<View
 					style={{
-						backgroundColor: "white",
-						borderRadius: 12,
-						padding: 16,
-						marginHorizontal: 16,
-						marginTop: 8,
+						backgroundColor: cardBg,
+						borderRadius: 8,
+						borderWidth: 1,
+						borderColor: accentColor,
+						padding: 12,
+						flexDirection: "row",
+						alignItems: "flex-start",
+						gap: 8,
 						shadowColor: "#000",
 						shadowOffset: { width: 0, height: 2 },
-						shadowOpacity: 0.25,
-						shadowRadius: 8,
+						shadowOpacity: 0.15,
+						shadowRadius: 4,
 						elevation: 5,
-						alignItems: "center",
-						gap: 12,
-					}}>
-					<Icon
-						as={IconComponent}
-						size='lg'
-						style={{ color: "#2563eb" }}
-					/>
-					<VStack style={{ flex: 1, gap: 4 }}>
+						width: screenWidth - 20,
+					}}
+					onTouchEnd={handlePress}>
+					<Icon as={IconComponent} size='lg' color={accentColor} />
+					<View style={{ flex: 1 }}>
 						<Text
 							style={{
 								fontWeight: "600",
 								fontSize: 14,
-								color: "#1f2937",
+								color: textPrimary,
 							}}>
 							{notification.title}
 						</Text>
-						<Text
-							numberOfLines={2}
-							style={{
-								fontSize: 13,
-								color: "#6b7280",
-							}}>
-							{notification.body}
-						</Text>
-					</VStack>
-				</HStack>
+						{notification.body ? (
+							<Text
+								numberOfLines={2}
+								style={{
+									fontSize: 13,
+									color: textSecondary,
+									marginTop: 2,
+								}}>
+								{notification.body}
+							</Text>
+						) : null}
+					</View>
+				</View>
 			</Animated.View>
 		</SafeAreaView>
 	);
