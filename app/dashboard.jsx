@@ -59,7 +59,8 @@ import {
 	ScanLine,
 	Users,
 	BookUser,
-	MessageSquare,
+	MessagesSquare,
+	Zap,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -738,7 +739,41 @@ const DashboardScreen = () => {
 												}}>
 												Crédits LastMinute
 											</Text>
-											<Badge
+											<TouchableOpacity
+												// onPress={() => router.push("/buycredits")}
+												activeOpacity={0.7}
+												style={{
+													flexDirection: "row",
+													alignItems: "center",
+													gap: 4,
+													backgroundColor: isDark
+														? Colors.dark.background
+														: "#fef9c3",
+													borderRadius: 20,
+													paddingHorizontal: 10,
+													paddingVertical: 5,
+													marginRight: 4,
+												}}>
+												<Icon
+													as={Zap}
+													size='sm'
+													style={{
+														color: Colors.light
+															.warning,
+													}}
+												/>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "700",
+														color: Colors.light
+															.warning,
+													}}>
+													{company?.last_minute_credits ??
+														0}
+												</Text>
+											</TouchableOpacity>
+											{/* <Badge
 												size='md'
 												variant='solid'
 												action={
@@ -751,7 +786,7 @@ const DashboardScreen = () => {
 														company?.last_minute_credits
 													}
 												</BadgeText>
-											</Badge>
+											</Badge> */}
 										</HStack>
 										<Icon
 											as={ChevronRight}
@@ -963,7 +998,7 @@ const DashboardScreen = () => {
 							<Divider style={{ marginVertical: 16 }} />
 
 							<ActionCard
-								icon={MessageSquare}
+								icon={MessagesSquare}
 								title='Messages'
 								subtitle='Contacter le support WeSafe'
 								onPress={openSupportSheet}
