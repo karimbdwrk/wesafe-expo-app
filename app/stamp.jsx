@@ -1,11 +1,19 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter, useFocusEffect } from "expo-router";
-import { ScrollView, Alert } from "react-native";
+import {
+	ScrollView,
+	Alert,
+	Modal,
+	View,
+	StyleSheet,
+	TouchableOpacity,
+	useWindowDimensions,
+} from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import axios from "axios";
 import Constants from "expo-constants";
+import { CameraView, useCameraPermissions } from "expo-camera";
 
 import { Image } from "@/components/ui/image";
 import { VStack } from "@/components/ui/vstack";
@@ -22,34 +30,24 @@ import {
 } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import {
-	Actionsheet,
-	ActionsheetBackdrop,
-	ActionsheetContent,
-	ActionsheetDragIndicatorWrapper,
-	ActionsheetDragIndicator,
-	ActionsheetItem,
-	ActionsheetItemText,
-} from "@/components/ui/actionsheet";
-import {
 	Stamp,
 	Edit3,
 	FileSignature,
 	Camera,
 	Image as ImageIcon,
-	FileUp,
 	Clock,
 	CheckCircle,
 	XCircle,
 	ShieldCheck,
+	X,
+	Lightbulb,
 } from "lucide-react-native";
+
+import CropPreview from "@/components/CropPreview";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
-import {
-	STAMP_TAKE_PHOTO,
-	STAMP_PICK_GALLERY,
-	STAMP_PICK_DOCUMENT,
-} from "@/utils/activityEvents";
+import { STAMP_TAKE_PHOTO, STAMP_PICK_GALLERY } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 
@@ -79,7 +77,14 @@ const StampScreen = () => {
 	const danger = isDark ? Colors.dark.danger : Colors.light.danger;
 	const danger20 = isDark ? Colors.dark.danger20 : Colors.light.danger20;
 
-	const [showActionsheet, setShowActionsheet] = useState(false);
+	const [showCameraModal, setShowCameraModal] = useState(false);
+	const [rawPhoto, setRawPhoto] = useState(null);
+	const [pickSource, setPickSource] = useState(null);
+	const [pendingReopenGallery, setPendingReopenGallery] = useState(false);
+	const [facing, setFacing] = useState("back");
+	const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+	const cameraRef = useRef(null);
+	const { width: screenWidth } = useWindowDimensions();
 	const [uploading, setUploading] = useState(false);
 	const [processing, setProcessing] = useState(false);
 	const [stampStatus, setStampStatus] = useState(null);
@@ -98,8 +103,6 @@ const StampScreen = () => {
 	useEffect(() => {
 		setStampStatus(userCompany?.stamp_status ?? null);
 	}, [userCompany]);
-
-	const handleCloseActionsheet = () => setShowActionsheet(false);
 
 	const processImageWithRailway = async (imageUri) => {
 		setProcessing(true);
@@ -193,34 +196,39 @@ const StampScreen = () => {
 
 	const handleTakePhoto = async () => {
 		trackActivity(STAMP_TAKE_PHOTO);
-		handleCloseActionsheet();
-		const { status } = await ImagePicker.requestCameraPermissionsAsync();
-		if (status !== "granted") {
-			Alert.alert(
-				"Permission requise",
-				"L'accès à la caméra est nécessaire",
-			);
-			return;
+		if (!cameraPermission?.granted) {
+			const { granted } = await requestCameraPermission();
+			if (!granted) {
+				Alert.alert(
+					"Permission requise",
+					"L'accès à la caméra est nécessaire",
+				);
+				return;
+			}
 		}
+		setPickSource("camera");
+		setRawPhoto(null);
+		setShowCameraModal(true);
+	};
 
-		const result = await ImagePicker.launchCameraAsync({
-			mediaTypes: ["images"],
-			allowsEditing: true,
-			aspect: [1, 1],
-			quality: 1,
-		});
-
-		if (!result.canceled) {
-			const processedPath = await processImageWithRailway(
-				result.assets[0].uri,
-			);
-			await uploadToSupabase(processedPath);
+	const captureDocument = async () => {
+		if (!cameraRef.current) return;
+		try {
+			const photo = await cameraRef.current.takePictureAsync({
+				quality: 1,
+			});
+			setRawPhoto({
+				uri: photo.uri,
+				width: photo.width,
+				height: photo.height,
+			});
+		} catch (e) {
+			console.error("Capture error:", e);
 		}
 	};
 
 	const handlePickFromGallery = async () => {
 		trackActivity(STAMP_PICK_GALLERY);
-		handleCloseActionsheet();
 		const { status } =
 			await ImagePicker.requestMediaLibraryPermissionsAsync();
 		if (status !== "granted") {
@@ -233,37 +241,19 @@ const StampScreen = () => {
 
 		const result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: ["images"],
-			allowsEditing: true,
-			aspect: [1, 1],
+			allowsEditing: false,
 			quality: 1,
 		});
 
-		if (!result.canceled) {
-			const processedPath = await processImageWithRailway(
-				result.assets[0].uri,
-			);
-			await uploadToSupabase(processedPath);
-		}
-	};
-
-	const handlePickDocument = async () => {
-		trackActivity(STAMP_PICK_DOCUMENT);
-		handleCloseActionsheet();
-		try {
-			const result = await DocumentPicker.getDocumentAsync({
-				type: "image/*",
-				copyToCacheDirectory: true,
+		if (!result.canceled && result.assets?.[0]) {
+			const asset = result.assets[0];
+			setRawPhoto({
+				uri: asset.uri,
+				width: asset.width,
+				height: asset.height,
 			});
-
-			if (!result.canceled) {
-				const processedPath = await processImageWithRailway(
-					result.assets[0].uri,
-				);
-				await uploadToSupabase(processedPath);
-			}
-		} catch (error) {
-			console.error("Error picking document:", error);
-			Alert.alert("Erreur", "Échec de la sélection du fichier");
+			setPickSource("gallery");
+			setShowCameraModal(true);
 		}
 	};
 
@@ -503,31 +493,59 @@ const StampScreen = () => {
 							</HStack>
 						)}
 
-						{/* Bouton masqué si validé */}
+						{/* Boutons masqués si validé */}
 						{canEdit && (
-							<Button
-								size='lg'
-								action='primary'
-								onPress={() => setShowActionsheet(true)}
-								isDisabled={uploading || processing}
-								style={{
-									backgroundColor: tint,
-									borderRadius: 8,
-								}}>
-								{(uploading || processing) && (
-									<ButtonSpinner color='#ffffff' />
-								)}
-								<ButtonIcon as={Edit3} color='#ffffff' />
-								<ButtonText style={{ color: "#ffffff" }}>
-									{processing
-										? "Traitement..."
-										: uploading
-											? "Envoi..."
-											: userCompany?.stamp_url
-												? "Modifier le tampon"
-												: "Ajouter un tampon"}
-								</ButtonText>
-							</Button>
+							<HStack space='md'>
+								<Button
+									style={{
+										flex: 1,
+										backgroundColor: tint,
+										borderRadius: 8,
+									}}
+									size='lg'
+									onPress={handleTakePhoto}
+									isDisabled={uploading || processing}>
+									{(uploading || processing) && (
+										<ButtonSpinner color='#ffffff' />
+									)}
+									<ButtonIcon
+										as={Camera}
+										style={{ color: "#ffffff" }}
+									/>
+									<ButtonText style={{ color: "#ffffff" }}>
+										Caméra
+									</ButtonText>
+								</Button>
+								<Button
+									style={{
+										flex: 1,
+										backgroundColor: tint,
+										borderRadius: 8,
+									}}
+									size='lg'
+									onPress={handlePickFromGallery}
+									isDisabled={uploading || processing}>
+									{(uploading || processing) && (
+										<ButtonSpinner color='#ffffff' />
+									)}
+									<ButtonIcon
+										as={ImageIcon}
+										style={{ color: "#ffffff" }}
+									/>
+									<ButtonText style={{ color: "#ffffff" }}>
+										Pellicule
+									</ButtonText>
+								</Button>
+							</HStack>
+						)}
+						{(uploading || processing) && (
+							<Text
+								size='xs'
+								style={{ color: muted, textAlign: "center" }}>
+								{processing
+									? "Traitement en cours..."
+									: "Envoi en cours..."}
+							</Text>
 						)}
 					</VStack>
 				</Card>
@@ -542,14 +560,17 @@ const StampScreen = () => {
 						borderColor: tint20,
 					}}>
 					<VStack space='sm'>
-						<Text
-							size='sm'
-							style={{
-								color: tint,
-								fontWeight: "600",
-							}}>
-							💡 À propos du tampon
-						</Text>
+						<HStack space='xs' style={{ alignItems: "center" }}>
+							<Lightbulb size={16} color={tint} />
+							<Text
+								size='sm'
+								style={{
+									color: tint,
+									fontWeight: "600",
+								}}>
+								À propos du tampon
+							</Text>
+						</HStack>
 						<Text
 							size='sm'
 							style={{
@@ -565,77 +586,202 @@ const StampScreen = () => {
 				</Card>
 			</VStack>
 
-			{/* ActionSheet pour choisir la source */}
-			<Actionsheet
-				isOpen={showActionsheet}
-				onClose={handleCloseActionsheet}>
-				<ActionsheetBackdrop />
-				<ActionsheetContent
-					style={{
-						backgroundColor: cardBg,
-					}}>
-					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
-					</ActionsheetDragIndicatorWrapper>
-
-					<VStack space='md' style={{ width: "100%", padding: 20 }}>
-						<Heading size='lg' style={{ color: textPrimary }}>
-							Choisir une source
-						</Heading>
-
-						<ActionsheetItem onPress={handleTakePhoto}>
-							<HStack space='md' style={{ alignItems: "center" }}>
+			{/* Camera / Crop Modal */}
+			<Modal
+				visible={showCameraModal}
+				animationType='slide'
+				presentationStyle='fullScreen'
+				onDismiss={() => {
+					if (pendingReopenGallery) {
+						setPendingReopenGallery(false);
+						handlePickFromGallery();
+					}
+				}}
+				onRequestClose={() => {
+					setRawPhoto(null);
+					setShowCameraModal(false);
+				}}>
+				<Box style={{ flex: 1, backgroundColor: "#000" }}>
+					{rawPhoto ? (
+						<CropPreview
+							uri={rawPhoto.uri}
+							naturalWidth={rawPhoto.width}
+							naturalHeight={rawPhoto.height}
+							screenWidth={screenWidth}
+							frameRatio={1}
+							tint={tint}
+							onConfirm={async (result) => {
+								setRawPhoto(null);
+								setShowCameraModal(false);
+								try {
+									const processedPath =
+										await processImageWithRailway(
+											result.uri,
+										);
+									await uploadToSupabase(processedPath);
+								} catch (e) {
+									Alert.alert(
+										"Erreur",
+										"Échec du traitement du tampon",
+									);
+								}
+							}}
+							onCancel={() => {
+								setRawPhoto(null);
+								if (pickSource === "gallery") {
+									setPendingReopenGallery(true);
+									setShowCameraModal(false);
+								}
+								// pickSource === "camera" : rawPhoto reset → retour caméra dans le modal
+							}}
+							onClose={() => {
+								setRawPhoto(null);
+								setShowCameraModal(false);
+							}}
+						/>
+					) : cameraPermission?.granted ? (
+						<Box style={{ flex: 1, backgroundColor: "#000" }}>
+							{/* Fermer */}
+							<TouchableOpacity
+								onPress={() => setShowCameraModal(false)}
+								style={{
+									position: "absolute",
+									top: 56,
+									right: 16,
+									zIndex: 10,
+									backgroundColor: "rgba(0,0,0,0.5)",
+									borderRadius: 20,
+									padding: 8,
+								}}>
 								<Icon
-									as={Camera}
+									as={X}
 									size='xl'
-									style={{ color: muted }}
+									style={{ color: "#fff" }}
 								/>
-								<ActionsheetItemText
+							</TouchableOpacity>
+							<CameraView
+								ref={cameraRef}
+								style={{ flex: 1 }}
+								facing={facing}
+							/>
+							{/* Cadre guide 1:1 */}
+							{(() => {
+								const fw = Math.round(screenWidth * 0.88);
+								return (
+									<View
+										style={{
+											...StyleSheet.absoluteFillObject,
+											zIndex: 5,
+										}}
+										pointerEvents='none'>
+										<View
+											style={{
+												flex: 1,
+												backgroundColor:
+													"rgba(0,0,0,0.58)",
+											}}
+										/>
+										<View
+											style={{
+												flexDirection: "row",
+												height: fw,
+											}}>
+											<View
+												style={{
+													flex: 1,
+													backgroundColor:
+														"rgba(0,0,0,0.58)",
+												}}
+											/>
+											<View
+												style={{
+													width: fw,
+													height: fw,
+													borderWidth: 2,
+													borderColor:
+														"rgba(255,255,255,0.9)",
+													borderRadius: 10,
+												}}
+											/>
+											<View
+												style={{
+													flex: 1,
+													backgroundColor:
+														"rgba(0,0,0,0.58)",
+												}}
+											/>
+										</View>
+										<View
+											style={{
+												flex: 1,
+												backgroundColor:
+													"rgba(0,0,0,0.58)",
+											}}
+										/>
+									</View>
+								);
+							})()}
+							{/* Bouton capture */}
+							<Box
+								style={{
+									padding: 20,
+									paddingBottom: 40,
+									backgroundColor: "#000",
+									zIndex: 10,
+								}}>
+								<Button
+									onPress={captureDocument}
 									style={{
-										color: textPrimary,
-										fontSize: 16,
+										backgroundColor: tint,
+										borderRadius: 12,
+										height: 52,
 									}}>
-									Prendre une photo
-								</ActionsheetItemText>
-							</HStack>
-						</ActionsheetItem>
-
-						<ActionsheetItem onPress={handlePickFromGallery}>
-							<HStack space='md' style={{ alignItems: "center" }}>
-								<Icon
-									as={ImageIcon}
-									size='xl'
-									style={{ color: muted }}
-								/>
-								<ActionsheetItemText
-									style={{
-										color: textPrimary,
-										fontSize: 16,
-									}}>
-									Ouvrir la pellicule
-								</ActionsheetItemText>
-							</HStack>
-						</ActionsheetItem>
-
-						<ActionsheetItem onPress={handlePickDocument}>
-							<HStack space='md' style={{ alignItems: "center" }}>
-								<Icon
-									as={FileUp}
-									size='xl'
-									style={{ color: muted }}
-								/>
-								<ActionsheetItemText
-									style={{
-										color: textPrimary,
-										fontSize: 16,
-									}}>
-									Choisir un fichier
-								</ActionsheetItemText>
-							</HStack>
-						</ActionsheetItem>
-					</VStack>
-				</ActionsheetContent>
-			</Actionsheet>
+									<ButtonIcon
+										as={Camera}
+										style={{ color: "#ffffff" }}
+									/>
+									<ButtonText
+										style={{
+											color: "#ffffff",
+											fontWeight: "700",
+											fontSize: 16,
+										}}>
+										Prendre une photo
+									</ButtonText>
+								</Button>
+							</Box>
+						</Box>
+					) : (
+						<Box
+							style={{
+								flex: 1,
+								backgroundColor: "#000",
+								justifyContent: "center",
+								alignItems: "center",
+								padding: 24,
+							}}>
+							<Text
+								style={{
+									color: "#ffffff",
+									textAlign: "center",
+									fontSize: 15,
+									marginBottom: 20,
+								}}>
+								L'accès à la caméra est requis pour prendre une
+								photo.
+							</Text>
+							<Button
+								onPress={requestCameraPermission}
+								style={{
+									backgroundColor: tint,
+									borderRadius: 10,
+								}}>
+								<ButtonText>Autoriser la caméra</ButtonText>
+							</Button>
+						</Box>
+					)}
+				</Box>
+			</Modal>
 		</ScrollView>
 	);
 };
