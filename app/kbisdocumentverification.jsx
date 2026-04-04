@@ -1,10 +1,15 @@
-import React, { useState, useEffect, useCallback } from "react";
-import * as ImagePicker from "expo-image-picker";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import * as DocumentPicker from "expo-document-picker";
 import axios from "axios";
 import Constants from "expo-constants";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ScrollView, TouchableOpacity, Linking } from "react-native";
+import {
+	ScrollView,
+	TouchableOpacity,
+	Linking,
+	KeyboardAvoidingView,
+	Platform,
+} from "react-native";
 
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
@@ -18,15 +23,7 @@ import { Icon } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { Divider } from "@/components/ui/divider";
-import {
-	Actionsheet,
-	ActionsheetBackdrop,
-	ActionsheetContent,
-	ActionsheetDragIndicatorWrapper,
-	ActionsheetDragIndicator,
-	ActionsheetItem,
-	ActionsheetItemText,
-} from "@/components/ui/actionsheet";
+
 import { useToast } from "@/components/ui/toast";
 import CustomToast from "@/components/CustomToast";
 import {
@@ -34,12 +31,8 @@ import {
 	Clock,
 	AlertCircle,
 	FileText,
-	Camera,
-	Image as ImageIcon,
 	Upload,
 	X,
-	FileUp,
-	Building2,
 	Lightbulb,
 } from "lucide-react-native";
 
@@ -76,7 +69,7 @@ export default function KBISDocumentVerification() {
 	const toast = useToast();
 
 	const [kbisImage, setKbisImage] = useState(null);
-	const [showActionsheet, setShowActionsheet] = useState(false);
+	const scrollViewRef = useRef(null);
 
 	const [siret, setSiret] = useState("");
 	const [savedSiret, setSavedSiret] = useState("");
@@ -136,54 +129,13 @@ export default function KBISDocumentVerification() {
 	}, [kbisUploadedStatus]);
 
 	/* ------------------ */
-	/* Image picker       */
+	/* PDF picker         */
 	/* ------------------ */
 
-	const handleTakePhoto = async () => {
-		setShowActionsheet(false);
-		const { status } = await ImagePicker.requestCameraPermissionsAsync();
-
-		if (status !== "granted") {
-			console.warn("Permission denied");
-			return;
-		}
-
-		const result = await ImagePicker.launchCameraAsync({
-			mediaTypes: ImagePicker.MediaTypeOptions.Images,
-			quality: 0.8,
-			allowsEditing: true,
-		});
-
-		if (!result.canceled) {
-			setKbisImage(result.assets[0]);
-		}
-	};
-
-	const handlePickFromGallery = async () => {
-		setShowActionsheet(false);
-		const { status } =
-			await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-		if (status !== "granted") {
-			console.warn("Permission denied");
-			return;
-		}
-
-		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ImagePicker.MediaTypeOptions.Images,
-			quality: 0.8,
-		});
-
-		if (!result.canceled) {
-			setKbisImage(result.assets[0]);
-		}
-	};
-
-	const handlePickDocument = async () => {
-		setShowActionsheet(false);
+	const handlePickPDF = async () => {
 		try {
 			const result = await DocumentPicker.getDocumentAsync({
-				type: ["image/*", "application/pdf"],
+				type: "application/pdf",
 				copyToCacheDirectory: true,
 			});
 
@@ -206,8 +158,8 @@ export default function KBISDocumentVerification() {
 
 		const originalName = kbisImage.uri.split("/").pop();
 		const match = /\.(\w+)$/.exec(originalName);
-		const extension = match?.[1] || "jpg";
-		const mimeType = kbisImage.mimeType || `image/${extension}`;
+		const extension = match?.[1] || "pdf";
+		const mimeType = kbisImage.mimeType || "application/pdf";
 
 		const storageFilename = `${userCompany.id}/kbis_${Date.now()}.${extension}`;
 
@@ -331,87 +283,251 @@ export default function KBISDocumentVerification() {
 	};
 
 	return (
-		<ScrollView
-			style={{
-				flex: 1,
-				backgroundColor: bg,
-			}}
-			contentContainerStyle={{ padding: 20 }}>
-			<VStack space='xl'>
-				{/* Header */}
-				<VStack space='md'>
-					<Text
-						size='md'
-						style={{
-							color: muted,
-						}}>
-						Téléchargez votre extrait KBIS de moins de 3 mois
-					</Text>
-				</VStack>
+		<KeyboardAvoidingView
+			style={{ flex: 1 }}
+			behavior={Platform.OS === "ios" ? "padding" : "height"}>
+			<ScrollView
+				ref={scrollViewRef}
+				style={{
+					flex: 1,
+					backgroundColor: bg,
+				}}
+				contentContainerStyle={{ padding: 20 }}
+				keyboardShouldPersistTaps='handled'>
+				<VStack space='xl'>
+					{/* Header */}
+					<VStack space='md'>
+						<Text
+							size='md'
+							style={{
+								color: muted,
+							}}>
+							Téléchargez votre extrait KBIS de moins de 3 mois
+						</Text>
+					</VStack>
 
-				{/* Status Card - Si document déjà uploadé */}
-				{kbisUploadedStatus && (
-					<Card
-						style={{
-							backgroundColor: cardBg,
-							borderRadius: 12,
-							padding: 24,
-							borderWidth: 1,
-							borderColor: border,
-						}}>
-						<VStack space='lg'>
-							<HStack
-								space='md'
-								style={{
-									alignItems: "center",
-									justifyContent: "space-between",
-								}}>
-								<VStack style={{ flex: 1 }} space='sm'>
+					{/* Status Card - Si document déjà uploadé */}
+					{kbisUploadedStatus && (
+						<Card
+							style={{
+								backgroundColor: cardBg,
+								borderRadius: 12,
+								padding: 24,
+								borderWidth: 1,
+								borderColor: border,
+							}}>
+							<VStack space='lg'>
+								<HStack
+									space='md'
+									style={{
+										alignItems: "center",
+										justifyContent: "space-between",
+									}}>
+									<VStack style={{ flex: 1 }} space='sm'>
+										<Heading
+											size='lg'
+											style={{
+												color: textPrimary,
+											}}>
+											Statut du document
+										</Heading>
+										<Text
+											size='sm'
+											style={{
+												color: muted,
+											}}>
+											KBIS téléchargé
+										</Text>
+										{savedSiret.length > 0 && (
+											<Text
+												size='sm'
+												style={{
+													color: textPrimary,
+													fontWeight: "600",
+													fontFamily: "monospace",
+												}}>
+												SIRET :{" "}
+												{formatSiret(savedSiret)}
+											</Text>
+										)}
+									</VStack>
+									{getStatusBadge()}
+								</HStack>
+
+								{kbisUploadedUrl && (
+									<>
+										<Divider />
+										<TouchableOpacity
+											onPress={() => {
+												// Ouvrir le document
+												Linking.openURL(
+													kbisUploadedUrl,
+												).catch((err) =>
+													console.error(
+														"Erreur ouverture document:",
+														err,
+													),
+												);
+											}}
+											style={{
+												backgroundColor: elevated,
+												borderRadius: 8,
+												padding: 16,
+												borderWidth: 1,
+												borderColor: border,
+											}}>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={FileText}
+													size='lg'
+													style={{
+														color: tint,
+													}}
+												/>
+												<Text
+													size='sm'
+													style={{
+														color: textPrimary,
+														fontWeight: "500",
+														flex: 1,
+													}}
+													numberOfLines={1}
+													ellipsizeMode='middle'>
+													{kbisUploadedUrl
+														.split("/")
+														.pop()}
+												</Text>
+											</HStack>
+										</TouchableOpacity>
+
+										{kbisUploadedStatus === "rejected" && (
+											<VStack space='sm'>
+												<Text
+													size='sm'
+													style={{
+														color: danger,
+														fontWeight: "600",
+													}}>
+													⚠️ Document rejeté
+												</Text>
+												<Text
+													size='sm'
+													style={{
+														color: danger,
+														lineHeight: 20,
+													}}>
+													Votre document a été rejeté.
+													Veuillez soumettre un
+													nouveau KBIS de moins de 3
+													mois.
+												</Text>
+											</VStack>
+										)}
+									</>
+								)}
+							</VStack>
+						</Card>
+					)}
+
+					{/* Upload Card - Masqué si vérifié */}
+					{kbisUploadedStatus !== "verified" && (
+						<Card
+							style={{
+								backgroundColor: cardBg,
+								borderRadius: 12,
+								padding: 24,
+								borderWidth: 1,
+								borderColor: border,
+							}}>
+							<VStack space='lg'>
+								<VStack space='sm'>
+									<Icon
+										as={FileText}
+										size='xl'
+										style={{
+											color: muted,
+										}}
+									/>
 									<Heading
 										size='lg'
 										style={{
 											color: textPrimary,
 										}}>
-										Statut du document
+										{kbisUploadedStatus
+											? "Soumettre un nouveau KBIS"
+											: "Télécharger votre KBIS"}
 									</Heading>
 									<Text
 										size='sm'
 										style={{
 											color: muted,
 										}}>
-										KBIS téléchargé
+										L'extrait KBIS doit dater de moins de 3
+										mois
 									</Text>
-									{savedSiret.length > 0 && (
-										<Text
-											size='sm'
+								</VStack>
+
+								{/* SIRET input */}
+								<VStack space='xs'>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "600",
+											color: textPrimary,
+										}}>
+										Numéro SIRET *
+									</Text>
+									<Input
+										style={{
+											backgroundColor: bg,
+											borderColor: border,
+											borderRadius: 8,
+											borderWidth: 1,
+										}}>
+										<InputField
+											placeholder='XXX XXX XXX XXXXX'
+											value={formatSiret(siret)}
+											onChangeText={(t) =>
+												setSiret(
+													t
+														.replace(/\D/g, "")
+														.slice(0, 14),
+												)
+											}
+											onFocus={() =>
+												scrollViewRef.current?.scrollToEnd(
+													{ animated: true },
+												)
+											}
+											keyboardType='numeric'
+											maxLength={18}
 											style={{
 												color: textPrimary,
-												fontWeight: "600",
-												fontFamily: "monospace",
-											}}>
-											SIRET : {formatSiret(savedSiret)}
-										</Text>
-									)}
-								</VStack>
-								{getStatusBadge()}
-							</HStack>
-
-							{kbisUploadedUrl && (
-								<>
-									<Divider />
-									<TouchableOpacity
-										onPress={() => {
-											// Ouvrir le document
-											Linking.openURL(
-												kbisUploadedUrl,
-											).catch((err) =>
-												console.error(
-													"Erreur ouverture document:",
-													err,
-												),
-											);
-										}}
+											}}
+										/>
+									</Input>
+									<Text
+										size='xs'
 										style={{
+											color:
+												siret.length === 14
+													? success
+													: muted,
+										}}>
+										{siret.length}/14 chiffres
+									</Text>
+								</VStack>
+
+								{/* Document sélectionné */}
+								{kbisImage && (
+									<HStack
+										style={{
+											alignItems: "center",
+											justifyContent: "space-between",
 											backgroundColor: elevated,
 											borderRadius: 8,
 											padding: 16,
@@ -422,6 +538,7 @@ export default function KBISDocumentVerification() {
 											space='sm'
 											style={{
 												alignItems: "center",
+												flex: 1,
 											}}>
 											<Icon
 												as={FileText}
@@ -439,332 +556,127 @@ export default function KBISDocumentVerification() {
 												}}
 												numberOfLines={1}
 												ellipsizeMode='middle'>
-												{kbisUploadedUrl
-													.split("/")
-													.pop()}
+												{kbisImage.fileName ||
+													kbisImage.name ||
+													"Document sélectionné"}
 											</Text>
 										</HStack>
-									</TouchableOpacity>
-
-									{kbisUploadedStatus === "rejected" && (
-										<VStack space='sm'>
-											<Text
-												size='sm'
+										<TouchableOpacity
+											onPress={() => setKbisImage(null)}>
+											<Icon
+												as={X}
+												size='lg'
 												style={{
 													color: danger,
-													fontWeight: "600",
-												}}>
-												⚠️ Document rejeté
-											</Text>
-											<Text
-												size='sm'
-												style={{
-													color: danger,
-													lineHeight: 20,
-												}}>
-												Votre document a été rejeté.
-												Veuillez soumettre un nouveau
-												KBIS de moins de 3 mois.
-											</Text>
-										</VStack>
-									)}
-								</>
-							)}
-						</VStack>
-					</Card>
-				)}
+												}}
+											/>
+										</TouchableOpacity>
+									</HStack>
+								)}
 
-				{/* Upload Card - Masqué si vérifié */}
-				{kbisUploadedStatus !== "verified" && (
+								{/* Upload Button */}
+								{!kbisImage && (
+									<VStack space='sm'>
+										<HStack
+											space='xs'
+											style={{ alignItems: "center" }}>
+											<Icon
+												as={FileText}
+												size='sm'
+												style={{ color: muted }}
+											/>
+											<Text
+												size='xs'
+												style={{ color: muted }}>
+												Uniquement les fichiers PDF sont
+												acceptés
+											</Text>
+										</HStack>
+										<Button
+											size='lg'
+											action='primary'
+											onPress={handlePickPDF}
+											style={{
+												backgroundColor: tint,
+												borderRadius: 8,
+											}}>
+											<ButtonIcon
+												as={Upload}
+												color='#ffffff'
+											/>
+											<ButtonText
+												style={{ color: "#ffffff" }}>
+												Sélectionner un PDF
+											</ButtonText>
+										</Button>
+									</VStack>
+								)}
+
+								{/* Submit Button */}
+								{kbisImage && (
+									<Button
+										size='lg'
+										action='positive'
+										onPress={handleSubmitKBIS}
+										isDisabled={
+											isSubmitting || siret.length !== 14
+										}
+										style={{
+											backgroundColor: success,
+											borderRadius: 8,
+										}}>
+										<ButtonIcon
+											as={CheckCircle}
+											color='#ffffff'
+										/>
+										<ButtonText
+											style={{ color: "#ffffff" }}>
+											{isSubmitting
+												? "Envoi en cours..."
+												: "Soumettre le KBIS"}
+										</ButtonText>
+									</Button>
+								)}
+							</VStack>
+						</Card>
+					)}
+
+					{/* Info Card */}
 					<Card
 						style={{
-							backgroundColor: cardBg,
+							backgroundColor: tint20,
 							borderRadius: 12,
-							padding: 24,
+							padding: 16,
 							borderWidth: 1,
-							borderColor: border,
+							borderColor: tint20,
 						}}>
-						<VStack space='lg'>
-							<VStack space='sm'>
-								<Icon
-									as={FileText}
-									size='xl'
-									style={{
-										color: muted,
-									}}
-								/>
-								<Heading
-									size='lg'
-									style={{
-										color: textPrimary,
-									}}>
-									{kbisUploadedStatus
-										? "Soumettre un nouveau KBIS"
-										: "Télécharger votre KBIS"}
-								</Heading>
+						<VStack space='sm'>
+							<HStack space='sm' style={{ alignItems: "center" }}>
+								<Lightbulb color={tint} size={14} />
 								<Text
 									size='sm'
 									style={{
-										color: muted,
-									}}>
-									L'extrait KBIS doit dater de moins de 3 mois
-								</Text>
-							</VStack>
-
-							{/* SIRET input */}
-							<VStack space='xs'>
-								<Text
-									size='sm'
-									style={{
+										color: tint,
 										fontWeight: "600",
-										color: textPrimary,
 									}}>
-									Numéro SIRET *
+									À propos du KBIS
 								</Text>
-								<Input
-									style={{
-										backgroundColor: bg,
-										borderColor: border,
-										borderRadius: 8,
-										borderWidth: 1,
-									}}>
-									<InputField
-										placeholder='XXX XXX XXX XXXXX'
-										value={formatSiret(siret)}
-										onChangeText={(t) =>
-											setSiret(
-												t
-													.replace(/\D/g, "")
-													.slice(0, 14),
-											)
-										}
-										keyboardType='numeric'
-										maxLength={18}
-										style={{
-											color: textPrimary,
-										}}
-									/>
-								</Input>
-								<Text
-									size='xs'
-									style={{
-										color:
-											siret.length === 14
-												? success
-												: muted,
-									}}>
-									{siret.length}/14 chiffres
-								</Text>
-							</VStack>
-
-							{/* Document sélectionné */}
-							{kbisImage && (
-								<HStack
-									style={{
-										alignItems: "center",
-										justifyContent: "space-between",
-										backgroundColor: elevated,
-										borderRadius: 8,
-										padding: 16,
-										borderWidth: 1,
-										borderColor: border,
-									}}>
-									<HStack
-										space='sm'
-										style={{
-											alignItems: "center",
-											flex: 1,
-										}}>
-										<Icon
-											as={FileText}
-											size='lg'
-											style={{
-												color: tint,
-											}}
-										/>
-										<Text
-											size='sm'
-											style={{
-												color: textPrimary,
-												fontWeight: "500",
-												flex: 1,
-											}}
-											numberOfLines={1}
-											ellipsizeMode='middle'>
-											{kbisImage.fileName ||
-												kbisImage.name ||
-												"Document sélectionné"}
-										</Text>
-									</HStack>
-									<TouchableOpacity
-										onPress={() => setKbisImage(null)}>
-										<Icon
-											as={X}
-											size='lg'
-											style={{
-												color: danger,
-											}}
-										/>
-									</TouchableOpacity>
-								</HStack>
-							)}
-
-							{/* Upload Button */}
-							{!kbisImage && (
-								<Button
-									size='lg'
-									action='primary'
-									onPress={() => setShowActionsheet(true)}
-									style={{
-										backgroundColor: tint,
-										borderRadius: 8,
-									}}>
-									<ButtonIcon as={Upload} color='#ffffff' />
-									<ButtonText style={{ color: "#ffffff" }}>
-										Sélectionner un document
-									</ButtonText>
-								</Button>
-							)}
-
-							{/* Submit Button */}
-							{kbisImage && (
-								<Button
-									size='lg'
-									action='positive'
-									onPress={handleSubmitKBIS}
-									isDisabled={
-										isSubmitting || siret.length !== 14
-									}
-									style={{
-										backgroundColor: success,
-										borderRadius: 8,
-									}}>
-									<ButtonIcon
-										as={CheckCircle}
-										color='#ffffff'
-									/>
-									<ButtonText style={{ color: "#ffffff" }}>
-										{isSubmitting
-											? "Envoi en cours..."
-											: "Soumettre le KBIS"}
-									</ButtonText>
-								</Button>
-							)}
-						</VStack>
-					</Card>
-				)}
-
-				{/* Info Card */}
-				<Card
-					style={{
-						backgroundColor: tint20,
-						borderRadius: 12,
-						padding: 16,
-						borderWidth: 1,
-						borderColor: tint20,
-					}}>
-					<VStack space='sm'>
-						<HStack space='sm' style={{ alignItems: "center" }}>
-							<Lightbulb color={tint} size={14} />
+							</HStack>
 							<Text
 								size='sm'
 								style={{
 									color: tint,
-									fontWeight: "600",
+									lineHeight: 20,
 								}}>
-								À propos du KBIS
+								L'extrait KBIS est la carte d'identité de votre
+								entreprise. Il doit dater de moins de 3 mois
+								pour être accepté. Vous pouvez l'obtenir
+								gratuitement sur infogreffe.fr.
 							</Text>
-						</HStack>
-						<Text
-							size='sm'
-							style={{
-								color: tint,
-								lineHeight: 20,
-							}}>
-							L'extrait KBIS est la carte d'identité de votre
-							entreprise. Il doit dater de moins de 3 mois pour
-							être accepté. Vous pouvez l'obtenir gratuitement sur
-							infogreffe.fr.
-						</Text>
-					</VStack>
-				</Card>
-			</VStack>
-
-			{/* ActionSheet pour sélectionner la source */}
-			<Actionsheet
-				isOpen={showActionsheet}
-				onClose={() => setShowActionsheet(false)}>
-				<ActionsheetBackdrop />
-				<ActionsheetContent
-					style={{
-						backgroundColor: cardBg,
-					}}>
-					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
-					</ActionsheetDragIndicatorWrapper>
-
-					<VStack style={{ width: "100%", padding: 20 }} space='md'>
-						<Heading
-							size='xl'
-							style={{
-								color: textPrimary,
-							}}>
-							Choisir une source
-						</Heading>
-
-						<ActionsheetItem onPress={handleTakePhoto}>
-							<Icon
-								as={Camera}
-								size='lg'
-								style={{
-									color: tint,
-									marginRight: 12,
-								}}
-							/>
-							<ActionsheetItemText
-								style={{
-									color: textPrimary,
-								}}>
-								Prendre une photo
-							</ActionsheetItemText>
-						</ActionsheetItem>
-
-						<ActionsheetItem onPress={handlePickFromGallery}>
-							<Icon
-								as={ImageIcon}
-								size='lg'
-								style={{
-									color: tint,
-									marginRight: 12,
-								}}
-							/>
-							<ActionsheetItemText
-								style={{
-									color: textPrimary,
-								}}>
-								Galerie photo
-							</ActionsheetItemText>
-						</ActionsheetItem>
-
-						<ActionsheetItem onPress={handlePickDocument}>
-							<Icon
-								as={FileUp}
-								size='lg'
-								style={{
-									color: tint,
-									marginRight: 12,
-								}}
-							/>
-							<ActionsheetItemText
-								style={{
-									color: textPrimary,
-								}}>
-								Fichiers
-							</ActionsheetItemText>
-						</ActionsheetItem>
-					</VStack>
-				</ActionsheetContent>
-			</Actionsheet>
-		</ScrollView>
+						</VStack>
+					</Card>
+				</VStack>
+			</ScrollView>
+		</KeyboardAvoidingView>
 	);
 }
