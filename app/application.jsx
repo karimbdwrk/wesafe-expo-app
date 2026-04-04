@@ -1447,6 +1447,62 @@ const ApplicationScreen = () => {
 						</VStack>
 					</Card>
 
+					{/* Bouton Messagerie */}
+					{currentStatus !== "applied" && currentStatus !== "" && (
+						<TouchableOpacity
+							onPress={() => setShowMessaging(true)}
+							activeOpacity={0.75}
+							style={{
+								borderRadius: 12,
+								paddingVertical: 14,
+								paddingHorizontal: 20,
+								backgroundColor: isDark
+									? Colors.dark.tint
+									: Colors.light.tint,
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "center",
+								gap: 10,
+							}}>
+							<Icon
+								as={MessageCircle}
+								size='lg'
+								style={{ color: "#ffffff" }}
+							/>
+							<Text
+								style={{
+									color: "#ffffff",
+									fontWeight: "700",
+									fontSize: 15,
+								}}>
+								Messagerie
+							</Text>
+							{unreadMessagesCount > 0 && (
+								<Box
+									style={{
+										backgroundColor: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
+										borderRadius: 10,
+										minWidth: 20,
+										height: 20,
+										justifyContent: "center",
+										alignItems: "center",
+										paddingHorizontal: 5,
+									}}>
+									<Text
+										style={{
+											color: "#ffffff",
+											fontSize: 11,
+											fontWeight: "bold",
+										}}>
+										{unreadMessagesCount}
+									</Text>
+								</Box>
+							)}
+						</TouchableOpacity>
+					)}
+
 					{/* Contrat Card */}
 					{(contractGenerated ||
 						(role === "pro" && draftContractExists)) && (
@@ -1680,62 +1736,6 @@ const ApplicationScreen = () => {
 					)}
 				</VStack>
 			</ScrollView>
-
-			{/* Bouton flottant Messagerie */}
-			{currentStatus !== "applied" && currentStatus !== "" && (
-				<TouchableOpacity
-					onPress={() => setShowMessaging(true)}
-					style={{
-						position: "absolute",
-						bottom: 30,
-						right: 20,
-						width: 56,
-						height: 56,
-						borderRadius: 28,
-						backgroundColor: isDark
-							? Colors.dark.tint
-							: Colors.light.tint,
-						justifyContent: "center",
-						alignItems: "center",
-						shadowColor: "#000",
-						shadowOffset: { width: 0, height: 3 },
-						shadowOpacity: 0.25,
-						shadowRadius: 5,
-						elevation: 6,
-					}}>
-					<Icon
-						as={MessageCircle}
-						size='xl'
-						style={{ color: "#ffffff" }}
-					/>
-					{unreadMessagesCount > 0 && (
-						<Box
-							style={{
-								position: "absolute",
-								top: -4,
-								right: -4,
-								backgroundColor: isDark
-									? Colors.dark.danger
-									: Colors.light.danger,
-								borderRadius: 10,
-								minWidth: 20,
-								height: 20,
-								justifyContent: "center",
-								alignItems: "center",
-								paddingHorizontal: 4,
-							}}>
-							<Text
-								style={{
-									color: "#ffffff",
-									fontSize: 11,
-									fontWeight: "bold",
-								}}>
-								{unreadMessagesCount}
-							</Text>
-						</Box>
-					)}
-				</TouchableOpacity>
-			)}
 
 			{/* Modal de confirmation pour sélectionner */}
 			<Modal
