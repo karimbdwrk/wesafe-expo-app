@@ -474,6 +474,7 @@ const ContractScreen = () => {
 				// Signature Pro
 				await update("contracts", contractId, {
 					isProSigned: true,
+					signed_at_company: new Date().toISOString(),
 				});
 
 				await updateApplicationStatus(
@@ -525,6 +526,7 @@ const ContractScreen = () => {
 				// Signature Candidat
 				await update("contracts", contractId, {
 					isSigned: true,
+					signed_at_candidate: new Date().toISOString(),
 				});
 
 				await updateApplicationStatus(
@@ -1422,7 +1424,7 @@ const ContractScreen = () => {
 				</Box>
 
 				{/* Action : Modifier le contrat (pro uniquement, pas encore signé des deux côtés) */}
-				{role === "pro" && !(isSigned && isProSigned) ? (
+				{role === "pro" && !isSigned && !isProSigned ? (
 					<Box style={{ marginTop: 4, marginBottom: 8 }}>
 						<TouchableOpacity
 							onPress={() =>
