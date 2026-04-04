@@ -3,7 +3,8 @@ import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import Constants from "expo-constants";
 import { useFocusEffect } from "expo-router";
-import { ScrollView, TouchableOpacity } from "react-native";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { Modal, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from "react-native";
 
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
@@ -59,11 +60,13 @@ const flagEmoji = (cca2) =>
 		.map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
 		.join("");
 
-export default function IDDocumentVerification({ navigation }) {
+export default function IDDocumentVerification() {
 	const { user, userProfile, accessToken, loadUserData } = useAuth();
 	const { update, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const toast = useToast();
+	const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+	const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
 	const [documentType, setDocumentType] = useState(null);
 	const [frontImage, setFrontImage] = useState(null);
@@ -85,6 +88,23 @@ export default function IDDocumentVerification({ navigation }) {
 	const [loadingNationalities, setLoadingNationalities] = useState(false);
 	const countriesCacheRef = useRef(null);
 	const searchTimeoutRef = useRef(null);
+	const documentTypeRef = useRef(null);
+	const cameraRef = useRef(null);
+	const [showCameraSheet, setShowCameraSheet] = useState(false);
+	const [cameraTarget, setCameraTarget] = useState(null);
+	const [facing, setFacing] = useState("back");
+
+	const captureDocument = async () => {
+		if (!cameraRef.current) return;
+		try {
+			const photo = await cameraRef.current.takePictureAsync({ quality: 0.85 });
+			if (cameraTarget === "front") setFrontImage(photo);
+			if (cameraTarget === "back") setBackImage(photo);
+			setShowCameraSheet(false);
+		} catch (e) {
+			console.error("captureDocument error:", e);
+		}
+	};
 
 	const searchNationality = async (query) => {
 		if (query.length < 3) {
@@ -147,7 +167,7 @@ export default function IDDocumentVerification({ navigation }) {
 		setDocumentUploadedType(userProfile?.id_type || null);
 		setDocumentUploadedStatus(userProfile?.id_verification_status || null);
 		setDocumentUploadedValidityDate(userProfile?.id_validity_date || null);
-		// Charger la nationalité stockée
+		// Charger la nationalité stockée (ignoré pour titre de séjour)
 		const code = userProfile?.nationality;
 		if (code) {
 			axios
@@ -155,6 +175,7 @@ export default function IDDocumentVerification({ navigation }) {
 					`https://restcountries.com/v3.1/alpha/${code}?fields=cca2,translations`,
 				)
 				.then((res) => {
+					if (documentTypeRef.current === "residence_permit") return;
 					const c = res.data;
 					const country = {
 						code: c.cca2,
@@ -165,6 +186,7 @@ export default function IDDocumentVerification({ navigation }) {
 					setNationalityQuery(country.name);
 				})
 				.catch(() => {
+					if (documentTypeRef.current === "residence_permit") return;
 					setSelectedNationality({ code, name: code, flag: "" });
 					setNationalityQuery(code);
 				});
@@ -327,6 +349,7 @@ export default function IDDocumentVerification({ navigation }) {
 			await loadUserData(user.id, accessToken);
 
 			// Réinitialiser le formulaire
+			documentTypeRef.current = null;
 			setDocumentType(null);
 			setFrontImage(null);
 			setBackImage(null);
@@ -404,8 +427,14 @@ export default function IDDocumentVerification({ navigation }) {
 	};
 
 	return (
+		<>
 		<ScrollView
-			style={{ flex: 1, backgroundColor: isDark ? Colors.dark.background : Colors.light.background }}
+			style={{
+				flex: 1,
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.background,
+			}}
 			showsVerticalScrollIndicator={false}>
 			<Box style={{ padding: 20, paddingBottom: 40 }}>
 				<VStack space='2xl'>
@@ -413,12 +442,20 @@ export default function IDDocumentVerification({ navigation }) {
 					<VStack space='md'>
 						<Heading
 							size='2xl'
-							style={{ color: isDark ? Colors.dark.text : Colors.light.text }}>
+							style={{
+								color: isDark
+									? Colors.dark.text
+									: Colors.light.text,
+							}}>
 							Vérification d'identité
 						</Heading>
 						<Text
 							size='md'
-							style={{ color: isDark ? Colors.dark.muted : Colors.light.muted }}>
+							style={{
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
+							}}>
 							Téléchargez un document d'identité valide pour
 							vérifier votre compte
 						</Text>
@@ -426,7 +463,9 @@ export default function IDDocumentVerification({ navigation }) {
 							space='sm'
 							style={{
 								alignItems: "center",
-								backgroundColor: isDark ? Colors.dark.tint20 : Colors.light.tint20,
+								backgroundColor: isDark
+									? Colors.dark.tint20
+									: Colors.light.tint20,
 								borderRadius: 8,
 								padding: 12,
 							}}>
@@ -435,7 +474,9 @@ export default function IDDocumentVerification({ navigation }) {
 								size='sm'
 								style={{
 									flex: 1,
-									color: isDark ? Colors.dark.tint : Colors.light.tint,
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
 									fontWeight: "500",
 								}}>
 								Nous acceptons uniquement les documents
@@ -451,7 +492,9 @@ export default function IDDocumentVerification({ navigation }) {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 12,
 								shadowColor: "#000",
 								shadowOffset: { width: 0, height: 2 },
@@ -488,12 +531,16 @@ export default function IDDocumentVerification({ navigation }) {
 											}
 											size='sm'
 											style={{
-												color: isDark ? Colors.dark.muted : Colors.light.muted,
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
 											}}
 										/>
 										<Text
 											style={{
-												color: isDark ? Colors.dark.text : Colors.light.text,
+												color: isDark
+													? Colors.dark.text
+													: Colors.light.text,
 											}}>
 											{documentUploadedType === "passport"
 												? "Passeport"
@@ -512,12 +559,16 @@ export default function IDDocumentVerification({ navigation }) {
 												as={Calendar}
 												size='sm'
 												style={{
-													color: isDark ? Colors.dark.muted : Colors.light.muted,
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
 												}}
 											/>
 											<Text
 												style={{
-													color: isDark ? Colors.dark.text : Colors.light.text,
+													color: isDark
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Valide jusqu'au{" "}
 												{new Date(
@@ -538,13 +589,16 @@ export default function IDDocumentVerification({ navigation }) {
 								size='lg'
 								style={{
 									fontWeight: "600",
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Choisissez votre type de document
 							</Text>
 
 							<TouchableOpacity
 								onPress={() => {
+									documentTypeRef.current = "passport";
 									setDocumentType("passport");
 									handleSelectNationality({
 										code: "FR",
@@ -556,10 +610,14 @@ export default function IDDocumentVerification({ navigation }) {
 								<Card
 									style={{
 										padding: 20,
-										backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+										backgroundColor: isDark
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
 										borderRadius: 12,
 										borderWidth: 2,
-										borderColor: isDark ? Colors.dark.border : Colors.light.border,
+										borderColor: isDark
+											? Colors.dark.border
+											: Colors.light.border,
 									}}>
 									<HStack
 										space='md'
@@ -569,14 +627,20 @@ export default function IDDocumentVerification({ navigation }) {
 												width: 48,
 												height: 48,
 												borderRadius: 24,
-												backgroundColor: isDark ? Colors.dark.tint20 : Colors.light.tint20,
+												backgroundColor: isDark
+													? Colors.dark.tint20
+													: Colors.light.tint20,
 												justifyContent: "center",
 												alignItems: "center",
 											}}>
 											<Icon
 												as={CreditCard}
 												size='xl'
-												style={{ color: isDark ? Colors.dark.tint : Colors.light.tint }}
+												style={{
+													color: isDark
+														? Colors.dark.tint
+														: Colors.light.tint,
+												}}
 											/>
 										</Box>
 										<VStack style={{ flex: 1 }} space='xs'>
@@ -584,14 +648,18 @@ export default function IDDocumentVerification({ navigation }) {
 												size='lg'
 												style={{
 													fontWeight: "600",
-													color: isDark ? Colors.dark.text : Colors.light.text,
+													color: isDark
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Passeport
 											</Text>
 											<Text
 												size='sm'
 												style={{
-													color: isDark ? Colors.dark.muted : Colors.light.muted,
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
 												}}>
 												Une seule photo requise
 											</Text>
@@ -602,6 +670,7 @@ export default function IDDocumentVerification({ navigation }) {
 
 							<TouchableOpacity
 								onPress={() => {
+									documentTypeRef.current = "national_id";
 									setDocumentType("national_id");
 									handleSelectNationality({
 										code: "FR",
@@ -613,10 +682,14 @@ export default function IDDocumentVerification({ navigation }) {
 								<Card
 									style={{
 										padding: 20,
-										backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+										backgroundColor: isDark
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
 										borderRadius: 12,
 										borderWidth: 2,
-										borderColor: isDark ? Colors.dark.border : Colors.light.border,
+										borderColor: isDark
+											? Colors.dark.border
+											: Colors.light.border,
 									}}>
 									<HStack
 										space='md'
@@ -626,14 +699,20 @@ export default function IDDocumentVerification({ navigation }) {
 												width: 48,
 												height: 48,
 												borderRadius: 24,
-												backgroundColor: isDark ? Colors.dark.success20 : Colors.light.success20,
+												backgroundColor: isDark
+													? Colors.dark.success20
+													: Colors.light.success20,
 												justifyContent: "center",
 												alignItems: "center",
 											}}>
 											<Icon
 												as={IdCard}
 												size='xl'
-												style={{ color: isDark ? Colors.dark.success : Colors.light.success }}
+												style={{
+													color: isDark
+														? Colors.dark.success
+														: Colors.light.success,
+												}}
 											/>
 										</Box>
 										<VStack style={{ flex: 1 }} space='xs'>
@@ -641,14 +720,18 @@ export default function IDDocumentVerification({ navigation }) {
 												size='lg'
 												style={{
 													fontWeight: "600",
-													color: isDark ? Colors.dark.text : Colors.light.text,
+													color: isDark
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Carte d'identité nationale
 											</Text>
 											<Text
 												size='sm'
 												style={{
-													color: isDark ? Colors.dark.muted : Colors.light.muted,
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
 												}}>
 												Recto et verso requis
 											</Text>
@@ -659,6 +742,7 @@ export default function IDDocumentVerification({ navigation }) {
 
 							<TouchableOpacity
 								onPress={() => {
+									documentTypeRef.current = "residence_permit";
 									setDocumentType("residence_permit");
 									setSelectedNationality(null);
 									setNationalityQuery("");
@@ -667,10 +751,14 @@ export default function IDDocumentVerification({ navigation }) {
 								<Card
 									style={{
 										padding: 20,
-										backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+										backgroundColor: isDark
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
 										borderRadius: 12,
 										borderWidth: 2,
-										borderColor: isDark ? Colors.dark.border : Colors.light.border,
+										borderColor: isDark
+											? Colors.dark.border
+											: Colors.light.border,
 									}}>
 									<HStack
 										space='md'
@@ -680,14 +768,20 @@ export default function IDDocumentVerification({ navigation }) {
 												width: 48,
 												height: 48,
 												borderRadius: 24,
-												backgroundColor: isDark ? Colors.dark.warning20 : Colors.light.warning20,
+												backgroundColor: isDark
+													? Colors.dark.warning20
+													: Colors.light.warning20,
 												justifyContent: "center",
 												alignItems: "center",
 											}}>
 											<Icon
 												as={IdCard}
 												size='xl'
-												style={{ color: isDark ? Colors.dark.warning : Colors.light.warning }}
+												style={{
+													color: isDark
+														? Colors.dark.warning
+														: Colors.light.warning,
+												}}
 											/>
 										</Box>
 										<VStack style={{ flex: 1 }} space='xs'>
@@ -695,14 +789,18 @@ export default function IDDocumentVerification({ navigation }) {
 												size='lg'
 												style={{
 													fontWeight: "600",
-													color: isDark ? Colors.dark.text : Colors.light.text,
+													color: isDark
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Titre de séjour
 											</Text>
 											<Text
 												size='sm'
 												style={{
-													color: isDark ? Colors.dark.muted : Colors.light.muted,
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
 												}}>
 												Recto et verso requis
 											</Text>
@@ -719,7 +817,9 @@ export default function IDDocumentVerification({ navigation }) {
 							<Card
 								style={{
 									padding: 16,
-									backgroundColor: isDark ? Colors.dark.tint20 : Colors.light.tint20,
+									backgroundColor: isDark
+										? Colors.dark.cardBackground
+										: Colors.light.background,
 									borderRadius: 12,
 								}}>
 								<HStack
@@ -738,14 +838,18 @@ export default function IDDocumentVerification({ navigation }) {
 											}
 											size='lg'
 											style={{
-												color: isDark ? Colors.dark.tint20 : Colors.light.tint,
+												color: isDark
+													? Colors.dark.tint
+													: Colors.light.tint,
 											}}
 										/>
 										<Text
 											size='lg'
 											style={{
 												fontWeight: "600",
-												color: isDark ? Colors.dark.tint20 : Colors.light.tint,
+												color: isDark
+													? Colors.dark.tint
+													: Colors.light.tint,
 											}}>
 											{documentType === "passport"
 												? "Passeport"
@@ -758,7 +862,10 @@ export default function IDDocumentVerification({ navigation }) {
 									<Button
 										variant='outline'
 										size='sm'
-										onPress={() => setDocumentType(null)}>
+										onPress={() => {
+										documentTypeRef.current = null;
+										setDocumentType(null);
+									}}>
 										<ButtonIcon as={X} />
 										<ButtonText>Changer</ButtonText>
 									</Button>
@@ -770,7 +877,9 @@ export default function IDDocumentVerification({ navigation }) {
 								<Card
 									style={{
 										padding: 20,
-										backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+										backgroundColor: isDark
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
 										borderRadius: 12,
 										shadowColor: "#000",
 										shadowOffset: { width: 0, height: 2 },
@@ -786,14 +895,18 @@ export default function IDDocumentVerification({ navigation }) {
 												as={Globe}
 												size='md'
 												style={{
-													color: isDark ? Colors.dark.tint : Colors.light.tint,
+													color: isDark
+														? Colors.dark.tint
+														: Colors.light.tint,
 												}}
 											/>
 											<Text
 												size='md'
 												style={{
 													fontWeight: "600",
-													color: isDark ? Colors.dark.text : Colors.light.text,
+													color: isDark
+														? Colors.dark.text
+														: Colors.light.text,
 												}}>
 												Nationalité
 											</Text>
@@ -811,8 +924,13 @@ export default function IDDocumentVerification({ navigation }) {
 													borderRadius: 8,
 													borderWidth: 1,
 													borderColor: isDark
-														? isDark ? Colors.dark.success : Colors.light.success
-														: Colors.light.success20,
+														? isDark
+															? Colors.dark
+																	.success
+															: Colors.light
+																	.success
+														: Colors.light
+																.success20,
 												}}>
 												<Text style={{ fontSize: 22 }}>
 													{selectedNationality.flag}
@@ -821,14 +939,19 @@ export default function IDDocumentVerification({ navigation }) {
 													style={{
 														flex: 1,
 														fontWeight: "600",
-														color: isDark ? Colors.dark.text : Colors.light.text,
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													{selectedNationality.name}
 												</Text>
 												<Text
 													size='sm'
 													style={{
-														color: isDark ? Colors.dark.muted : Colors.light.muted,
+														color: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 														marginRight: 8,
 													}}>
 													{selectedNationality.code}
@@ -844,7 +967,11 @@ export default function IDDocumentVerification({ navigation }) {
 														as={X}
 														size='sm'
 														style={{
-															color: isDark ? Colors.dark.muted : Colors.light.muted,
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
 														}}
 													/>
 												</TouchableOpacity>
@@ -855,9 +982,13 @@ export default function IDDocumentVerification({ navigation }) {
 												size='md'
 												style={{
 													backgroundColor: isDark
-														? Colors.dark.cardBackground
-														: Colors.light.cardBackground,
-													borderColor: isDark ? Colors.dark.border : Colors.light.border,
+														? Colors.dark
+																.cardBackground
+														: Colors.light
+																.cardBackground,
+													borderColor: isDark
+														? Colors.dark.border
+														: Colors.light.border,
 												}}>
 												<InputField
 													placeholder='Tapez 3 lettres pour rechercher...'
@@ -866,7 +997,9 @@ export default function IDDocumentVerification({ navigation }) {
 														handleNationalityChange
 													}
 													style={{
-														color: isDark ? Colors.dark.text : Colors.light.text,
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
 													}}
 												/>
 											</Input>
@@ -876,7 +1009,9 @@ export default function IDDocumentVerification({ navigation }) {
 											<Text
 												size='sm'
 												style={{
-													color: isDark ? Colors.dark.muted : Colors.light.muted,
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
 													textAlign: "center",
 												}}>
 												Recherche en cours...
@@ -888,7 +1023,9 @@ export default function IDDocumentVerification({ navigation }) {
 												style={{
 													borderRadius: 8,
 													borderWidth: 1,
-													borderColor: isDark ? Colors.dark.border : Colors.light.border,
+													borderColor: isDark
+														? Colors.dark.border
+														: Colors.light.border,
 													overflow: "hidden",
 												}}>
 												{nationalitySuggestions.map(
@@ -909,8 +1046,12 @@ export default function IDDocumentVerification({ navigation }) {
 																		"center",
 																	backgroundColor:
 																		isDark
-																			? Colors.dark.cardBackground
-																			: Colors.light.cardBackground,
+																			? Colors
+																					.dark
+																					.cardBackground
+																			: Colors
+																					.light
+																					.cardBackground,
 																	borderBottomWidth:
 																		i <
 																		nationalitySuggestions.length -
@@ -919,8 +1060,12 @@ export default function IDDocumentVerification({ navigation }) {
 																			: 0,
 																	borderBottomColor:
 																		isDark
-																			? Colors.dark.elevated
-																			: Colors.light.elevated,
+																			? Colors
+																					.dark
+																					.elevated
+																			: Colors
+																					.light
+																					.elevated,
 																}}>
 																<Text
 																	style={{
@@ -934,7 +1079,13 @@ export default function IDDocumentVerification({ navigation }) {
 																<Text
 																	style={{
 																		flex: 1,
-																		color: isDark ? Colors.dark.text : Colors.light.text,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																	}}>
 																	{
 																		country.name
@@ -943,7 +1094,13 @@ export default function IDDocumentVerification({ navigation }) {
 																<Text
 																	size='xs'
 																	style={{
-																		color: isDark ? Colors.dark.muted : Colors.light.muted,
+																		color: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 																		fontWeight:
 																			"600",
 																	}}>
@@ -966,7 +1123,10 @@ export default function IDDocumentVerification({ navigation }) {
 												<Text
 													size='sm'
 													style={{
-														color: isDark ? Colors.dark.muted : Colors.light.muted,
+														color: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 														textAlign: "center",
 													}}>
 													Aucun pays trouvé
@@ -986,12 +1146,10 @@ export default function IDDocumentVerification({ navigation }) {
 									}
 									image={frontImage}
 									onPick={() => pickImage("front")}
-									onCamera={() =>
-										navigation.navigate("CameraScreen", {
-											side: "front",
-											onCapture: setFrontImage,
-										})
-									}
+									onCamera={() => {
+										setCameraTarget("front");
+										setShowCameraSheet(true);
+									}}
 									onRemove={() => setFrontImage(null)}
 									isDark={isDark}
 								/>
@@ -1001,15 +1159,10 @@ export default function IDDocumentVerification({ navigation }) {
 										label='Verso de la carte'
 										image={backImage}
 										onPick={() => pickImage("back")}
-										onCamera={() =>
-											navigation.navigate(
-												"CameraScreen",
-												{
-													side: "back",
-													onCapture: setBackImage,
-												},
-											)
-										}
+										onCamera={() => {
+											setCameraTarget("back");
+											setShowCameraSheet(true);
+										}}
 										onRemove={() => setBackImage(null)}
 										isDark={isDark}
 									/>
@@ -1020,7 +1173,9 @@ export default function IDDocumentVerification({ navigation }) {
 							<Card
 								style={{
 									padding: 20,
-									backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+									backgroundColor: isDark
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 									borderRadius: 12,
 								}}>
 								<VStack space='md'>
@@ -1028,7 +1183,9 @@ export default function IDDocumentVerification({ navigation }) {
 										size='md'
 										style={{
 											fontWeight: "600",
-											color: isDark ? Colors.dark.text : Colors.light.text,
+											color: isDark
+												? Colors.dark.text
+												: Colors.light.text,
 										}}>
 										Date d'expiration
 									</Text>
@@ -1040,9 +1197,13 @@ export default function IDDocumentVerification({ navigation }) {
 										<Box
 											style={{
 												borderWidth: 1,
-												borderColor: isDark ? Colors.dark.border : Colors.light.border,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
 												borderRadius: 8,
-												backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+												backgroundColor: isDark
+													? Colors.dark.background
+													: Colors.light.background,
 												paddingHorizontal: 16,
 												paddingVertical: 12,
 												flexDirection: "row",
@@ -1052,15 +1213,22 @@ export default function IDDocumentVerification({ navigation }) {
 												as={Calendar}
 												size='md'
 												style={{
-													color: isDark ? Colors.dark.muted : Colors.light.muted,
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
 													marginRight: 12,
 												}}
 											/>
 											<Text
 												style={{
 													color: date
-														? isDark ? Colors.dark.text : Colors.light.text
-														: isDark ? Colors.dark.muted : Colors.light.muted,
+														? isDark
+															? Colors.dark.text
+															: Colors.light.text
+														: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
 													fontSize: 16,
 												}}>
 												{date
@@ -1084,7 +1252,8 @@ export default function IDDocumentVerification({ navigation }) {
 												paddingBottom: 32,
 												backgroundColor: isDark
 													? Colors.dark.cardBackground
-													: Colors.light.cardBackground,
+													: Colors.light
+															.cardBackground,
 											}}>
 											<ActionsheetDragIndicatorWrapper>
 												<ActionsheetDragIndicator />
@@ -1100,7 +1269,9 @@ export default function IDDocumentVerification({ navigation }) {
 													style={{
 														fontWeight: "600",
 														fontSize: 16,
-														color: isDark ? Colors.dark.text : Colors.light.text,
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
 													Date d'expiration
 												</Text>
@@ -1116,7 +1287,9 @@ export default function IDDocumentVerification({ navigation }) {
 													minimumDate={new Date()}
 													style={{ width: "100%" }}
 													textColor={
-														isDark ? Colors.dark.text : Colors.light.text
+														isDark
+															? Colors.dark.text
+															: Colors.light.text
 													}
 												/>
 												<Button
@@ -1127,14 +1300,16 @@ export default function IDDocumentVerification({ navigation }) {
 														)
 													}
 													style={{
-														backgroundColor:
-															isDark ? Colors.dark.tint : Colors.light.tint,
+														backgroundColor: isDark
+															? Colors.dark.tint
+															: Colors.light.tint,
 														width: "100%",
 														marginTop: 8,
 													}}>
 													<ButtonText
 														style={{
-															color: Colors.dark.text,
+															color: Colors.dark
+																.text,
 														}}>
 														Confirmer
 													</ButtonText>
@@ -1154,8 +1329,12 @@ export default function IDDocumentVerification({ navigation }) {
 									borderRadius: 12,
 									backgroundColor:
 										canSubmit && date && !isSubmitting
-											? (isDark ? Colors.dark.tint : Colors.light.tint)
-											: (isDark ? Colors.dark.border : Colors.light.border),
+											? isDark
+												? Colors.dark.tint
+												: Colors.light.tint
+											: isDark
+												? Colors.dark.border
+												: Colors.light.border,
 								}}>
 								<ButtonIcon as={Upload} />
 								<ButtonText
@@ -1170,7 +1349,9 @@ export default function IDDocumentVerification({ navigation }) {
 								<Text
 									size='sm'
 									style={{
-										color: isDark ? Colors.dark.muted : Colors.light.muted,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
 										textAlign: "center",
 									}}>
 									{!date
@@ -1185,6 +1366,126 @@ export default function IDDocumentVerification({ navigation }) {
 				</VStack>
 			</Box>
 		</ScrollView>
+		{/* Camera Modal */}
+		<Modal
+			visible={showCameraSheet}
+			animationType="slide"
+			presentationStyle="pageSheet"
+			onRequestClose={() => setShowCameraSheet(false)}>
+			<Box style={StyleSheet.absoluteFill}>
+				{cameraPermission?.granted ? (
+					<Box style={{ flex: 1, backgroundColor: "#000" }}>
+						{/* Fermer */}
+						<TouchableOpacity
+							onPress={() => setShowCameraSheet(false)}
+							style={{
+								position: "absolute",
+								top: 16,
+								right: 16,
+								zIndex: 10,
+								backgroundColor: "rgba(0,0,0,0.5)",
+								borderRadius: 20,
+								padding: 8,
+							}}>
+							<Icon as={X} size="xl" style={{ color: "#fff" }} />
+						</TouchableOpacity>
+						<CameraView
+							ref={cameraRef}
+							style={{ flex: 1 }}
+							facing={facing}
+						/>
+						{/* Cadre guide 4:3 paysage */}
+						{(() => {
+							const fw = screenWidth * 0.92;
+							const fh = fw * 0.75;
+							return (
+								<View
+									style={{ ...StyleSheet.absoluteFillObject, zIndex: 5 }}
+									pointerEvents="none">
+									<View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.58)" }} />
+									<View style={{ flexDirection: "row", height: fh }}>
+										<View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.58)" }} />
+										<View
+											style={{
+												width: fw,
+												height: fh,
+												borderWidth: 2,
+												borderColor: "rgba(255,255,255,0.9)",
+												borderRadius: 10,
+											}}
+										/>
+										<View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.58)" }} />
+									</View>
+									<View
+										style={{
+											alignItems: "center",
+											paddingVertical: 10,
+											backgroundColor: "rgba(0,0,0,0.58)",
+										}}>
+										<Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, textAlign: "center" }}>
+											Placez le document horizontalement dans le cadre
+										</Text>
+									</View>
+									<View style={{ flex: 2, backgroundColor: "rgba(0,0,0,0.58)" }} />
+								</View>
+							);
+						})()}
+						<Box
+							style={{
+								padding: 20,
+								paddingBottom: 40,
+								backgroundColor: "#000",
+							}}>
+							<Button
+								onPress={captureDocument}
+								style={{
+									backgroundColor: isDark ? Colors.dark.tint : Colors.light.tint,
+									borderRadius: 12,
+									height: 52,
+								}}>
+								<ButtonIcon as={Camera} />
+								<ButtonText
+									style={{
+										color: "#ffffff",
+										fontWeight: "700",
+										fontSize: 16,
+									}}>
+										Prendre une photo
+									</ButtonText>
+								</Button>
+							</Box>
+					</Box>
+				) : (
+					<Box
+						style={{
+							flex: 1,
+							backgroundColor: "#000",
+							justifyContent: "center",
+							alignItems: "center",
+							padding: 24,
+						}}>
+						<Text
+							style={{
+								color: "#ffffff",
+								textAlign: "center",
+								fontSize: 15,
+								marginBottom: 20,
+							}}>
+							L'accès à la caméra est requis pour prendre une photo.
+						</Text>
+						<Button
+							onPress={requestCameraPermission}
+							style={{
+								backgroundColor: isDark ? Colors.dark.tint : Colors.light.tint,
+								borderRadius: 10,
+							}}>
+							<ButtonText>Autoriser la caméra</ButtonText>
+						</Button>
+					</Box>
+				)}
+			</Box>
+		</Modal>
+		</>
 	);
 }
 
@@ -1197,10 +1498,18 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 		<Card
 			style={{
 				padding: 20,
-				backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+				backgroundColor: isDark
+					? Colors.dark.cardBackground
+					: Colors.light.cardBackground,
 				borderRadius: 12,
 				borderWidth: 2,
-				borderColor: image ? isDark ? Colors.dark.success : Colors.light.success : isDark ? Colors.dark.border : Colors.light.border,
+				borderColor: image
+					? isDark
+						? Colors.dark.success
+						: Colors.light.success
+					: isDark
+						? Colors.dark.border
+						: Colors.light.border,
 				borderStyle: image ? "solid" : "dashed",
 			}}>
 			<VStack space='md'>
@@ -1213,7 +1522,9 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 						size='md'
 						style={{
 							fontWeight: "600",
-							color: isDark ? Colors.dark.text : Colors.light.text,
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
 						}}>
 						{label}
 					</Text>
@@ -1224,14 +1535,20 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 									width: 32,
 									height: 32,
 									borderRadius: 16,
-									backgroundColor: isDark ? Colors.dark.danger20 : Colors.light.danger20,
+									backgroundColor: isDark
+										? Colors.dark.danger20
+										: Colors.light.danger20,
 									justifyContent: "center",
 									alignItems: "center",
 								}}>
 								<Icon
 									as={X}
 									size='sm'
-									style={{ color: isDark ? Colors.dark.danger : Colors.light.danger }}
+									style={{
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
+									}}
 								/>
 							</Box>
 						</TouchableOpacity>
@@ -1243,7 +1560,9 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 						style={{
 							borderRadius: 8,
 							overflow: "hidden",
-							backgroundColor: isDark ? Colors.dark.elevated : Colors.light.elevated,
+							backgroundColor: isDark
+								? Colors.dark.elevated
+								: Colors.light.elevated,
 						}}>
 						<Image
 							source={{ uri: image.uri }}
@@ -1261,19 +1580,27 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 						style={{
 							height: 140,
 							borderRadius: 8,
-							backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.background,
 							justifyContent: "center",
 							alignItems: "center",
 						}}>
 						<Icon
 							as={ImageIcon}
 							size='xl'
-							style={{ color: isDark ? Colors.dark.muted : Colors.light.muted }}
+							style={{
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
+							}}
 						/>
 						<Text
 							size='sm'
 							style={{
-								color: isDark ? Colors.dark.muted : Colors.light.muted,
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 								marginTop: 8,
 							}}>
 							Aucun fichier sélectionné
@@ -1293,7 +1620,9 @@ function UploadBlock({ label, image, onPick, onCamera, onRemove, isDark }) {
 						style={{
 							flex: 1,
 							borderRadius: 8,
-							backgroundColor: isDark ? Colors.dark.tint : Colors.light.tint,
+							backgroundColor: isDark
+								? Colors.dark.tint
+								: Colors.light.tint,
 						}}
 						onPress={onCamera}>
 						<ButtonIcon as={Camera} />
