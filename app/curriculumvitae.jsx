@@ -1221,7 +1221,7 @@ const CurriculumScreen = () => {
 							? Colors.dark.background
 							: Colors.light.cardBackground,
 						maxHeight: "80%",
-						paddingBottom: 32,
+						paddingBottom: 90,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
