@@ -58,6 +58,7 @@ import {
 	Timer,
 	Check,
 	MapPin,
+	Sparkles,
 	IdCard,
 	Briefcase,
 	Building2,
@@ -415,19 +416,62 @@ const JobScreen = () => {
 													/>
 												</VStack>
 											)}
-											<Heading
-												size='xl'
-												style={{
-													color: isDark
-														? Colors.dark.text
-														: Colors.light.text,
-													paddingRight:
-														job?.isLastMinute
-															? 35
-															: 30,
-												}}>
-												{job?.title}
-											</Heading>
+											<VStack>
+												<Heading
+													size='xl'
+													style={{
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
+														paddingRight:
+															job?.isLastMinute
+																? 35
+																: 30,
+													}}>
+													{job?.title}
+												</Heading>
+												{job?.sponsorship_date &&
+													new Date(
+														job.sponsorship_date,
+													) >= new Date() && (
+														<HStack
+															space='xs'
+															style={{
+																alignItems:
+																	"center",
+																marginTop: 2,
+															}}>
+															<Sparkles
+																size={11}
+																color={
+																	isDark
+																		? Colors
+																				.dark
+																				.warning
+																		: Colors
+																				.light
+																				.warning
+																}
+															/>
+															<Text
+																size='xs'
+																style={{
+																	color: isDark
+																		? Colors
+																				.dark
+																				.warning
+																		: Colors
+																				.light
+																				.warning,
+																	fontWeight:
+																		"500",
+																}}>
+																Annonce
+																sponsorisée
+															</Text>
+														</HStack>
+													)}
+											</VStack>
 										</HStack>
 									</VStack>
 									{role === "candidat" && (
