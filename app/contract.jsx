@@ -1450,7 +1450,9 @@ const ContractScreen = () => {
 								style={{ color: textPrimary }}
 							/>
 							<Text style={{ color: textPrimary, fontSize: 15 }}>
-								Modifier ou finaliser le contrat
+								{contract?.status === "draft"
+									? "Modifier ou finaliser le contrat"
+									: "Modifier le contrat"}
 							</Text>
 						</TouchableOpacity>
 					</Box>
@@ -1656,7 +1658,7 @@ const ContractScreen = () => {
 										color: textPrimary,
 										fontSize: 15,
 									}}>
-									Générer et télécharger le PDF
+									Télécharger le contrat en PDF
 								</Text>
 							</TouchableOpacity>
 						)}
