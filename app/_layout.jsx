@@ -513,7 +513,10 @@ function RootLayoutNav() {
 							/>
 							<Stack.Screen
 								name='lastminute'
-								options={{ headerShown: true }}
+								options={{
+									headerShown: true,
+									headerTitle: "Offres Last Minute",
+								}}
 							/>
 							<Stack.Screen
 								name='contactus'
