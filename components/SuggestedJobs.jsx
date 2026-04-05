@@ -16,6 +16,7 @@ import { JOB_REQUIREMENTS } from "@/constants/jobrequirements";
 import { CNAPS_CARDS } from "@/constants/cnapscards";
 import { DIPLOMAS } from "@/constants/diplomas";
 import { CATEGORY } from "@/constants/categories";
+import { regions } from "@/constants/regions";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 
@@ -27,26 +28,8 @@ import {
 	ChevronRight,
 } from "lucide-react-native";
 
-const REGION_NAMES = {
-	11: "Île-de-France",
-	24: "Centre-Val de Loire",
-	27: "Bourgogne-Franche-Comté",
-	28: "Normandie",
-	32: "Hauts-de-France",
-	44: "Grand Est",
-	52: "Pays de la Loire",
-	53: "Bretagne",
-	75: "Nouvelle-Aquitaine",
-	76: "Occitanie",
-	84: "Auvergne-Rhône-Alpes",
-	93: "Provence-Alpes-Côte d'Azur",
-	94: "Corse",
-	"01": "Guadeloupe",
-	"02": "Martinique",
-	"03": "Guyane",
-	"04": "La Réunion",
-	"06": "Mayotte",
-};
+const getRegionName = (code) =>
+	regions.find((r) => r.code === String(code))?.nom ?? String(code);
 
 const SuggestedJobs = () => {
 	const { user, userProfile } = useAuth();
@@ -149,10 +132,20 @@ const SuggestedJobs = () => {
 				`&is_archived=eq.false&category=in.(${inList})${regionFilter}&isLastMinute=eq.false`,
 				1,
 				3,
-				"created_at.desc",
+				"sponsorship_date.desc.nullslast,created_at.desc",
 			);
 
-			setSuggestedJobs(jobs || []);
+			const now = new Date();
+			const sorted = (jobs || []).sort((a, b) => {
+				const aSponsored =
+					a.sponsorship_date && new Date(a.sponsorship_date) >= now;
+				const bSponsored =
+					b.sponsorship_date && new Date(b.sponsorship_date) >= now;
+				if (aSponsored && !bSponsored) return -1;
+				if (!aSponsored && bSponsored) return 1;
+				return 0;
+			});
+			setSuggestedJobs(sorted);
 		} catch (err) {
 			console.error("SuggestedJobs error:", err);
 			setSuggestedJobs([]);
@@ -255,9 +248,7 @@ const SuggestedJobs = () => {
 								<Badge size='sm' variant='solid' action='muted'>
 									<BadgeIcon as={MapPin} className='mr-1' />
 									<BadgeText>
-										{REGION_NAMES[
-											userProfile.region_code
-										] ?? userProfile.region_code}
+										{getRegionName(userProfile.region_code)}
 									</BadgeText>
 								</Badge>
 							)}
