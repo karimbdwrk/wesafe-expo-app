@@ -6,6 +6,8 @@ import {
 	Animated,
 	Dimensions,
 	KeyboardAvoidingView,
+	Keyboard,
+	TextInput,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter, useLocalSearchParams, Stack } from "expo-router";
@@ -261,6 +263,38 @@ const ContractGenerationScreen = () => {
 
 	const scrollX = useRef(new Animated.Value(0)).current;
 	const scrollViewRefs = useRef([null, null, null, null, null]);
+	const currentStepRef = useRef(currentStep);
+
+	useEffect(() => {
+		currentStepRef.current = currentStep;
+	}, [currentStep]);
+
+	// Autoscroll pour centrer l'input focalisé dans l'espace visible
+	useEffect(() => {
+		const event =
+			Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+		const sub = Keyboard.addListener(event, (e) => {
+			const keyboardHeight = e.endCoordinates.height;
+			const focused = TextInput.State.currentlyFocusedInput?.();
+			if (!focused) return;
+			const scrollRef =
+				scrollViewRefs.current[currentStepRef.current - 1];
+			if (!scrollRef) return;
+			focused.measureInWindow((x, y, width, height) => {
+				const windowHeight = Dimensions.get("window").height;
+				const visibleHeight = windowHeight - keyboardHeight;
+				const inputCenterY = y + height / 2;
+				const targetScrollOffset = inputCenterY - visibleHeight / 2;
+				if (targetScrollOffset > 0) {
+					scrollRef.scrollTo({
+						y: targetScrollOffset,
+						animated: true,
+					});
+				}
+			});
+		});
+		return () => sub.remove();
+	}, []);
 
 	const progressAnim = useRef(
 		new Animated.Value(((currentStep - 1) / (STEPS.length - 1)) * 100),
@@ -357,6 +391,7 @@ const ContractGenerationScreen = () => {
 	};
 
 	const goToNextStep = () => {
+		Keyboard.dismiss();
 		if (currentStep < STEPS.length) {
 			Animated.timing(scrollX, {
 				toValue: -SCREEN_WIDTH * currentStep,
@@ -376,6 +411,7 @@ const ContractGenerationScreen = () => {
 	};
 
 	const goToPreviousStep = () => {
+		Keyboard.dismiss();
 		if (currentStep > 1) {
 			Animated.timing(scrollX, {
 				toValue: -SCREEN_WIDTH * (currentStep - 2),
@@ -432,6 +468,7 @@ const ContractGenerationScreen = () => {
 	};
 
 	const validateStep = () => {
+		Keyboard.dismiss();
 		if (currentStep === 1) {
 			if (!formData.contract_type)
 				return showError("Veuillez choisir un type de contrat");
@@ -622,7 +659,11 @@ const ContractGenerationScreen = () => {
 						id={id}
 						icon={CheckCircle}
 						color={success}
-						title={status === "published" ? "Contrat publié avec succès" : "Brouillon enregistré"}
+						title={
+							status === "published"
+								? "Contrat publié avec succès"
+								: "Brouillon enregistré"
+						}
 					/>
 				),
 			});
@@ -698,10 +739,12 @@ const ContractGenerationScreen = () => {
 								borderWidth: 1.5,
 								borderColor:
 									formData.contract_type === type
-										? tint : border,
+										? tint
+										: border,
 								backgroundColor:
 									formData.contract_type === type
-										? tint : "transparent",
+										? tint
+										: "transparent",
 							}}>
 							<Text
 								style={{
@@ -764,9 +807,7 @@ const ContractGenerationScreen = () => {
 					/>
 					<Text
 						style={{
-							color: formData.start_date
-								? textPrimary
-								: muted,
+							color: formData.start_date ? textPrimary : muted,
 						}}>
 						{formData.start_date
 							? formatDate(formData.start_date)
@@ -804,9 +845,7 @@ const ContractGenerationScreen = () => {
 						/>
 						<Text
 							style={{
-								color: formData.end_date
-									? textPrimary
-									: muted,
+								color: formData.end_date ? textPrimary : muted,
 							}}>
 							{formData.end_date
 								? formatDate(formData.end_date)
@@ -1285,10 +1324,12 @@ const ContractGenerationScreen = () => {
 								borderWidth: 1.5,
 								borderColor:
 									formData.work_location_type === value
-										? tint : border,
+										? tint
+										: border,
 								backgroundColor:
 									formData.work_location_type === value
-										? tint : "transparent",
+										? tint
+										: "transparent",
 							}}>
 							<Text
 								style={{
@@ -1864,7 +1905,8 @@ const ContractGenerationScreen = () => {
 								value={formData[key]}
 								onValueChange={(v) => updateField(key, v)}
 								trackColor={{
-									false: border, true: tint,
+									false: border,
+									true: tint,
 								}}
 							/>
 						</HStack>
@@ -1899,7 +1941,8 @@ const ContractGenerationScreen = () => {
 							updateField("equipment_provided", v)
 						}
 						trackColor={{
-							false: border, true: tint,
+							false: border,
+							true: tint,
 						}}
 					/>
 				</HStack>
@@ -2307,7 +2350,7 @@ const ContractGenerationScreen = () => {
 	return (
 		<>
 			<KeyboardAvoidingView
-				behavior={Platform.OS === "ios" ? "padding" : "height"}
+				behavior='height'
 				style={{ flex: 1 }}
 				keyboardVerticalOffset={80}>
 				<Box
@@ -2396,84 +2439,78 @@ const ContractGenerationScreen = () => {
 							</Box>
 						</Animated.View>
 					</Box>
-
-					{/* ── Bottom Fixed Navigation ── */}
-					<Box
-						style={{
-							position: "absolute",
-							bottom: 0,
-							left: 0,
-							right: 0,
-							padding: 16,
-							paddingBottom: Platform.OS === "ios" ? 32 : 20,
-							backgroundColor: bg,
-							borderTopWidth: 1,
-							borderTopColor: border,
-						}}>
-						<HStack space='md'>
-							{currentStep > 1 ? (
-								<Button
-									variant='outline'
-									onPress={goToPreviousStep}
-									style={{
-										flex: 1,
-										borderColor: border,
-									}}>
-									<ButtonIcon
-										as={ChevronLeft}
-										style={{
-											color: textPrimary,
-										}}
-									/>
-									<ButtonText
-										style={{
-											color: textPrimary,
-										}}>
-										Précédent
-									</ButtonText>
-								</Button>
-							) : null}
-
-							{currentStep < STEPS.length ? (
-								<Button
-									onPress={validateStep}
-									style={{
-										flex: 2,
-										backgroundColor: tint,
-									}}>
-									<ButtonText style={{ color: "#ffffff" }}>
-										Suivant
-									</ButtonText>
-									<ButtonIcon
-										as={ChevronRight}
-										style={{ color: "#ffffff" }}
-									/>
-								</Button>
-							) : (
-								<Button
-									onPress={() => setShowConfirmDialog(true)}
-									disabled={isSubmitting}
-									style={{
-										flex: 2,
-										backgroundColor: isSubmitting
-												? muted
-												: success,
-									}}>
-									<ButtonIcon
-										as={CheckCircle}
-										style={{ color: "#ffffff" }}
-									/>
-									<ButtonText style={{ color: "#ffffff" }}>
-										{isSubmitting
-											? "Enregistrement..."
-											: "Générer le contrat"}
-									</ButtonText>
-								</Button>
-							)}
-						</HStack>
-					</Box>
 				</Box>
 			</KeyboardAvoidingView>
+
+			{/* ── Bottom Fixed Navigation ── */}
+			<Box
+				style={{
+					padding: 16,
+					paddingBottom: Platform.OS === "ios" ? 32 : 20,
+					backgroundColor: bg,
+					borderTopWidth: 1,
+					borderTopColor: border,
+				}}>
+				<HStack space='md'>
+					{currentStep > 1 ? (
+						<Button
+							variant='outline'
+							onPress={goToPreviousStep}
+							style={{
+								flex: 1,
+								borderColor: border,
+							}}>
+							<ButtonIcon
+								as={ChevronLeft}
+								style={{
+									color: textPrimary,
+								}}
+							/>
+							<ButtonText
+								style={{
+									color: textPrimary,
+								}}>
+								Précédent
+							</ButtonText>
+						</Button>
+					) : null}
+
+					{currentStep < STEPS.length ? (
+						<Button
+							onPress={validateStep}
+							style={{
+								flex: 2,
+								backgroundColor: tint,
+							}}>
+							<ButtonText style={{ color: "#ffffff" }}>
+								Suivant
+							</ButtonText>
+							<ButtonIcon
+								as={ChevronRight}
+								style={{ color: "#ffffff" }}
+							/>
+						</Button>
+					) : (
+						<Button
+							onPress={() => setShowConfirmDialog(true)}
+							disabled={isSubmitting}
+							style={{
+								flex: 2,
+								backgroundColor: isSubmitting ? muted : success,
+							}}>
+							<ButtonIcon
+								as={CheckCircle}
+								style={{ color: "#ffffff" }}
+							/>
+							<ButtonText style={{ color: "#ffffff" }}>
+								{isSubmitting
+									? "Enregistrement..."
+									: "Générer le contrat"}
+							</ButtonText>
+						</Button>
+					)}
+				</HStack>
+			</Box>
 
 			{/* Alert Dialog : confirmation génération contrat */}
 			<AlertDialog
