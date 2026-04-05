@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
 	ScrollView,
 	RefreshControl,
@@ -7,6 +7,8 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 	Switch,
+	Keyboard,
+	View,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { LineChart, BarChart, PieChart } from "react-native-gifted-charts";
@@ -50,7 +52,7 @@ import {
 	BookmarkCheck,
 	IdCard,
 	Bell,
-	XCircle,
+	X,
 	Ban,
 } from "lucide-react-native";
 
@@ -73,6 +75,8 @@ export default function Tab1() {
 	const { getAll, update } = useDataContext();
 	const { isDark } = useTheme();
 	const { unreadCount } = useNotifications();
+
+	const searchInputRef = useRef(null);
 
 	const [availableLoading, setAvailableLoading] = useState(false);
 	const [isAvailable, setIsAvailable] = useState(!!userProfile?.is_available);
@@ -1144,26 +1148,70 @@ export default function Tab1() {
 
 						{/* Search Bar */}
 						<VStack className='mb-4'>
-							<Input
-								variant='outline'
-								style={{
-									backgroundColor: isDark
-										? Colors.dark.cardBackground
-										: Colors.light.cardBackground,
-									borderColor: isDark
-										? Colors.dark.border
-										: Colors.light.border,
-									borderRadius: 12,
-								}}>
-								<InputField
-									placeholder='Rechercher un poste, une ville...'
-									value={searchQuery}
-									onChangeText={setSearchQuery}
-								/>
-								<InputSlot className='mr-4'>
-									<InputIcon as={Search} />
-								</InputSlot>
-							</Input>
+							<View style={{ position: "relative" }}>
+								<Input
+									variant='outline'
+									style={{
+										backgroundColor: isDark
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
+										borderColor: isDark
+											? Colors.dark.border
+											: Colors.light.border,
+										borderRadius: 12,
+										paddingRight:
+											searchQuery.length > 0 ? 40 : 0,
+									}}>
+									<InputField
+										ref={searchInputRef}
+										placeholder='Rechercher un poste, une ville...'
+										value={searchQuery}
+										onChangeText={setSearchQuery}
+									/>
+									{searchQuery.length === 0 && (
+										<InputSlot className='mr-4'>
+											<InputIcon
+												as={Search}
+												style={{
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
+												}}
+											/>
+										</InputSlot>
+									)}
+								</Input>
+								{searchQuery.length > 0 && (
+									<TouchableOpacity
+										onPress={() => {
+											searchInputRef.current?.blur();
+											setSearchQuery("");
+										}}
+										hitSlop={{
+											top: 10,
+											bottom: 10,
+											left: 10,
+											right: 10,
+										}}
+										style={{
+											position: "absolute",
+											right: 12,
+											top: 0,
+											bottom: 0,
+											justifyContent: "center",
+											zIndex: 10,
+										}}>
+										<X
+											size={18}
+											color={
+												isDark
+													? Colors.dark.muted
+													: Colors.light.muted
+											}
+										/>
+									</TouchableOpacity>
+								)}
+							</View>
 
 							{/* Resultat de la recherche filtrée */}
 							{searchQuery.length >= 2 && (
