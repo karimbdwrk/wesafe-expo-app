@@ -343,7 +343,12 @@ const SuggestedJobs = () => {
 
 				{/* CTA */}
 				<TouchableOpacity
-					onPress={() => router.push("suggestions")}
+					onPress={() =>
+						router.push({
+							pathname: "suggestions",
+							params: { region_code: userProfile?.region_code },
+						})
+					}
 					activeOpacity={0.75}
 					style={{
 						backgroundColor: isDark
