@@ -346,7 +346,7 @@ const LastMinuteJobs = () => {
 
 				{/* CTA */}
 				<TouchableOpacity
-					onPress={() => router.push("suggestions")}
+					onPress={() => router.push("lastminute")}
 					activeOpacity={0.75}
 					style={{
 						backgroundColor: isDark
