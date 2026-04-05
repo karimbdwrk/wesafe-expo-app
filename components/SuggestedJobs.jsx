@@ -15,6 +15,7 @@ import { useDataContext } from "@/context/DataContext";
 import { JOB_REQUIREMENTS } from "@/constants/jobrequirements";
 import { CNAPS_CARDS } from "@/constants/cnapscards";
 import { DIPLOMAS } from "@/constants/diplomas";
+import { CATEGORY } from "@/constants/categories";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 
@@ -245,54 +246,49 @@ const SuggestedJobs = () => {
 					</TouchableOpacity> */}
 				</HStack>
 
-				{/* Badges qualifications */}
-				{(userCnapsList.length > 0 ||
-					userDiplomasList.length > 0 ||
+				{/* Badges : région + métiers éligibles */}
+				{(eligibleCategories.length > 0 ||
 					userProfile?.region_code) && (
-					<ScrollView
-						horizontal
-						showsHorizontalScrollIndicator={false}
-						contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
-						{userProfile?.region_code && (
-							<Badge size='sm' variant='solid' action='info'>
-								<BadgeIcon as={MapPin} className='mr-1' />
-								<BadgeText>
-									{REGION_NAMES[userProfile.region_code] ??
-										userProfile.region_code}
-								</BadgeText>
-							</Badge>
-						)}
-						{userCnapsList.map((type, id) => {
-							const card = CNAPS_CARDS[type?.toLowerCase()];
-							return (
-								<Badge
-									key={`cnaps-${id}-${type}`}
-									size='sm'
-									variant='solid'
-									action='info'>
-									<BadgeIcon as={IdCard} className='mr-1' />
+					<VStack space='xs'>
+						<HStack>
+							{userProfile?.region_code && (
+								<Badge size='sm' variant='solid' action='muted'>
+									<BadgeIcon as={MapPin} className='mr-1' />
 									<BadgeText>
-										{card?.acronym ?? type}
+										{REGION_NAMES[
+											userProfile.region_code
+										] ?? userProfile.region_code}
 									</BadgeText>
 								</Badge>
-							);
-						})}
-						{userDiplomasList.map((type) => {
-							const diploma = DIPLOMAS[type?.toLowerCase()];
-							return (
-								<Badge
-									key={`diploma-${type}`}
-									size='sm'
-									variant='solid'
-									action='success'>
-									<BadgeIcon as={IdCard} className='mr-1' />
-									<BadgeText>
-										{diploma?.acronym ?? type}
-									</BadgeText>
-								</Badge>
-							);
-						})}
-					</ScrollView>
+							)}
+						</HStack>
+						<ScrollView
+							horizontal
+							showsHorizontalScrollIndicator={false}
+							contentContainerStyle={{
+								gap: 8,
+								paddingVertical: 2,
+							}}>
+							{eligibleCategories.map((key) => {
+								const cat = CATEGORY.find((c) => c.id === key);
+								return (
+									<Badge
+										key={key}
+										size='sm'
+										variant='solid'
+										action='info'>
+										<BadgeIcon
+											as={IdCard}
+											className='mr-1'
+										/>
+										<BadgeText>
+											{cat?.acronym ?? key.toUpperCase()}
+										</BadgeText>
+									</Badge>
+								);
+							})}
+						</ScrollView>
+					</VStack>
 				)}
 
 				{/* Contenu */}
