@@ -54,6 +54,8 @@ import {
 	Bell,
 	X,
 	Ban,
+	Zap,
+	BadgeEuro,
 } from "lucide-react-native";
 
 import SuggestedJobs from "@/components/SuggestedJobs";
@@ -68,6 +70,8 @@ import Colors from "@/constants/Colors";
 import { width } from "dom-helpers";
 import { Spinner } from "@/components/ui/spinner";
 import HomePro from "../../../components/HomePro";
+import { getCategoryLabel } from "@/constants/categories";
+import { formatSalary } from "@/constants/salary";
 
 export default function Tab1() {
 	const router = useRouter();
@@ -1254,7 +1258,7 @@ export default function Tab1() {
 														)
 													}
 													style={{
-														paddingVertical: 8,
+														paddingVertical: 10,
 														borderBottomWidth: 1,
 														borderBottomColor:
 															isDark
@@ -1267,73 +1271,69 @@ export default function Tab1() {
 														space='sm'
 														style={{
 															alignItems:
-																"center",
+																"flex-start",
 														}}>
-														<VStack
-															style={{
-																justifyContent:
-																	"flex-start",
-																alignItems:
-																	"center",
-																width: 30,
-																height: "100%",
-																paddingTop: 2,
-															}}>
-															<Avatar size='xs'>
-																<AvatarFallbackText>
-																	{job
-																		.companies
-																		?.name ||
-																		"?"}
-																</AvatarFallbackText>
+														<Avatar size='sm'>
+															<AvatarFallbackText>
 																{job.companies
-																	?.logo_url && (
-																	<AvatarImage
-																		source={{
-																			uri: job
-																				.companies
-																				.logo_url,
-																		}}
-																	/>
-																)}
-															</Avatar>
-														</VStack>
+																	?.name ||
+																	"?"}
+															</AvatarFallbackText>
+															{job.companies
+																?.logo_url && (
+																<AvatarImage
+																	source={{
+																		uri: job
+																			.companies
+																			.logo_url,
+																	}}
+																/>
+															)}
+														</Avatar>
 														<VStack
-															style={{ flex: 1 }}>
-															<Text
-																style={{
-																	color: isDark
-																		? Colors
-																				.dark
-																				.text
-																		: Colors
-																				.light
-																				.text,
-																	fontWeight:
-																		"600",
-																	fontSize: 14,
-																}}>
-																{job.title}
-															</Text>
+															style={{ flex: 1 }}
+															space='xs'>
 															<HStack
 																space='xs'
 																style={{
 																	alignItems:
 																		"center",
 																}}>
-																<MapPin
-																	size={12}
-																	color={
-																		isDark
+																{job.isLastMinute && (
+																	<Zap
+																		size={
+																			13
+																		}
+																		color='#FFA94D'
+																	/>
+																)}
+																<Text
+																	style={{
+																		color: isDark
 																			? Colors
 																					.dark
-																					.muted
+																					.text
 																			: Colors
 																					.light
-																					.muted
-																	}
-																/>
+																					.text,
+																		fontWeight:
+																			"600",
+																		fontSize: 14,
+																		flex: 1,
+																	}}>
+																	{job.title}
+																</Text>
+															</HStack>
+															<HStack
+																space='xs'
+																style={{
+																	alignItems:
+																		"center",
+																	flexWrap:
+																		"wrap",
+																}}>
 																<Text
+																	size='xs'
 																	style={{
 																		color: isDark
 																			? Colors
@@ -1342,24 +1342,82 @@ export default function Tab1() {
 																			: Colors
 																					.light
 																					.muted,
-																		fontSize: 12,
 																	}}>
-																	{job.city}
-																	{job.department
-																		? ` (${job.department})`
-																		: ""}
+																	{
+																		job
+																			.companies
+																			?.name
+																	}
 																</Text>
+																{job.city && (
+																	<HStack
+																		space='xs'
+																		style={{
+																			alignItems:
+																				"center",
+																		}}>
+																		<Text
+																			size='xs'
+																			style={{
+																				color: isDark
+																					? Colors
+																							.dark
+																							.border
+																					: Colors
+																							.light
+																							.border,
+																			}}>
+																			·
+																		</Text>
+																		<MapPin
+																			size={
+																				11
+																			}
+																			color={
+																				isDark
+																					? Colors
+																							.dark
+																							.muted
+																					: Colors
+																							.light
+																							.muted
+																			}
+																		/>
+																		<Text
+																			size='xs'
+																			style={{
+																				color: isDark
+																					? Colors
+																							.dark
+																							.muted
+																					: Colors
+																							.light
+																							.muted,
+																			}}>
+																			{
+																				job.city
+																			}
+																			{job.postcode
+																				? ` (${job.postcode})`
+																				: ""}
+																		</Text>
+																	</HStack>
+																)}
 															</HStack>
-															<HStack space='sm'>
+															<HStack
+																space='xs'
+																style={{
+																	flexWrap:
+																		"wrap",
+																	marginTop: 2,
+																}}>
 																{job.category && (
 																	<Badge
 																		size='sm'
 																		variant='solid'
 																		action='info'
 																		style={{
-																			marginVertical: 4,
-																			alignSelf:
-																				"flex-start",
+																			marginBottom: 2,
 																		}}>
 																		<BadgeIcon
 																			as={
@@ -1368,37 +1426,98 @@ export default function Tab1() {
 																			className='mr-2'
 																		/>
 																		<BadgeText>
+																			{getCategoryLabel(
+																				job.category,
+																			)}
+																		</BadgeText>
+																	</Badge>
+																)}
+																{job.contract_type && (
+																	<Badge
+																		size='sm'
+																		variant='solid'
+																		action='success'
+																		style={{
+																			marginBottom: 2,
+																		}}>
+																		<BadgeIcon
+																			as={
+																				FileText
+																			}
+																			className='mr-2'
+																		/>
+																		<BadgeText>
 																			{
-																				job.category
+																				job.contract_type
 																			}
 																		</BadgeText>
 																	</Badge>
 																)}
-																<Badge
-																	size='sm'
-																	variant='solid'
-																	action='muted'
-																	style={{
-																		marginVertical: 4,
-																		alignSelf:
-																			"flex-start",
-																	}}>
-																	<BadgeIcon
-																		as={
-																			FileText
-																		}
-																		className='mr-2'
-																	/>
-																	<BadgeText>
-																		{job.contract_type ||
-																			"CDI"}
-																	</BadgeText>
-																</Badge>
+																{job.salary_type && (
+																	<Badge
+																		size='sm'
+																		variant='solid'
+																		action='warning'
+																		style={{
+																			marginBottom: 2,
+																		}}>
+																		<BadgeIcon
+																			as={
+																				BadgeEuro
+																			}
+																			className='mr-2'
+																		/>
+																		<BadgeText>
+																			{formatSalary(
+																				{
+																					salary_type:
+																						job.salary_type,
+																					salary_hourly:
+																						job.salary_hourly,
+																					salary_monthly_fixed:
+																						job.salary_monthly_fixed,
+																					salary_annual_fixed:
+																						job.salary_annual_fixed,
+																					salary_monthly_min:
+																						job.salary_monthly_min,
+																					salary_monthly_max:
+																						job.salary_monthly_max,
+																					salary_annual_min:
+																						job.salary_annual_min,
+																					salary_annual_max:
+																						job.salary_annual_max,
+																				},
+																			)}
+																		</BadgeText>
+																	</Badge>
+																)}
+																{job.sponsorship_date &&
+																	new Date(
+																		job.sponsorship_date,
+																	) >=
+																		new Date() && (
+																		<Badge
+																			size='sm'
+																			variant='outline'
+																			action='warning'
+																			style={{
+																				marginBottom: 2,
+																			}}>
+																			<BadgeIcon
+																				as={
+																					Sparkles
+																				}
+																				className='mr-2'
+																			/>
+																			<BadgeText>
+																				Sponsorisée
+																			</BadgeText>
+																		</Badge>
+																	)}
 															</HStack>
 														</VStack>
-														<Icon
-															as={ChevronRight}
-															size='sm'
+														<ChevronRight
+															size={16}
 															color={
 																isDark
 																	? Colors
@@ -1408,35 +1527,42 @@ export default function Tab1() {
 																			.light
 																			.muted
 															}
+															style={{
+																marginTop: 3,
+															}}
 														/>
 													</HStack>
 												</Pressable>
 											))}
 											<Button
-												onPress={() => (
-													setSearchQuery(""),
-													// router.push(
-													// 	`/(tabs)/tab2?search=${encodeURIComponent(searchQuery)}`,
-													// )
+												onPress={() => {
+													const q = searchQuery;
+													setSearchQuery("");
 													router.push({
 														pathname:
 															"/tabs/(tabs)/tab2",
-														params: {
-															search: searchQuery,
-														},
-													})
-												)}
+														params: { search: q },
+													});
+												}}
 												variant='link'
 												style={{ marginTop: 8 }}>
 												<ButtonText
 													style={{
-														color: Colors.light
-															.tint,
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
 														fontSize: 13,
 													}}>
 													Voir tous les résultats
 												</ButtonText>
-												<ButtonIcon as={ChevronRight} />
+												<ButtonIcon
+													as={ChevronRight}
+													style={{
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
+													}}
+												/>
 											</Button>
 										</>
 									) : (
