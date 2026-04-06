@@ -6,6 +6,7 @@ import {
 	ActivityIndicator,
 	TouchableOpacity,
 	Platform,
+	Text as RNText,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -95,16 +96,16 @@ export default function Home() {
 						style={{ width: 110, height: 110 }}
 						resizeMode='contain'
 					/>
-					<Text
+					<RNText
 						style={{
+							fontFamily: "Inter_800ExtraBold",
 							fontSize: 28,
-							fontWeight: "800",
 							color: textPrimary,
 							marginTop: 20,
 							letterSpacing: -0.5,
 						}}>
 						WeSafe
-					</Text>
+					</RNText>
 					<Text
 						size='md'
 						style={{
