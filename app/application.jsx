@@ -77,6 +77,7 @@ import {
 	BadgeEuro,
 	Clock,
 	AlertTriangle,
+	MessagesSquare,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -1465,7 +1466,7 @@ const ApplicationScreen = () => {
 								gap: 10,
 							}}>
 							<Icon
-								as={MessageCircle}
+								as={MessagesSquare}
 								size='lg'
 								style={{ color: "#ffffff" }}
 							/>
