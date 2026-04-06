@@ -1985,7 +1985,7 @@ const ContractGenerationScreen = () => {
 			</Card>
 
 			{/* Clauses personnalisées */}
-			<Card style={cardStyle}>
+			<Card style={{ ...cardStyle, paddingBottom: 60 }}>
 				<Text style={labelStyle}>Clauses particulières</Text>
 				<Textarea style={{ ...inputStyle, minHeight: 140 }}>
 					<TextareaInput
