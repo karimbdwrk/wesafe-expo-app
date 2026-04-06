@@ -74,7 +74,7 @@ import {
 	Settings,
 	LogOut,
 	BookmarkCheck,
-	MessageSquare,
+	MessagesSquare,
 } from "lucide-react-native";
 
 import { supabase } from "@/lib/supabase";
@@ -111,7 +111,11 @@ const AccountScreen = () => {
 	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
 	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
 	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
-	const { unreadCount, refreshNotifications } = useNotifications();
+	const { unreadCount, notifications, refreshNotifications } =
+		useNotifications();
+	const unreadMessagesCount =
+		notifications?.filter((n) => n.type === "new_message" && !n.is_read)
+			.length ?? 0;
 	const { image } = useImage();
 	const router = useRouter();
 	const { openSupport } = useLocalSearchParams();
@@ -1343,22 +1347,254 @@ const AccountScreen = () => {
 									notifCount > 0 ? "error" : undefined
 								}
 							/>
+							<TouchableOpacity
+								onPress={() => router.push("/messaging")}
+								activeOpacity={0.7}>
+								<Card
+									style={{
+										padding: 16,
+										backgroundColor: isDark
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? Colors.dark.border
+											: Colors.light.border,
+									}}>
+									<HStack
+										style={{
+											alignItems: "center",
+											justifyContent: "space-between",
+										}}>
+										<HStack
+											space='md'
+											style={{
+												flex: 1,
+												alignItems: "center",
+											}}>
+											<Box
+												style={{
+													width: 40,
+													height: 40,
+													borderRadius: 20,
+													backgroundColor: isDark
+														? Colors.dark.background
+														: Colors.light
+																.background,
+													justifyContent: "center",
+													alignItems: "center",
+												}}>
+												<Icon
+													as={MessagesSquare}
+													size='lg'
+													style={{
+														color: isDark
+															? Colors.dark.tint
+															: Colors.light.tint,
+													}}
+												/>
+											</Box>
+											<VStack
+												style={{ flex: 1 }}
+												space='xs'>
+												<HStack
+													space='xs'
+													style={{
+														alignItems: "center",
+													}}>
+													<Text
+														size='md'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
+														}}>
+														Messagerie
+													</Text>
+													{unreadMessagesCount >
+														0 && (
+														<Box
+															style={{
+																marginLeft: 4,
+																minWidth: 18,
+																height: 18,
+																borderRadius: 9,
+																paddingHorizontal: 5,
+																justifyContent:
+																	"center",
+																alignItems:
+																	"center",
+																backgroundColor:
+																	"#ef4444",
+															}}>
+															<Text
+																style={{
+																	color: "#fff",
+																	fontSize: 10,
+																	fontWeight:
+																		"700",
+																	lineHeight: 14,
+																}}>
+																{
+																	unreadMessagesCount
+																}
+															</Text>
+														</Box>
+													)}
+												</HStack>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
+													}}>
+													Vos conversations
+												</Text>
+											</VStack>
+										</HStack>
+										<Icon
+											as={ChevronRight}
+											size='lg'
+											style={{
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
+											}}
+										/>
+									</HStack>
+								</Card>
+							</TouchableOpacity>
+
 							<Divider style={{ marginVertical: 16 }} />
 
-							<ActionCard
-								icon={MessageSquare}
-								title='Messages'
-								subtitle='Contacter le support WeSafe'
+							<TouchableOpacity
 								onPress={openSupportSheet}
-								badgeText={
-									supportUnreadCount > 0
-										? supportUnreadCount.toString()
-										: null
-								}
-								badgeColor={
-									supportUnreadCount > 0 ? "error" : undefined
-								}
-							/>
+								activeOpacity={0.7}>
+								<Card
+									style={{
+										padding: 16,
+										backgroundColor: isDark
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? Colors.dark.border
+											: Colors.light.border,
+									}}>
+									<HStack
+										style={{
+											alignItems: "center",
+											justifyContent: "space-between",
+										}}>
+										<HStack
+											space='md'
+											style={{
+												flex: 1,
+												alignItems: "center",
+											}}>
+											<Box
+												style={{
+													width: 40,
+													height: 40,
+													borderRadius: 20,
+													backgroundColor: isDark
+														? Colors.dark.background
+														: Colors.light
+																.background,
+													justifyContent: "center",
+													alignItems: "center",
+												}}>
+												<Icon
+													as={MessagesSquare}
+													size='lg'
+													style={{
+														color: isDark
+															? Colors.dark.tint
+															: Colors.light.tint,
+													}}
+												/>
+											</Box>
+											<VStack
+												style={{ flex: 1 }}
+												space='xs'>
+												<HStack
+													space='xs'
+													style={{
+														alignItems: "center",
+													}}>
+													<Text
+														size='md'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
+														}}>
+														Messagerie de support
+													</Text>
+													{supportUnreadCount > 0 && (
+														<Box
+															style={{
+																marginLeft: 4,
+																minWidth: 18,
+																height: 18,
+																borderRadius: 9,
+																paddingHorizontal: 5,
+																justifyContent:
+																	"center",
+																alignItems:
+																	"center",
+																backgroundColor:
+																	"#ef4444",
+															}}>
+															<Text
+																style={{
+																	color: "#fff",
+																	fontSize: 10,
+																	fontWeight:
+																		"700",
+																	lineHeight: 14,
+																}}>
+																{
+																	supportUnreadCount
+																}
+															</Text>
+														</Box>
+													)}
+												</HStack>
+												<Text
+													size='sm'
+													style={{
+														color: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
+													}}>
+													Contacter le support WeSafe
+												</Text>
+											</VStack>
+										</HStack>
+										<Icon
+											as={ChevronRight}
+											size='lg'
+											style={{
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
+											}}
+										/>
+									</HStack>
+								</Card>
+							</TouchableOpacity>
 
 							<ActionCard
 								icon={Settings}
