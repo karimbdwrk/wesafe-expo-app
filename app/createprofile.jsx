@@ -267,6 +267,20 @@ const CreateProfile = () => {
 
 			trackActivity(CREATE_PROFILE);
 			await create("profiles", profileData);
+			try {
+				const supabase = createSupabaseClient(accessToken);
+				await supabase.functions.invoke(
+					"send-candidate-welcome-email",
+					{
+						body: {
+							firstName: firstname.trim(),
+							candidateEmail: user.email,
+						},
+					},
+				);
+			} catch (e) {
+				console.error("Erreur envoi email bienvenue:", e);
+			}
 			await loadSession();
 			setJustSignup(false);
 			await new Promise((resolve) => setTimeout(resolve, 500));
@@ -713,7 +727,7 @@ const CreateProfile = () => {
 																		.border,
 													borderRadius: 10,
 													paddingHorizontal: 16,
-													height: 44,
+													height: 34,
 												}}
 												disabled={
 													postalCode.length !== 5
@@ -727,7 +741,7 @@ const CreateProfile = () => {
 																: muted,
 														fontWeight: "700",
 													}}>
-													Chercher
+													Rechercher
 												</ButtonText>
 											</Button>
 										</HStack>
