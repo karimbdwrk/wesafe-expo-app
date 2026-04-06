@@ -86,6 +86,7 @@ import {
 	CalendarDays,
 	AlertCircle,
 	CheckCircle,
+	IdCard,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -102,6 +103,8 @@ import {
 import { DRIVING_LICENSES } from "@/constants/drivinglicences";
 import { DIPLOMAS } from "@/constants/diplomas";
 import { CERTIFICATIONS } from "@/constants/certifications";
+import { CNAPS_CARDS } from "@/constants/cnapscards";
+import { languages as LANGUAGES } from "@/constants/languages";
 import { departements } from "@/constants/departements";
 import { regions } from "@/constants/regions";
 
@@ -173,6 +176,8 @@ const PostJob = () => {
 		useState(false);
 	const [showDiplomaSheet, setShowDiplomaSheet] = useState(false);
 	const [showCertificationSheet, setShowCertificationSheet] = useState(false);
+	const [showCnapsSheet, setShowCnapsSheet] = useState(false);
+	const [showLanguageSheet, setShowLanguageSheet] = useState(false);
 	const [currentVacation, setCurrentVacation] = useState({
 		date: null,
 		start_time: "",
@@ -213,6 +218,7 @@ const PostJob = () => {
 		searched_profile: [],
 		diplomas_required: [],
 		certifications_required: [],
+		cnaps_required: [],
 		driving_licenses: [],
 		languages: [],
 		reimbursements: [],
@@ -1703,7 +1709,12 @@ const PostJob = () => {
 					})()}>
 					{/* Étape 1: Informations principales */}
 					{currentStep === 1 && (
-						<Box style={{ width: SCREEN_WIDTH, flex: 1 }}>
+						<Box
+							style={{
+								width: SCREEN_WIDTH,
+								flex: 1,
+								paddingBottom: 30,
+							}}>
 							<KeyboardAvoidingView
 								behavior={
 									Platform.OS === "ios" ? "padding" : "height"
@@ -2706,21 +2717,13 @@ const PostJob = () => {
 																				.light
 																				.border,
 															backgroundColor:
-																formData
-																	.diplomas_required
-																	.length > 0
-																	? isDark
-																		? Colors
-																				.dark
-																				.tint
-																		: "#dbeafe"
-																	: isDark
-																		? Colors
-																				.dark
-																				.background
-																		: Colors
-																				.light
-																				.cardBackground,
+																isDark
+																	? Colors
+																			.dark
+																			.cardBackground
+																	: Colors
+																			.light
+																			.cardBackground,
 														}}>
 														<Text
 															style={{
@@ -2899,21 +2902,13 @@ const PostJob = () => {
 																				.light
 																				.border,
 															backgroundColor:
-																formData
-																	.certifications_required
-																	.length > 0
-																	? isDark
-																		? Colors
-																				.dark
-																				.tint
-																		: "#dbeafe"
-																	: isDark
-																		? Colors
-																				.dark
-																				.background
-																		: Colors
-																				.light
-																				.cardBackground,
+																isDark
+																	? Colors
+																			.dark
+																			.cardBackground
+																	: Colors
+																			.light
+																			.cardBackground,
 														}}>
 														<Text
 															style={{
@@ -2980,6 +2975,188 @@ const PostJob = () => {
 															marginTop: 6,
 														}}>
 														{formData.certifications_required.map(
+															(acronym) => (
+																<Box
+																	key={
+																		acronym
+																	}
+																	style={{
+																		paddingHorizontal: 8,
+																		paddingVertical: 3,
+																		borderRadius: 6,
+																		backgroundColor:
+																			Colors
+																				.light
+																				.tint,
+																		marginBottom: 4,
+																	}}>
+																	<Text
+																		style={{
+																			fontSize: 11,
+																			fontWeight:
+																				"800",
+																			color: Colors
+																				.light
+																				.cardBackground,
+																		}}>
+																		{
+																			acronym
+																		}
+																	</Text>
+																</Box>
+															),
+														)}
+													</HStack>
+												)}
+											</VStack>
+										</Card>
+										{/* Cartes CNAPS requises */}
+										<Card
+											style={{
+												padding: 20,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
+												borderRadius: 12,
+												borderWidth: 1,
+												borderColor: isDark
+													? Colors.dark.border
+													: Colors.light.border,
+											}}>
+											<VStack space='md'>
+												<HStack
+													space='sm'
+													style={{
+														alignItems: "center",
+													}}>
+													<Icon
+														as={IdCard}
+														size='lg'
+														style={{
+															color: isDark
+																? Colors.dark
+																		.tint
+																: Colors.light
+																		.tint,
+														}}
+													/>
+													<Text
+														size='md'
+														style={{
+															fontWeight: "600",
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
+														}}>
+														Cartes CNAPS requises
+													</Text>
+												</HStack>
+												<TouchableOpacity
+													activeOpacity={0.7}
+													onPress={() =>
+														setShowCnapsSheet(true)
+													}>
+													<Box
+														style={{
+															flexDirection:
+																"row",
+															alignItems:
+																"center",
+															justifyContent:
+																"space-between",
+															padding: 12,
+															borderRadius: 8,
+															borderWidth: 1,
+															borderColor:
+																formData
+																	.cnaps_required
+																	.length > 0
+																	? Colors
+																			.light
+																			.tint
+																	: isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
+															backgroundColor:
+																isDark
+																	? Colors
+																			.dark
+																			.cardBackground
+																	: Colors
+																			.light
+																			.cardBackground,
+														}}>
+														<Text
+															style={{
+																flex: 1,
+																color:
+																	formData
+																		.cnaps_required
+																		.length >
+																	0
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
+																fontWeight:
+																	formData
+																		.cnaps_required
+																		.length >
+																	0
+																		? "600"
+																		: "400",
+															}}>
+															{formData
+																.cnaps_required
+																.length > 0
+																? `${formData.cnaps_required.length} carte${formData.cnaps_required.length > 1 ? "s" : ""} sélectionnée${formData.cnaps_required.length > 1 ? "s" : ""}`
+																: "Sélectionnez les cartes CNAPS requises"}
+														</Text>
+														<Icon
+															as={ChevronDown}
+															size='sm'
+															style={{
+																color:
+																	formData
+																		.cnaps_required
+																		.length >
+																	0
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
+															}}
+														/>
+													</Box>
+												</TouchableOpacity>
+												{formData.cnaps_required
+													.length > 0 && (
+													<HStack
+														space='xs'
+														style={{
+															flexWrap: "wrap",
+															marginTop: 6,
+														}}>
+														{formData.cnaps_required.map(
 															(acronym) => (
 																<Box
 																	key={
@@ -6855,156 +7032,146 @@ const PostJob = () => {
 														Langues demandées
 													</Text>
 												</HStack>
-												<HStack space='sm'>
-													<VStack
-														ref={languageInputRef}
-														style={{ flex: 1 }}>
-														<Input
-															variant='outline'
-															size='md'
-															style={{
-																backgroundColor:
-																	isDark
-																		? Colors
-																				.dark
-																				.background
-																		: Colors
-																				.light
-																				.cardBackground,
-																borderColor:
-																	isDark
+												<TouchableOpacity
+													activeOpacity={0.7}
+													onPress={() =>
+														setShowLanguageSheet(
+															true,
+														)
+													}>
+													<Box
+														style={{
+															flexDirection:
+																"row",
+															alignItems:
+																"center",
+															justifyContent:
+																"space-between",
+															padding: 12,
+															borderRadius: 8,
+															borderWidth: 1,
+															borderColor:
+																formData
+																	.languages
+																	.length > 0
+																	? Colors
+																			.light
+																			.tint
+																	: isDark
 																		? Colors
 																				.dark
 																				.border
 																		: Colors
 																				.light
 																				.border,
-															}}>
-															<InputField
-																placeholder='Ex: Anglais, Espagnol'
-																value={
-																	currentLanguage
-																}
-																onChangeText={
-																	setCurrentLanguage
-																}
-																onFocus={() =>
-																	scrollToInput(
-																		languageInputRef,
-																		2,
-																	)
-																}
-																style={{
-																	color: isDark
+															backgroundColor:
+																formData
+																	.languages
+																	.length > 0
+																	? isDark
 																		? Colors
 																				.dark
-																				.text
+																				.tint
+																		: "#dbeafe"
+																	: isDark
+																		? Colors
+																				.dark
+																				.background
 																		: Colors
 																				.light
-																				.text,
-																}}
-															/>
-														</Input>
-													</VStack>
-													<Button
-														size='md'
-														onPress={addLanguage}
-														style={{
-															backgroundColor:
-																Colors.light
-																	.tint,
+																				.cardBackground,
 														}}>
-														<ButtonIcon
-															as={Plus}
+														<Text
 															style={{
-																color: Colors
-																	.light
-																	.cardBackground,
+																flex: 1,
+																color:
+																	formData
+																		.languages
+																		.length >
+																	0
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
+																fontWeight:
+																	formData
+																		.languages
+																		.length >
+																	0
+																		? "600"
+																		: "400",
+															}}>
+															{formData.languages
+																.length > 0
+																? `${formData.languages.length} langue${formData.languages.length > 1 ? "s" : ""} sélectionnée${formData.languages.length > 1 ? "s" : ""}`
+																: "Sélectionnez les langues demandées"}
+														</Text>
+														<Icon
+															as={ChevronDown}
+															size='sm'
+															style={{
+																color:
+																	formData
+																		.languages
+																		.length >
+																	0
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.muted
+																			: Colors
+																					.light
+																					.muted,
 															}}
 														/>
-													</Button>
-												</HStack>
-												{/* Liste des langues */}
+													</Box>
+												</TouchableOpacity>
 												{formData.languages.length >
 													0 && (
-													<VStack
+													<HStack
 														space='xs'
 														style={{
-															marginTop: 8,
+															flexWrap: "wrap",
+															marginTop: 6,
 														}}>
 														{formData.languages.map(
-															(
-																language,
-																index,
-															) => (
-																<HStack
-																	key={index}
-																	space='sm'
+															(code) => (
+																<Box
+																	key={code}
 																	style={{
-																		alignItems:
-																			"center",
-																		padding: 8,
+																		paddingHorizontal: 8,
+																		paddingVertical: 3,
+																		borderRadius: 6,
 																		backgroundColor:
-																			isDark
-																				? Colors
-																						.dark
-																						.background
-																				: Colors
-																						.light
-																						.background,
-																		borderRadius: 8,
+																			Colors
+																				.light
+																				.tint,
+																		marginBottom: 4,
 																	}}>
-																	<Box
-																		style={{
-																			width: 6,
-																			height: 6,
-																			borderRadius: 3,
-																			backgroundColor:
-																				Colors
-																					.light
-																					.tint,
-																		}}
-																	/>
 																	<Text
-																		size='sm'
 																		style={{
-																			flex: 1,
-																			color: isDark
-																				? Colors
-																						.dark
-																						.text
-																				: Colors
-																						.light
-																						.text,
+																			fontSize: 11,
+																			fontWeight:
+																				"800",
+																			color: Colors
+																				.light
+																				.cardBackground,
 																		}}>
-																		{
-																			language
-																		}
+																		{code}
 																	</Text>
-																	<Button
-																		size='xs'
-																		variant='link'
-																		onPress={() =>
-																			removeLanguage(
-																				index,
-																			)
-																		}>
-																		<ButtonIcon
-																			as={
-																				Trash2
-																			}
-																			size='sm'
-																			style={{
-																				color: Colors
-																					.dark
-																					.danger,
-																			}}
-																		/>
-																	</Button>
-																</HStack>
+																</Box>
 															),
 														)}
-													</VStack>
+													</HStack>
 												)}
 											</VStack>
 										</Card>
@@ -9722,19 +9889,13 @@ const PostJob = () => {
 																								.light
 																								.border,
 																			backgroundColor:
-																				isSel
-																					? isDark
-																						? Colors
-																								.dark
-																								.tint
-																						: "#dbeafe"
-																					: isDark
-																						? Colors
-																								.dark
-																								.cardBackground
-																						: Colors
-																								.light
-																								.background,
+																				isDark
+																					? Colors
+																							.dark
+																							.cardBackground
+																					: Colors
+																							.light
+																							.background,
 																		}}>
 																		<HStack
 																			space='sm'
@@ -9991,19 +10152,13 @@ const PostJob = () => {
 																								.light
 																								.border,
 																			backgroundColor:
-																				isSel
-																					? isDark
-																						? Colors
-																								.dark
-																								.tint
-																						: "#dbeafe"
-																					: isDark
-																						? Colors
-																								.dark
-																								.cardBackground
-																						: Colors
-																								.light
-																								.background,
+																				isDark
+																					? Colors
+																							.dark
+																							.cardBackground
+																					: Colors
+																							.light
+																							.background,
 																		}}>
 																		<HStack
 																			space='sm'
@@ -10261,19 +10416,13 @@ const PostJob = () => {
 																								.light
 																								.border,
 																			backgroundColor:
-																				isSel
-																					? isDark
-																						? Colors
-																								.dark
-																								.tint
-																						: "#dbeafe"
-																					: isDark
-																						? Colors
-																								.dark
-																								.cardBackground
-																						: Colors
-																								.light
-																								.background,
+																				isDark
+																					? Colors
+																							.dark
+																							.cardBackground
+																					: Colors
+																							.light
+																							.background,
 																		}}>
 																		<HStack
 																			space='sm'
@@ -10365,6 +10514,430 @@ const PostJob = () => {
 								onPress={() =>
 									setShowCertificationSheet(false)
 								}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
+									Confirmer
+								</ButtonText>
+							</Button>
+						</VStack>
+					</ActionsheetContent>
+				</Actionsheet>
+
+				{/* Actionsheet — Cartes CNAPS requises */}
+				<Actionsheet
+					isOpen={showCnapsSheet}
+					onClose={() => setShowCnapsSheet(false)}>
+					<ActionsheetBackdrop />
+					<ActionsheetContent
+						style={{
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground,
+							maxHeight: "80%",
+							paddingBottom: 32,
+						}}>
+						<ActionsheetDragIndicatorWrapper>
+							<ActionsheetDragIndicator />
+						</ActionsheetDragIndicatorWrapper>
+						<VStack
+							style={{ width: "100%", paddingTop: 8 }}
+							space='sm'>
+							<HStack
+								style={{
+									alignItems: "center",
+									justifyContent: "space-between",
+									paddingHorizontal: 4,
+									marginBottom: 8,
+								}}>
+								<Text
+									style={{
+										fontWeight: "700",
+										fontSize: 17,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
+									}}>
+									Cartes CNAPS requises
+								</Text>
+								{formData.cnaps_required.length > 0 && (
+									<Pressable
+										onPress={() =>
+											setFormData((prev) => ({
+												...prev,
+												cnaps_required: [],
+											}))
+										}>
+										<Text
+											style={{
+												fontSize: 13,
+												color: Colors.dark.danger,
+											}}>
+											Tout effacer
+										</Text>
+									</Pressable>
+								)}
+							</HStack>
+							<ScrollView
+								showsVerticalScrollIndicator={false}
+								style={{ width: "100%" }}>
+								<VStack
+									space='xs'
+									style={{ paddingBottom: 16 }}>
+									{Object.entries(CNAPS_CARDS).map(
+										([key, card]) => {
+											const isSel =
+												formData.cnaps_required.includes(
+													card.acronym,
+												);
+											return (
+												<Pressable
+													key={key}
+													onPress={() =>
+														setFormData((prev) => ({
+															...prev,
+															cnaps_required:
+																isSel
+																	? prev.cnaps_required.filter(
+																			(
+																				v,
+																			) =>
+																				v !==
+																				card.acronym,
+																		)
+																	: [
+																			...prev.cnaps_required,
+																			card.acronym,
+																		],
+														}))
+													}>
+													<Box
+														style={{
+															padding: 14,
+															borderRadius: 10,
+															borderWidth: 2,
+															borderColor: isSel
+																? Colors.light
+																		.tint
+																: isDark
+																	? Colors
+																			.dark
+																			.border
+																	: Colors
+																			.light
+																			.border,
+															backgroundColor:
+																isDark
+																	? Colors
+																			.dark
+																			.cardBackground
+																	: Colors
+																			.light
+																			.background,
+														}}>
+														<HStack
+															space='sm'
+															style={{
+																alignItems:
+																	"center",
+															}}>
+															<Box
+																style={{
+																	paddingHorizontal: 8,
+																	paddingVertical: 3,
+																	borderRadius: 6,
+																	backgroundColor:
+																		isSel
+																			? Colors
+																					.light
+																					.tint
+																			: isDark
+																				? Colors
+																						.dark
+																						.border
+																				: Colors
+																						.light
+																						.border,
+																}}>
+																<Text
+																	style={{
+																		fontSize: 11,
+																		fontWeight:
+																			"800",
+																		color: isSel
+																			? Colors
+																					.light
+																					.cardBackground
+																			: isDark
+																				? Colors
+																						.dark
+																						.muted
+																				: Colors
+																						.light
+																						.muted,
+																	}}>
+																	{
+																		card.acronym
+																	}
+																</Text>
+															</Box>
+															<Text
+																style={{
+																	flex: 1,
+																	fontSize: 14,
+																	color: isSel
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
+																	fontWeight:
+																		isSel
+																			? "600"
+																			: "400",
+																}}>
+																{card.name}
+															</Text>
+														</HStack>
+													</Box>
+												</Pressable>
+											);
+										},
+									)}
+								</VStack>
+							</ScrollView>
+							<Button
+								style={{
+									backgroundColor: Colors.light.tint,
+									marginTop: 8,
+								}}
+								onPress={() => setShowCnapsSheet(false)}>
+								<ButtonText
+									style={{
+										color: Colors.light.cardBackground,
+									}}>
+									Confirmer
+								</ButtonText>
+							</Button>
+						</VStack>
+					</ActionsheetContent>
+				</Actionsheet>
+
+				{/* Actionsheet — Langues demandées */}
+				<Actionsheet
+					isOpen={showLanguageSheet}
+					onClose={() => setShowLanguageSheet(false)}>
+					<ActionsheetBackdrop />
+					<ActionsheetContent
+						style={{
+							backgroundColor: isDark
+								? Colors.dark.background
+								: Colors.light.cardBackground,
+							maxHeight: "80%",
+							paddingBottom: 32,
+						}}>
+						<ActionsheetDragIndicatorWrapper>
+							<ActionsheetDragIndicator />
+						</ActionsheetDragIndicatorWrapper>
+						<VStack
+							style={{ width: "100%", paddingTop: 8 }}
+							space='sm'>
+							<HStack
+								style={{
+									alignItems: "center",
+									justifyContent: "space-between",
+									paddingHorizontal: 4,
+									marginBottom: 8,
+								}}>
+								<Text
+									style={{
+										fontWeight: "700",
+										fontSize: 17,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
+									}}>
+									Langues demandées
+								</Text>
+								{formData.languages.length > 0 && (
+									<Pressable
+										onPress={() =>
+											setFormData((prev) => ({
+												...prev,
+												languages: [],
+											}))
+										}>
+										<Text
+											style={{
+												fontSize: 13,
+												color: Colors.dark.danger,
+											}}>
+											Tout effacer
+										</Text>
+									</Pressable>
+								)}
+							</HStack>
+							<ScrollView
+								showsVerticalScrollIndicator={false}
+								style={{ width: "100%" }}>
+								<VStack
+									space='xs'
+									style={{ paddingBottom: 16 }}>
+									{LANGUAGES.map((lang) => {
+										const isSel =
+											formData.languages.includes(
+												lang.code,
+											);
+										return (
+											<Pressable
+												key={lang.code}
+												onPress={() =>
+													setFormData((prev) => ({
+														...prev,
+														languages: isSel
+															? prev.languages.filter(
+																	(v) =>
+																		v !==
+																		lang.code,
+																)
+															: [
+																	...prev.languages,
+																	lang.code,
+																],
+													}))
+												}>
+												<Box
+													style={{
+														flexDirection: "row",
+														alignItems: "center",
+														paddingVertical: 12,
+														paddingHorizontal: 4,
+														borderBottomWidth: 1,
+														borderBottomColor:
+															isDark
+																? Colors.dark
+																		.border
+																: Colors.light
+																		.border,
+													}}>
+													<Box
+														style={{
+															width: 22,
+															height: 22,
+															borderRadius: 11,
+															borderWidth: 2,
+															borderColor: isSel
+																? Colors.light
+																		.tint
+																: isDark
+																	? Colors
+																			.dark
+																			.border
+																	: Colors
+																			.light
+																			.border,
+															backgroundColor:
+																isSel
+																	? Colors
+																			.light
+																			.tint
+																	: "transparent",
+															alignItems:
+																"center",
+															justifyContent:
+																"center",
+															marginRight: 12,
+														}}>
+														{isSel && (
+															<Icon
+																as={CheckCircle}
+																size='xs'
+																style={{
+																	color: Colors
+																		.light
+																		.cardBackground,
+																}}
+															/>
+														)}
+													</Box>
+													<HStack
+														space='sm'
+														style={{
+															alignItems:
+																"center",
+														}}>
+														<Box
+															style={{
+																paddingHorizontal: 6,
+																paddingVertical: 2,
+																borderRadius: 4,
+																backgroundColor:
+																	isSel
+																		? Colors
+																				.light
+																				.tint
+																		: isDark
+																			? Colors
+																					.dark
+																					.border
+																			: "#e5e7eb",
+															}}>
+															<Text
+																style={{
+																	fontSize: 11,
+																	fontWeight:
+																		"800",
+																	color: isSel
+																		? Colors
+																				.light
+																				.cardBackground
+																		: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
+																}}>
+																{lang.code}
+															</Text>
+														</Box>
+														<Text
+															style={{
+																fontSize: 14,
+																fontWeight:
+																	isSel
+																		? "600"
+																		: "400",
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
+															}}>
+															{lang.name}
+														</Text>
+													</HStack>
+												</Box>
+											</Pressable>
+										);
+									})}
+								</VStack>
+							</ScrollView>
+							<Button
+								style={{
+									backgroundColor: Colors.light.tint,
+									marginTop: 8,
+								}}
+								onPress={() => setShowLanguageSheet(false)}>
 								<ButtonText
 									style={{
 										color: Colors.light.cardBackground,
