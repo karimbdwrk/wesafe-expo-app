@@ -3,16 +3,13 @@ import {
 	Image,
 	KeyboardAvoidingView,
 	Platform,
-	Pressable,
 	ScrollView,
 	ActivityIndicator,
 	Alert,
 	TouchableOpacity,
 	Animated,
 	TextInput,
-	useWindowDimensions,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import axios from "axios";
 import Constants from "expo-constants";
@@ -20,33 +17,21 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Box } from "@/components/ui/box";
-import { Button, ButtonText } from "@/components/ui/button";
+import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { HStack } from "@/components/ui/hstack";
 import { Icon } from "@/components/ui/icon";
 import { Input, InputField } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import {
-	Actionsheet,
-	ActionsheetBackdrop,
-	ActionsheetContent,
-	ActionsheetDragIndicator,
-	ActionsheetDragIndicatorWrapper,
-	ActionsheetItem,
-	ActionsheetItemText,
-	ActionsheetScrollView,
-} from "@/components/ui/actionsheet";
+
 import {
 	ChevronLeft,
 	ChevronRight,
 	ChevronDown,
-	Camera,
-	Image as ImageIcon,
 	FileText,
 	Upload,
 	X,
-	File,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -54,7 +39,6 @@ import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 import { createSupabaseClient } from "@/lib/supabase";
-import { languages as LANGUAGES } from "@/constants/languages";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const DOCUMENTS_BUCKET = "kbis";
@@ -65,14 +49,14 @@ const CreateCompany = () => {
 		useAuth();
 	const { create, update, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
-	const { height: screenHeight } = useWindowDimensions();
-
 	const [step, setStep] = useState(1);
 	const [submitting, setSubmitting] = useState(false);
 
 	// Step 1
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
+	const [legalLastname, setLegalLastname] = useState("");
+	const [legalFirstname, setLegalFirstname] = useState("");
 
 	// Step 2
 	const [siret, setSiret] = useState("");
@@ -85,11 +69,6 @@ const CreateCompany = () => {
 		return `${raw.slice(0, 3)} ${raw.slice(3, 6)} ${raw.slice(6, 9)} ${raw.slice(9)}`;
 	};
 	const [kbisImage, setKbisImage] = useState(null);
-	const [showActionsheet, setShowActionsheet] = useState(false);
-
-	// Langues
-	const [selectedLanguages, setSelectedLanguages] = useState([]);
-	const [showLanguageSheet, setShowLanguageSheet] = useState(false);
 
 	// Progress bar animation
 	const PROGRESS_VALUES = [0, 100];
@@ -113,36 +92,11 @@ const CreateCompany = () => {
 				? siret.trim().length === 14 && kbisImage !== null
 				: true;
 
-	// ─── KBIS pickers ─────────────────────────────────────────────
-	const handleTakePhoto = async () => {
-		setShowActionsheet(false);
-		const { status } = await ImagePicker.requestCameraPermissionsAsync();
-		if (status !== "granted") return;
-		const result = await ImagePicker.launchCameraAsync({
-			mediaTypes: ImagePicker.MediaTypeOptions.Images,
-			quality: 0.8,
-			allowsEditing: true,
-		});
-		if (!result.canceled) setKbisImage(result.assets[0]);
-	};
-
-	const handlePickFromGallery = async () => {
-		setShowActionsheet(false);
-		const { status } =
-			await ImagePicker.requestMediaLibraryPermissionsAsync();
-		if (status !== "granted") return;
-		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ImagePicker.MediaTypeOptions.Images,
-			quality: 0.8,
-		});
-		if (!result.canceled) setKbisImage(result.assets[0]);
-	};
-
+	// ─── KBIS picker ─────────────────────────────────────────────
 	const handlePickDocument = async () => {
-		setShowActionsheet(false);
 		try {
 			const result = await DocumentPicker.getDocumentAsync({
-				type: ["image/*", "application/pdf"],
+				type: ["application/pdf"],
 				copyToCacheDirectory: true,
 			});
 			if (!result.canceled && result.assets?.[0])
@@ -192,8 +146,11 @@ const CreateCompany = () => {
 				last_minute_credits: 0,
 				isConfirmed: false,
 				...(description.trim() && { description: description.trim() }),
-				...(selectedLanguages.length > 0 && {
-					languages: selectedLanguages.join(", "),
+				...(legalLastname.trim() && {
+					legal_representative_lastname: legalLastname.trim(),
+				}),
+				...(legalFirstname.trim() && {
+					legal_representative_firstname: legalFirstname.trim(),
 				}),
 			};
 
@@ -396,6 +353,35 @@ const CreateCompany = () => {
 												value={name}
 												onChangeText={setName}
 												style={inputTextStyle}
+												autoCapitalize='sentences'
+											/>
+										</Input>
+									</VStack>
+
+									<VStack space='xs'>
+										<Text size='sm' style={labelStyle}>
+											Nom du représentant légal
+										</Text>
+										<Input style={inputStyle}>
+											<InputField
+												placeholder='Dupont'
+												value={legalLastname}
+												onChangeText={setLegalLastname}
+												style={inputTextStyle}
+											/>
+										</Input>
+									</VStack>
+
+									<VStack space='xs'>
+										<Text size='sm' style={labelStyle}>
+											Prénom du représentant légal
+										</Text>
+										<Input style={inputStyle}>
+											<InputField
+												placeholder='Jean'
+												value={legalFirstname}
+												onChangeText={setLegalFirstname}
+												style={inputTextStyle}
 											/>
 										</Input>
 									</VStack>
@@ -416,6 +402,7 @@ const CreateCompany = () => {
 											multiline
 											numberOfLines={5}
 											textAlignVertical='top'
+											autoCapitalize='sentences'
 											style={{
 												backgroundColor: isDark
 													? Colors.dark.elevated
@@ -433,89 +420,6 @@ const CreateCompany = () => {
 												minHeight: 110,
 											}}
 										/>
-									</VStack>
-
-									{/* Langues */}
-									<VStack space='xs'>
-										<Text size='sm' style={labelStyle}>
-											Langues parlées
-										</Text>
-										<Pressable
-											onPress={() =>
-												setShowLanguageSheet(true)
-											}
-											style={{
-												...inputStyle,
-												flexDirection: "row",
-												alignItems: "center",
-												justifyContent: "space-between",
-												paddingHorizontal: 12,
-												height: 44,
-											}}>
-											<Text
-												style={{
-													color:
-														selectedLanguages.length >
-														0
-															? textColor
-															: muted,
-													fontSize: 15,
-												}}>
-												{selectedLanguages.length > 0
-													? `${selectedLanguages.length} langue${
-															selectedLanguages.length >
-															1
-																? "s"
-																: ""
-														} sélectionnée${
-															selectedLanguages.length >
-															1
-																? "s"
-																: ""
-														}`
-													: "Sélectionner des langues"}
-											</Text>
-											<Icon
-												as={ChevronDown}
-												size='sm'
-												style={{ color: muted }}
-											/>
-										</Pressable>
-										{selectedLanguages.length > 0 && (
-											<HStack
-												style={{
-													flexWrap: "wrap",
-													gap: 6,
-												}}>
-												{selectedLanguages.map(
-													(code) => (
-														<Box
-															key={code}
-															style={{
-																paddingHorizontal: 10,
-																paddingVertical: 4,
-																borderRadius: 20,
-																backgroundColor:
-																	isDark
-																		? Colors
-																				.dark
-																				.tint
-																		: "#dbeafe",
-															}}>
-															<Text
-																style={{
-																	fontSize: 12,
-																	fontWeight:
-																		"700",
-																	color: tint,
-																}}>
-																{code}
-															</Text>
-														</Box>
-													),
-												)}
-											</HStack>
-										)}
 									</VStack>
 								</VStack>
 							</Card>
@@ -655,9 +559,7 @@ const CreateCompany = () => {
 											</HStack>
 										) : (
 											<Button
-												onPress={() =>
-													setShowActionsheet(true)
-												}
+												onPress={handlePickDocument}
 												style={{
 													backgroundColor: isDark
 														? Colors.dark.elevated
@@ -704,7 +606,7 @@ const CreateCompany = () => {
 
 						{/* Navigation */}
 						<HStack
-							space='md'
+							// space='md'
 							style={{
 								marginTop: 24,
 								justifyContent: "space-between",
@@ -713,7 +615,7 @@ const CreateCompany = () => {
 								<Button
 									variant='outline'
 									style={{
-										flex: 1,
+										// flex: 1,
 										borderRadius: 12,
 										height: 52,
 										borderColor: isDark
@@ -721,29 +623,23 @@ const CreateCompany = () => {
 											: Colors.light.border,
 									}}
 									onPress={() => setStep(step - 1)}>
-									<HStack
-										space='xs'
-										style={{ alignItems: "center" }}>
-										<Icon
-											as={ChevronLeft}
-											size='sm'
-											style={{
-												color: isDark
-													? Colors.dark.textSecondary
-													: Colors.light
-															.textSecondary,
-											}}
-										/>
-										<ButtonText
-											style={{
-												color: isDark
-													? Colors.dark.textSecondary
-													: Colors.light
-															.textSecondary,
-											}}>
-											Précédent
-										</ButtonText>
-									</HStack>
+									<ButtonIcon
+										as={ChevronLeft}
+										size='sm'
+										style={{
+											color: isDark
+												? Colors.dark.textSecondary
+												: Colors.light.textSecondary,
+										}}
+									/>
+									<ButtonText
+										style={{
+											color: isDark
+												? Colors.dark.textSecondary
+												: Colors.light.textSecondary,
+										}}>
+										Précédent
+									</ButtonText>
 								</Button>
 							) : (
 								<Box style={{ flex: 1 }} />
@@ -752,7 +648,8 @@ const CreateCompany = () => {
 							{step < 2 ? (
 								<Button
 									style={{
-										flex: 1,
+										width: "100%",
+										// flex: 1,
 										backgroundColor: canAdvance
 											? tint
 											: isDark
@@ -765,33 +662,29 @@ const CreateCompany = () => {
 										if (canAdvance) setStep(step + 1);
 									}}
 									disabled={!canAdvance}>
-									<HStack
-										space='xs'
-										style={{ alignItems: "center" }}>
-										<ButtonText
-											style={{
-												color: canAdvance
-													? "#ffffff"
-													: isDark
-														? Colors.dark.muted
-														: Colors.light.muted,
-												fontWeight: "700",
-												fontSize: 16,
-											}}>
-											Suivant
-										</ButtonText>
-										<Icon
-											as={ChevronRight}
-											size='sm'
-											style={{
-												color: canAdvance
-													? "#ffffff"
-													: isDark
-														? Colors.dark.muted
-														: Colors.light.muted,
-											}}
-										/>
-									</HStack>
+									<ButtonText
+										style={{
+											color: canAdvance
+												? "#ffffff"
+												: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
+											fontWeight: "700",
+											fontSize: 16,
+										}}>
+										Suivant
+									</ButtonText>
+									<ButtonIcon
+										as={ChevronRight}
+										size='sm'
+										style={{
+											color: canAdvance
+												? "#ffffff"
+												: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
+										}}
+									/>
 								</Button>
 							) : submitting ? (
 								<ActivityIndicator
@@ -802,7 +695,7 @@ const CreateCompany = () => {
 							) : (
 								<Button
 									style={{
-										flex: 1,
+										// flex: 1,
 										backgroundColor: canAdvance
 											? tint
 											: isDark
@@ -810,6 +703,7 @@ const CreateCompany = () => {
 												: Colors.light.border,
 										borderRadius: 12,
 										height: 52,
+										paddingHorizontal: 50,
 									}}
 									onPress={() => {
 										if (canAdvance) handleCreateCompany();
@@ -833,264 +727,6 @@ const CreateCompany = () => {
 					</VStack>
 				</ScrollView>
 			</KeyboardAvoidingView>
-
-			{/* Actionsheet KBIS */}
-			<Actionsheet
-				isOpen={showActionsheet}
-				onClose={() => setShowActionsheet(false)}>
-				<ActionsheetBackdrop />
-				<ActionsheetContent
-					style={{
-						backgroundColor: isDark
-							? Colors.dark.elevated
-							: Colors.light.cardBackground,
-						paddingBottom: 32,
-					}}>
-					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
-					</ActionsheetDragIndicatorWrapper>
-					<VStack style={{ width: "100%", padding: 20 }} space='sm'>
-						<Text
-							style={{
-								fontSize: 18,
-								fontWeight: "700",
-								color: textColor,
-								marginBottom: 8,
-							}}>
-							Sélectionner le KBIS
-						</Text>
-						<ActionsheetItem onPress={handleTakePhoto}>
-							<Icon
-								as={Camera}
-								size='md'
-								style={{
-									color: tint,
-									marginRight: 12,
-								}}
-							/>
-							<ActionsheetItemText style={{ color: textColor }}>
-								Prendre une photo
-							</ActionsheetItemText>
-						</ActionsheetItem>
-						<ActionsheetItem onPress={handlePickFromGallery}>
-							<Icon
-								as={ImageIcon}
-								size='md'
-								style={{
-									color: tint,
-									marginRight: 12,
-								}}
-							/>
-							<ActionsheetItemText style={{ color: textColor }}>
-								Galerie photo
-							</ActionsheetItemText>
-						</ActionsheetItem>
-						<ActionsheetItem onPress={handlePickDocument}>
-							<Icon
-								as={File}
-								size='md'
-								style={{
-									color: tint,
-									marginRight: 12,
-								}}
-							/>
-							<ActionsheetItemText style={{ color: textColor }}>
-								Choisir un fichier (PDF…)
-							</ActionsheetItemText>
-						</ActionsheetItem>
-					</VStack>
-				</ActionsheetContent>
-			</Actionsheet>
-
-			{/* Actionsheet — Langues */}
-			<Actionsheet
-				isOpen={showLanguageSheet}
-				onClose={() => setShowLanguageSheet(false)}>
-				<ActionsheetBackdrop />
-				<ActionsheetContent
-					style={{
-						backgroundColor: isDark
-							? Colors.dark.elevated
-							: Colors.light.cardBackground,
-						paddingBottom: 0,
-					}}>
-					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
-					</ActionsheetDragIndicatorWrapper>
-					<VStack
-						style={{
-							width: "100%",
-							paddingTop: 8,
-						}}>
-						<HStack
-							style={{
-								alignItems: "center",
-								justifyContent: "space-between",
-								paddingHorizontal: 4,
-								marginBottom: 8,
-							}}>
-							<Text
-								style={{
-									fontWeight: "700",
-									fontSize: 17,
-									color: textColor,
-								}}>
-								Langues parlées
-							</Text>
-							{selectedLanguages.length > 0 && (
-								<Pressable
-									onPress={() => setSelectedLanguages([])}>
-									<Text
-										style={{
-											fontSize: 13,
-											color: Colors.dark.danger,
-										}}>
-										Tout effacer
-									</Text>
-								</Pressable>
-							)}
-						</HStack>
-						<ActionsheetScrollView
-							showsVerticalScrollIndicator={false}
-							style={{
-								width: "100%",
-								height: screenHeight * 0.5,
-							}}>
-							<VStack space='xs' style={{ paddingBottom: 16 }}>
-								{LANGUAGES.map((lang) => {
-									const isSel = selectedLanguages.includes(
-										lang.code,
-									);
-									return (
-										<Pressable
-											key={lang.code}
-											onPress={() =>
-												setSelectedLanguages((prev) =>
-													isSel
-														? prev.filter(
-																(v) =>
-																	v !==
-																	lang.code,
-															)
-														: [...prev, lang.code],
-												)
-											}>
-											<Box
-												style={{
-													padding: 14,
-													borderRadius: 10,
-													borderWidth: 2,
-													borderColor: isSel
-														? Colors.light.tint
-														: isDark
-															? Colors.dark.border
-															: Colors.light
-																	.border,
-													backgroundColor: isSel
-														? isDark
-															? Colors.dark.tint
-															: "#dbeafe"
-														: isDark
-															? Colors.dark
-																	.cardBackground
-															: Colors.light
-																	.background,
-												}}>
-												<HStack
-													space='sm'
-													style={{
-														alignItems: "center",
-													}}>
-													<Box
-														style={{
-															paddingHorizontal: 8,
-															paddingVertical: 3,
-															borderRadius: 6,
-															backgroundColor:
-																isSel
-																	? Colors
-																			.light
-																			.tint
-																	: isDark
-																		? Colors
-																				.dark
-																				.border
-																		: Colors
-																				.light
-																				.border,
-														}}>
-														<Text
-															style={{
-																fontSize: 11,
-																fontWeight:
-																	"800",
-																color: isSel
-																	? Colors
-																			.light
-																			.cardBackground
-																	: isDark
-																		? Colors
-																				.dark
-																				.muted
-																		: Colors
-																				.light
-																				.muted,
-															}}>
-															{lang.code}
-														</Text>
-													</Box>
-													<Text
-														style={{
-															flex: 1,
-															fontSize: 14,
-															color: isSel
-																? Colors.light
-																		.tint
-																: isDark
-																	? Colors
-																			.dark
-																			.text
-																	: Colors
-																			.light
-																			.text,
-															fontWeight: isSel
-																? "600"
-																: "400",
-														}}>
-														{lang.name}
-													</Text>
-												</HStack>
-											</Box>
-										</Pressable>
-									);
-								})}
-							</VStack>
-						</ActionsheetScrollView>
-						<Box
-							style={{
-								paddingHorizontal: 0,
-								paddingTop: 12,
-								paddingBottom: 32,
-								backgroundColor: isDark
-									? Colors.dark.elevated
-									: Colors.light.cardBackground,
-							}}>
-							<Button
-								style={{
-									backgroundColor: Colors.light.tint,
-								}}
-								onPress={() => setShowLanguageSheet(false)}>
-								<ButtonText
-									style={{
-										color: Colors.light.cardBackground,
-									}}>
-									Valider
-								</ButtonText>
-							</Button>
-						</Box>
-					</VStack>
-				</ActionsheetContent>
-			</Actionsheet>
 		</SafeAreaView>
 	);
 };
