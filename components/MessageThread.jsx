@@ -164,6 +164,8 @@ const MessageThread = ({
 	const presenceIntervalRef = useRef(null);
 	const broadcastChannelRef = useRef(null);
 	const typingStopTimeoutRef = useRef(null);
+	// Référence du message optimiste en attente de confirmation serveur
+	const pendingOptimisticRef = useRef(null);
 	const typingIndicatorAnim = useRef(new Animated.Value(0)).current;
 
 	// Scroller automatiquement quand le clavier s'ouvre + gérer hauteur si handleOwnKeyboard
@@ -438,6 +440,25 @@ const MessageThread = ({
 			return;
 		}
 
+		// ── Optimistic update immédiat ──────────────────────────────────────────────
+		// Afficher le message AVANT l'envoi réseau pour éliminer tout délai perçu
+		const content = newMessage.trim();
+		const tempId = `temp_${Date.now()}`;
+		const optimisticMsg = {
+			id: tempId,
+			...(receiverId
+				? { conversation_id: applyId }
+				: { apply_id: applyId }),
+			sender_id: user.id,
+			content,
+			created_at: new Date().toISOString(),
+			is_read: false,
+		};
+		pendingOptimisticRef.current = tempId;
+		setNewMessage("");
+		setMessages((prev) => [...prev, optimisticMsg]);
+		scrollViewRef.current?.scrollToEnd({ animated: true });
+
 		setLoading(true);
 		try {
 			const supabase = createSupabaseClient(accessToken);
@@ -470,12 +491,12 @@ const MessageThread = ({
 						? {
 								conversation_id: applyId,
 								sender_id: user.id,
-								content: newMessage.trim(),
+								content,
 							}
 						: {
 								apply_id: applyId,
 								sender_id: user.id,
-								content: newMessage.trim(),
+								content,
 							},
 				)
 				.select()
@@ -483,20 +504,18 @@ const MessageThread = ({
 
 			if (error) {
 				console.error("❌ Erreur envoi message:", error);
+				// Rollback : retirer le message optimiste et restituer le texte
+				setMessages((prev) => prev.filter((m) => m.id !== tempId));
+				pendingOptimisticRef.current = null;
+				setNewMessage(content);
 				return;
 			}
 			trackActivity("send_message");
-			// Vider l'input immédiatement après l'envoi réussi
-			setNewMessage("");
-			// Ajouter le message localement sans attendre Realtime
-			if (insertedMessage) {
-				setMessages((prev) => [...prev, insertedMessage]);
-				setTimeout(
-					() =>
-						scrollViewRef.current?.scrollToEnd({ animated: true }),
-					50,
-				);
-			}
+			// Remplacer le message optimiste par le vrai (si Realtime ne l'a pas déjà fait)
+			setMessages((prev) =>
+				prev.map((m) => (m.id === tempId ? insertedMessage : m)),
+			);
+			pendingOptimisticRef.current = null;
 
 			// ── Support chat (receiverId fourni directement) ──────────────
 			if (receiverId) {
@@ -872,8 +891,26 @@ const MessageThread = ({
 								{ ...newMsg, is_read: true },
 							];
 						});
+					} else if (newMsg.sender_id === user.id) {
+						// Mon propre message : remplacer le message optimiste temporaire
+						setMessages((prevMessages) => {
+							if (prevMessages.some((m) => m.id === newMsg.id))
+								return prevMessages;
+							const tempIdx = prevMessages.findIndex(
+								(m) =>
+									typeof m.id === "string" &&
+									m.id.startsWith("temp_"),
+							);
+							if (tempIdx !== -1) {
+								const next = [...prevMessages];
+								next[tempIdx] = newMsg;
+								pendingOptimisticRef.current = null;
+								return next;
+							}
+							return [...prevMessages, newMsg];
+						});
 					} else {
-						// Ajouter le nouveau message directement au state (dédoublonnage par id)
+						// Message reçu d'un autre utilisateur (dédoublonnage par id)
 						setMessages((prevMessages) => {
 							if (prevMessages.some((m) => m.id === newMsg.id))
 								return prevMessages;
