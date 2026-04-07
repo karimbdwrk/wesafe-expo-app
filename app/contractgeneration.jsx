@@ -61,6 +61,7 @@ import {
 import { createSupabaseClient } from "@/lib/supabase";
 import { regions } from "@/constants/regions";
 import { departements } from "@/constants/departements";
+import { sendRecruitmentStatusEmail } from "@/utils/sendRecruitmentStatusEmail";
 
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
@@ -650,6 +651,29 @@ const ContractGenerationScreen = () => {
 					"contract_sent",
 					"company",
 				);
+
+				// Notifier le candidat par email
+				try {
+					const candidate = applicationData?.profiles;
+					const company = applicationData?.companies;
+					const job = applicationData?.jobs;
+					if (candidate?.email) {
+						await sendRecruitmentStatusEmail(
+							candidate.email,
+							candidate.firstname,
+							company?.name ?? "",
+							"contract_sent",
+							job?.title ?? "",
+							"candidate",
+							accessToken,
+						);
+					}
+				} catch (emailErr) {
+					console.error(
+						"[ContractGen] Erreur email candidat :",
+						emailErr,
+					);
+				}
 			}
 
 			toast.show({
