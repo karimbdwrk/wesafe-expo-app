@@ -247,7 +247,7 @@ const JobScreen = () => {
 			job.companies.name,
 			job.companies.email,
 			job.title,
-			userProfile.lastname,
+			`${userProfile.firstname} ${userProfile.lastname}`,
 			userProfile.email,
 		);
 		trackActivity("apply_job");
@@ -258,12 +258,17 @@ const JobScreen = () => {
 				: Boolean(isNowApplied),
 		);
 		setShowApplyModal(false);
-		toast.success(`Vous avez postulé à l'offre d'emploi avec succés!`, {
-			// style: { backgroundColor: "blue" },
-			description:
-				"Vous recevrez une notification pour vous tenir informer de l'avancée",
-			duration: 2500,
-			icon: <Check />,
+		profileToast.show({
+			placement: "top",
+			render: ({ id: toastId }) => (
+				<CustomToast
+					id={toastId}
+					icon={CheckCircle}
+					color={isDark ? Colors.dark.success : Colors.light.success}
+					title='Candidature envoyée'
+					description="Vous recevrez une notification sur l'avancement de votre candidature."
+				/>
+			),
 		});
 		await createNotification({
 			recipientId: company_id,
