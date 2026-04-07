@@ -153,9 +153,12 @@ const ContractScreen = () => {
 	// 1. ENVOYER OTP (avec JWT)
 	const sendContractOtp = async (
 		email,
-		candidateName,
+		firstName,
 		companyName,
 		contractIdParam = null,
+		recipientRole = "candidat",
+		jobTitle = "",
+		candidateDisplayName = "",
 	) => {
 		// console.log("OTP contract ID :", contractIdParam);
 		setOtpSent(true);
@@ -165,8 +168,13 @@ const ContractScreen = () => {
 
 		const body = {
 			candidate_email: email,
-			candidate_name: candidateName,
+			candidate_name: firstName,
 			company_name: companyName,
+			role: recipientRole,
+			job_title: jobTitle,
+			...(recipientRole === "pro" && {
+				candidate_display_name: candidateDisplayName,
+			}),
 		};
 
 		// Si on a un contractId (cas du pro), on l'ajoute
@@ -370,6 +378,8 @@ const ContractScreen = () => {
 					candidate.firstname,
 					company.name,
 					contractId,
+					"candidat",
+					job.title,
 				);
 
 				return contractId;
@@ -417,6 +427,8 @@ const ContractScreen = () => {
 						candidate.firstname,
 						company.name,
 						contractId,
+						"candidat",
+						job.title,
 					);
 
 					return contractId;
@@ -441,6 +453,8 @@ const ContractScreen = () => {
 					candidate.firstname,
 					company.name,
 					contractId,
+					"candidat",
+					job.title,
 				);
 
 				return contractId;
@@ -1724,8 +1738,11 @@ const ContractScreen = () => {
 												sendContractOtp(
 													user.email,
 													company.name,
-													candidate.firstname,
+													company.name,
 													contractId,
+													"pro",
+													job.title,
+													`${candidate.firstname} ${candidate.lastname}`,
 												);
 											} else {
 												sendContractOtp(
@@ -1733,6 +1750,8 @@ const ContractScreen = () => {
 													candidate.firstname,
 													company.name,
 													contractId,
+													"candidat",
+													job.title,
 												);
 											}
 										}}
@@ -1770,8 +1789,11 @@ const ContractScreen = () => {
 											await sendContractOtp(
 												user.email,
 												company.name,
-												candidate.firstname,
+												company.name,
 												contractId,
+												"pro",
+												job.title,
+												`${candidate.firstname} ${candidate.lastname}`,
 											);
 										} else {
 											await createContract();
