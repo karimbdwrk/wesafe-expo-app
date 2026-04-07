@@ -8,6 +8,7 @@ import {
 	KeyboardAvoidingView,
 	Keyboard,
 	Easing,
+	ActivityIndicator,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter, Stack } from "expo-router";
@@ -186,6 +187,7 @@ const PostJob = () => {
 	const [vacationWarnings, setVacationWarnings] = useState(new Set());
 	const [cities, setCities] = useState([]);
 	const [postcodeInput, setPostcodeInput] = useState("");
+	const [cityLoading, setCityLoading] = useState(false);
 	const [formData, setFormData] = useState({
 		title: "",
 		category: "",
@@ -297,6 +299,7 @@ const PostJob = () => {
 	const searchCities = async () => {
 		console.log("code postal envoyé :", postcodeInput);
 		if (postcodeInput.length !== 5) return;
+		setCityLoading(true);
 
 		// 1. Vérifier le cache Supabase
 		try {
@@ -310,6 +313,7 @@ const PostJob = () => {
 			if (cached && cached.length > 0) {
 				console.log("📦 Villes depuis cache Supabase:", cached);
 				setCities(cached);
+				setCityLoading(false);
 				return;
 			}
 		} catch (cacheErr) {
@@ -355,6 +359,8 @@ const PostJob = () => {
 				message: error?.message,
 			});
 			setCities([]);
+		} finally {
+			setCityLoading(false);
 		}
 	};
 
@@ -1331,6 +1337,7 @@ const PostJob = () => {
 				diplomas_required: [],
 				certifications_required: [],
 				driving_licenses: [],
+				cnaps_required: [],
 				languages: [],
 				reimbursements: [],
 				packed_lunch: false,
@@ -3379,7 +3386,8 @@ const PostJob = () => {
 															}
 															disabled={
 																postcodeInput.length !==
-																5
+																	5 ||
+																cityLoading
 															}
 															activeOpacity={0.7}
 															style={{
@@ -3399,31 +3407,43 @@ const PostJob = () => {
 																borderRadius: 8,
 																paddingHorizontal: 16,
 																paddingVertical: 5,
+																minWidth: 100,
 																justifyContent:
 																	"center",
 																alignItems:
 																	"center",
 															}}>
-															<Text
-																style={{
-																	color:
-																		postcodeInput.length ===
-																		5
-																			? Colors
-																					.light
-																					.cardBackground
-																			: isDark
+															{cityLoading ? (
+																<ActivityIndicator
+																	size='small'
+																	color={
+																		Colors
+																			.light
+																			.cardBackground
+																	}
+																/>
+															) : (
+																<Text
+																	style={{
+																		color:
+																			postcodeInput.length ===
+																			5
 																				? Colors
-																						.dark
-																						.muted
-																				: Colors
 																						.light
-																						.muted,
-																	fontWeight:
-																		"600",
-																}}>
-																Rechercher
-															</Text>
+																						.cardBackground
+																				: isDark
+																					? Colors
+																							.dark
+																							.muted
+																					: Colors
+																							.light
+																							.muted,
+																		fontWeight:
+																			"600",
+																	}}>
+																	Rechercher
+																</Text>
+															)}
 														</TouchableOpacity>
 													</HStack>
 												</VStack>
