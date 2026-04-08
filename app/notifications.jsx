@@ -218,6 +218,8 @@ const Notifications = () => {
 			});
 		} else if (notification.type === "document_status_update") {
 			router.push({ pathname: "/prodocs" });
+		} else if (notification.type === "kbis_status_update") {
+			router.push({ pathname: "/kbisdocumentverification" });
 		}
 	};
 
