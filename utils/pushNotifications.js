@@ -139,6 +139,11 @@ export function navigateFromNotificationData(data, router) {
 		return;
 	}
 
+	if (data.entity_type === "kbis_review") {
+		router.push({ pathname: "/kbisdocumentverification" });
+		return;
+	}
+
 	if (data.screen) {
 		router.push({ pathname: `/${data.screen}` });
 	}
