@@ -48,7 +48,7 @@ const DOCUMENTS_BUCKET = "kbis";
 export default function KBISDocumentVerification() {
 	const router = useRouter();
 	const { user, userCompany, accessToken, loadUserData } = useAuth();
-	const { update, getById, trackActivity } = useDataContext();
+	const { update, getAll, getById, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const bg = isDark ? Colors.dark.background : Colors.light.background;
 	const cardBg = isDark
@@ -91,8 +91,35 @@ export default function KBISDocumentVerification() {
 		useCallback(() => {
 			console.log("KBIS Verification Screen focused");
 			loadCompanyData();
+			markKbisNotificationsRead();
 		}, []),
 	);
+
+	const markKbisNotificationsRead = async () => {
+		if (!user?.id) return;
+		try {
+			const { data: unread } = await getAll(
+				"notifications",
+				"id",
+				`&recipient_id=eq.${user.id}&type=eq.kbis_status_update&is_read=eq.false`,
+				1,
+				50,
+			);
+			if (!unread?.length) return;
+			const now = new Date().toISOString();
+			await Promise.all(
+				unread.map((n) =>
+					update("notifications", n.id, {
+						is_read: true,
+						read_at: now,
+						updated_at: now,
+					}),
+				),
+			);
+		} catch (error) {
+			console.error("Error marking kbis notifications as read:", error);
+		}
+	};
 
 	const loadCompanyData = async () => {
 		try {
