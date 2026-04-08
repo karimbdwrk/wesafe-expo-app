@@ -119,49 +119,6 @@ function RootLayoutNav() {
 		});
 	}, []);
 
-	// Listener tap notification (app en arrière-plan ou fermée → warm/hot start)
-	React.useEffect(() => {
-		const subscription =
-			Notifications.addNotificationResponseReceivedListener(
-				(response) => {
-					if (!user) return;
-					const data = response.notification.request.content.data;
-					if (!data) return;
-
-					// Routing simple via champ "screen" (ex: { screen: "notifications" })
-					if (data.screen) {
-						router.push(`/${data.screen}`);
-						return;
-					}
-
-					// Routing avancé via entity_type / entity_id
-					if (data.entity_type === "application" && data.entity_id) {
-						router.push({
-							pathname: "/application",
-							params: { apply_id: data.entity_id },
-						});
-					} else if (
-						data.entity_type === "message" &&
-						data.entity_id
-					) {
-						router.push({
-							pathname: "/application",
-							params: {
-								apply_id: data.entity_id,
-								openMessaging: "true",
-							},
-						});
-					} else if (data.entity_type === "job" && data.entity_id) {
-						router.push({
-							pathname: "/job",
-							params: { id: data.entity_id },
-						});
-					}
-				},
-			);
-		return () => subscription.remove();
-	}, [user]);
-
 	// Vide les notifications et le badge quand l'app revient au premier plan
 	React.useEffect(() => {
 		const subscription = AppState.addEventListener(
@@ -280,6 +237,8 @@ function RootLayoutNav() {
 							pathname: "/job",
 							params: { id: pending.entity_id },
 						});
+					} else if (pending.screen) {
+						router.push(`/${pending.screen}`);
 					}
 				}, 800);
 			} else {
