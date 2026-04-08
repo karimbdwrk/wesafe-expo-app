@@ -56,6 +56,7 @@ import {
 	Ban,
 	Zap,
 	BadgeEuro,
+	XCircle,
 } from "lucide-react-native";
 
 import SuggestedJobs from "@/components/SuggestedJobs";
