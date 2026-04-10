@@ -142,22 +142,45 @@ const SubscriptionScreen = () => {
 					},
 				},
 			);
-			// Remettre subscription_status à "standard" dans companies
-			await axios.patch(
-				`${SUPABASE_URL}/rest/v1/companies?id=eq.${userCompany?.id}`,
-				{ subscription_status: "standard" },
-				{
-					headers: {
-						apikey: SUPABASE_API_KEY,
-						Authorization: `Bearer ${accessToken}`,
-						"Content-Type": "application/json",
-						Prefer: "return=minimal",
-					},
-				},
-			);
+			// On ne touche PAS à subscription_status ici :
+			// l'accès reste actif jusqu'à current_period_end.
+			// Le downgrade se fait via webhook Stripe à expiration.
+			const canceledPlan =
+				userCompany?.subscription_status || "standard_plus";
+			const canceledInterval = activeSub?.interval || "monthly";
+			const canceledPeriodEnd = activeSub?.current_period_end;
 			setShowCancelDialog(false);
 			await refreshUser();
 			await loadData();
+
+			// Email de confirmation de résiliation
+			try {
+				await axios.post(
+					`${SUPABASE_URL}/functions/v1/send-subscription-confirmation-email`,
+					{
+						firstName:
+							userCompany?.legal_representative_firstname || "",
+						email: user?.email,
+						companyName: userCompany?.name || "",
+						plan: canceledPlan,
+						interval: canceledInterval,
+						action: "cancel",
+						periodEnd: canceledPeriodEnd,
+					},
+					{
+						headers: {
+							Authorization: `Bearer ${accessToken}`,
+							"Content-Type": "application/json",
+						},
+					},
+				);
+				console.log("✅ Email résiliation envoyé");
+			} catch (emailErr) {
+				console.error(
+					"❌ Erreur email résiliation:",
+					emailErr.response?.data ?? emailErr.message,
+				);
+			}
 		} catch (err) {
 			console.error(
 				"❌ Erreur résiliation:",
@@ -679,6 +702,10 @@ const SubscriptionScreen = () => {
 												email={user?.email}
 												plan={plan.key}
 												interval={interval}
+												companyName={userCompany?.name}
+												firstName={
+													userCompany?.legal_representative_firstname
+												}
 											/>
 										</Box>
 									)}
