@@ -139,8 +139,15 @@ export function navigateFromNotificationData(data, router) {
 		return;
 	}
 
-	if (data.entity_type === "kbis_review") {
-		router.push({ pathname: "/kbisdocumentverification" });
+	const docScreens = {
+		kbis_review: "/kbisdocumentverification",
+		signature_review: "/signature",
+		stamp_review: "/stamp",
+		social_security_review: "/socialsecuritydocumentverification",
+		identity_review: "/iddocumentverification",
+	};
+	if (docScreens[data.entity_type]) {
+		router.push({ pathname: docScreens[data.entity_type] });
 		return;
 	}
 
