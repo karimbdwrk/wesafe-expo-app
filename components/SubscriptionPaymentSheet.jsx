@@ -21,6 +21,8 @@ export default function SubscriptionPaymentSheet({
 	plan,
 	interval,
 	onSuccess,
+	companyName,
+	firstName,
 }) {
 	const { checkSubscription, refreshUser, accessToken } = useAuth();
 	const { trackActivity } = useDataContext();
@@ -122,6 +124,34 @@ export default function SubscriptionPaymentSheet({
 			} else {
 				await updateCompanySubscriptionStatus(plan);
 				await refreshUser();
+				// Email de confirmation d'abonnement
+				try {
+					const emailRes = await axios.post(
+						`${SUPABASE_URL}/functions/v1/send-subscription-confirmation-email`,
+						{
+							firstName: firstName || "",
+							email,
+							companyName: companyName || "",
+							plan,
+							interval,
+						},
+						{
+							headers: {
+								Authorization: `Bearer ${accessToken}`,
+								"Content-Type": "application/json",
+							},
+						},
+					);
+					console.log(
+						"✅ Email confirmation abonnement envoyé:",
+						JSON.stringify(emailRes.data),
+					);
+				} catch (e) {
+					console.error(
+						"❌ Erreur email confirmation abonnement:",
+						e.response?.data ?? e.message,
+					);
+				}
 				if (onSuccess) await onSuccess();
 				Alert.alert("Succès", "Votre abonnement a été activé !");
 			}
