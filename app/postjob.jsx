@@ -108,6 +108,7 @@ import { CNAPS_CARDS } from "@/constants/cnapscards";
 import { languages as LANGUAGES } from "@/constants/languages";
 import { departements } from "@/constants/departements";
 import { regions } from "@/constants/regions";
+import { createSupabaseClient } from "@/lib/supabase";
 
 const CONTRACT_TYPES = ["CDI", "CDD"];
 const WORK_TIME = ["Temps plein", "Temps partiel"];
@@ -1298,6 +1299,56 @@ const PostJob = () => {
 					event_type: "last_minute_oneshot_payment",
 					stripe_customer_id: lastMinuteOneshotCustomerId,
 				});
+			}
+
+			// Email de confirmation de publication
+			try {
+				const supabase = createSupabaseClient(accessToken);
+				await supabase.functions.invoke("send-job-confirmation-email", {
+					body: {
+						firstName:
+							userCompany?.legal_representative_firstname || "",
+						email: user.email,
+						companyName: userCompany?.name || "",
+						job: {
+							title: formData.title,
+							category: getCategoryLabel(formData.category),
+							city: formData.city,
+							contractType: mapContractType(
+								formData.contract_type,
+							),
+							workTime: mapWorkTime(formData.work_time),
+							startDate: startDateISO,
+							endDate: endDateISO,
+							salary: salaryString || null,
+							isLastMinute: formData.isLastMinute,
+						},
+						lastMinuteMode: formData.isLastMinute
+							? lastMinuteOneshotCustomerId
+								? "oneshot"
+								: "credit"
+							: undefined,
+						isSponsored,
+						sponsorshipDuration: isSponsored
+							? sponsorshipDuration
+							: undefined,
+						sponsorshipDate:
+							isSponsored && sponsorshipDuration
+								? (() => {
+										const d = new Date();
+										if (sponsorshipDuration === "1w")
+											d.setDate(d.getDate() + 7);
+										else if (sponsorshipDuration === "2w")
+											d.setDate(d.getDate() + 14);
+										else if (sponsorshipDuration === "1m")
+											d.setMonth(d.getMonth() + 1);
+										return d.toISOString().split("T")[0];
+									})()
+								: undefined,
+					},
+				});
+			} catch (e) {
+				console.error("Erreur email confirmation annonce:", e);
 			}
 
 			// Réinitialiser le formulaire
