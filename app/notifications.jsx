@@ -217,7 +217,14 @@ const Notifications = () => {
 				params: { openSupport: "true" },
 			});
 		} else if (notification.type === "document_status_update") {
-			router.push({ pathname: "/prodocs" });
+			const docScreens = {
+				signature_review: "/signature",
+				stamp_review: "/stamp",
+				social_security_review: "/socialsecuritydocumentverification",
+				identity_review: "/iddocumentverification",
+			};
+			const target = docScreens[notification.entity_type] ?? "/prodocs";
+			router.push({ pathname: target });
 		} else if (notification.type === "kbis_status_update") {
 			router.push({ pathname: "/kbisdocumentverification" });
 		}
