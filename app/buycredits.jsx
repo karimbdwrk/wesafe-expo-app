@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ScrollView, Alert, ActivityIndicator } from "react-native";
 import { useFocusEffect } from "expo-router";
+import axios from "axios";
+import Constants from "expo-constants";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
@@ -20,7 +22,8 @@ import { Icon } from "@/components/ui/icon";
 import { Coins, CreditCard, Check, Zap, Lightbulb } from "lucide-react-native";
 
 const BuyCreditsScreen = () => {
-	const { user, loadUserData, accessToken } = useAuth();
+	const { user, userCompany, loadUserData, accessToken } = useAuth();
+	const { SUPABASE_URL } = Constants.expoConfig.extra;
 	const { getById, update, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const { initiateAndPresentPayment } = useStripePaymentHandler();
@@ -95,6 +98,34 @@ const BuyCreditsScreen = () => {
 			await addCompanyCredits(companyId);
 			await loadCompanyCredits(companyId);
 			loadUserData(companyId, accessToken);
+			// Email de facturation
+			try {
+				await axios.post(
+					`${SUPABASE_URL}/functions/v1/send-credits-invoice-email`,
+					{
+						firstName:
+							userCompany?.legal_representative_firstname || "",
+						email: user?.email,
+						companyName: userCompany?.name || "",
+						quantity: 10,
+						unitPrice: 3,
+						totalAmount: 30,
+						purchaseDate: new Date().toISOString(),
+					},
+					{
+						headers: {
+							Authorization: `Bearer ${accessToken}`,
+							"Content-Type": "application/json",
+						},
+					},
+				);
+				console.log("✅ Email facture crédits envoyé");
+			} catch (emailErr) {
+				console.error(
+					"❌ Erreur email facture crédits:",
+					emailErr.response?.data ?? emailErr.message,
+				);
+			}
 		}
 		setLoading(false);
 	};
