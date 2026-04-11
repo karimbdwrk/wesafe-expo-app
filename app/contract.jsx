@@ -50,7 +50,7 @@ import { createSupabaseClient } from "@/lib/supabase";
 
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import axios from "axios";
 
 import { OtpCodeInput } from "@/components/OtpCodeInput";
@@ -602,49 +602,983 @@ const ContractScreen = () => {
 	const handleDownloadAndUploadPdf = async () => {
 		if (!company || !candidate || !job) return;
 
-		const htmlContent = `
-          <html>
-            <head>
-                <style>
-                @page {
-                    size: A4;
-                    margin: 20mm;
-                }
-                body {
-                    width: 794px;
-                    height: 1123px;
-                    margin: 0 auto;
-                    font-family: Arial, sans-serif;
-                    box-sizing: border-box;
-                }
-                </style>
-            </head>
-          <body style="font-family: Arial, sans-serif; padding: 20px;">
-            <h1 style="text-align: center;">Contrat de travail</h1>
-            <h3>Entreprise :</h3>
-            <p><strong>${company.name}</strong><br>SIRET : ${formatSiret(company.siret)}<br>Adresse : 12 rue de la Sécurité, Paris</p>
-      
-            <h3>Candidat :</h3>
-            <p>${candidate.firstname} ${candidate.lastname}</p>
-      
-            <h3>Poste :</h3>
-            <p>ID du poste : ${job.id}</p>
-            <p>ID de la candidature : ${apply?.id}</p>
-      
-            <h3>Signatures :</h3>
-            <div style="margin-top:20px; position:relative;">
-              <p><strong>Entreprise :</strong></p>
-              <img src="${company.stamp_url}" width="100" style="position:absolute; left:50px; top:10px; opacity:0.5;" />
-              <img src="${company.signature_url}" width="150" style="position:absolute; left:40px; top:0;" />
-            </div>
-      
-            <div style="margin-top:140px;">
-              <p><strong>Candidat :</strong></p>
-              <img src="${candidate.signature_url}" width="150" />
-            </div>
-          </body>
-          </html>
-        `;
+		// ── helpers ──────────────────────────────────────────────────
+		const dc = contract?.company_snapshot || company;
+		const dd = contract?.candidate_snapshot || candidate;
+		const sched = contract?.schedule || {};
+		const ws = sched.week_schedule || {};
+		const vacs = sched.vacations || [];
+		const schedKnown = sched.schedule_known || false;
+
+		const fr = (iso) => {
+			if (!iso) return "—";
+			try {
+				return new Date(iso).toLocaleDateString("fr-FR");
+			} catch {
+				return "—";
+			}
+		};
+		const money = (v) => (v != null && v !== "" ? `${v} €` : null);
+		const row = (label, value) =>
+			value
+				? `<tr><td class="lbl">${label}</td><td class="val">${value}</td></tr>`
+				: "";
+
+		// ── Lieux de travail ─────────────────────────────────────────
+		const wLocType = contract?.work_location_type || "single";
+		let locHtml = "";
+		if (wLocType === "multiple" && contract?.work_location) {
+			try {
+				const locs = Array.isArray(contract.work_location)
+					? contract.work_location
+					: JSON.parse(contract.work_location);
+				locHtml = (Array.isArray(locs) ? locs : [])
+					.map((l) => `<li>${l}</li>`)
+					.join("");
+				locHtml = `<ul style="margin:4px 0 0 18px; padding:0;">${locHtml}</ul>`;
+			} catch {
+				locHtml = contract.work_location || "—";
+			}
+		} else {
+			locHtml = contract?.work_location || "—";
+		}
+
+		// ── Planning ─────────────────────────────────────────────────
+		const DAY_FR = {
+			lundi: "Lundi",
+			mardi: "Mardi",
+			mercredi: "Mercredi",
+			jeudi: "Jeudi",
+			vendredi: "Vendredi",
+			samedi: "Samedi",
+			dimanche: "Dimanche",
+		};
+		const schedRows = Object.entries(ws)
+			.filter(([, v]) => v?.enabled)
+			.map(
+				([day, h]) =>
+					`<tr><td class="lbl">${DAY_FR[day] || day}</td><td class="val">${h.start} – ${h.end}</td></tr>`,
+			)
+			.join("");
+		const vacRows = vacs
+			.map(
+				(v) =>
+					`<tr><td class="lbl">${fr(v.date)}</td><td class="val">${v.start_time} – ${v.end_time}</td></tr>`,
+			)
+			.join("");
+
+		// ── Remuneration ─────────────────────────────────────────────
+		const remuRows = [
+			row(
+				"Taux horaire brut",
+				money(contract?.hourly_rate)
+					? `${contract.hourly_rate} €/h`
+					: null,
+			),
+			row(
+				"Taux heures supplémentaires",
+				money(contract?.overtime_rate)
+					? `${contract.overtime_rate} €/h`
+					: null,
+			),
+			row("Prime de repas", money(contract?.meal_bonus)),
+			row("Prime de transport", money(contract?.transport_bonus)),
+			contract?.is_night
+				? row("Majoration nuit", money(contract?.night_bonus))
+				: "",
+			contract?.is_sunday
+				? row("Majoration dimanche", money(contract?.sunday_bonus))
+				: "",
+			contract?.is_holiday
+				? row("Majoration jour férié", money(contract?.holiday_bonus))
+				: "",
+		].join("");
+
+		// ── Type contrat / Motif CDD ──────────────────────────────────
+		const isCDD = contract?.contract_type === "CDD";
+		const contractTypeLabel = contract?.contract_type || "—";
+
+		// ── Calcul salaire mensuel ────────────────────────────────────
+		const ACCENT = "#1B3A6B";
+		const ACCENT_LIGHT = "#EBF0F8";
+		const monthlyHours = contract?.total_hours
+			? Math.round(parseFloat(contract.total_hours) * 100) / 100
+			: 151.67;
+		const hourlyRate = contract?.hourly_rate
+			? parseFloat(contract.hourly_rate)
+			: null;
+		const monthlySalary =
+			hourlyRate != null
+				? Math.round(monthlyHours * hourlyRate * 100) / 100
+				: null;
+		const fmt2 = (n) =>
+			n != null
+				? n.toLocaleString("fr-FR", {
+						minimumFractionDigits: 2,
+						maximumFractionDigits: 2,
+					})
+				: "—";
+
+		// Article counter
+		let artN = 0;
+		const art = (title) => `Article ${++artN} – ${title}`;
+
+		const htmlContent = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <style>
+    @page {
+      size: A4;
+      margin: 24mm 22mm 20mm 22mm;
+      @bottom-center {
+        content: "${dc?.name || ""} · Contrat ${contractTypeLabel} · Réf. ${apply?.id?.substring(0, 8)?.toUpperCase() || "—"} · Page " counter(page) " / " counter(pages);
+        font-size: 7pt;
+        color: #999;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+      font-size: 9.5pt;
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0;
+      padding: 5mm 6mm;
+    }
+
+    /* ── Bandeau header ── */
+    .doc-header {
+      background: ${ACCENT};
+      color: #fff;
+      padding: 20px 26px 16px;
+      margin-bottom: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-radius: 4px;
+    }
+    .doc-header .company-block .company-name {
+      font-size: 15pt;
+      font-weight: 700;
+      margin: 0 0 4px;
+      letter-spacing: -0.3px;
+    }
+    .doc-header .company-block p {
+      margin: 1px 0;
+      font-size: 8pt;
+      opacity: 0.8;
+    }
+    .doc-header .title-block {
+      text-align: right;
+    }
+    .doc-header .title-block .contract-title {
+      font-size: 18pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin: 0;
+      line-height: 1.1;
+    }
+    .doc-header .title-block .contract-sub {
+      font-size: 9pt;
+      opacity: 0.8;
+      margin: 4px 0 0;
+    }
+    .doc-header .title-block .ref {
+      display: inline-block;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 7.5pt;
+      margin-top: 6px;
+      letter-spacing: 0.4px;
+    }
+
+    /* ── Sections ── */
+    .section {
+      margin-bottom: 18px;
+      page-break-inside: avoid;
+    }
+    .section-title {
+      font-size: 9pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: ${ACCENT};
+      border-left: 3.5px solid ${ACCENT};
+      padding: 3px 0 3px 10px;
+      margin: 0 0 10px;
+      background: ${ACCENT_LIGHT};
+    }
+
+    /* ── Grille 2 colonnes ── */
+    .two-col { display: flex; gap: 16px; }
+    .two-col > div { flex: 1; }
+    .col-label {
+      font-size: 8.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: ${ACCENT};
+      margin: 0 0 6px;
+      padding-bottom: 3px;
+      border-bottom: 1px solid #d0daea;
+    }
+
+    /* ── Tableaux de données ── */
+    table.data { width: 100%; border-collapse: collapse; }
+    table.data td {
+      padding: 5px 8px;
+      vertical-align: top;
+      font-size: 9pt;
+      border-bottom: 1px solid #eee;
+    }
+    table.data td.lbl {
+      width: 40%;
+      color: #555;
+      font-size: 8.5pt;
+    }
+    table.data td.val {
+      font-weight: 500;
+      color: #1a1a1a;
+    }
+    table.data tr:nth-child(even) td { background-color: #f7f9fc; }
+
+    /* ── Paragraphes légaux ── */
+    .legal {
+      font-size: 9pt;
+      text-align: justify;
+      color: #333;
+      margin: 6px 0 0;
+      line-height: 1.65;
+    }
+    .legal strong { color: #1a1a1a; }
+
+    /* ── Box encadrée ── */
+    .info-box {
+      background: #f7f9fc;
+      border: 1px solid #d0daea;
+      border-left: 3px solid ${ACCENT};
+      border-radius: 3px;
+      padding: 10px 14px;
+      font-size: 9pt;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+    .salary-box {
+      background: #f0f5ff;
+      border: 1.5px solid #a5b8d8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-top: 10px;
+    }
+    .salary-box .salary-title {
+      font-size: 8pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: ${ACCENT};
+      margin: 0 0 8px;
+    }
+    .salary-box table { width: 100%; border-collapse: collapse; }
+    .salary-box td { padding: 3px 0; font-size: 9pt; }
+    .salary-box td.sl { color: #555; }
+    .salary-box td.sv { font-weight: 600; text-align: right; color: #1a1a1a; }
+    .salary-box .total-row td {
+      border-top: 1.5px solid #a5b8d8;
+      padding-top: 7px;
+      font-weight: 700;
+      font-size: 10pt;
+      color: ${ACCENT};
+    }
+
+    /* ── Planning ── */
+    table.planning { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    table.planning th {
+      background: ${ACCENT};
+      color: #fff;
+      font-size: 8pt;
+      text-align: left;
+      padding: 5px 8px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    table.planning td {
+      padding: 5px 8px;
+      font-size: 9pt;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    table.planning tr:nth-child(even) td { background: #f7f9fc; }
+    .planning-section-row td {
+      background: #eef2f8 !important;
+      font-size: 8pt;
+      font-weight: 700;
+      color: ${ACCENT};
+      padding: 4px 8px;
+    }
+
+    /* ── Signatures ── */
+    .sig-page {
+      page-break-before: always;
+      padding-top: 4px;
+    }
+    .sig-intro {
+      font-size: 9pt;
+      color: #444;
+      margin-bottom: 20px;
+      padding: 10px 14px;
+      background: #f7f9fc;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+    }
+    .sig-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 10px;
+    }
+    .sig-block {
+      flex: 1;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      padding: 16px 18px;
+    }
+    .sig-role {
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: ${ACCENT};
+      letter-spacing: 0.8px;
+      background: ${ACCENT_LIGHT};
+      margin: -16px -18px 12px;
+      padding: 5px 12px;
+      border-radius: 4px 4px 0 0;
+      border-bottom: 1px solid #d0daea;
+    }
+    .sig-name { font-size: 10.5pt; font-weight: 700; margin: 0 0 2px; }
+    .sig-meta { font-size: 8pt; color: #666; margin-bottom: 14px; }
+    .sig-img-area {
+      min-height: 90px;
+      position: relative;
+      border: 1px dashed #ccc;
+      border-radius: 4px;
+      padding: 8px;
+      overflow: hidden;
+    }
+    .sig-stamp {
+      position: absolute;
+      top: 50%; left: 50%;
+      margin-top: -40px; margin-left: -40px;
+      opacity: 0.25;
+      z-index: 0;
+    }
+    .sig-stamp img { height: 80px; width: 80px; object-fit: contain; display: block; }
+    .sig-img-area img.sig-img {
+      position: relative;
+      z-index: 1;
+      max-height: 70px;
+      max-width: 180px;
+      object-fit: contain;
+      display: block;
+    }
+    .sig-no { font-size: 8pt; color: #bbb; position: relative; z-index: 1; }
+    .sig-no { font-size: 8pt; color: #bbb; }
+    .sig-date {
+      margin-top: 10px;
+      font-size: 8.5pt;
+      color: #555;
+      border-top: 1px solid #ddd;
+      padding-top: 7px;
+    }
+
+    /* ── Paraphes ── */
+    .paraphe-row {
+      text-align: right;
+      margin-top: 10px;
+      font-size: 8pt;
+      color: #bbb;
+    }
+    /* ── Mention légale box ── */
+    .legal-notice {
+      background: #fffbf0;
+      border: 1px solid #e8d88a;
+      border-radius: 3px;
+      padding: 10px 14px;
+      font-size: 8.5pt;
+      margin-top: 16px;
+      line-height: 1.6;
+      color: #5a4a00;
+    }
+
+    .section-divider {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 6px 0 14px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════
+     EN-TÊTE
+════════════════════════════════════════════════════════════ -->
+<div class="doc-header">
+  <div class="company-block">
+    <p class="company-name">${dc?.name || "—"}</p>
+    ${dc?.siret ? `<p>SIRET : ${formatSiret(dc.siret)}</p>` : ""}
+    ${
+		dc?.street || dc?.postcode || dc?.city
+			? `<p>${[dc.street, dc.postcode, dc.city].filter(Boolean).join(" · ")}</p>`
+			: dc?.address
+				? `<p>${dc.address}</p>`
+				: ""
+	}
+    ${dc?.legal_representative ? `<p>Représentant légal : ${dc.legal_representative}</p>` : ""}
+  </div>
+  <div class="title-block">
+    <p class="contract-title">Contrat<br/>de travail</p>
+    <p class="contract-sub">${isCDD ? "CDD – Contrat à durée déterminée" : "CDI – Contrat à durée indéterminée"}</p>
+    <span class="ref">Réf. : ${apply?.id?.substring(0, 8)?.toUpperCase() || "—"}</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. 1 — PARTIES
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Parties au contrat")}</p>
+  <div class="two-col">
+    <div>
+      <p class="col-label">L'Employeur</p>
+      <table class="data">
+        ${row("Raison sociale", dc?.name)}
+        ${row("N° SIRET", dc?.siret ? formatSiret(dc.siret) : null)}
+        ${row(
+			"Adresse du siège",
+			dc?.street || dc?.postcode || dc?.city
+				? [dc.street, dc.postcode, dc.city].filter(Boolean).join(", ")
+				: dc?.address || null,
+		)}
+        ${row("Représentant légal", dc?.legal_representative)}
+        ${row("Qualité", dc?.legal_representative_role || null)}
+        ${row("Code NAF / APE", dc?.naf_code || null)}
+      </table>
+    </div>
+    <div>
+      <p class="col-label">Le Salarié</p>
+      <table class="data">
+        ${row("Nom et prénom", `${dd?.firstname || ""} ${dd?.lastname || ""}`.trim() || null)}
+        ${row("Date de naissance", fr(dd?.birth_date))}
+        ${row("Lieu de naissance", dd?.birth_place || null)}
+        ${row("Nationalité", dd?.nationality || null)}
+        ${row("N° Sécurité sociale", dd?.social_security_number || null)}
+        ${row("Adresse", dd?.address || null)}
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. 2 — ENGAGEMENT ET POSTE
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Engagement et nature du poste")}</p>
+  <table class="data">
+    ${row("Type de contrat", isCDD ? "Contrat à Durée Déterminée (CDD)" : "Contrat à Durée Indéterminée (CDI)")}
+    ${row("Intitulé du poste", contract?.job_title || job?.title || null)}
+    ${row("Classification / Catégorie", contract?.category || null)}
+    ${row("Coefficient hiérarchique", dc?.coefficient || null)}
+  </table>
+  ${
+		contract?.job_description
+			? `
+  <div class="info-box" style="margin-top:8px;">
+    <strong>Description de la mission :</strong><br/>${contract.job_description}
+  </div>`
+			: ""
+  }
+  ${
+		isCDD
+			? `
+  <div class="info-box" style="margin-top:8px; border-left-color:#c0392b; background:#fff5f5;">
+    <strong>Motif de recours au CDD (art. L. 1242-2 C. trav.) :</strong><br/>
+    ${contract?.contract_reason || "________________________"}
+  </div>`
+			: ""
+  }
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. 3 — DURÉE ET DATE DE PRISE EN CHARGE
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Durée et date de prise de poste")}</p>
+  <table class="data">
+    ${row("Date de début", fr(contract?.start_date))}
+    ${isCDD ? row("Date de fin prévisible", contract?.end_date ? fr(contract.end_date) : "Sans terme précis") : ""}
+    ${row("Volume horaire mensuel", `${fmt2(monthlyHours)} h / mois`)}
+  </table>
+  ${
+		isCDD && !contract?.end_date
+			? `
+  <p class="legal" style="margin-top:6px;">
+    Contrat conclu sans terme précis. Il prendra fin à la réalisation de l'objet pour lequel il a été conclu,
+    conformément à l'art. L. 1242-7 du Code du travail. La durée minimale est de
+    <strong>________________________</strong> jours.
+  </p>`
+			: ""
+  }
+  <p class="legal">
+    ${
+		isCDD
+			? "À l'issue du présent contrat, le salarié percevra une indemnité de fin de contrat égale à 10 % de la rémunération totale brute (art. L. 1243-8 C. trav.), sauf renouvellement ou embauche en CDI."
+			: "Le présent contrat est conclu pour une durée indéterminée, prenant effet à la date mentionnée ci-dessus. Il pourra être rompu dans les conditions prévues par le Code du travail (démission, licenciement, rupture conventionnelle)."
+	}
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. 4 — PÉRIODE D'ESSAI
+════════════════════════════════════════════════════════════ -->
+${
+	contract?.trial_period
+		? `
+<div class="section">
+  <p class="section-title">${art("Période d'essai")}</p>
+  <p class="legal">
+    Le présent contrat est soumis à une <strong>période d'essai de ${contract.trial_period}</strong>,
+    renouvelable une fois par accord exprès des parties, dans la limite autorisée par la convention collective
+    et l'art. L. 1221-19 du Code du travail.
+    Durant cette période, chaque partie peut mettre fin au contrat en respectant les délais de prévenance suivants&nbsp;:
+  </p>
+  <div class="info-box" style="margin-top:8px;">
+    <table style="width:100%; border-collapse:collapse; font-size:8.5pt;">
+      <tr style="background:#e8edf5;">
+        <th style="padding:4px 8px; text-align:left;">Durée de présence</th>
+        <th style="padding:4px 8px; text-align:left;">Délai (employeur)</th>
+        <th style="padding:4px 8px; text-align:left;">Délai (salarié)</th>
+      </tr>
+      <tr><td style="padding:4px 8px;">Moins de 8 jours</td><td>24 heures</td><td>24 heures</td></tr>
+      <tr style="background:#f7f9fc;"><td style="padding:4px 8px;">8 jours à 1 mois</td><td>48 heures</td><td>48 heures</td></tr>
+      <tr><td style="padding:4px 8px;">Après 1 mois</td><td>2 semaines</td><td>48 heures</td></tr>
+      <tr style="background:#f7f9fc;"><td style="padding:4px 8px;">Après 3 mois</td><td>1 mois</td><td>48 heures</td></tr>
+    </table>
+  </div>
+</div>`
+		: `<script>artN--;</script>`
+}
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — LIEU DE TRAVAIL
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Lieu de travail")}</p>
+  ${
+		contract?.work_location_name
+			? `<p style="font-weight:700; font-size:9.5pt; margin:0 0 4px;">${contract.work_location_name}</p>`
+			: ""
+  }
+  <div class="info-box">${locHtml}</div>
+  <p class="legal">
+    ${
+		wLocType === "multiple"
+			? "Le salarié est amené à intervenir sur les différents sites listés ci-dessus. Ce déplacement entre sites ne constitue pas une modification du contrat de travail (art. L. 1121-1 C. trav.)."
+			: wLocType === "zone"
+				? "Le salarié est susceptible d'exercer ses fonctions dans l'ensemble de la zone géographique définie ci-dessus."
+				: "Le lieu de travail habituel est défini ci-dessus. Toute modification substantielle de ce lieu constituerait une modification du contrat de travail nécessitant l'accord du salarié."
+	}
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — HORAIRES DE TRAVAIL
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Durée du travail et horaires")}</p>
+  ${
+		schedKnown && (schedRows || vacRows)
+			? `
+  <table class="planning">
+    <thead>
+      <tr>
+        <th style="width:30%">Jour</th>
+        <th style="width:35%">Horaires</th>
+        <th style="width:35%">Amplitude</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${Object.entries(ws)
+			.filter(([, v]) => v?.enabled)
+			.map(([day, h]) => {
+				const start = h.start || "—";
+				const end = h.end || "—";
+				let amplitude = "—";
+				try {
+					const [sh, sm] = start.split(":").map(Number);
+					const [eh, em] = end.split(":").map(Number);
+					const diff = eh * 60 + em - (sh * 60 + sm);
+					if (!isNaN(diff) && diff > 0)
+						amplitude = `${Math.floor(diff / 60)}h${diff % 60 > 0 ? String(diff % 60).padStart(2, "0") : ""}`;
+				} catch {}
+				return `<tr><td>${DAY_FR[day] || day}</td><td>${start} – ${end}</td><td>${amplitude}</td></tr>`;
+			})
+			.join("")}
+      ${vacs.length > 0 ? `<tr class="planning-section-row"><td colspan="3">Vacations ponctuelles</td></tr>${vacs.map((v) => `<tr><td>${fr(v.date)}</td><td>${v.start_time} – ${v.end_time}</td><td>—</td></tr>`).join("")}` : ""}
+    </tbody>
+  </table>
+  `
+			: `
+  <p class="legal">
+    Le volume horaire mensuel de travail est fixé à <strong>${fmt2(monthlyHours)} heures</strong> par mois,
+    réparties selon les horaires en vigueur dans l'entreprise.
+    Les horaires précis seront communiqués par l'employeur.
+    Toute heure effectuée au-delà de la durée légale de 35 h/semaine constitue une heure supplémentaire
+    ouvrant droit à majoration ou compensation conformément aux art. L. 3121-28 et suivants du Code du travail.
+  </p>`
+  }
+  ${
+		contract?.is_night || contract?.is_sunday || contract?.is_holiday
+			? `
+  <div class="info-box" style="margin-top:8px;">
+    <strong>Majorations de salaire applicables :</strong><br/>
+    ${contract?.is_night && contract?.night_bonus != null ? `· Travail de nuit : +${contract.night_bonus}&nbsp;€/h<br/>` : ""}
+    ${contract?.is_sunday && contract?.sunday_bonus != null ? `· Travail du dimanche : +${contract.sunday_bonus}&nbsp;€/h<br/>` : ""}
+    ${contract?.is_holiday && contract?.holiday_bonus != null ? `· Jours fériés : +${contract.holiday_bonus}&nbsp;€/h` : ""}
+  </div>`
+			: ""
+  }
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — RÉMUNÉRATION
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Rémunération")}</p>
+  ${remuRows ? `<table class="data">${remuRows}</table>` : ""}
+
+  ${
+		monthlySalary != null
+			? `
+  <div class="salary-box">
+    <p class="salary-title">Détail du salaire brut mensuel de base</p>
+    <table>
+      <tr>
+        <td class="sl">Taux horaire brut</td>
+        <td class="sv">${fmt2(hourlyRate)}&nbsp;€ / h</td>
+      </tr>
+      <tr>
+        <td class="sl">Heures mensuelles</td>
+        <td class="sv">${fmt2(monthlyHours)}&nbsp;h</td>
+      </tr>
+      ${
+			contract?.meal_bonus != null && contract.meal_bonus !== ""
+				? `
+      <tr>
+        <td class="sl">Prime de repas (estimée)</td>
+        <td class="sv">variable</td>
+      </tr>`
+				: ""
+		}
+      <tr class="total-row">
+        <td>Salaire brut mensuel de base</td>
+        <td style="text-align:right;">${fmt2(monthlySalary)}&nbsp;€ brut</td>
+      </tr>
+    </table>
+  </div>`
+			: ""
+  }
+
+  <p class="legal">
+    La rémunération versée est au moins égale au SMIC en vigueur (art. L. 3231-2 C. trav.) ou au salaire
+    minimum conventionnel si plus favorable. Les cotisations salariales et patronales seront prélevées
+    conformément à la législation en vigueur. Le bulletin de paie est remis mensuellement (art. L. 3243-2 C. trav.).
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — CONGÉS PAYÉS
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Congés payés")}</p>
+  <p class="legal">
+    Le salarié bénéficie de <strong>2,5 jours ouvrables</strong> de congés payés par mois de travail effectif,
+    soit 30 jours ouvrables par année complète (art. L. 3141-3 C. trav.).
+    ${
+		isCDD
+			? "À l'issue du contrat, une indemnité compensatrice de congés payés égale à 10 % de la rémunération totale brute sera versée (art. L. 3141-26 C. trav.), sauf si le salarié a pu prendre ses congés."
+			: "Les dates de congés sont fixées par l'employeur après consultation du salarié, en respectant un délai de prévenance d'un mois, et en tenant compte des contraintes de service."
+	}
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — MUTUELLE ET PRÉVOYANCE
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Mutuelle et prévoyance collective")}</p>
+  <p class="legal">
+    Le salarié bénéficie du régime collectif et obligatoire de frais de santé (complémentaire santé)
+    en vigueur dans l'entreprise, conformément à la loi n° 2013-504 du 14 juin 2013 et à l'accord de branche
+    applicable. La cotisation patronale représente au minimum 50 % du montant de la cotisation totale.
+    Un régime de prévoyance collective (incapacité, invalidité, décès) est également applicable
+    selon les dispositions conventionnelles en vigueur.
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — MALADIE ET ACCIDENT DE TRAVAIL
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Maladie, accident du travail et maintien de salaire")}</p>
+  <p class="legal">
+    En cas d'absence pour maladie ou accident dûment justifié par un certificat médical transmis dans les
+    48 heures, le salarié bénéficiera du maintien de tout ou partie de sa rémunération dans les conditions
+    prévues par la convention collective et les art. L. 1226-1 et suivants du Code du travail, sous réserve
+    d'ouverture des droits aux indemnités journalières de la Sécurité sociale.
+    En cas d'accident du travail ou de maladie professionnelle, les dispositions des art. L. 1226-6
+    et suivants s'appliquent.
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — FORMATION PROFESSIONNELLE
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Formation professionnelle et compte personnel de formation")}</p>
+  <p class="legal">
+    Le salarié bénéficie du droit à la formation professionnelle continue conformément aux art. L. 6311-1
+    et suivants du Code du travail. Il dispose d'un Compte Personnel de Formation (CPF) alimenté
+    à raison de 500 € par an (plafonné à 5 000 €) ou 800 € pour les salariés peu qualifiés
+    (plafonné à 8 000 €). L'employeur veille à maintenir la capacité du salarié à occuper son emploi
+    au regard notamment de l'évolution des emplois, des technologies et des organisations (art. L. 6321-1 C. trav.).
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — OBLIGATIONS ET LOYAUTÉ
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Obligations du salarié – Loyauté et discrétion")}</p>
+  <p class="legal">
+    Le salarié s'engage à observer une <strong>obligation de loyauté</strong> envers l'employeur,
+    à exécuter de bonne foi les tâches confiées, et à respecter les règles internes de l'entreprise
+    ainsi que le règlement intérieur. Il est tenu à une <strong>obligation de discrétion</strong>
+    concernant toutes les informations confidentielles auxquelles il aurait accès dans le cadre de ses fonctions,
+    pendant et après l'exécution du contrat. Cette obligation ne s'applique pas aux activités syndicales,
+    ni au signalement d'infractions pénales ou de faits de corruption.
+  </p>
+  <p class="legal" style="margin-top:6px;">
+    Le salarié a l'interdiction d'exercer, sans autorisation écrite préalable de l'employeur,
+    une activité professionnelle rémunérée susceptible de concurrencer directement l'activité de l'entreprise
+    pendant la durée du contrat.
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — RUPTURE DU CONTRAT (CDI uniquement)
+════════════════════════════════════════════════════════════ -->
+${
+	!isCDD
+		? `
+<div class="section">
+  <p class="section-title">${art("Rupture du contrat de travail")}</p>
+  <p class="legal">
+    Le présent contrat à durée indéterminée peut être rompu à l'initiative de l'une ou l'autre des parties
+    dans le respect des dispositions légales et conventionnelles&nbsp;:
+  </p>
+  <div class="info-box" style="margin-top:8px;">
+    <table style="width:100%; border-collapse:collapse; font-size:8.5pt;">
+      <tr style="background:#e8edf5;">
+        <th style="padding:5px 8px; text-align:left; width:35%;">Mode de rupture</th>
+        <th style="padding:5px 8px; text-align:left; width:35%;">Préavis</th>
+        <th style="padding:5px 8px; text-align:left;">Références légales</th>
+      </tr>
+      <tr><td style="padding:5px 8px;">Démission</td><td>Selon convention collective</td><td>Art. L. 1237-1 C. trav.</td></tr>
+      <tr style="background:#f7f9fc;"><td style="padding:5px 8px;">Licenciement</td><td>Selon ancienneté et convention</td><td>Art. L. 1234-1 C. trav.</td></tr>
+      <tr><td style="padding:5px 8px;">Rupture conventionnelle</td><td>15 jours (rétractation)</td><td>Art. L. 1237-11 C. trav.</td></tr>
+      <tr style="background:#f7f9fc;"><td style="padding:5px 8px;">Prise d'acte / résiliation judiciaire</td><td>—</td><td>Jurisprudence Cass. soc.</td></tr>
+    </table>
+  </div>
+  <p class="legal" style="margin-top:8px;">
+    En cas de licenciement (sauf faute grave ou lourde), le salarié ayant au moins 8 mois d'ancienneté
+    bénéficiera d'une indemnité légale de licenciement conformément à l'art. L. 1234-9 et au décret
+    n° 2017-1698 du 15 décembre 2017.
+  </p>
+</div>`
+		: ""
+}
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — EQUIPEMENT
+════════════════════════════════════════════════════════════ -->
+${
+	contract?.equipment_provided
+		? `
+<div class="section">
+  <p class="section-title">${art("Équipements fournis")}</p>
+  <p class="legal">
+    L'employeur met à la disposition du salarié les équipements de protection individuelle (EPI)
+    et les équipements professionnels nécessaires à l'exercice de ses fonctions, conformément
+    aux art. L. 4121-1 et suivants du Code du travail. Ces équipements demeurent la propriété
+    de l'employeur et devront être restitués en bon état à la fin du contrat.
+  </p>
+  ${contract?.equipment_details ? `<div class="info-box" style="margin-top:6px;"><strong>Équipements fournis :</strong><br/>${contract.equipment_details}</div>` : ""}
+</div>`
+		: ""
+}
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — CLAUSES PARTICULIÈRES
+════════════════════════════════════════════════════════════ -->
+${
+	contract?.custom_clauses
+		? `
+<div class="section">
+  <p class="section-title">${art("Clauses particulières")}</p>
+  <p class="legal">${contract.custom_clauses}</p>
+</div>`
+		: ""
+}
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — CONVENTION COLLECTIVE
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Convention collective applicable")}</p>
+  <p class="legal">
+    Le présent contrat est régi par la
+    <strong>Convention collective nationale des entreprises de sécurité privée</strong>
+    (IDCC 1351, Brochure JO n° 3196), applicable à l'ensemble du personnel.
+    En cas de dispositions plus favorables au salarié, celles-ci priment sur les dispositions légales.
+    Le salarié peut consulter le texte intégral de cette convention auprès de l'employeur
+    ou sur <em>legifrance.gouv.fr</em> et <em>conventions.gouv.fr</em>.
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — RÈGLEMENT INTÉRIEUR
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Règlement intérieur et règles applicables")}</p>
+  <p class="legal">
+    Le salarié déclare avoir pris connaissance du règlement intérieur de l'entreprise,
+    disponible à l'accueil et affiché dans les locaux, et s'engage à le respecter.
+    Il prend également connaissance des procédures internes, des consignes de sécurité et
+    des directives de l'employeur, qui font partie intégrante des conditions d'exécution du contrat.
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ART. — PROTECTION DES DONNÉES
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <p class="section-title">${art("Protection des données personnelles (RGPD)")}</p>
+  <p class="legal">
+    Les données personnelles du salarié sont collectées et traitées par l'employeur
+    aux fins exclusives de la gestion de la relation contractuelle de travail (gestion administrative,
+    paie, formation, accès aux locaux), conformément au Règlement (UE) 2016/679 du 27 avril 2016 (RGPD)
+    et à la loi n° 78-17 du 6 janvier 1978 modifiée.
+    La durée de conservation est de 5 ans après la fin du contrat pour les documents contractuels.
+    Le salarié dispose d'un droit d'accès, de rectification, d'effacement et de portabilité de ses données
+    en contactant l'employeur. Il peut également introduire une réclamation auprès de la CNIL.
+  </p>
+</div>
+
+<hr class="section-divider"/>
+<div class="paraphe-row">Lu et approuvé – Paraphes des parties (chaque page) : __________ / __________</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     PAGE SIGNATURES
+════════════════════════════════════════════════════════════ -->
+<div class="sig-page">
+  <p class="section-title" style="font-size:10.5pt; padding:6px 0 6px 12px;">Signatures des parties</p>
+
+  <div class="sig-intro">
+    Fait en <strong>deux exemplaires originaux</strong>, à
+    <strong>${dc?.city || "_______________"}</strong>,
+    le <strong>${fr(contract?.signed_at_candidate || contract?.signed_at_company || new Date().toISOString())}</strong>.<br/>
+    Chaque partie reconnaît avoir reçu un exemplaire et avoir pris connaissance de l'intégralité du contrat.
+  </div>
+
+  <div class="sig-grid">
+
+    <!-- Employeur -->
+    <div class="sig-block">
+      <p class="sig-role">L'Employeur</p>
+      <p class="sig-name">${dc?.name || "—"}</p>
+      <p class="sig-meta">
+        ${dc?.legal_representative ? `${dc.legal_representative}<br/>` : ""}Qualité : ${dc?.legal_representative_role || "Dirigeant"}<br/>
+        SIRET : ${dc?.siret ? formatSiret(dc.siret) : "—"}
+      </p>
+      <div class="sig-img-area">
+        ${
+			company?.stamp_url
+				? `<div class="sig-stamp"><img src="${company.stamp_url}" alt="Tampon"/></div>`
+				: ""
+		}
+        ${
+			company?.signature_url
+				? `<img class="sig-img" src="${company.signature_url}" alt="Signature"/>`
+				: `<span class="sig-no">Signature à apposer</span>`
+		}
+      </div>
+      <p class="sig-date">
+        ${
+			contract?.signed_at_company
+				? `✓ Signé numériquement le ${fr(contract.signed_at_company)}`
+				: "Date et lieu : ________________________"
+		}
+      </p>
+    </div>
+
+    <!-- Salarié -->
+    <div class="sig-block">
+      <p class="sig-role">Le Salarié</p>
+      <p class="sig-name">${`${dd?.firstname || ""} ${dd?.lastname || ""}`.trim() || "—"}</p>
+      <p class="sig-meta">
+        ${dd?.birth_date ? `Né(e) le ${fr(dd.birth_date)}<br/>` : ""}
+        N° SS : ${dd?.social_security_number || "________________________"}<br/>
+        <em>Mention manuscrite : « Lu et approuvé »</em>
+      </p>
+      <div class="sig-img-area">
+        ${
+			candidate?.signature_url
+				? `<img src="${candidate.signature_url}" alt="Signature"/>`
+				: `<span class="sig-no">Signature à apposer</span>`
+		}
+      </div>
+      <p class="sig-date">
+        ${
+			contract?.signed_at_candidate
+				? `✓ Signé numériquement le ${fr(contract.signed_at_candidate)}`
+				: "Date et lieu : ________________________"
+		}
+      </p>
+    </div>
+
+  </div>
+
+  ${
+		isCDD
+			? `
+  <div class="legal-notice" style="margin-top:20px;">
+    <strong>⚠ Remise du contrat (art. L. 1242-13 C. trav.) :</strong>
+    Le contrat doit être transmis au salarié <strong>dans les 2 jours ouvrables suivant l'embauche</strong>.
+    L'absence de signature dans ce délai peut entraîner la requalification en CDI.
+    Chaque partie conserve un exemplaire original.
+  </div>`
+			: `
+  <div class="legal-notice" style="margin-top:20px;">
+    <strong>Information :</strong> Le présent contrat à durée indéterminée est conclu conformément
+    aux dispositions du Code du travail et de la Convention collective nationale de la sécurité privée (IDCC 1351).
+    Chaque partie conserve un exemplaire original du présent contrat.
+  </div>`
+  }
+
+</div>
+</html>`;
 
 		try {
 			// Générer le PDF localement
@@ -1619,63 +2553,32 @@ const ContractScreen = () => {
 				{/* Action : Télécharger PDF */}
 				{isSigned && isProSigned ? (
 					<Box style={{ marginTop: 4, marginBottom: 8 }}>
-						{contract?.pdf_url ? (
-							<TouchableOpacity
-								onPress={() =>
-									downloadAndOpenPdf(contract.pdf_url)
-								}
+						<TouchableOpacity
+							onPress={handleDownloadAndUploadPdf}
+							style={{
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "center",
+								gap: 8,
+								borderWidth: 1,
+								borderColor: cardBorder,
+								backgroundColor: cardBg,
+								borderRadius: 10,
+								height: 48,
+							}}>
+							<Icon
+								as={Download}
+								size='sm'
+								style={{ color: textPrimary }}
+							/>
+							<Text
 								style={{
-									flexDirection: "row",
-									alignItems: "center",
-									justifyContent: "center",
-									gap: 8,
-									borderWidth: 1,
-									borderColor: cardBorder,
-									backgroundColor: cardBg,
-									borderRadius: 10,
-									height: 48,
+									color: textPrimary,
+									fontSize: 15,
 								}}>
-								<Icon
-									as={Download}
-									size='sm'
-									style={{ color: textPrimary }}
-								/>
-								<Text
-									style={{
-										color: textPrimary,
-										fontSize: 15,
-									}}>
-									Télécharger le PDF
-								</Text>
-							</TouchableOpacity>
-						) : (
-							<TouchableOpacity
-								onPress={handleDownloadAndUploadPdf}
-								style={{
-									flexDirection: "row",
-									alignItems: "center",
-									justifyContent: "center",
-									gap: 8,
-									borderWidth: 1,
-									borderColor: cardBorder,
-									backgroundColor: cardBg,
-									borderRadius: 10,
-									height: 48,
-								}}>
-								<Icon
-									as={Download}
-									size='sm'
-									style={{ color: textPrimary }}
-								/>
-								<Text
-									style={{
-										color: textPrimary,
-										fontSize: 15,
-									}}>
-									Télécharger le contrat en PDF
-								</Text>
-							</TouchableOpacity>
-						)}
+								Télécharger le contrat en PDF
+							</Text>
+						</TouchableOpacity>
 					</Box>
 				) : null}
 			</ScrollView>
