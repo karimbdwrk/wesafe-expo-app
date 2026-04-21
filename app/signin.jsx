@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import {
 	Image,
+	View,
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
@@ -37,10 +38,25 @@ const SignInScreen = () => {
 	const router = useRouter();
 	const { isDark } = useTheme();
 	const scrollViewRef = useRef(null);
-	const handleInputFocus = () =>
-		scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-	const handlePasswordFocus = () =>
-		scrollViewRef.current?.scrollTo({ y: 120, animated: true });
+	const cardYRef = useRef(0);
+
+	const scrollToEmail = () => {
+		setTimeout(() => {
+			scrollViewRef.current?.scrollTo({
+				y: Math.max(0, cardYRef.current - 40),
+				animated: true,
+			});
+		}, 50);
+	};
+
+	const scrollToPassword = () => {
+		setTimeout(() => {
+			scrollViewRef.current?.scrollTo({
+				y: Math.max(0, cardYRef.current + 60),
+				animated: true,
+			});
+		}, 50);
+	};
 	const bg = isDark ? Colors.dark.background : Colors.light.background;
 	const cardBg = isDark
 		? Colors.dark.cardBackground
@@ -264,6 +280,9 @@ const SignInScreen = () => {
 
 						{/* Form Card */}
 						<Card
+							onLayout={(e) => {
+								cardYRef.current = e.nativeEvent.layout.y;
+							}}
 							style={{
 								padding: 24,
 								backgroundColor: cardBg,
@@ -282,25 +301,27 @@ const SignInScreen = () => {
 										}}>
 										Adresse email
 									</Text>
-									<Input
-										style={{
-											borderRadius: 10,
-											backgroundColor: elevated,
-											borderColor: border,
-										}}>
-										<InputField
-											type='text'
-											placeholder='exemple@wesafeapp.com'
-											value={email}
-											onChangeText={setEmail}
-											onFocus={handleInputFocus}
-											autoCapitalize='none'
-											keyboardType='email-address'
+									<View>
+										<Input
 											style={{
-												color: textPrimary,
-											}}
-										/>
-									</Input>
+												borderRadius: 10,
+												backgroundColor: elevated,
+												borderColor: border,
+											}}>
+											<InputField
+												type='text'
+												placeholder='exemple@wesafeapp.com'
+												value={email}
+												onChangeText={setEmail}
+												onFocus={scrollToEmail}
+												autoCapitalize='none'
+												keyboardType='email-address'
+												style={{
+													color: textPrimary,
+												}}
+											/>
+										</Input>
+									</View>
 								</VStack>
 
 								{/* Password */}
@@ -313,40 +334,44 @@ const SignInScreen = () => {
 										}}>
 										Mot de passe
 									</Text>
-									<Input
-										style={{
-											borderRadius: 10,
-											backgroundColor: elevated,
-											borderColor: border,
-										}}>
-										<InputField
-											type={
-												showPassword
-													? "text"
-													: "password"
-											}
-											placeholder='MonMotDePasse$'
-											value={password}
-											onChangeText={setPassword}
-											onFocus={handlePasswordFocus}
+									<View>
+										<Input
 											style={{
-												color: textPrimary,
-											}}
-										/>
-										<InputSlot
-											className='pr-3'
-											onPress={() =>
-												setShowPassword(!showPassword)
-											}>
-											<InputIcon
-												as={
+												borderRadius: 10,
+												backgroundColor: elevated,
+												borderColor: border,
+											}}>
+											<InputField
+												type={
 													showPassword
-														? EyeIcon
-														: EyeOffIcon
+														? "text"
+														: "password"
 												}
+												placeholder='MonMotDePasse$'
+												value={password}
+												onChangeText={setPassword}
+												onFocus={scrollToPassword}
+												style={{
+													color: textPrimary,
+												}}
 											/>
-										</InputSlot>
-									</Input>
+											<InputSlot
+												className='pr-3'
+												onPress={() =>
+													setShowPassword(
+														!showPassword,
+													)
+												}>
+												<InputIcon
+													as={
+														showPassword
+															? EyeIcon
+															: EyeOffIcon
+													}
+												/>
+											</InputSlot>
+										</Input>
+									</View>
 								</VStack>
 
 								{/* Mot de passe oublié */}
