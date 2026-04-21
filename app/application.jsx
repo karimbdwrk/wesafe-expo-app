@@ -2564,5 +2564,3 @@ const styles = StyleSheet.create({
 });
 
 export default ApplicationScreen;
-
-// nom du poste, lieu, competences attendues, salaire, type de contrat (CDI CDD MITEMPS ...), temps de travail (nuit, journée), description du poste (c'est la fiche de poste), avantages (tickets resto, formation etc...)
