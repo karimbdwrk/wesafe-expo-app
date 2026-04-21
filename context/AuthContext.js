@@ -322,11 +322,22 @@ export const AuthProvider = ({ children }) => {
 						setAccessToken(newAccessToken);
 						await loadUserData(newUserData.id, newAccessToken);
 					} catch (refreshErr) {
-						console.error(
-							"Erreur lors du rafraîchissement du token:",
-							refreshErr,
-						);
-						await signOut(); // Déconnexion si refresh échoue
+						// 400 = refresh token expiré ou invalide → nettoyage silencieux sans erreur
+						if (refreshErr?.response?.status !== 400) {
+							console.error(
+								"Erreur lors du rafraîchissement du token:",
+								refreshErr,
+							);
+						}
+						await SecureStore.deleteItemAsync("access_token");
+						await SecureStore.deleteItemAsync("refresh_token");
+						setUser(null);
+						setRole(null);
+						setAccessToken(null);
+						setUserProfile(null);
+						setUserCompany(null);
+						setHasSubscription(false);
+						setLoading(false);
 					}
 				} else {
 					// Token invalide et pas de refresh possible → nettoyage silencieux
