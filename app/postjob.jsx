@@ -1413,7 +1413,7 @@ const PostJob = () => {
 			scrollX.setValue(0);
 
 			// Rediriger vers la liste des offres
-			// router.push("/");
+			router.back();
 		} catch (error) {
 			console.error("Erreur lors de la publication:", error);
 			showError(
@@ -8538,7 +8538,8 @@ const PostJob = () => {
 									</Card>
 
 									{/* Compétences & Avantages */}
-									{(formData.diplomas_required.length > 0 ||
+									{(formData.cnaps_required.length > 0 ||
+										formData.diplomas_required.length > 0 ||
 										formData.certifications_required
 											.length > 0 ||
 										formData.driving_licenses.length > 0 ||
@@ -8595,6 +8596,51 @@ const PostJob = () => {
 													}}
 												/>
 												<VStack space='sm'>
+													{formData.cnaps_required
+														.length > 0 && (
+														<HStack
+															style={{
+																justifyContent:
+																	"space-between",
+																alignItems:
+																	"flex-start",
+															}}>
+															<Text
+																size='sm'
+																style={{
+																	color: isDark
+																		? Colors
+																				.dark
+																				.muted
+																		: Colors
+																				.light
+																				.muted,
+																	flex: 1,
+																}}>
+																Cartes CNAPS
+															</Text>
+															<Text
+																size='sm'
+																style={{
+																	fontWeight:
+																		"600",
+																	color: isDark
+																		? Colors
+																				.dark
+																				.text
+																		: Colors
+																				.light
+																				.text,
+																	flex: 2,
+																	textAlign:
+																		"right",
+																}}>
+																{formData.cnaps_required.join(
+																	", ",
+																)}
+															</Text>
+														</HStack>
+													)}
 													{formData.diplomas_required
 														.length > 0 && (
 														<HStack
