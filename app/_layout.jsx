@@ -273,6 +273,8 @@ function RootLayoutNav() {
 									backgroundColor: "transparent",
 								},
 								headerBlurEffect: "regular",
+								gestureEnabled: true,
+								gestureDirection: "horizontal",
 							}}>
 							<Stack.Screen
 								name='index'
