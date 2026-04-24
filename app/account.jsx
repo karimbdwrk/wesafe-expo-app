@@ -4,6 +4,7 @@ import React, {
 	useLayoutEffect,
 	useEffect,
 	useRef,
+	useMemo,
 } from "react";
 import {
 	View,
@@ -120,6 +121,7 @@ const AccountScreen = () => {
 	const router = useRouter();
 	const { openSupport } = useLocalSearchParams();
 
+	const [loading, setLoading] = useState(true);
 	const [profile, setProfile] = useState(null);
 	const [procards, setProcards] = useState([]);
 	const [showQRModal, setShowQRModal] = useState(false);
@@ -250,73 +252,97 @@ const AccountScreen = () => {
 		}
 	}, [user?.id, accessToken]);
 
-	const loadData = async () => {
-		if (!user?.id) return;
-		const data = await getById("profiles", user.id, `*`);
-		setProfile(data);
-	};
+	const skeletonAnim = useRef(new Animated.Value(0.4)).current;
+	useEffect(() => {
+		const pulse = Animated.loop(
+			Animated.sequence([
+				Animated.timing(skeletonAnim, {
+					toValue: 1,
+					duration: 700,
+					useNativeDriver: true,
+				}),
+				Animated.timing(skeletonAnim, {
+					toValue: 0.4,
+					duration: 700,
+					useNativeDriver: true,
+				}),
+			]),
+		);
+		if (loading) pulse.start();
+		else pulse.stop();
+		return () => pulse.stop();
+	}, [loading]);
 
-	const loadProcards = async () => {
-		if (!user?.id) return;
-		try {
-			const { data } = await getAll(
-				"procards",
-				"*",
-				`&profile_id=eq.${user.id}&isDeleted=eq.false`,
-				1,
-				100,
-				"created_at.desc",
-			);
-			setProcards(data || []);
-		} catch (error) {
-			console.error("Error loading procards:", error);
-			setProcards([]);
-		}
-	};
+	const skeletonColor = isDark ? "#374151" : "#e5e7eb";
 
-	const loadDiplomas = async () => {
+	const SkeletonBox = ({ width, height, style, borderRadius = 8 }) => (
+		<Animated.View
+			style={[
+				{
+					width,
+					height,
+					borderRadius,
+					backgroundColor: skeletonColor,
+					opacity: skeletonAnim,
+				},
+				style,
+			]}
+		/>
+	);
+
+	const loadAllData = async () => {
 		if (!user?.id) return;
 		try {
 			const supabase = createSupabaseClient(accessToken);
 			const now = new Date().toISOString();
-			const [cnaps, diplomas, certifications] = await Promise.all([
-				supabase
-					.from("user_cnaps_cards")
-					.select("*")
-					.eq("user_id", user.id)
-					.eq("status", "verified")
-					.or(`expires_at.is.null,expires_at.gt.${now}`),
-				supabase
-					.from("user_diplomas")
-					.select("*")
-					.eq("user_id", user.id)
-					.eq("status", "verified")
-					.or(`expires_at.is.null,expires_at.gt.${now}`),
-				supabase
-					.from("user_certifications")
-					.select("*")
-					.eq("user_id", user.id)
-					.eq("status", "verified")
-					.or(`expires_at.is.null,expires_at.gt.${now}`),
-			]);
-			console.log("📋 CNAPS cards:", cnaps.data);
-			console.log("🎓 Diplômes:", diplomas.data);
-			console.log("🏅 Certifications:", certifications.data);
+			const [profileData, procardsData, cnaps, diplomas, certifications] =
+				await Promise.all([
+					getById("profiles", user.id, `*`),
+					getAll(
+						"procards",
+						"*",
+						`&profile_id=eq.${user.id}&isDeleted=eq.false`,
+						1,
+						100,
+						"created_at.desc",
+					),
+					supabase
+						.from("user_cnaps_cards")
+						.select("*")
+						.eq("user_id", user.id)
+						.eq("status", "verified")
+						.or(`expires_at.is.null,expires_at.gt.${now}`),
+					supabase
+						.from("user_diplomas")
+						.select("*")
+						.eq("user_id", user.id)
+						.eq("status", "verified")
+						.or(`expires_at.is.null,expires_at.gt.${now}`),
+					supabase
+						.from("user_certifications")
+						.select("*")
+						.eq("user_id", user.id)
+						.eq("status", "verified")
+						.or(`expires_at.is.null,expires_at.gt.${now}`),
+				]);
+			setProfile(profileData);
+			setProcards(procardsData?.data || []);
 			setVerifiedDocs({
 				cnaps: cnaps.data || [],
 				diplomas: diplomas.data || [],
 				certifications: certifications.data || [],
 			});
 		} catch (error) {
-			console.error("Erreur chargement diplômes:", error);
+			console.error("Erreur chargement account:", error);
+		} finally {
+			setLoading(false);
 		}
 	};
 
 	useFocusEffect(
 		useCallback(() => {
-			loadData();
-			loadProcards();
-			loadDiplomas();
+			setLoading(true);
+			loadAllData();
 			fetchNotifCount();
 			fetchSupportUnreadCount();
 
@@ -661,602 +687,329 @@ const AccountScreen = () => {
 						paddingBottom: 30,
 						paddingTop: 15,
 					}}>
-					<VStack space='2xl'>
-						{/* Bannière rejet */}
-						{profile?.profile_status === "rejected" && (
+					{loading ? (
+						<VStack space='2xl'>
+							{/* Skeleton Profile Header */}
 							<Card
 								style={{
-									padding: 16,
-									backgroundColor: isDark
-										? "#450a0a"
-										: "#fef2f2",
-									borderRadius: 12,
-									borderWidth: 1,
-									borderColor: isDark ? "#7f1d1d" : "#fecaca",
-								}}>
-								<VStack space='xs'>
-									<Text
-										style={{
-											fontWeight: "700",
-											color: isDark
-												? "#fca5a5"
-												: "#b91c1c",
-											fontSize: 14,
-										}}>
-										Votre profil a été refusé
-									</Text>
-									{profile?.reject_message ? (
-										<Text
-											style={{
-												color: isDark
-													? "#fca5a5"
-													: "#dc2626",
-												fontSize: 13,
-											}}>
-											{profile.reject_message}
-										</Text>
-									) : null}
-								</VStack>
-							</Card>
-						)}
-
-						{/* Bannière suspension */}
-						{profile?.profile_status === "suspended" && (
-							<Card
-								style={{
-									padding: 16,
-									backgroundColor: bg,
+									padding: 20,
+									backgroundColor: cardBg,
 									borderRadius: 12,
 									borderWidth: 1,
 									borderColor: cardBorder,
 								}}>
-								<VStack space='xs'>
-									<Text
+								<VStack
+									space='lg'
+									style={{ alignItems: "center" }}>
+									<SkeletonBox
+										width={100}
+										height={100}
+										borderRadius={50}
+									/>
+									<Divider />
+									<VStack
+										space='sm'
 										style={{
-											fontWeight: "700",
-											color: textPrimary,
-											fontSize: 14,
+											width: "100%",
+											alignItems: "flex-start",
 										}}>
-										Votre compte a été suspendu
-									</Text>
-									{profile?.suspend_message ? (
-										<Text
-											style={{
-												color: textSecondary,
-												fontSize: 13,
-											}}>
-											{profile.suspend_message}
-										</Text>
-									) : (
-										<Text
-											style={{
-												color: textSecondary,
-												fontSize: 13,
-											}}>
-											Contactez le support pour plus
-											d'informations : support@wesafe.fr
-										</Text>
-									)}
+										<SkeletonBox width='60%' height={18} />
+										<SkeletonBox
+											width='45%'
+											height={14}
+											style={{ marginTop: 4 }}
+										/>
+										<SkeletonBox
+											width='35%'
+											height={14}
+											style={{ marginTop: 4 }}
+										/>
+									</VStack>
+									<Divider />
+									<VStack
+										space='sm'
+										style={{ width: "100%" }}>
+										<SkeletonBox width='50%' height={13} />
+										<SkeletonBox width='40%' height={13} />
+										<SkeletonBox width='55%' height={13} />
+									</VStack>
 								</VStack>
 							</Card>
-						)}
 
-						{/* Profile Header Card */}
-						<Card
-							style={{
-								padding: 20,
-								backgroundColor: cardBg,
-								borderRadius: 12,
-								borderWidth: 1,
-								borderColor: cardBorder,
-							}}>
-							<VStack space='lg' style={{ alignItems: "center" }}>
-								{/* Avatar Section - Centré et cliquable */}
-								<VStack
-									space='md'
-									style={{
-										alignItems: "center",
-										justifyContent: "center",
-										height: 120,
-										width: 120,
-										// backgroundColor: "pink",
-									}}>
-									<AvatarUploader image={image} />
-								</VStack>
-
-								<Divider />
-
-								<HStack
-									style={{
-										alignItems: "center",
-										justifyContent: "space-between",
-									}}>
-									<VStack style={{ flex: 1 }} space='xs'>
+							{/* Skeleton Actions rapides */}
+							<VStack space='md'>
+								<SkeletonBox
+									width='40%'
+									height={18}
+									style={{ marginBottom: 4 }}
+								/>
+								{[1, 2, 3, 4, 5].map((i) => (
+									<Card
+										key={i}
+										style={{
+											padding: 16,
+											backgroundColor: cardBg,
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: cardBorder,
+										}}>
 										<HStack
-											space='sm'
-											style={{
-												justifyContent: "space-between",
-												alignItems: "center",
-											}}>
-											<Text
-												size='lg'
-												style={{
-													fontWeight: "600",
-													color: textPrimary,
-												}}>
-												{profile?.firstname}{" "}
-												{profile?.lastname}
-											</Text>
-											{profile?.profile_status ===
-												"pending" && (
-												<Badge
-													size='sm'
-													variant='solid'
-													action='warning'>
-													<BadgeText>
-														En attente
-													</BadgeText>
-												</Badge>
-											)}
-											{profile?.profile_status ===
-												"verified" && (
-												<Badge
-													size='sm'
-													variant='solid'
-													action='success'>
-													<BadgeIcon
-														as={IdCard}
-														className='mr-1'
-													/>
-													<BadgeText>
-														Vérifié
-													</BadgeText>
-												</Badge>
-											)}
-											{profile?.profile_status ===
-												"rejected" && (
-												<Badge
-													size='sm'
-													variant='solid'
-													action='error'>
-													<BadgeText>
-														Refusé
-													</BadgeText>
-												</Badge>
-											)}
-											{profile?.profile_status ===
-												"suspended" && (
-												<Badge
-													size='sm'
-													variant='solid'
-													action='muted'>
-													<BadgeText>
-														Suspendu
-													</BadgeText>
-												</Badge>
-											)}
-										</HStack>
-										{profile?.email && (
-											<Text
-												size='sm'
-												style={{
-													color: textSecondary,
-												}}>
-												{profile.email}
-											</Text>
-										)}
-										{profile?.phone && (
-											<Text
-												size='sm'
-												style={{
-													color: textSecondary,
-												}}>
-												{profile.phone.startsWith(
-													"+33",
-												) && profile.phone.length === 12
-													? "+33 " +
-														profile.phone
-															.slice(3)
-															.replace(
-																/(\d)(\d{2})(\d{2})(\d{2})(\d{2})/,
-																"$1 $2 $3 $4 $5",
-															)
-													: profile.phone}
-											</Text>
-										)}
-										{(verifiedDocs.cnaps.length > 0 ||
-											verifiedDocs.diplomas.length > 0 ||
-											verifiedDocs.certifications.length >
-												0) && (
-											<HStack
+											space='md'
+											style={{ alignItems: "center" }}>
+											<SkeletonBox
+												width={40}
+												height={40}
+												borderRadius={20}
+											/>
+											<VStack
 												space='xs'
+												style={{ flex: 1 }}>
+												<SkeletonBox
+													width='55%'
+													height={14}
+												/>
+												<SkeletonBox
+													width='40%'
+													height={12}
+													style={{ marginTop: 4 }}
+												/>
+											</VStack>
+											<SkeletonBox
+												width={20}
+												height={20}
+												borderRadius={4}
+											/>
+										</HStack>
+									</Card>
+								))}
+							</VStack>
+						</VStack>
+					) : (
+						<VStack space='2xl'>
+							{/* Bannière rejet */}
+							{profile?.profile_status === "rejected" && (
+								<Card
+									style={{
+										padding: 16,
+										backgroundColor: isDark
+											? "#450a0a"
+											: "#fef2f2",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#7f1d1d"
+											: "#fecaca",
+									}}>
+									<VStack space='xs'>
+										<Text
+											style={{
+												fontWeight: "700",
+												color: isDark
+													? "#fca5a5"
+													: "#b91c1c",
+												fontSize: 14,
+											}}>
+											Votre profil a été refusé
+										</Text>
+										{profile?.reject_message ? (
+											<Text
 												style={{
-													flexWrap: "wrap",
-													marginTop: 6,
+													color: isDark
+														? "#fca5a5"
+														: "#dc2626",
+													fontSize: 13,
 												}}>
-												{verifiedDocs.cnaps.map(
-													(doc) => (
-														<Badge
-															key={doc.id}
-															size='sm'
-															variant='solid'
-															action='success'>
-															<BadgeIcon
-																as={IdCard}
-																className='mr-1'
-															/>
-															<BadgeText>
-																{doc.type}
-															</BadgeText>
-														</Badge>
-													),
-												)}
-												{verifiedDocs.diplomas.map(
-													(doc) => (
-														<Badge
-															key={doc.id}
-															size='sm'
-															variant='solid'
-															action='success'>
-															<BadgeIcon
-																as={IdCard}
-																className='mr-1'
-															/>
-															<BadgeText>
-																{doc.type}
-															</BadgeText>
-														</Badge>
-													),
-												)}
-												{verifiedDocs.certifications.map(
-													(doc) => (
-														<Badge
-															key={doc.id}
-															size='sm'
-															variant='solid'
-															action='success'>
-															<BadgeIcon
-																as={IdCard}
-																className='mr-1'
-															/>
-															<BadgeText>
-																{doc.type}
-															</BadgeText>
-														</Badge>
-													),
-												)}
-											</HStack>
+												{profile.reject_message}
+											</Text>
+										) : null}
+									</VStack>
+								</Card>
+							)}
+
+							{/* Bannière suspension */}
+							{profile?.profile_status === "suspended" && (
+								<Card
+									style={{
+										padding: 16,
+										backgroundColor: bg,
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: cardBorder,
+									}}>
+									<VStack space='xs'>
+										<Text
+											style={{
+												fontWeight: "700",
+												color: textPrimary,
+												fontSize: 14,
+											}}>
+											Votre compte a été suspendu
+										</Text>
+										{profile?.suspend_message ? (
+											<Text
+												style={{
+													color: textSecondary,
+													fontSize: 13,
+												}}>
+												{profile.suspend_message}
+											</Text>
+										) : (
+											<Text
+												style={{
+													color: textSecondary,
+													fontSize: 13,
+												}}>
+												Contactez le support pour plus
+												d'informations :
+												support@wesafe.fr
+											</Text>
 										)}
 									</VStack>
-								</HStack>
+								</Card>
+							)}
 
-								<Divider />
+							{/* Profile Header Card */}
+							<Card
+								style={{
+									padding: 20,
+									backgroundColor: cardBg,
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: cardBorder,
+								}}>
+								<VStack
+									space='lg'
+									style={{ alignItems: "center" }}>
+									{/* Avatar Section - Centré et cliquable */}
+									<VStack
+										space='md'
+										style={{
+											alignItems: "center",
+											justifyContent: "center",
+											height: 120,
+											width: 120,
+											// backgroundColor: "pink",
+										}}>
+										<AvatarUploader image={image} />
+									</VStack>
 
-								{/* Informations personnelles */}
-								<VStack space='md' style={{ width: "100%" }}>
-									{profile?.gender && (
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={User}
-												size='sm'
+									<Divider />
+
+									<HStack
+										style={{
+											alignItems: "center",
+											justifyContent: "space-between",
+										}}>
+										<VStack style={{ flex: 1 }} space='xs'>
+											<HStack
+												space='sm'
 												style={{
-													color: textSecondary,
-												}}
-											/>
-											<Text
-												size='sm'
-												style={{
-													color: textPrimary,
+													justifyContent:
+														"space-between",
+													alignItems: "center",
 												}}>
-												{profile.gender === "male"
-													? "Homme"
-													: profile.gender ===
-														  "female"
-														? "Femme"
-														: "Autre"}
-											</Text>
-										</HStack>
-									)}
-
-									{profile?.birthday && (
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={Calendar}
-												size='sm'
-												style={{
-													color: textSecondary,
-												}}
-											/>
-											<Text
-												size='sm'
-												style={{
-													color: textPrimary,
-												}}>
-												{new Date(
-													profile.birthday,
-												).toLocaleDateString("fr-FR")}
-											</Text>
-											<Text
-												size='sm'
-												style={{
-													color: textSecondary,
-												}}>
-												(
-												{Math.floor(
-													(new Date() -
-														new Date(
-															profile.birthday,
-														)) /
-														(365.25 *
-															24 *
-															60 *
-															60 *
-															1000),
-												)}{" "}
-												ans)
-											</Text>
-										</HStack>
-									)}
-
-									{(profile?.height || profile?.weight) && (
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={Ruler}
-												size='sm'
-												style={{
-													color: textSecondary,
-												}}
-											/>
-											<Text
-												size='sm'
-												style={{
-													color: textPrimary,
-												}}>
-												{profile?.height &&
-													`${profile.height} cm`}
-												{profile?.height &&
-													profile?.weight &&
-													" • "}
-												{profile?.weight &&
-													`${profile.weight} kg`}
-											</Text>
-										</HStack>
-									)}
-
-									{(profile?.city ||
-										profile?.department ||
-										profile?.region) && (
-										<HStack
-											space='sm'
-											style={{
-												alignItems: "flex-start",
-											}}>
-											<Icon
-												as={MapPin}
-												size='sm'
-												style={{
-													color: textSecondary,
-													marginTop: 2,
-												}}
-											/>
-											<VStack style={{ flex: 1 }}>
+												<Text
+													size='lg'
+													style={{
+														fontWeight: "600",
+														color: textPrimary,
+													}}>
+													{profile?.firstname}{" "}
+													{profile?.lastname}
+												</Text>
+												{profile?.profile_status ===
+													"pending" && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='warning'>
+														<BadgeText>
+															En attente
+														</BadgeText>
+													</Badge>
+												)}
+												{profile?.profile_status ===
+													"verified" && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='success'>
+														<BadgeIcon
+															as={IdCard}
+															className='mr-1'
+														/>
+														<BadgeText>
+															Vérifié
+														</BadgeText>
+													</Badge>
+												)}
+												{profile?.profile_status ===
+													"rejected" && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='error'>
+														<BadgeText>
+															Refusé
+														</BadgeText>
+													</Badge>
+												)}
+												{profile?.profile_status ===
+													"suspended" && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='muted'>
+														<BadgeText>
+															Suspendu
+														</BadgeText>
+													</Badge>
+												)}
+											</HStack>
+											{profile?.email && (
 												<Text
 													size='sm'
 													style={{
-														color: textPrimary,
+														color: textSecondary,
 													}}>
-													{[
-														profile?.postcode,
-														profile?.city,
-													]
-														.filter(Boolean)
-														.join(" ")}
+													{profile.email}
 												</Text>
-												{(profile?.department ||
-													profile?.region) && (
-													<Text
-														size='xs'
-														style={{
-															color: textSecondary,
-														}}>
-														{[
-															profile?.department,
-															profile?.region,
-														]
-															.filter(Boolean)
-															.join(", ")}
-													</Text>
-												)}
-											</VStack>
-										</HStack>
-									)}
-
-									{profile?.former_soldier && (
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={Shield}
-												size='sm'
-												style={{
-													color: textSecondary,
-												}}
-											/>
-											<Text
-												size='sm'
-												style={{
-													color: textPrimary,
-												}}>
-												Ancien militaire
-											</Text>
-										</HStack>
-									)}
-
-									{profile?.driving_licenses && (
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={Car}
-												size='sm'
-												style={{
-													color: textSecondary,
-												}}
-											/>
-											<Text
-												size='sm'
-												style={{
-													color: textPrimary,
-												}}>
-												Permis{" "}
-												{profile.driving_licenses}
-											</Text>
-										</HStack>
-									)}
-
-									{profile?.languages && (
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={Languages}
-												size='sm'
-												style={{
-													color: textSecondary,
-												}}
-											/>
-											<Text
-												size='sm'
-												style={{
-													color: textPrimary,
-												}}>
-												{profile.languages}
-											</Text>
-										</HStack>
-									)}
-								</VStack>
-
-								{profile?.qualifications &&
-									profile.qualifications.length > 0 && (
-										<>
-											<Divider />
-											<HStack
-												space='sm'
-												style={{
-													flexWrap: "wrap",
-												}}>
-												{profile.qualifications.map(
-													(qual, index) => (
-														<Badge
-															key={index}
-															size='sm'>
-															<BadgeIcon
-																as={IdCard}
-																className='mr-1'
-															/>
-															<BadgeText>
-																{qual}
-															</BadgeText>
-														</Badge>
-													),
-												)}
-											</HStack>
-										</>
-									)}
-
-								{/* Cartes professionnelles */}
-								{procards && procards.length > 0 && (
-									<>
-										<Divider />
-										<VStack
-											space='xs'
-											style={{ width: "100%" }}>
-											{/* <Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: textPrimary,
-												}}>
-												Cartes professionnelles
-											</Text> */}
-											<HStack
-												space='sm'
-												style={{
-													flexWrap: "wrap",
-													justifyContent:
-														"flex-start",
-													width: "100%",
-												}}>
-												{profile?.ssiap1_verification_status ===
-													"verified" && (
-													<Badge
-														size='sm'
-														variant='solid'
-														action='success'>
-														<BadgeIcon
-															as={GraduationCap}
-															className='mr-1'
-														/>
-														<BadgeText>
-															SSIAP 1
-														</BadgeText>
-													</Badge>
-												)}
-												{profile?.ssiap2_verification_status ===
-													"verified" && (
-													<Badge
-														size='sm'
-														variant='solid'
-														action='success'>
-														<BadgeIcon
-															as={GraduationCap}
-															className='mr-1'
-														/>
-														<BadgeText>
-															SSIAP 2
-														</BadgeText>
-													</Badge>
-												)}
-												{profile?.ssiap3_verification_status ===
-													"verified" && (
-													<Badge
-														size='sm'
-														variant='solid'
-														action='success'>
-														<BadgeIcon
-															as={GraduationCap}
-															className='mr-1'
-														/>
-														<BadgeText>
-															SSIAP 3
-														</BadgeText>
-													</Badge>
-												)}
-												{procards
-													.filter((card) => {
-														const validityDate =
-															new Date(
-																card.validity_date,
-															);
-														const isExpired =
-															validityDate <
-															new Date();
-														return (
-															card.status ===
-																"verified" &&
-															!isExpired
-														);
-													})
-													.map((card) => {
-														return (
+											)}
+											{profile?.phone && (
+												<Text
+													size='sm'
+													style={{
+														color: textSecondary,
+													}}>
+													{profile.phone.startsWith(
+														"+33",
+													) &&
+													profile.phone.length === 12
+														? "+33 " +
+															profile.phone
+																.slice(3)
+																.replace(
+																	/(\d)(\d{2})(\d{2})(\d{2})(\d{2})/,
+																	"$1 $2 $3 $4 $5",
+																)
+														: profile.phone}
+												</Text>
+											)}
+											{(verifiedDocs.cnaps.length > 0 ||
+												verifiedDocs.diplomas.length >
+													0 ||
+												verifiedDocs.certifications
+													.length > 0) && (
+												<HStack
+													space='xs'
+													style={{
+														flexWrap: "wrap",
+														marginTop: 6,
+													}}>
+													{verifiedDocs.cnaps.map(
+														(doc) => (
 															<Badge
-																key={card.id}
+																key={doc.id}
 																size='sm'
 																variant='solid'
 																action='success'>
@@ -1265,382 +1018,816 @@ const AccountScreen = () => {
 																	className='mr-1'
 																/>
 																<BadgeText>
-																	{
-																		card.category
-																	}
+																	{doc.type}
 																</BadgeText>
 															</Badge>
-														);
-													})}
-											</HStack>
+														),
+													)}
+													{verifiedDocs.diplomas.map(
+														(doc) => (
+															<Badge
+																key={doc.id}
+																size='sm'
+																variant='solid'
+																action='success'>
+																<BadgeIcon
+																	as={IdCard}
+																	className='mr-1'
+																/>
+																<BadgeText>
+																	{doc.type}
+																</BadgeText>
+															</Badge>
+														),
+													)}
+													{verifiedDocs.certifications.map(
+														(doc) => (
+															<Badge
+																key={doc.id}
+																size='sm'
+																variant='solid'
+																action='success'>
+																<BadgeIcon
+																	as={IdCard}
+																	className='mr-1'
+																/>
+																<BadgeText>
+																	{doc.type}
+																</BadgeText>
+															</Badge>
+														),
+													)}
+												</HStack>
+											)}
 										</VStack>
-									</>
-								)}
-							</VStack>
-						</Card>
+									</HStack>
 
-						{/* Navigation Cards */}
-						<VStack space='lg'>
-							<Text
-								size='lg'
-								style={{
-									fontWeight: "600",
-									color: textPrimary,
-								}}>
-								Actions rapides
-							</Text>
+									<Divider />
 
-							<ActionCard
-								icon={User}
-								title='Informations personnelles'
-								subtitle='Modifiez votre profil'
-								onPress={() => router.push("/updateprofile")}
-							/>
-							<ActionCard
-								icon={FileText}
-								title='CV'
-								subtitle='Gérez votre curriculum vitae'
-								onPress={() => router.push("/curriculumvitae")}
-							/>
-
-							<ActionCard
-								icon={Signature}
-								title='Signature'
-								subtitle='Créez votre signature'
-								onPress={() => router.push("/signature")}
-								badgeText={profile?.signature_url ? "✓" : null}
-							/>
-
-							<ActionCard
-								icon={Upload}
-								title='Documents'
-								subtitle="Documents d'identité et sécurité sociale"
-								onPress={() => router.push("/documents")}
-							/>
-
-							<ActionCard
-								icon={IdCard}
-								title='Documents professionnelles'
-								subtitle='Cartes professionnels, diplômes, attestations...'
-								onPress={() => router.push("/prodocs")}
-							/>
-							<Divider style={{ marginVertical: 16 }} />
-
-							<ActionCard
-								icon={BookmarkCheck}
-								title='Liste de souhaits'
-								subtitle='Vos missions favorites'
-								onPress={() => router.push("/wishlist")}
-							/>
-
-							<ActionCard
-								icon={Briefcase}
-								title='Candidatures'
-								subtitle='Suivez vos candidatures'
-								onPress={() => router.push("/applications")}
-								badgeText={
-									notifCount > 0
-										? notifCount.toString()
-										: null
-								}
-								badgeColor={
-									notifCount > 0 ? "error" : undefined
-								}
-							/>
-							<TouchableOpacity
-								onPress={() => router.push("/messaging")}
-								activeOpacity={0.7}>
-								<Card
-									style={{
-										padding: 16,
-										backgroundColor: isDark
-											? Colors.dark.cardBackground
-											: Colors.light.cardBackground,
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? Colors.dark.border
-											: Colors.light.border,
-									}}>
-									<HStack
-										style={{
-											alignItems: "center",
-											justifyContent: "space-between",
-										}}>
-										<HStack
-											space='md'
-											style={{
-												flex: 1,
-												alignItems: "center",
-											}}>
-											<Box
+									{/* Informations personnelles */}
+									<VStack
+										space='md'
+										style={{ width: "100%" }}>
+										{profile?.gender && (
+											<HStack
+												space='sm'
 												style={{
-													width: 40,
-													height: 40,
-													borderRadius: 20,
-													backgroundColor: isDark
-														? Colors.dark.background
-														: Colors.light
-																.background,
-													justifyContent: "center",
 													alignItems: "center",
 												}}>
 												<Icon
-													as={MessagesSquare}
-													size='lg'
+													as={User}
+													size='sm'
 													style={{
-														color: isDark
-															? Colors.dark.tint
-															: Colors.light.tint,
+														color: textSecondary,
 													}}
 												/>
-											</Box>
-											<VStack
-												style={{ flex: 1 }}
-												space='xs'>
-												<HStack
-													space='xs'
-													style={{
-														alignItems: "center",
-													}}>
-													<Text
-														size='md'
-														style={{
-															fontWeight: "600",
-															color: isDark
-																? Colors.dark
-																		.text
-																: Colors.light
-																		.text,
-														}}>
-														Messagerie
-													</Text>
-													{unreadMessagesCount >
-														0 && (
-														<Box
-															style={{
-																marginLeft: 4,
-																minWidth: 18,
-																height: 18,
-																borderRadius: 9,
-																paddingHorizontal: 5,
-																justifyContent:
-																	"center",
-																alignItems:
-																	"center",
-																backgroundColor:
-																	"#ef4444",
-															}}>
-															<Text
-																style={{
-																	color: "#fff",
-																	fontSize: 10,
-																	fontWeight:
-																		"700",
-																	lineHeight: 14,
-																}}>
-																{
-																	unreadMessagesCount
-																}
-															</Text>
-														</Box>
-													)}
-												</HStack>
 												<Text
 													size='sm'
 													style={{
-														color: isDark
-															? Colors.dark.muted
-															: Colors.light
-																	.muted,
+														color: textPrimary,
 													}}>
-													Vos conversations
+													{profile.gender === "male"
+														? "Homme"
+														: profile.gender ===
+															  "female"
+															? "Femme"
+															: "Autre"}
 												</Text>
-											</VStack>
-										</HStack>
-										<Icon
-											as={ChevronRight}
-											size='lg'
-											style={{
-												color: isDark
-													? Colors.dark.muted
-													: Colors.light.muted,
-											}}
-										/>
-									</HStack>
-								</Card>
-							</TouchableOpacity>
+											</HStack>
+										)}
 
-							<Divider style={{ marginVertical: 16 }} />
-
-							<TouchableOpacity
-								onPress={openSupportSheet}
-								activeOpacity={0.7}>
-								<Card
-									style={{
-										padding: 16,
-										backgroundColor: isDark
-											? Colors.dark.cardBackground
-											: Colors.light.cardBackground,
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? Colors.dark.border
-											: Colors.light.border,
-									}}>
-									<HStack
-										style={{
-											alignItems: "center",
-											justifyContent: "space-between",
-										}}>
-										<HStack
-											space='md'
-											style={{
-												flex: 1,
-												alignItems: "center",
-											}}>
-											<Box
+										{profile?.birthday && (
+											<HStack
+												space='sm'
 												style={{
-													width: 40,
-													height: 40,
-													borderRadius: 20,
-													backgroundColor: isDark
-														? Colors.dark.background
-														: Colors.light
-																.background,
-													justifyContent: "center",
 													alignItems: "center",
 												}}>
 												<Icon
-													as={MessagesSquare}
-													size='lg'
+													as={Calendar}
+													size='sm'
 													style={{
-														color: isDark
-															? Colors.dark.tint
-															: Colors.light.tint,
+														color: textSecondary,
 													}}
 												/>
-											</Box>
-											<VStack
-												style={{ flex: 1 }}
-												space='xs'>
-												<HStack
-													space='xs'
-													style={{
-														alignItems: "center",
-													}}>
-													<Text
-														size='md'
-														style={{
-															fontWeight: "600",
-															color: isDark
-																? Colors.dark
-																		.text
-																: Colors.light
-																		.text,
-														}}>
-														Messagerie de support
-													</Text>
-													{supportUnreadCount > 0 && (
-														<Box
-															style={{
-																marginLeft: 4,
-																minWidth: 18,
-																height: 18,
-																borderRadius: 9,
-																paddingHorizontal: 5,
-																justifyContent:
-																	"center",
-																alignItems:
-																	"center",
-																backgroundColor:
-																	"#ef4444",
-															}}>
-															<Text
-																style={{
-																	color: "#fff",
-																	fontSize: 10,
-																	fontWeight:
-																		"700",
-																	lineHeight: 14,
-																}}>
-																{
-																	supportUnreadCount
-																}
-															</Text>
-														</Box>
-													)}
-												</HStack>
 												<Text
 													size='sm'
 													style={{
-														color: isDark
-															? Colors.dark.muted
-															: Colors.light
-																	.muted,
+														color: textPrimary,
 													}}>
-													Contacter le support WeSafe
+													{new Date(
+														profile.birthday,
+													).toLocaleDateString(
+														"fr-FR",
+													)}
 												</Text>
-											</VStack>
-										</HStack>
-										<Icon
-											as={ChevronRight}
-											size='lg'
-											style={{
-												color: isDark
-													? Colors.dark.muted
-													: Colors.light.muted,
-											}}
-										/>
-									</HStack>
-								</Card>
-							</TouchableOpacity>
+												<Text
+													size='sm'
+													style={{
+														color: textSecondary,
+													}}>
+													(
+													{Math.floor(
+														(new Date() -
+															new Date(
+																profile.birthday,
+															)) /
+															(365.25 *
+																24 *
+																60 *
+																60 *
+																1000),
+													)}{" "}
+													ans)
+												</Text>
+											</HStack>
+										)}
 
-							<ActionCard
-								icon={Settings}
-								title='Paramètres'
-								subtitle="Paramètres de l'application"
-								onPress={() => router.push("/settings")}
-							/>
-							<Divider style={{ marginVertical: 16 }} />
-							<TouchableOpacity
-								onPress={() => setShowLogoutDialog(true)}
-								activeOpacity={0.7}
-								style={{
-									marginTop: 8,
-									flexDirection: "row",
-									alignItems: "center",
-									justifyContent: "center",
-									gap: 8,
-									borderWidth: 1,
-									borderColor: isDark
-										? Colors.dark.danger
-										: Colors.light.danger,
-									backgroundColor: cardBg,
-									borderRadius: 10,
-									height: 48,
-								}}>
-								<Icon
-									as={LogOut}
-									size='sm'
-									style={{
-										color: isDark
-											? Colors.dark.danger
-											: Colors.light.danger,
-									}}
-								/>
+										{(profile?.height ||
+											profile?.weight) && (
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={Ruler}
+													size='sm'
+													style={{
+														color: textSecondary,
+													}}
+												/>
+												<Text
+													size='sm'
+													style={{
+														color: textPrimary,
+													}}>
+													{profile?.height &&
+														`${profile.height} cm`}
+													{profile?.height &&
+														profile?.weight &&
+														" • "}
+													{profile?.weight &&
+														`${profile.weight} kg`}
+												</Text>
+											</HStack>
+										)}
+
+										{(profile?.city ||
+											profile?.department ||
+											profile?.region) && (
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "flex-start",
+												}}>
+												<Icon
+													as={MapPin}
+													size='sm'
+													style={{
+														color: textSecondary,
+														marginTop: 2,
+													}}
+												/>
+												<VStack style={{ flex: 1 }}>
+													<Text
+														size='sm'
+														style={{
+															color: textPrimary,
+														}}>
+														{[
+															profile?.postcode,
+															profile?.city,
+														]
+															.filter(Boolean)
+															.join(" ")}
+													</Text>
+													{(profile?.department ||
+														profile?.region) && (
+														<Text
+															size='xs'
+															style={{
+																color: textSecondary,
+															}}>
+															{[
+																profile?.department,
+																profile?.region,
+															]
+																.filter(Boolean)
+																.join(", ")}
+														</Text>
+													)}
+												</VStack>
+											</HStack>
+										)}
+
+										{profile?.former_soldier && (
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={Shield}
+													size='sm'
+													style={{
+														color: textSecondary,
+													}}
+												/>
+												<Text
+													size='sm'
+													style={{
+														color: textPrimary,
+													}}>
+													Ancien militaire
+												</Text>
+											</HStack>
+										)}
+
+										{profile?.driving_licenses && (
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={Car}
+													size='sm'
+													style={{
+														color: textSecondary,
+													}}
+												/>
+												<Text
+													size='sm'
+													style={{
+														color: textPrimary,
+													}}>
+													Permis{" "}
+													{profile.driving_licenses}
+												</Text>
+											</HStack>
+										)}
+
+										{profile?.languages && (
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+												}}>
+												<Icon
+													as={Languages}
+													size='sm'
+													style={{
+														color: textSecondary,
+													}}
+												/>
+												<Text
+													size='sm'
+													style={{
+														color: textPrimary,
+													}}>
+													{profile.languages}
+												</Text>
+											</HStack>
+										)}
+									</VStack>
+
+									{profile?.qualifications &&
+										profile.qualifications.length > 0 && (
+											<>
+												<Divider />
+												<HStack
+													space='sm'
+													style={{
+														flexWrap: "wrap",
+													}}>
+													{profile.qualifications.map(
+														(qual, index) => (
+															<Badge
+																key={index}
+																size='sm'>
+																<BadgeIcon
+																	as={IdCard}
+																	className='mr-1'
+																/>
+																<BadgeText>
+																	{qual}
+																</BadgeText>
+															</Badge>
+														),
+													)}
+												</HStack>
+											</>
+										)}
+
+									{/* Cartes professionnelles */}
+									{procards && procards.length > 0 && (
+										<>
+											<Divider />
+											<VStack
+												space='xs'
+												style={{ width: "100%" }}>
+												{/* <Text
+												size='sm'
+												style={{
+													fontWeight: "600",
+													color: textPrimary,
+												}}>
+												Cartes professionnelles
+											</Text> */}
+												<HStack
+													space='sm'
+													style={{
+														flexWrap: "wrap",
+														justifyContent:
+															"flex-start",
+														width: "100%",
+													}}>
+													{profile?.ssiap1_verification_status ===
+														"verified" && (
+														<Badge
+															size='sm'
+															variant='solid'
+															action='success'>
+															<BadgeIcon
+																as={
+																	GraduationCap
+																}
+																className='mr-1'
+															/>
+															<BadgeText>
+																SSIAP 1
+															</BadgeText>
+														</Badge>
+													)}
+													{profile?.ssiap2_verification_status ===
+														"verified" && (
+														<Badge
+															size='sm'
+															variant='solid'
+															action='success'>
+															<BadgeIcon
+																as={
+																	GraduationCap
+																}
+																className='mr-1'
+															/>
+															<BadgeText>
+																SSIAP 2
+															</BadgeText>
+														</Badge>
+													)}
+													{profile?.ssiap3_verification_status ===
+														"verified" && (
+														<Badge
+															size='sm'
+															variant='solid'
+															action='success'>
+															<BadgeIcon
+																as={
+																	GraduationCap
+																}
+																className='mr-1'
+															/>
+															<BadgeText>
+																SSIAP 3
+															</BadgeText>
+														</Badge>
+													)}
+													{procards
+														.filter((card) => {
+															const validityDate =
+																new Date(
+																	card.validity_date,
+																);
+															const isExpired =
+																validityDate <
+																new Date();
+															return (
+																card.status ===
+																	"verified" &&
+																!isExpired
+															);
+														})
+														.map((card) => {
+															return (
+																<Badge
+																	key={
+																		card.id
+																	}
+																	size='sm'
+																	variant='solid'
+																	action='success'>
+																	<BadgeIcon
+																		as={
+																			IdCard
+																		}
+																		className='mr-1'
+																	/>
+																	<BadgeText>
+																		{
+																			card.category
+																		}
+																	</BadgeText>
+																</Badge>
+															);
+														})}
+												</HStack>
+											</VStack>
+										</>
+									)}
+								</VStack>
+							</Card>
+
+							{/* Navigation Cards */}
+							<VStack space='lg'>
 								<Text
+									size='lg'
 									style={{
-										color: isDark
+										fontWeight: "600",
+										color: textPrimary,
+									}}>
+									Actions rapides
+								</Text>
+
+								<ActionCard
+									icon={User}
+									title='Informations personnelles'
+									subtitle='Modifiez votre profil'
+									onPress={() =>
+										router.push("/updateprofile")
+									}
+								/>
+								<ActionCard
+									icon={FileText}
+									title='CV'
+									subtitle='Gérez votre curriculum vitae'
+									onPress={() =>
+										router.push("/curriculumvitae")
+									}
+								/>
+
+								<ActionCard
+									icon={Signature}
+									title='Signature'
+									subtitle='Créez votre signature'
+									onPress={() => router.push("/signature")}
+									badgeText={
+										profile?.signature_url ? "✓" : null
+									}
+								/>
+
+								<ActionCard
+									icon={Upload}
+									title='Documents'
+									subtitle="Documents d'identité et sécurité sociale"
+									onPress={() => router.push("/documents")}
+								/>
+
+								<ActionCard
+									icon={IdCard}
+									title='Documents professionnelles'
+									subtitle='Cartes professionnels, diplômes, attestations...'
+									onPress={() => router.push("/prodocs")}
+								/>
+								<Divider style={{ marginVertical: 16 }} />
+
+								<ActionCard
+									icon={BookmarkCheck}
+									title='Liste de souhaits'
+									subtitle='Vos missions favorites'
+									onPress={() => router.push("/wishlist")}
+								/>
+
+								<ActionCard
+									icon={Briefcase}
+									title='Candidatures'
+									subtitle='Suivez vos candidatures'
+									onPress={() => router.push("/applications")}
+									badgeText={
+										notifCount > 0
+											? notifCount.toString()
+											: null
+									}
+									badgeColor={
+										notifCount > 0 ? "error" : undefined
+									}
+								/>
+								<TouchableOpacity
+									onPress={() => router.push("/messaging")}
+									activeOpacity={0.7}>
+									<Card
+										style={{
+											padding: 16,
+											backgroundColor: isDark
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? Colors.dark.border
+												: Colors.light.border,
+										}}>
+										<HStack
+											style={{
+												alignItems: "center",
+												justifyContent: "space-between",
+											}}>
+											<HStack
+												space='md'
+												style={{
+													flex: 1,
+													alignItems: "center",
+												}}>
+												<Box
+													style={{
+														width: 40,
+														height: 40,
+														borderRadius: 20,
+														backgroundColor: isDark
+															? Colors.dark
+																	.background
+															: Colors.light
+																	.background,
+														justifyContent:
+															"center",
+														alignItems: "center",
+													}}>
+													<Icon
+														as={MessagesSquare}
+														size='lg'
+														style={{
+															color: isDark
+																? Colors.dark
+																		.tint
+																: Colors.light
+																		.tint,
+														}}
+													/>
+												</Box>
+												<VStack
+													style={{ flex: 1 }}
+													space='xs'>
+													<HStack
+														space='xs'
+														style={{
+															alignItems:
+																"center",
+														}}>
+														<Text
+															size='md'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
+															}}>
+															Messagerie
+														</Text>
+														{unreadMessagesCount >
+															0 && (
+															<Box
+																style={{
+																	marginLeft: 4,
+																	minWidth: 18,
+																	height: 18,
+																	borderRadius: 9,
+																	paddingHorizontal: 5,
+																	justifyContent:
+																		"center",
+																	alignItems:
+																		"center",
+																	backgroundColor:
+																		"#ef4444",
+																}}>
+																<Text
+																	style={{
+																		color: "#fff",
+																		fontSize: 10,
+																		fontWeight:
+																			"700",
+																		lineHeight: 14,
+																	}}>
+																	{
+																		unreadMessagesCount
+																	}
+																</Text>
+															</Box>
+														)}
+													</HStack>
+													<Text
+														size='sm'
+														style={{
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
+														}}>
+														Vos conversations
+													</Text>
+												</VStack>
+											</HStack>
+											<Icon
+												as={ChevronRight}
+												size='lg'
+												style={{
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
+												}}
+											/>
+										</HStack>
+									</Card>
+								</TouchableOpacity>
+
+								<Divider style={{ marginVertical: 16 }} />
+
+								<TouchableOpacity
+									onPress={openSupportSheet}
+									activeOpacity={0.7}>
+									<Card
+										style={{
+											padding: 16,
+											backgroundColor: isDark
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? Colors.dark.border
+												: Colors.light.border,
+										}}>
+										<HStack
+											style={{
+												alignItems: "center",
+												justifyContent: "space-between",
+											}}>
+											<HStack
+												space='md'
+												style={{
+													flex: 1,
+													alignItems: "center",
+												}}>
+												<Box
+													style={{
+														width: 40,
+														height: 40,
+														borderRadius: 20,
+														backgroundColor: isDark
+															? Colors.dark
+																	.background
+															: Colors.light
+																	.background,
+														justifyContent:
+															"center",
+														alignItems: "center",
+													}}>
+													<Icon
+														as={MessagesSquare}
+														size='lg'
+														style={{
+															color: isDark
+																? Colors.dark
+																		.tint
+																: Colors.light
+																		.tint,
+														}}
+													/>
+												</Box>
+												<VStack
+													style={{ flex: 1 }}
+													space='xs'>
+													<HStack
+														space='xs'
+														style={{
+															alignItems:
+																"center",
+														}}>
+														<Text
+															size='md'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
+															}}>
+															Messagerie de
+															support
+														</Text>
+														{supportUnreadCount >
+															0 && (
+															<Box
+																style={{
+																	marginLeft: 4,
+																	minWidth: 18,
+																	height: 18,
+																	borderRadius: 9,
+																	paddingHorizontal: 5,
+																	justifyContent:
+																		"center",
+																	alignItems:
+																		"center",
+																	backgroundColor:
+																		"#ef4444",
+																}}>
+																<Text
+																	style={{
+																		color: "#fff",
+																		fontSize: 10,
+																		fontWeight:
+																			"700",
+																		lineHeight: 14,
+																	}}>
+																	{
+																		supportUnreadCount
+																	}
+																</Text>
+															</Box>
+														)}
+													</HStack>
+													<Text
+														size='sm'
+														style={{
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
+														}}>
+														Contacter le support
+														WeSafe
+													</Text>
+												</VStack>
+											</HStack>
+											<Icon
+												as={ChevronRight}
+												size='lg'
+												style={{
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
+												}}
+											/>
+										</HStack>
+									</Card>
+								</TouchableOpacity>
+
+								<ActionCard
+									icon={Settings}
+									title='Paramètres'
+									subtitle="Paramètres de l'application"
+									onPress={() => router.push("/settings")}
+								/>
+								<Divider style={{ marginVertical: 16 }} />
+								<TouchableOpacity
+									onPress={() => setShowLogoutDialog(true)}
+									activeOpacity={0.7}
+									style={{
+										marginTop: 8,
+										flexDirection: "row",
+										alignItems: "center",
+										justifyContent: "center",
+										gap: 8,
+										borderWidth: 1,
+										borderColor: isDark
 											? Colors.dark.danger
 											: Colors.light.danger,
-										fontSize: 15,
+										backgroundColor: cardBg,
+										borderRadius: 10,
+										height: 48,
 									}}>
-									Déconnexion
-								</Text>
-							</TouchableOpacity>
+									<Icon
+										as={LogOut}
+										size='sm'
+										style={{
+											color: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
+										}}
+									/>
+									<Text
+										style={{
+											color: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
+											fontSize: 15,
+										}}>
+										Déconnexion
+									</Text>
+								</TouchableOpacity>
+							</VStack>
 						</VStack>
-					</VStack>
+					)}
 				</ScrollView>
 
 				{/* Modal de confirmation de déconnexion */}
