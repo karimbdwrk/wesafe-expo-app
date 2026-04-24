@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
 	TouchableOpacity,
 	ScrollView,
 	View,
+	Animated,
 	Text as RNText,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -52,8 +53,9 @@ const Notifications = () => {
 		markNotificationAsRead,
 		markAllAsRead,
 		refreshNotifications,
-		isLoading,
 	} = useNotifications();
+
+	const [localLoading, setLocalLoading] = useState(true);
 
 	const router = useRouter();
 	// const [notifications, setNotifications] = useState([]);
@@ -89,7 +91,8 @@ const Notifications = () => {
 
 	useFocusEffect(
 		useCallback(() => {
-			refreshNotifications();
+			setLocalLoading(true);
+			refreshNotifications().finally(() => setLocalLoading(false));
 		}, []),
 	);
 
@@ -275,6 +278,48 @@ const Notifications = () => {
 		}
 	};
 
+	const skeletonAnim = useRef(new Animated.Value(0.4)).current;
+	useEffect(() => {
+		const pulse = Animated.loop(
+			Animated.sequence([
+				Animated.timing(skeletonAnim, {
+					toValue: 1,
+					duration: 700,
+					useNativeDriver: true,
+				}),
+				Animated.timing(skeletonAnim, {
+					toValue: 0.4,
+					duration: 700,
+					useNativeDriver: true,
+				}),
+			]),
+		);
+		if (localLoading) pulse.start();
+		else pulse.stop();
+		return () => pulse.stop();
+	}, [localLoading]);
+
+	const skeletonColor = isDark ? "#374151" : "#e5e7eb";
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const cardBorder = isDark ? Colors.dark.border : Colors.light.border;
+
+	const SkeletonBox = ({ width, height, style, borderRadius = 8 }) => (
+		<Animated.View
+			style={[
+				{
+					width,
+					height,
+					borderRadius,
+					backgroundColor: skeletonColor,
+					opacity: skeletonAnim,
+				},
+				style,
+			]}
+		/>
+	);
+
 	return (
 		<ScrollView
 			style={{
@@ -322,7 +367,42 @@ const Notifications = () => {
 			<VStack
 				space='lg'
 				style={{ padding: 10, paddingTop: 15, paddingBottom: 30 }}>
-				{notifications.length > 0 ? (
+				{localLoading ? (
+					<VStack space='md'>
+						{[1, 2, 3, 4, 5, 6].map((i) => (
+							<View
+								key={i}
+								style={{
+									backgroundColor: cardBg,
+									borderRadius: 12,
+									padding: 16,
+									borderWidth: 1,
+									borderColor: cardBorder,
+									flexDirection: "row",
+									alignItems: "flex-start",
+									gap: 12,
+								}}>
+								<SkeletonBox
+									width={40}
+									height={40}
+									borderRadius={20}
+								/>
+								<View style={{ flex: 1, gap: 8 }}>
+									<View
+										style={{
+											flexDirection: "row",
+											justifyContent: "space-between",
+										}}>
+										<SkeletonBox width='55%' height={13} />
+										<SkeletonBox width={40} height={11} />
+									</View>
+									<SkeletonBox width='75%' height={12} />
+									<SkeletonBox width='45%' height={12} />
+								</View>
+							</View>
+						))}
+					</VStack>
+				) : notifications.length > 0 ? (
 					<VStack space='md'>
 						{notifications.map((notification) => (
 							<TouchableOpacity
