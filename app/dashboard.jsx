@@ -11,6 +11,8 @@ import {
 	Dimensions,
 	KeyboardAvoidingView,
 	Platform,
+	Animated,
+	View,
 } from "react-native";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -104,12 +106,51 @@ const DashboardScreen = () => {
 	const router = useRouter();
 	const { openSupport } = useLocalSearchParams();
 
+	const [loading, setLoading] = useState(true);
 	const [company, setCompany] = useState(null);
 	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 	const [notifCount, setNotifCount] = useState(0);
 	const [showSupportSheet, setShowSupportSheet] = useState(false);
 	const [supportConvId, setSupportConvId] = useState(null);
 	const [supportUnreadCount, setSupportUnreadCount] = useState(0);
+
+	const skeletonAnim = useRef(new Animated.Value(0.4)).current;
+	useEffect(() => {
+		const pulse = Animated.loop(
+			Animated.sequence([
+				Animated.timing(skeletonAnim, {
+					toValue: 1,
+					duration: 700,
+					useNativeDriver: true,
+				}),
+				Animated.timing(skeletonAnim, {
+					toValue: 0.4,
+					duration: 700,
+					useNativeDriver: true,
+				}),
+			]),
+		);
+		if (loading) pulse.start();
+		else pulse.stop();
+		return () => pulse.stop();
+	}, [loading]);
+
+	const skeletonColor = isDark ? "#374151" : "#e5e7eb";
+
+	const SkeletonBox = ({ width, height, style, borderRadius = 8 }) => (
+		<Animated.View
+			style={[
+				{
+					width,
+					height,
+					borderRadius,
+					backgroundColor: skeletonColor,
+					opacity: skeletonAnim,
+				},
+				style,
+			]}
+		/>
+	);
 
 	const fetchSupportUnreadCount = useCallback(async () => {
 		if (!user?.id || !accessToken) return;
@@ -181,15 +222,21 @@ const DashboardScreen = () => {
 
 	const loadData = async () => {
 		if (!user?.id) return;
-		const data = await getById("companies", user.id, `*`);
-		console.log("Company data:", data);
-		setCompany(data);
-		await fetchNotifCount();
+		try {
+			const data = await getById("companies", user.id, `*`);
+			setCompany(data);
+			await fetchNotifCount();
+		} catch (e) {
+			console.error("Erreur chargement dashboard:", e);
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	useFocusEffect(
 		useCallback(() => {
 			if (!user?.id) return;
+			setLoading(true);
 			loadData();
 			fetchSupportUnreadCount();
 
@@ -364,232 +411,423 @@ const DashboardScreen = () => {
 				}}
 				showsVerticalScrollIndicator={false}>
 				<Box style={{ padding: 10, paddingBottom: 30, paddingTop: 15 }}>
-					<VStack space='2xl'>
-						{/* Bannière rejet */}
-						{company?.company_status === "rejected" && (
-							<Card
+					{loading ? (
+						<VStack space='2xl'>
+							{/* Skeleton Company Info Card */}
+							<View
 								style={{
-									padding: 16,
 									backgroundColor: isDark
-										? "#450a0a"
-										: "#fef2f2",
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 									borderRadius: 12,
+									padding: 20,
 									borderWidth: 1,
-									borderColor: isDark ? "#7f1d1d" : "#fecaca",
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
+									gap: 16,
 								}}>
-								<VStack space='xs'>
-									<Text
+								{/* Logo centré */}
+								<View
+									style={{
+										alignItems: "center",
+										paddingVertical: 8,
+									}}>
+									<SkeletonBox
+										width={80}
+										height={80}
+										borderRadius={40}
+									/>
+								</View>
+								<View
+									style={{
+										height: 1,
+										backgroundColor: skeletonColor,
+										opacity: 0.4,
+									}}
+								/>
+								{/* Nom entreprise + badge statut */}
+								<View
+									style={{
+										flexDirection: "row",
+										justifyContent: "space-between",
+										alignItems: "center",
+									}}>
+									<SkeletonBox width='55%' height={18} />
+									<SkeletonBox
+										width={70}
+										height={22}
+										borderRadius={6}
+									/>
+								</View>
+								{/* Adresse */}
+								<View style={{ gap: 8 }}>
+									<SkeletonBox width='60%' height={13} />
+									<SkeletonBox width='45%' height={13} />
+									<SkeletonBox width='50%' height={13} />
+								</View>
+								<View
+									style={{
+										height: 1,
+										backgroundColor: skeletonColor,
+										opacity: 0.4,
+									}}
+								/>
+								{/* Abonnement */}
+								<View
+									style={{
+										flexDirection: "row",
+										justifyContent: "space-between",
+										alignItems: "center",
+									}}>
+									<SkeletonBox width='40%' height={14} />
+									<SkeletonBox
+										width={80}
+										height={22}
+										borderRadius={6}
+									/>
+								</View>
+								<View
+									style={{
+										height: 1,
+										backgroundColor: skeletonColor,
+										opacity: 0.4,
+									}}
+								/>
+								{/* Crédits */}
+								<View
+									style={{
+										flexDirection: "row",
+										justifyContent: "space-between",
+										alignItems: "center",
+									}}>
+									<SkeletonBox width='45%' height={14} />
+									<SkeletonBox
+										width={50}
+										height={28}
+										borderRadius={20}
+									/>
+								</View>
+							</View>
+
+							{/* Skeleton Actions rapides */}
+							<VStack space='md'>
+								<SkeletonBox
+									width='40%'
+									height={18}
+									style={{ marginBottom: 4 }}
+								/>
+								{[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+									<View
+										key={i}
 										style={{
-											fontWeight: "700",
-											color: isDark
-												? "#fca5a5"
-												: "#b91c1c",
-											fontSize: 14,
+											padding: 16,
+											backgroundColor: isDark
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? Colors.dark.border
+												: Colors.light.border,
 										}}>
-										Votre entreprise a été refusée
-									</Text>
-									{company?.reject_message ? (
+										<View
+											style={{
+												flexDirection: "row",
+												alignItems: "center",
+												gap: 12,
+											}}>
+											<SkeletonBox
+												width={40}
+												height={40}
+												borderRadius={20}
+											/>
+											<View style={{ flex: 1, gap: 7 }}>
+												<SkeletonBox
+													width='55%'
+													height={14}
+												/>
+												<SkeletonBox
+													width='40%'
+													height={12}
+												/>
+											</View>
+											<SkeletonBox
+												width={20}
+												height={20}
+												borderRadius={4}
+											/>
+										</View>
+									</View>
+								))}
+							</VStack>
+						</VStack>
+					) : (
+						<VStack space='2xl'>
+							{/* Bannière rejet */}
+							{company?.company_status === "rejected" && (
+								<Card
+									style={{
+										padding: 16,
+										backgroundColor: isDark
+											? "#450a0a"
+											: "#fef2f2",
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? "#7f1d1d"
+											: "#fecaca",
+									}}>
+									<VStack space='xs'>
 										<Text
 											style={{
+												fontWeight: "700",
 												color: isDark
-													? Colors.dark.danger
-													: Colors.light.danger,
-												fontSize: 13,
+													? "#fca5a5"
+													: "#b91c1c",
+												fontSize: 14,
 											}}>
-											{company.reject_message}
+											Votre entreprise a été refusée
 										</Text>
-									) : null}
-								</VStack>
-							</Card>
-						)}
+										{company?.reject_message ? (
+											<Text
+												style={{
+													color: isDark
+														? Colors.dark.danger
+														: Colors.light.danger,
+													fontSize: 13,
+												}}>
+												{company.reject_message}
+											</Text>
+										) : null}
+									</VStack>
+								</Card>
+							)}
 
-						{/* Bannière suspension */}
-						{company?.company_status === "suspended" && (
+							{/* Bannière suspension */}
+							{company?.company_status === "suspended" && (
+								<Card
+									style={{
+										padding: 16,
+										backgroundColor: isDark
+											? Colors.dark.background
+											: Colors.light.background,
+										borderRadius: 12,
+										borderWidth: 1,
+										borderColor: isDark
+											? Colors.dark.border
+											: Colors.light.border,
+									}}>
+									<VStack space='xs'>
+										<Text
+											style={{
+												fontWeight: "700",
+												color: isDark
+													? Colors.dark.muted
+													: Colors.light.muted,
+												fontSize: 14,
+											}}>
+											Votre compte a été suspendu
+										</Text>
+										{company?.suspend_message ? (
+											<Text
+												style={{
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
+													fontSize: 13,
+												}}>
+												{company.suspend_message}
+											</Text>
+										) : (
+											<Text
+												style={{
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
+													fontSize: 13,
+												}}>
+												Contactez le support pour plus
+												d'informations :
+												support@wesafe.fr
+											</Text>
+										)}
+									</VStack>
+								</Card>
+							)}
+
+							{/* Company Info Card */}
 							<Card
 								style={{
-									padding: 16,
+									padding: 20,
 									backgroundColor: isDark
-										? Colors.dark.background
-										: Colors.light.background,
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
 									borderRadius: 12,
 									borderWidth: 1,
 									borderColor: isDark
 										? Colors.dark.border
 										: Colors.light.border,
 								}}>
-								<VStack space='xs'>
-									<Text
+								<VStack space='lg'>
+									{/* Logo Section - Centré et cliquable */}
+									<VStack
+										space='md'
+										style={{ alignItems: "center" }}>
+										<LogoUploader image={image} />
+									</VStack>
+
+									<Divider />
+
+									<HStack
 										style={{
-											fontWeight: "700",
-											color: isDark
-												? Colors.dark.muted
-												: Colors.light.muted,
-											fontSize: 14,
+											alignItems: "center",
+											justifyContent: "space-between",
 										}}>
-										Votre compte a été suspendu
-									</Text>
-									{company?.suspend_message ? (
-										<Text
-											style={{
-												color: isDark
-													? Colors.dark.muted
-													: Colors.light.muted,
-												fontSize: 13,
-											}}>
-											{company.suspend_message}
-										</Text>
-									) : (
-										<Text
-											style={{
-												color: isDark
-													? Colors.dark.muted
-													: Colors.light.muted,
-												fontSize: 13,
-											}}>
-											Contactez le support pour plus
-											d'informations : support@wesafe.fr
-										</Text>
-									)}
-								</VStack>
-							</Card>
-						)}
-
-						{/* Company Info Card */}
-						<Card
-							style={{
-								padding: 20,
-								backgroundColor: isDark
-									? Colors.dark.cardBackground
-									: Colors.light.cardBackground,
-								borderRadius: 12,
-								borderWidth: 1,
-								borderColor: isDark
-									? Colors.dark.border
-									: Colors.light.border,
-							}}>
-							<VStack space='lg'>
-								{/* Logo Section - Centré et cliquable */}
-								<VStack
-									space='md'
-									style={{ alignItems: "center" }}>
-									<LogoUploader image={image} />
-								</VStack>
-
-								<Divider />
-
-								<HStack
-									style={{
-										alignItems: "center",
-										justifyContent: "space-between",
-									}}>
-									<VStack style={{ flex: 1 }} space='xs'>
-										<HStack
-											space='sm'
-											style={{
-												alignItems: "center",
-												justifyContent: "space-between",
-											}}>
-											<VStack className='mb-2'>
-												<Text
-													size='lg'
-													style={{
-														fontWeight: "600",
-														color: isDark
-															? Colors.dark.text
-															: Colors.light.text,
-													}}>
-													{company?.name}
-												</Text>
-												{(company?.legal_representative_firstname ||
-													company?.legal_representative_lastname) && (
+										<VStack style={{ flex: 1 }} space='xs'>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+													justifyContent:
+														"space-between",
+												}}>
+												<VStack className='mb-2'>
 													<Text
-														size='xs'
+														size='lg'
 														style={{
-															fontStyle: "italic",
+															fontWeight: "600",
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
+														}}>
+														{company?.name}
+													</Text>
+													{(company?.legal_representative_firstname ||
+														company?.legal_representative_lastname) && (
+														<Text
+															size='xs'
+															style={{
+																fontStyle:
+																	"italic",
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
+															}}>
+															(
+															{[
+																company?.legal_representative_firstname,
+																company?.legal_representative_lastname,
+															]
+																.filter(Boolean)
+																.join(" ")}
+															)
+														</Text>
+													)}
+												</VStack>
+												{company?.company_status ===
+													"pending" && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='warning'>
+														<BadgeIcon
+															as={BadgeCheck}
+															className='mr-1'
+														/>
+														<BadgeText>
+															En attente
+														</BadgeText>
+													</Badge>
+												)}
+												{company?.company_status ===
+													"verified" && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='success'>
+														<BadgeIcon
+															as={BadgeCheck}
+															className='mr-1'
+														/>
+														<BadgeText>
+															Vérifié
+														</BadgeText>
+													</Badge>
+												)}
+												{company?.company_status ===
+													"rejected" && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='error'>
+														<BadgeIcon
+															as={BadgeCheck}
+															className='mr-1'
+														/>
+														<BadgeText>
+															Refusé
+														</BadgeText>
+													</Badge>
+												)}
+												{company?.company_status ===
+													"suspended" && (
+													<Badge
+														size='sm'
+														variant='solid'
+														action='muted'>
+														<BadgeIcon
+															as={BadgeCheck}
+															className='mr-1'
+														/>
+														<BadgeText>
+															Suspendu
+														</BadgeText>
+													</Badge>
+												)}
+											</HStack>
+											{(company?.street ||
+												company?.postcode ||
+												company?.city) && (
+												<VStack
+													space='0.5'
+													className='mb-2'>
+													<Text
+														size='sm'
+														style={{
 															color: isDark
 																? Colors.dark
 																		.muted
 																: Colors.light
 																		.muted,
 														}}>
-														(
+														{company.street}
+													</Text>
+													<Text
+														size='sm'
+														style={{
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
+														}}>
 														{[
-															company?.legal_representative_firstname,
-															company?.legal_representative_lastname,
+															company.postcode,
+															company.city,
 														]
 															.filter(Boolean)
 															.join(" ")}
-														)
 													</Text>
-												)}
-											</VStack>
-											{company?.company_status ===
-												"pending" && (
-												<Badge
-													size='sm'
-													variant='solid'
-													action='warning'>
-													<BadgeIcon
-														as={BadgeCheck}
-														className='mr-1'
-													/>
-													<BadgeText>
-														En attente
-													</BadgeText>
-												</Badge>
+												</VStack>
 											)}
-											{company?.company_status ===
-												"verified" && (
-												<Badge
-													size='sm'
-													variant='solid'
-													action='success'>
-													<BadgeIcon
-														as={BadgeCheck}
-														className='mr-1'
-													/>
-													<BadgeText>
-														Vérifié
-													</BadgeText>
-												</Badge>
-											)}
-											{company?.company_status ===
-												"rejected" && (
-												<Badge
-													size='sm'
-													variant='solid'
-													action='error'>
-													<BadgeIcon
-														as={BadgeCheck}
-														className='mr-1'
-													/>
-													<BadgeText>
-														Refusé
-													</BadgeText>
-												</Badge>
-											)}
-											{company?.company_status ===
-												"suspended" && (
-												<Badge
-													size='sm'
-													variant='solid'
-													action='muted'>
-													<BadgeIcon
-														as={BadgeCheck}
-														className='mr-1'
-													/>
-													<BadgeText>
-														Suspendu
-													</BadgeText>
-												</Badge>
-											)}
-										</HStack>
-										{(company?.street ||
-											company?.postcode ||
-											company?.city) && (
-											<VStack
-												space='0.5'
-												className='mb-2'>
+											{company?.siret && (
 												<Text
 													size='sm'
 													style={{
@@ -598,26 +836,16 @@ const DashboardScreen = () => {
 															: Colors.light
 																	.muted,
 													}}>
-													{company.street}
+													SIRET:{" "}
+													{formatSiret(company.siret)}
 												</Text>
-												<Text
-													size='sm'
-													style={{
-														color: isDark
-															? Colors.dark.muted
-															: Colors.light
-																	.muted,
-													}}>
-													{[
-														company.postcode,
-														company.city,
-													]
-														.filter(Boolean)
-														.join(" ")}
-												</Text>
-											</VStack>
-										)}
-										{company?.siret && (
+											)}
+										</VStack>
+									</HStack>
+
+									{company?.description && (
+										<>
+											<Divider />
 											<Text
 												size='sm'
 												style={{
@@ -625,155 +853,145 @@ const DashboardScreen = () => {
 														? Colors.dark.muted
 														: Colors.light.muted,
 												}}>
-												SIRET:{" "}
-												{formatSiret(company.siret)}
+												{company.description}
 											</Text>
-										)}
-									</VStack>
-								</HStack>
+										</>
+									)}
 
-								{company?.description && (
-									<>
-										<Divider />
-										<Text
-											size='sm'
-											style={{
-												color: isDark
-													? Colors.dark.muted
-													: Colors.light.muted,
-											}}>
-											{company.description}
-										</Text>
-									</>
-								)}
+									<Divider />
 
-								<Divider />
-
-								{/* Subscription Status */}
-								<TouchableOpacity
-									onPress={() => router.push("/subscription")}
-									activeOpacity={0.7}>
-									<HStack
-										style={{
-											alignItems: "center",
-											justifyContent: "space-between",
-										}}>
+									{/* Subscription Status */}
+									<TouchableOpacity
+										onPress={() =>
+											router.push("/subscription")
+										}
+										activeOpacity={0.7}>
 										<HStack
-											space='sm'
 											style={{
 												alignItems: "center",
-												flex: 1,
 												justifyContent: "space-between",
-												paddingRight: 10,
 											}}>
-											<Text
-												size='sm'
+											<HStack
+												space='sm'
 												style={{
-													fontWeight: "600",
-													color: isDark
-														? Colors.dark.text
-														: Colors.light.text,
-												}}>
-												Statut d'abonnement
-											</Text>
-											<Badge
-												size='md'
-												variant='solid'
-												action={
-													userCompany?.subscription_status ===
-													"premium"
-														? "success"
-														: userCompany?.subscription_status ===
-															  "standard_plus"
-															? "info"
-															: "muted"
-												}>
-												<BadgeText>
-													{userCompany?.subscription_status ===
-													"premium"
-														? "Premium"
-														: userCompany?.subscription_status ===
-															  "standard_plus"
-															? "Standard+"
-															: "Standard"}
-												</BadgeText>
-											</Badge>
-										</HStack>
-										<Icon
-											as={ChevronRight}
-											size='sm'
-											style={{
-												color: isDark
-													? Colors.dark.muted
-													: Colors.light.muted,
-											}}
-										/>
-									</HStack>
-								</TouchableOpacity>
-
-								<Divider />
-								{/* Subscription Status */}
-								<TouchableOpacity
-									onPress={() => router.push("/buycredits")}
-									activeOpacity={0.7}>
-									<HStack
-										style={{
-											alignItems: "center",
-											justifyContent: "space-between",
-										}}>
-										<HStack
-											space='sm'
-											style={{
-												alignItems: "center",
-												flex: 1,
-												justifyContent: "space-between",
-												paddingRight: 10,
-											}}>
-											<Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: isDark
-														? Colors.dark.text
-														: Colors.light.text,
-												}}>
-												Crédits LastMinute
-											</Text>
-											<TouchableOpacity
-												// onPress={() => router.push("/buycredits")}
-												activeOpacity={0.7}
-												style={{
-													flexDirection: "row",
 													alignItems: "center",
-													gap: 4,
-													backgroundColor: isDark
-														? Colors.dark.background
-														: "#fef9c3",
-													borderRadius: 20,
-													paddingHorizontal: 10,
-													paddingVertical: 5,
-													marginRight: 4,
+													flex: 1,
+													justifyContent:
+														"space-between",
+													paddingRight: 10,
 												}}>
-												<Icon
-													as={Zap}
-													size='sm'
-													style={{
-														color: Colors.light
-															.warning,
-													}}
-												/>
 												<Text
 													size='sm'
 													style={{
-														fontWeight: "700",
-														color: Colors.light
-															.warning,
+														fontWeight: "600",
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
 													}}>
-													{company?.last_minute_credits ??
-														0}
+													Statut d'abonnement
 												</Text>
-											</TouchableOpacity>
-											{/* <Badge
+												<Badge
+													size='md'
+													variant='solid'
+													action={
+														userCompany?.subscription_status ===
+														"premium"
+															? "success"
+															: userCompany?.subscription_status ===
+																  "standard_plus"
+																? "info"
+																: "muted"
+													}>
+													<BadgeText>
+														{userCompany?.subscription_status ===
+														"premium"
+															? "Premium"
+															: userCompany?.subscription_status ===
+																  "standard_plus"
+																? "Standard+"
+																: "Standard"}
+													</BadgeText>
+												</Badge>
+											</HStack>
+											<Icon
+												as={ChevronRight}
+												size='sm'
+												style={{
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
+												}}
+											/>
+										</HStack>
+									</TouchableOpacity>
+
+									<Divider />
+									{/* Subscription Status */}
+									<TouchableOpacity
+										onPress={() =>
+											router.push("/buycredits")
+										}
+										activeOpacity={0.7}>
+										<HStack
+											style={{
+												alignItems: "center",
+												justifyContent: "space-between",
+											}}>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+													flex: 1,
+													justifyContent:
+														"space-between",
+													paddingRight: 10,
+												}}>
+												<Text
+													size='sm'
+													style={{
+														fontWeight: "600",
+														color: isDark
+															? Colors.dark.text
+															: Colors.light.text,
+													}}>
+													Crédits LastMinute
+												</Text>
+												<TouchableOpacity
+													// onPress={() => router.push("/buycredits")}
+													activeOpacity={0.7}
+													style={{
+														flexDirection: "row",
+														alignItems: "center",
+														gap: 4,
+														backgroundColor: isDark
+															? Colors.dark
+																	.background
+															: "#fef9c3",
+														borderRadius: 20,
+														paddingHorizontal: 10,
+														paddingVertical: 5,
+														marginRight: 4,
+													}}>
+													<Icon
+														as={Zap}
+														size='sm'
+														style={{
+															color: Colors.light
+																.warning,
+														}}
+													/>
+													<Text
+														size='sm'
+														style={{
+															fontWeight: "700",
+															color: Colors.light
+																.warning,
+														}}>
+														{company?.last_minute_credits ??
+															0}
+													</Text>
+												</TouchableOpacity>
+												{/* <Badge
 												size='md'
 												variant='solid'
 												action={
@@ -787,387 +1005,403 @@ const DashboardScreen = () => {
 													}
 												</BadgeText>
 											</Badge> */}
-										</HStack>
-										<Icon
-											as={ChevronRight}
-											size='sm'
-											style={{
-												color: isDark
-													? Colors.dark.muted
-													: Colors.light.muted,
-											}}
-										/>
-									</HStack>
-								</TouchableOpacity>
-							</VStack>
-						</Card>
-
-						{/* Actions Section */}
-						<VStack space='md'>
-							<Text
-								size='lg'
-								style={{
-									fontWeight: "600",
-									color: isDark
-										? Colors.dark.text
-										: Colors.light.text,
-								}}>
-								Actions rapides
-							</Text>
-
-							<ActionCard
-								icon={Pencil}
-								title="Modifier l'entreprise"
-								subtitle='Mettre à jour les informations'
-								onPress={() => {
-									router.push({
-										pathname: "/updatecompany",
-										params: {
-											companyName: company?.name,
-											companySiret: company?.siret,
-											companyDescription:
-												company?.description,
-										},
-									});
-								}}
-							/>
-							<ActionCard
-								icon={FileText}
-								title='Vérification KBIS'
-								subtitle='Télécharger votre extrait KBIS'
-								onPress={() => {
-									router.push({
-										pathname: "/kbisdocumentverification",
-									});
-								}}
-								badgeText={
-									!company?.kbis_url
-										? "manquant"
-										: company?.kbis_verification_status ===
-											  "pending"
-											? "En attente"
-											: company?.kbis_verification_status ===
-												  "verified"
-												? "Vérifié"
-												: company?.kbis_verification_status ===
-													  "rejected"
-													? "Rejeté"
-													: null
-								}
-								badgeColor={
-									!company?.kbis_url
-										? "error"
-										: company?.kbis_verification_status ===
-											  "pending"
-											? "warning"
-											: company?.kbis_verification_status ===
-												  "verified"
-												? "success"
-												: company?.kbis_verification_status ===
-													  "rejected"
-													? "error"
-													: null
-								}
-							/>
-
-							<ActionCard
-								icon={Signature}
-								title='Signature'
-								subtitle='Gérer votre signature'
-								onPress={() => {
-									router.push({
-										pathname: "/signature",
-										params: {
-											signatureUrl:
-												company?.signature_url,
-											type: "companies",
-										},
-									});
-								}}
-								badgeText={
-									!company?.signature_url
-										? "manquante"
-										: company?.signature_status ===
-											  "pending"
-											? "En attente"
-											: company?.signature_status ===
-												  "verified"
-												? "Validée"
-												: company?.signature_status ===
-													  "rejected"
-													? "Rejetée"
-													: null
-								}
-								badgeColor={
-									!company?.signature_url
-										? "error"
-										: company?.signature_status ===
-											  "pending"
-											? "warning"
-											: company?.signature_status ===
-												  "verified"
-												? "success"
-												: company?.signature_status ===
-													  "rejected"
-													? "error"
-													: null
-								}
-							/>
-
-							<ActionCard
-								icon={Stamp}
-								title='Tampon'
-								subtitle="Gérer le tampon de l'entreprise"
-								onPress={() => {
-									router.push({
-										pathname: "/stamp",
-										params: {
-											companyName: company?.name,
-										},
-									});
-								}}
-								badgeText={
-									!company?.stamp_url
-										? "manquant"
-										: company?.stamp_status === "pending"
-											? "En attente"
-											: company?.stamp_status ===
-												  "verified"
-												? "Validé"
-												: company?.stamp_status ===
-													  "rejected"
-													? "Rejeté"
-													: null
-								}
-								badgeColor={
-									!company?.stamp_url
-										? "error"
-										: company?.stamp_status === "pending"
-											? "warning"
-											: company?.stamp_status ===
-												  "verified"
-												? "success"
-												: company?.stamp_status ===
-													  "rejected"
-													? "error"
-													: null
-								}
-							/>
-
-							<Divider style={{ marginVertical: 16 }} />
-
-							<ActionCard
-								icon={Briefcase}
-								title='Mes offres'
-								subtitle="Gérer vos offres d'emploi"
-								onPress={() => {
-									router.push({
-										pathname: "/offers",
-									});
-								}}
-							/>
-
-							<ActionCard
-								icon={Users}
-								title='Mes candidatures'
-								subtitle='Gérer vos candidatures'
-								onPress={() => {
-									router.push({
-										pathname: "/applicationspro",
-									});
-								}}
-								badgeText={
-									notifCount > 0 ? `${notifCount}` : undefined
-								}
-								badgeColor={
-									notifCount > 0 ? "error" : undefined
-								}
-							/>
-
-							<ActionCard
-								icon={BookUser}
-								title='Mes contacts'
-								subtitle='Gérer vos contacts'
-								onPress={() => {
-									router.push({
-										pathname: "/profilelist",
-									});
-								}}
-							/>
-
-							<Divider style={{ marginVertical: 16 }} />
-
-							<TouchableOpacity
-								onPress={openSupportSheet}
-								activeOpacity={0.7}>
-								<Card
-									style={{
-										padding: 16,
-										backgroundColor: isDark
-											? Colors.dark.cardBackground
-											: Colors.light.cardBackground,
-										borderRadius: 12,
-										borderWidth: 1,
-										borderColor: isDark
-											? Colors.dark.border
-											: Colors.light.border,
-									}}>
-									<HStack
-										style={{
-											alignItems: "center",
-											justifyContent: "space-between",
-										}}>
-										<HStack
-											space='md'
-											style={{
-												flex: 1,
-												alignItems: "center",
-											}}>
-											<Box
+											</HStack>
+											<Icon
+												as={ChevronRight}
+												size='sm'
 												style={{
-													width: 40,
-													height: 40,
-													borderRadius: 20,
-													backgroundColor: isDark
-														? Colors.dark.background
-														: Colors.light
-																.background,
-													justifyContent: "center",
-													alignItems: "center",
-												}}>
-												<Icon
-													as={MessagesSquare}
-													size='lg'
-													style={{
-														color: isDark
-															? Colors.dark.tint
-															: Colors.light.tint,
-													}}
-												/>
-											</Box>
-											<VStack
-												style={{ flex: 1 }}
-												space='xs'>
-												<HStack
-													space='xs'
-													style={{
-														alignItems: "center",
-													}}>
-													<Text
-														size='md'
-														style={{
-															fontWeight: "600",
-															color: isDark
-																? Colors.dark
-																		.text
-																: Colors.light
-																		.text,
-														}}>
-														Messagerie de support
-													</Text>
-													{supportUnreadCount > 0 && (
-														<Box
-															style={{
-																marginLeft: 4,
-																minWidth: 18,
-																height: 18,
-																borderRadius: 9,
-																paddingHorizontal: 5,
-																justifyContent:
-																	"center",
-																alignItems:
-																	"center",
-																backgroundColor:
-																	"#ef4444",
-															}}>
-															<Text
-																style={{
-																	color: "#fff",
-																	fontSize: 10,
-																	fontWeight:
-																		"700",
-																	lineHeight: 14,
-																}}>
-																{
-																	supportUnreadCount
-																}
-															</Text>
-														</Box>
-													)}
-												</HStack>
-												<Text
-													size='sm'
-													style={{
-														color: isDark
-															? Colors.dark.muted
-															: Colors.light
-																	.muted,
-													}}>
-													Contacter le support WeSafe
-												</Text>
-											</VStack>
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
+												}}
+											/>
 										</HStack>
-										<Icon
-											as={ChevronRight}
-											size='lg'
-											style={{
-												color: isDark
-													? Colors.dark.muted
-													: Colors.light.muted,
-											}}
-										/>
-									</HStack>
-								</Card>
-							</TouchableOpacity>
+									</TouchableOpacity>
+								</VStack>
+							</Card>
 
-							<ActionCard
-								icon={Settings}
-								title='Paramètres'
-								subtitle="Paramètres de l'application"
-								onPress={() => router.push("/settings")}
-							/>
-						</VStack>
-						<Divider />
-						{/* Déconnexion */}
-						<HStack
-							style={{
-								justifyContent: "center",
-								alignItems: "center",
-								width: "100%",
-							}}>
-							<TouchableOpacity
-								onPress={() => setShowLogoutDialog(true)}
-								activeOpacity={0.7}
-								style={{
-									flexDirection: "row",
-									alignItems: "center",
-									gap: 10,
-									paddingVertical: 14,
-									paddingHorizontal: 4,
-								}}>
-								<LogOut
-									size={16}
-									color={
-										isDark
-											? Colors.dark.danger
-											: Colors.light.danger
+							{/* Actions Section */}
+							<VStack space='md'>
+								<Text
+									size='lg'
+									style={{
+										fontWeight: "600",
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
+									}}>
+									Actions rapides
+								</Text>
+
+								<ActionCard
+									icon={Pencil}
+									title="Modifier l'entreprise"
+									subtitle='Mettre à jour les informations'
+									onPress={() => {
+										router.push({
+											pathname: "/updatecompany",
+											params: {
+												companyName: company?.name,
+												companySiret: company?.siret,
+												companyDescription:
+													company?.description,
+											},
+										});
+									}}
+								/>
+								<ActionCard
+									icon={FileText}
+									title='Vérification KBIS'
+									subtitle='Télécharger votre extrait KBIS'
+									onPress={() => {
+										router.push({
+											pathname:
+												"/kbisdocumentverification",
+										});
+									}}
+									badgeText={
+										!company?.kbis_url
+											? "manquant"
+											: company?.kbis_verification_status ===
+												  "pending"
+												? "En attente"
+												: company?.kbis_verification_status ===
+													  "verified"
+													? "Vérifié"
+													: company?.kbis_verification_status ===
+														  "rejected"
+														? "Rejeté"
+														: null
+									}
+									badgeColor={
+										!company?.kbis_url
+											? "error"
+											: company?.kbis_verification_status ===
+												  "pending"
+												? "warning"
+												: company?.kbis_verification_status ===
+													  "verified"
+													? "success"
+													: company?.kbis_verification_status ===
+														  "rejected"
+														? "error"
+														: null
 									}
 								/>
-								<Text
-									style={{
-										fontSize: 14,
-										fontWeight: "500",
-										color: isDark
-											? Colors.dark.danger
-											: Colors.light.danger,
-									}}>
-									Déconnexion
-								</Text>
-							</TouchableOpacity>
-						</HStack>
-					</VStack>
 
-					{/* Modal de confirmation de déconnexion */}
+								<ActionCard
+									icon={Signature}
+									title='Signature'
+									subtitle='Gérer votre signature'
+									onPress={() => {
+										router.push({
+											pathname: "/signature",
+											params: {
+												signatureUrl:
+													company?.signature_url,
+												type: "companies",
+											},
+										});
+									}}
+									badgeText={
+										!company?.signature_url
+											? "manquante"
+											: company?.signature_status ===
+												  "pending"
+												? "En attente"
+												: company?.signature_status ===
+													  "verified"
+													? "Validée"
+													: company?.signature_status ===
+														  "rejected"
+														? "Rejetée"
+														: null
+									}
+									badgeColor={
+										!company?.signature_url
+											? "error"
+											: company?.signature_status ===
+												  "pending"
+												? "warning"
+												: company?.signature_status ===
+													  "verified"
+													? "success"
+													: company?.signature_status ===
+														  "rejected"
+														? "error"
+														: null
+									}
+								/>
+
+								<ActionCard
+									icon={Stamp}
+									title='Tampon'
+									subtitle="Gérer le tampon de l'entreprise"
+									onPress={() => {
+										router.push({
+											pathname: "/stamp",
+											params: {
+												companyName: company?.name,
+											},
+										});
+									}}
+									badgeText={
+										!company?.stamp_url
+											? "manquant"
+											: company?.stamp_status ===
+												  "pending"
+												? "En attente"
+												: company?.stamp_status ===
+													  "verified"
+													? "Validé"
+													: company?.stamp_status ===
+														  "rejected"
+														? "Rejeté"
+														: null
+									}
+									badgeColor={
+										!company?.stamp_url
+											? "error"
+											: company?.stamp_status ===
+												  "pending"
+												? "warning"
+												: company?.stamp_status ===
+													  "verified"
+													? "success"
+													: company?.stamp_status ===
+														  "rejected"
+														? "error"
+														: null
+									}
+								/>
+
+								<Divider style={{ marginVertical: 16 }} />
+
+								<ActionCard
+									icon={Briefcase}
+									title='Mes offres'
+									subtitle="Gérer vos offres d'emploi"
+									onPress={() => {
+										router.push({
+											pathname: "/offers",
+										});
+									}}
+								/>
+
+								<ActionCard
+									icon={Users}
+									title='Mes candidatures'
+									subtitle='Gérer vos candidatures'
+									onPress={() => {
+										router.push({
+											pathname: "/applicationspro",
+										});
+									}}
+									badgeText={
+										notifCount > 0
+											? `${notifCount}`
+											: undefined
+									}
+									badgeColor={
+										notifCount > 0 ? "error" : undefined
+									}
+								/>
+
+								<ActionCard
+									icon={BookUser}
+									title='Mes contacts'
+									subtitle='Gérer vos contacts'
+									onPress={() => {
+										router.push({
+											pathname: "/profilelist",
+										});
+									}}
+								/>
+
+								<Divider style={{ marginVertical: 16 }} />
+
+								<TouchableOpacity
+									onPress={openSupportSheet}
+									activeOpacity={0.7}>
+									<Card
+										style={{
+											padding: 16,
+											backgroundColor: isDark
+												? Colors.dark.cardBackground
+												: Colors.light.cardBackground,
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isDark
+												? Colors.dark.border
+												: Colors.light.border,
+										}}>
+										<HStack
+											style={{
+												alignItems: "center",
+												justifyContent: "space-between",
+											}}>
+											<HStack
+												space='md'
+												style={{
+													flex: 1,
+													alignItems: "center",
+												}}>
+												<Box
+													style={{
+														width: 40,
+														height: 40,
+														borderRadius: 20,
+														backgroundColor: isDark
+															? Colors.dark
+																	.background
+															: Colors.light
+																	.background,
+														justifyContent:
+															"center",
+														alignItems: "center",
+													}}>
+													<Icon
+														as={MessagesSquare}
+														size='lg'
+														style={{
+															color: isDark
+																? Colors.dark
+																		.tint
+																: Colors.light
+																		.tint,
+														}}
+													/>
+												</Box>
+												<VStack
+													style={{ flex: 1 }}
+													space='xs'>
+													<HStack
+														space='xs'
+														style={{
+															alignItems:
+																"center",
+														}}>
+														<Text
+															size='md'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
+															}}>
+															Messagerie de
+															support
+														</Text>
+														{supportUnreadCount >
+															0 && (
+															<Box
+																style={{
+																	marginLeft: 4,
+																	minWidth: 18,
+																	height: 18,
+																	borderRadius: 9,
+																	paddingHorizontal: 5,
+																	justifyContent:
+																		"center",
+																	alignItems:
+																		"center",
+																	backgroundColor:
+																		"#ef4444",
+																}}>
+																<Text
+																	style={{
+																		color: "#fff",
+																		fontSize: 10,
+																		fontWeight:
+																			"700",
+																		lineHeight: 14,
+																	}}>
+																	{
+																		supportUnreadCount
+																	}
+																</Text>
+															</Box>
+														)}
+													</HStack>
+													<Text
+														size='sm'
+														style={{
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
+														}}>
+														Contacter le support
+														WeSafe
+													</Text>
+												</VStack>
+											</HStack>
+											<Icon
+												as={ChevronRight}
+												size='lg'
+												style={{
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
+												}}
+											/>
+										</HStack>
+									</Card>
+								</TouchableOpacity>
+
+								<ActionCard
+									icon={Settings}
+									title='Paramètres'
+									subtitle="Paramètres de l'application"
+									onPress={() => router.push("/settings")}
+								/>
+							</VStack>
+							<Divider />
+							{/* Déconnexion */}
+							<HStack
+								style={{
+									justifyContent: "center",
+									alignItems: "center",
+									width: "100%",
+								}}>
+								<TouchableOpacity
+									onPress={() => setShowLogoutDialog(true)}
+									activeOpacity={0.7}
+									style={{
+										flexDirection: "row",
+										alignItems: "center",
+										gap: 10,
+										paddingVertical: 14,
+										paddingHorizontal: 4,
+									}}>
+									<LogOut
+										size={16}
+										color={
+											isDark
+												? Colors.dark.danger
+												: Colors.light.danger
+										}
+									/>
+									<Text
+										style={{
+											fontSize: 14,
+											fontWeight: "500",
+											color: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
+										}}>
+										Déconnexion
+									</Text>
+								</TouchableOpacity>
+							</HStack>
+						</VStack>
+					)}
 					<AlertDialog
 						isOpen={showLogoutDialog}
 						onClose={() => setShowLogoutDialog(false)}>
