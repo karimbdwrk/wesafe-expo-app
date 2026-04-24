@@ -9,7 +9,6 @@ import {
 	Animated,
 	Easing,
 	KeyboardAvoidingView,
-	ActivityIndicator,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
@@ -382,6 +381,87 @@ export default function JobsList({
 		setUserCitySelected(true);
 		if (distanceKm === 0) setDistanceKm(20);
 	};
+
+	const skeletonAnim = useRef(new Animated.Value(0.4)).current;
+	useEffect(() => {
+		const pulse = Animated.loop(
+			Animated.sequence([
+				Animated.timing(skeletonAnim, {
+					toValue: 1,
+					duration: 700,
+					useNativeDriver: true,
+				}),
+				Animated.timing(skeletonAnim, {
+					toValue: 0.4,
+					duration: 700,
+					useNativeDriver: true,
+				}),
+			]),
+		);
+		if (isLoading) pulse.start();
+		else pulse.stop();
+		return () => pulse.stop();
+	}, [isLoading]);
+
+	const skeletonColor = isDark ? "#374151" : "#e5e7eb";
+	const _cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const _cardBorder = isDark ? Colors.dark.border : Colors.light.border;
+
+	const SkeletonBox = ({ width, height, style, borderRadius = 8 }) => (
+		<Animated.View
+			style={[
+				{
+					width,
+					height,
+					borderRadius,
+					backgroundColor: skeletonColor,
+					opacity: skeletonAnim,
+				},
+				style,
+			]}
+		/>
+	);
+
+	const SkeletonJobCard = () => (
+		<View
+			style={{
+				backgroundColor: _cardBg,
+				borderRadius: 12,
+				padding: 16,
+				borderWidth: 1,
+				borderColor: _cardBorder,
+				marginBottom: 10,
+			}}>
+			<View
+				style={{
+					flexDirection: "row",
+					gap: 12,
+					alignItems: "flex-start",
+				}}>
+				<SkeletonBox width={44} height={44} borderRadius={22} />
+				<View style={{ flex: 1, gap: 8 }}>
+					<SkeletonBox width='65%' height={14} />
+					<SkeletonBox width='40%' height={12} />
+				</View>
+			</View>
+			<View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
+				<SkeletonBox width={60} height={22} borderRadius={20} />
+				<SkeletonBox width={80} height={22} borderRadius={20} />
+				<SkeletonBox width={70} height={22} borderRadius={20} />
+			</View>
+			<View
+				style={{
+					flexDirection: "row",
+					justifyContent: "space-between",
+					marginTop: 14,
+				}}>
+				<SkeletonBox width='45%' height={12} />
+				<SkeletonBox width='30%' height={12} />
+			</View>
+		</View>
+	);
 
 	return (
 		<>
@@ -1054,16 +1134,11 @@ export default function JobsList({
 						/>
 					}>
 					{isLoading ? (
-						<Center style={{ paddingVertical: 90 }}>
-							<ActivityIndicator
-								size='large'
-								color={
-									isDark
-										? Colors.light.tint
-										: Colors.light.tint
-								}
-							/>
-						</Center>
+						<View style={[styles.jobList, { paddingTop: 10 }]}>
+							{[1, 2, 3, 4, 5, 6].map((i) => (
+								<SkeletonJobCard key={i} />
+							))}
+						</View>
 					) : (
 						<View style={styles.jobList}>
 							{!jobs.length ? (
