@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
 	useLocalSearchParams,
 	useFocusEffect,
@@ -7,7 +7,7 @@ import {
 	useRouter,
 } from "expo-router";
 import { toast } from "sonner-native";
-import { ScrollView, TouchableOpacity } from "react-native";
+import { ScrollView, TouchableOpacity, Animated, View } from "react-native";
 
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
@@ -338,6 +338,48 @@ const JobScreen = () => {
 		}, [user, id]),
 	);
 
+	const skeletonAnim = useRef(new Animated.Value(0.4)).current;
+	useEffect(() => {
+		const pulse = Animated.loop(
+			Animated.sequence([
+				Animated.timing(skeletonAnim, {
+					toValue: 1,
+					duration: 700,
+					useNativeDriver: true,
+				}),
+				Animated.timing(skeletonAnim, {
+					toValue: 0.4,
+					duration: 700,
+					useNativeDriver: true,
+				}),
+			]),
+		);
+		if (isLoading) pulse.start();
+		else pulse.stop();
+		return () => pulse.stop();
+	}, [isLoading]);
+
+	const skeletonColor = isDark ? "#374151" : "#e5e7eb";
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const cardBorder = isDark ? Colors.dark.border : Colors.light.border;
+
+	const SkeletonBox = ({ width, height, style, borderRadius = 8 }) => (
+		<Animated.View
+			style={[
+				{
+					width,
+					height,
+					borderRadius,
+					backgroundColor: skeletonColor,
+					opacity: skeletonAnim,
+				},
+				style,
+			]}
+		/>
+	);
+
 	return (
 		<Box
 			style={{
@@ -361,17 +403,225 @@ const JobScreen = () => {
 				}}
 			/>
 			{isLoading ? (
-				<Box
-					style={{
-						flex: 1,
-						justifyContent: "center",
-						alignItems: "center",
-						backgroundColor: isDark
-							? Colors.dark.background
-							: Colors.light.background,
-					}}>
-					<Spinner />
-				</Box>
+				<ScrollView
+					style={{ flex: 1 }}
+					contentContainerStyle={{
+						paddingHorizontal: 10,
+						paddingVertical: 15,
+						paddingBottom: 120,
+						gap: 12,
+					}}
+					showsVerticalScrollIndicator={false}>
+					{/* === Card Principale === */}
+					<View
+						style={{
+							backgroundColor: cardBg,
+							borderRadius: 12,
+							padding: 20,
+							borderWidth: 1,
+							borderColor: cardBorder,
+							gap: 14,
+						}}>
+						{/* Titre + icône bookmark */}
+						<View
+							style={{
+								flexDirection: "row",
+								justifyContent: "space-between",
+								alignItems: "flex-start",
+							}}>
+							<View style={{ flex: 1, gap: 8 }}>
+								<SkeletonBox
+									width='72%'
+									height={22}
+									borderRadius={6}
+								/>
+							</View>
+							<SkeletonBox
+								width={22}
+								height={26}
+								borderRadius={4}
+							/>
+						</View>
+						{/* Avatar entreprise + nom + ville */}
+						<View
+							style={{
+								flexDirection: "row",
+								alignItems: "center",
+								gap: 12,
+							}}>
+							<SkeletonBox
+								width={40}
+								height={40}
+								borderRadius={20}
+							/>
+							<View style={{ gap: 7 }}>
+								<SkeletonBox
+									width={120}
+									height={14}
+									borderRadius={6}
+								/>
+								<SkeletonBox
+									width={90}
+									height={12}
+									borderRadius={6}
+								/>
+							</View>
+						</View>
+						{/* Badge catégorie (grand) */}
+						<SkeletonBox width={110} height={26} borderRadius={6} />
+						{/* Badges contrat / temps / salaire */}
+						<View style={{ flexDirection: "row", gap: 8 }}>
+							<SkeletonBox
+								width={50}
+								height={22}
+								borderRadius={6}
+							/>
+							<SkeletonBox
+								width={90}
+								height={22}
+								borderRadius={6}
+							/>
+							<SkeletonBox
+								width={80}
+								height={22}
+								borderRadius={6}
+							/>
+						</View>
+					</View>
+
+					{/* === Card Description du poste === */}
+					<View
+						style={{
+							backgroundColor: cardBg,
+							borderRadius: 12,
+							padding: 20,
+							borderWidth: 1,
+							borderColor: cardBorder,
+							gap: 14,
+						}}>
+						{/* Header: icône ronde + titre */}
+						<View
+							style={{
+								flexDirection: "row",
+								alignItems: "center",
+								gap: 12,
+							}}>
+							<SkeletonBox
+								width={48}
+								height={48}
+								borderRadius={24}
+							/>
+							<SkeletonBox
+								width={160}
+								height={18}
+								borderRadius={6}
+							/>
+						</View>
+						<View
+							style={{
+								height: 1,
+								backgroundColor: skeletonColor,
+								opacity: 0.4,
+							}}
+						/>
+						{/* Texte description */}
+						<SkeletonBox
+							width='100%'
+							height={13}
+							borderRadius={4}
+						/>
+						<SkeletonBox width='93%' height={13} borderRadius={4} />
+						<SkeletonBox width='97%' height={13} borderRadius={4} />
+						<SkeletonBox width='80%' height={13} borderRadius={4} />
+						<SkeletonBox width='88%' height={13} borderRadius={4} />
+						{/* Missions (titre + 3 bullet) */}
+						<SkeletonBox
+							width={120}
+							height={13}
+							borderRadius={4}
+							style={{ marginTop: 4 }}
+						/>
+						{[0.85, 0.78, 0.91].map((w, i) => (
+							<View
+								key={i}
+								style={{
+									flexDirection: "row",
+									gap: 8,
+									alignItems: "center",
+								}}>
+								<SkeletonBox
+									width={8}
+									height={8}
+									borderRadius={4}
+								/>
+								<SkeletonBox
+									width={`${Math.round(w * 100)}%`}
+									height={12}
+									borderRadius={4}
+									style={{ flex: 1 }}
+								/>
+							</View>
+						))}
+					</View>
+
+					{/* === Card Profil recherché === */}
+					<View
+						style={{
+							backgroundColor: cardBg,
+							borderRadius: 12,
+							padding: 20,
+							borderWidth: 1,
+							borderColor: cardBorder,
+							gap: 14,
+						}}>
+						<View
+							style={{
+								flexDirection: "row",
+								alignItems: "center",
+								gap: 12,
+							}}>
+							<SkeletonBox
+								width={48}
+								height={48}
+								borderRadius={24}
+							/>
+							<SkeletonBox
+								width={140}
+								height={18}
+								borderRadius={6}
+							/>
+						</View>
+						<View
+							style={{
+								height: 1,
+								backgroundColor: skeletonColor,
+								opacity: 0.4,
+							}}
+						/>
+						<SkeletonBox width={110} height={13} borderRadius={4} />
+						{[0.75, 0.6, 0.82].map((w, i) => (
+							<View
+								key={i}
+								style={{
+									flexDirection: "row",
+									gap: 8,
+									alignItems: "center",
+								}}>
+								<SkeletonBox
+									width={12}
+									height={12}
+									borderRadius={3}
+								/>
+								<SkeletonBox
+									width={`${Math.round(w * 100)}%`}
+									height={12}
+									borderRadius={4}
+									style={{ flex: 1 }}
+								/>
+							</View>
+						))}
+					</View>
+				</ScrollView>
 			) : (
 				<ScrollView ref={scrollViewRef}>
 					<VStack
@@ -2305,19 +2555,67 @@ const JobScreen = () => {
 						<HStack
 							space='md'
 							style={{ width: "100%", marginTop: 8 }}>
-							<Button
-								variant='outline'
-								action='secondary'
+							<TouchableOpacity
 								onPress={() => setShowApplyModal(false)}
-								style={{ flex: 1 }}>
-								<ButtonText>Annuler</ButtonText>
-							</Button>
-							<Button
-								action='primary'
+								activeOpacity={0.7}
+								style={{
+									flex: 1,
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									borderWidth: 1,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
+									backgroundColor: isDark
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
+									borderRadius: 10,
+									height: 44,
+								}}>
+								<Text
+									style={{
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
+										fontSize: 15,
+									}}>
+									Annuler
+								</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
 								onPress={confirmApply}
-								style={{ flex: 1 }}>
-								<ButtonText>Postuler</ButtonText>
-							</Button>
+								activeOpacity={0.7}
+								style={{
+									flex: 1,
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: 8,
+									borderWidth: 1,
+									borderColor: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+									backgroundColor: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+									borderRadius: 10,
+									height: 44,
+								}}>
+								<Icon
+									as={CheckCircle}
+									size='sm'
+									style={{ color: "#fff" }}
+								/>
+								<Text
+									style={{
+										color: "#fff",
+										fontSize: 15,
+										fontWeight: "600",
+									}}>
+									Postuler
+								</Text>
+							</TouchableOpacity>
 						</HStack>
 					</VStack>
 				</ModalContent>
