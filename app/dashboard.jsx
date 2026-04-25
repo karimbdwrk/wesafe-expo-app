@@ -1111,7 +1111,7 @@ const DashboardScreen = () => {
 												? "En attente"
 												: company?.signature_status ===
 													  "verified"
-													? "Validée"
+													? "Validé"
 													: company?.signature_status ===
 														  "rejected"
 														? "Rejetée"
