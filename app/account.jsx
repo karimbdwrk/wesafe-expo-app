@@ -1472,7 +1472,14 @@ const AccountScreen = () => {
 									subtitle='Créez votre signature'
 									onPress={() => router.push("/signature")}
 									badgeText={
-										profile?.signature_url ? "✓" : null
+										profile?.signature_url
+											? "Validée"
+											: null
+									}
+									badgeColor={
+										profile?.signature_url
+											? "success"
+											: undefined
 									}
 								/>
 
@@ -1481,11 +1488,22 @@ const AccountScreen = () => {
 									title='Documents'
 									subtitle="Documents d'identité et sécurité sociale"
 									onPress={() => router.push("/documents")}
-								/>
-
-								<ActionCard
-									icon={IdCard}
-									title='Documents professionnelles'
+									badgeText={
+										profile?.id_verification_status ===
+											"verified" &&
+										profile?.social_security_verification_status ===
+											"verified"
+											? "Validés"
+											: null
+									}
+									badgeColor={
+										profile?.id_verification_status ===
+											"verified" &&
+										profile?.social_security_verification_status ===
+											"verified"
+											? "success"
+											: undefined
+									}
 									subtitle='Cartes professionnels, diplômes, attestations...'
 									onPress={() => router.push("/prodocs")}
 								/>
@@ -1503,16 +1521,8 @@ const AccountScreen = () => {
 									title='Candidatures'
 									subtitle='Suivez vos candidatures'
 									onPress={() => router.push("/applications")}
-									badgeText={
-										notifCount > 0
-											? notifCount.toString()
-											: null
-									}
-									badgeColor={
-										notifCount > 0 ? "error" : undefined
-									}
 								/>
-								<TouchableOpacity
+								{/* <TouchableOpacity
 									onPress={() => router.push("/messaging")}
 									activeOpacity={0.7}>
 									<Card
@@ -1643,7 +1653,7 @@ const AccountScreen = () => {
 											/>
 										</HStack>
 									</Card>
-								</TouchableOpacity>
+								</TouchableOpacity> */}
 
 								<Divider style={{ marginVertical: 16 }} />
 
