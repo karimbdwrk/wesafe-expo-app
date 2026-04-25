@@ -9,6 +9,7 @@ import {
 	Switch,
 	Keyboard,
 	View,
+	Animated,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { LineChart, BarChart, PieChart } from "react-native-gifted-charts";
@@ -83,6 +84,43 @@ export default function Tab1() {
 
 	const searchInputRef = useRef(null);
 
+	const skeletonAnim = useRef(new Animated.Value(0.4)).current;
+	useEffect(() => {
+		const pulse = Animated.loop(
+			Animated.sequence([
+				Animated.timing(skeletonAnim, {
+					toValue: 1,
+					duration: 600,
+					useNativeDriver: true,
+				}),
+				Animated.timing(skeletonAnim, {
+					toValue: 0.4,
+					duration: 600,
+					useNativeDriver: true,
+				}),
+			]),
+		);
+		if (searchLoading) pulse.start();
+		else pulse.stop();
+		return () => pulse.stop();
+	}, [searchLoading]);
+
+	const skeletonColor = isDark ? "#374151" : "#e5e7eb";
+	const SkeletonBox = ({ width, height, style, borderRadius = 6 }) => (
+		<Animated.View
+			style={[
+				{
+					width,
+					height,
+					borderRadius,
+					backgroundColor: skeletonColor,
+					opacity: skeletonAnim,
+				},
+				style,
+			]}
+		/>
+	);
+
 	const [availableLoading, setAvailableLoading] = useState(false);
 	const [isAvailable, setIsAvailable] = useState(!!userProfile?.is_available);
 	const [refreshing, setRefreshing] = useState(false);
@@ -94,6 +132,7 @@ export default function Tab1() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [filteredJobs, setFilteredJobs] = useState([]);
 	const [searchLoading, setSearchLoading] = useState(false);
+	const [searchHasRun, setSearchHasRun] = useState(false);
 	const [recentJobs, setRecentJobs] = useState([]);
 	const [timePeriod, setTimePeriod] = useState("7d"); // 7d, 1m, 6m, 1y, all
 	const [chartData, setChartData] = useState([]);
@@ -130,6 +169,7 @@ export default function Tab1() {
 		if (!query || query.trim().length < 2) {
 			setFilteredJobs([]);
 			setSearchLoading(false);
+			setSearchHasRun(false);
 			return;
 		}
 		setSearchLoading(true);
@@ -150,6 +190,7 @@ export default function Tab1() {
 			setFilteredJobs([]);
 		} finally {
 			setSearchLoading(false);
+			setSearchHasRun(true);
 		}
 	};
 
@@ -1236,17 +1277,58 @@ export default function Tab1() {
 									{searchLoading ? (
 										<VStack
 											style={{
-												alignItems: "center",
-												paddingVertical: 24,
+												gap: 16,
+												paddingVertical: 8,
 											}}>
-											<Spinner
-												size='small'
-												color={
-													isDark
-														? Colors.dark.muted
-														: Colors.light.muted
-												}
-											/>
+											{[1, 2, 3].map((i) => (
+												<View
+													key={i}
+													style={{
+														flexDirection: "row",
+														alignItems:
+															"flex-start",
+														gap: 10,
+														paddingVertical: 2,
+													}}>
+													<SkeletonBox
+														width={32}
+														height={32}
+														borderRadius={16}
+													/>
+													<View
+														style={{
+															flex: 1,
+															gap: 7,
+														}}>
+														<SkeletonBox
+															width='70%'
+															height={14}
+														/>
+														<SkeletonBox
+															width='50%'
+															height={12}
+														/>
+														<View
+															style={{
+																flexDirection:
+																	"row",
+																gap: 6,
+																marginTop: 2,
+															}}>
+															<SkeletonBox
+																width={60}
+																height={18}
+																borderRadius={4}
+															/>
+															<SkeletonBox
+																width={50}
+																height={18}
+																borderRadius={4}
+															/>
+														</View>
+													</View>
+												</View>
+											))}
 										</VStack>
 									) : filteredJobs.length > 0 ? (
 										<>
@@ -1566,7 +1648,7 @@ export default function Tab1() {
 												/>
 											</Button>
 										</>
-									) : (
+									) : searchHasRun ? (
 										<VStack
 											style={{
 												alignItems: "center",
@@ -1594,7 +1676,7 @@ export default function Tab1() {
 												{searchQuery}"
 											</Text>
 										</VStack>
-									)}
+									) : null}
 								</VStack>
 							)}
 						</VStack>
