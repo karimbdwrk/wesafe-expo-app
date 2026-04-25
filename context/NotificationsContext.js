@@ -40,7 +40,8 @@ export const NotificationsProvider = ({ children }) => {
 					},
 				)
 				.eq("recipient_id", user.id)
-				.order("created_at", { ascending: false });
+				.order("created_at", { ascending: false })
+				.limit(30);
 
 			if (!error) {
 				setNotifications(data || []);
