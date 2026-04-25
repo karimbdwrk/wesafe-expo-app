@@ -58,36 +58,8 @@ const Notifications = () => {
 	const [localLoading, setLocalLoading] = useState(true);
 
 	const router = useRouter();
-	// const [notifications, setNotifications] = useState([]);
 
 	const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
-
-	// const supabaseTest = createClient(SUPABASE_URL, SUPABASE_API_KEY, {
-	// 	global: {
-	// 		headers: {
-	// 			Authorization: accessToken
-	// 				? `Bearer ${accessToken}`
-	// 				: undefined,
-	// 		},
-	// 	},
-	// });
-
-	// const loadNotifications = async () => {
-	// 	try {
-	// 		const { data } = await getAll(
-	// 			"notifications",
-	// 			"*",
-	// 			`&recipient_id=eq.${user.id}`,
-	// 			1,
-	// 			50,
-	// 			"created_at.desc",
-	// 		);
-	// 		setNotifications(data);
-	// 		// console.log("Notifications loaded:", data);
-	// 	} catch (error) {
-	// 		console.error("Error loading notifications:", error);
-	// 	}
-	// };
 
 	useFocusEffect(
 		useCallback(() => {
@@ -127,21 +99,6 @@ const Notifications = () => {
 			console.error("Error marking all as read:", error);
 		}
 	};
-
-	// const renderNotification = ({ item }) => (
-	// 	<NotificationItem
-	// 		notification={item}
-	// 		onPress={() => markNotificationAsRead(item.id)}
-	// 	/>
-	// );
-
-	// useFocusEffect(
-	// 	useCallback(() => {
-	// 		if (user?.id) {
-	// 			loadNotifications();
-	// 		}
-	// 	}, [user]),
-	// );
 
 	const handleNotificationPress = async (notification) => {
 		console.log("Notification pressed:", notification);
