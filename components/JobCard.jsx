@@ -46,6 +46,7 @@ import {
 	Zap,
 	Sparkles,
 	Calendar,
+	ShieldCheck,
 } from "lucide-react-native";
 import { width } from "dom-helpers";
 import { getCategoryLabel } from "@/constants/categories";
@@ -82,6 +83,7 @@ const JobCard = ({
 	start_date,
 	end_date,
 	sponsorship_date,
+	subscription_plan,
 }) => {
 	const router = useRouter();
 	const { isDark } = useTheme();
@@ -314,6 +316,10 @@ const JobCard = ({
 									}}>
 									{company_name || "Entreprise"}
 								</Text>
+								{(subscription_plan === "standard_plus" ||
+									subscription_plan === "premium") && (
+									<ShieldCheck size={14} color='#22c55e' />
+								)}
 							</HStack>
 							{city && (
 								<HStack

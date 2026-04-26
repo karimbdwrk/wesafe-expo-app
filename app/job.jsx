@@ -73,6 +73,7 @@ import {
 	CheckCircle,
 	Zap,
 	AlertTriangle,
+	ShieldCheck,
 } from "lucide-react-native";
 import { position } from "dom-helpers";
 
@@ -191,7 +192,7 @@ const JobScreen = () => {
 		const data = await getById(
 			"jobs",
 			id,
-			`*, companies(name, email, logo_url), applications(id, candidate_id, current_status, profiles(firstname, lastname))`,
+			`*, companies(name, email, logo_url, subscription_status), applications(id, candidate_id, current_status, profiles(firstname, lastname))`,
 		);
 		console.log("Fetched job data:", data);
 		setJob(data);
@@ -790,6 +791,17 @@ const JobScreen = () => {
 												{job?.companies?.name ||
 													"Entreprise"}
 											</Text>
+											{(job?.companies
+												?.subscription_status ===
+												"standard_plus" ||
+												job?.companies
+													?.subscription_status ===
+													"premium") && (
+												<ShieldCheck
+													size={14}
+													color='#22c55e'
+												/>
+											)}
 										</HStack>
 										{job?.city && (
 											<HStack
@@ -1961,25 +1973,47 @@ const JobScreen = () => {
 																		}}>
 																		Entreprise
 																	</Text>
-																	<Text
-																		size='lg'
+																	<HStack
+																		space='xs'
 																		style={{
-																			fontWeight:
-																				"600",
-																			color: isDark
-																				? Colors
-																						.dark
-																						.text
-																				: Colors
-																						.light
-																						.text,
+																			alignItems:
+																				"center",
 																		}}>
-																		{
+																		<Text
+																			size='lg'
+																			style={{
+																				fontWeight:
+																					"600",
+																				color: isDark
+																					? Colors
+																							.dark
+																							.text
+																					: Colors
+																							.light
+																							.text,
+																			}}>
+																			{
+																				job
+																					.companies
+																					.name
+																			}
+																		</Text>
+																		{(job
+																			?.companies
+																			?.subscription_status ===
+																			"standard_plus" ||
 																			job
-																				.companies
-																				.name
-																		}
-																	</Text>
+																				?.companies
+																				?.subscription_status ===
+																				"premium") && (
+																			<ShieldCheck
+																				size={
+																					14
+																				}
+																				color='#22c55e'
+																			/>
+																		)}
+																	</HStack>
 																</VStack>
 																<Icon
 																	as={

@@ -78,6 +78,7 @@ import {
 	Clock,
 	AlertTriangle,
 	MessagesSquare,
+	ShieldCheck,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -1156,18 +1157,37 @@ const ApplicationScreen = () => {
 												</Avatar>
 											)}
 											<VStack>
-												<Heading
-													size='md'
+												<HStack
+													space='xs'
 													style={{
-														color: isDark
-															? Colors.dark.text
-															: Colors.light.text,
+														alignItems: "center",
 													}}>
-													{application?.companies
-														?.name ||
-														application?.jobs
-															?.company_name}
-												</Heading>
+													<Heading
+														size='md'
+														style={{
+															color: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
+														}}>
+														{application?.companies
+															?.name ||
+															application?.jobs
+																?.company_name}
+													</Heading>
+													{(application?.companies
+														?.subscription_status ===
+														"standard_plus" ||
+														application?.companies
+															?.subscription_status ===
+															"premium") && (
+														<ShieldCheck
+															size={14}
+															color='#22c55e'
+														/>
+													)}
+												</HStack>
 												<Text size='sm'>
 													Nursing Assistant
 												</Text>
@@ -2497,6 +2517,18 @@ const ApplicationScreen = () => {
 														application?.jobs
 															?.company_name}
 											</Heading>
+											{role !== "pro" &&
+												(application?.companies
+													?.subscription_status ===
+													"standard_plus" ||
+													application?.companies
+														?.subscription_status ===
+														"premium") && (
+													<ShieldCheck
+														size={14}
+														color='#22c55e'
+													/>
+												)}
 											{isOtherPartyOnline && (
 												<View
 													style={{
