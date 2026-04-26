@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { useRef, useState, useEffect } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
+import { Zap } from "lucide-react-native";
 
 function MarqueeTitle({ title, style, isDark }) {
 	const translateX = useRef(new Animated.Value(0)).current;
@@ -115,6 +116,7 @@ export default function MyHeader({
 	headerRight,
 	showBack,
 	titleBadge,
+	titleIcon,
 }) {
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
@@ -194,6 +196,26 @@ export default function MyHeader({
 								{titleBadge > 99 ? "99+" : titleBadge}
 							</Text>
 						</View>
+					</View>
+				) : titleIcon ? (
+					<View
+						style={{
+							flexDirection: "row",
+							alignItems: "center",
+							gap: 6,
+						}}>
+						{titleIcon}
+						<Text
+							style={[
+								styles.title,
+								{
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
+								},
+							]}>
+							{title}
+						</Text>
 					</View>
 				) : (
 					<MarqueeTitle
