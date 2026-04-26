@@ -43,6 +43,7 @@ import {
 import { LoaderKitView } from "react-native-loader-kit";
 
 import JobCard from "@/components/JobCard";
+import { Card } from "@/components/ui/card";
 
 import {
 	ChevronLeft,
@@ -50,6 +51,7 @@ import {
 	Info,
 	SlidersHorizontal,
 	Search,
+	SearchX,
 	X,
 	MapPin,
 	Ticket,
@@ -277,7 +279,7 @@ export default function JobsList({
 
 			const { data, totalCount } = await getAll(
 				"jobs",
-				"*,companies(logo_url, name)",
+				"*,companies(logo_url, name, subscription_status)",
 				`&is_archived=eq.FALSE${filters}&isLastMinute=eq.${isLastMinute}${lmFilters}`,
 				page,
 				itemsPerPage,
@@ -1142,17 +1144,65 @@ export default function JobsList({
 					) : (
 						<View style={styles.jobList}>
 							{!jobs.length ? (
-								<HStack
-									justifyContent='center'
-									style={{ paddingVertical: 90 }}>
-									<Badge
-										size='md'
-										variant='solid'
-										action='warning'>
-										<BadgeIcon as={Info} className='mr-2' />
-										<BadgeText>Aucun résultat</BadgeText>
-									</Badge>
-								</HStack>
+								<Card
+									style={{
+										backgroundColor: isDark
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
+										borderRadius: 12,
+										padding: 40,
+										marginTop: 16,
+									}}>
+									<VStack
+										space='md'
+										style={{ alignItems: "center" }}>
+										<Box
+											style={{
+												width: 80,
+												height: 80,
+												borderRadius: 40,
+												backgroundColor: isDark
+													? Colors.dark.background
+													: Colors.light.background,
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Icon
+												as={SearchX}
+												size={40}
+												color={
+													isDark
+														? Colors.dark.muted
+														: Colors.light.muted
+												}
+											/>
+										</Box>
+										<VStack
+											space='xs'
+											style={{ alignItems: "center" }}>
+											<Heading
+												size='md'
+												style={{
+													color: isDark
+														? Colors.dark.text
+														: Colors.light.text,
+												}}>
+												Aucun résultat
+											</Heading>
+											<Text
+												size='sm'
+												style={{
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
+													textAlign: "center",
+												}}>
+												Essayez d'autres critères de
+												recherche
+											</Text>
+										</VStack>
+									</VStack>
+								</Card>
 							) : (
 								jobs.map((job) => (
 									<JobCard
@@ -1166,6 +1216,9 @@ export default function JobsList({
 										department={job?.department_code}
 										logo={job?.companies?.logo_url}
 										company_name={job?.companies?.name}
+										subscription_plan={
+											job?.companies?.subscription_status
+										}
 										contract_type={job?.contract_type}
 										working_time={job?.work_time}
 										salary_hourly={job?.salary_hourly}
