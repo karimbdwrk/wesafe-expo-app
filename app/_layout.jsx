@@ -26,6 +26,7 @@ import { Fab, FabIcon } from "@/components/ui/fab";
 import { MoonIcon, SunIcon } from "@/components/ui/icon";
 
 import MyHeader from "@/components/MyHeader";
+import { Zap } from "lucide-react-native";
 
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Toaster } from "sonner-native";
@@ -264,6 +265,7 @@ function RootLayoutNav() {
 										headerRight={props.options.headerRight}
 										showBack={props.back}
 										titleBadge={props.options.titleBadge}
+										titleIcon={props.options.titleIcon}
 									/>
 								),
 								headerShown: false,
@@ -520,6 +522,9 @@ function RootLayoutNav() {
 								options={{
 									headerShown: true,
 									headerTitle: "Offres Last Minute",
+									titleIcon: (
+										<Zap size={18} color='#f97316' />
+									),
 								}}
 							/>
 							<Stack.Screen
