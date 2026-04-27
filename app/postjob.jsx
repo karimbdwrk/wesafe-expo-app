@@ -2068,6 +2068,7 @@ const PostJob = () => {
 															}}>
 															<InputField
 																placeholder='Ex: Agent de sécurité H/F'
+																autoCapitalize='sentences'
 																value={
 																	formData.title
 																}
@@ -2238,6 +2239,7 @@ const PostJob = () => {
 																minHeight: 120,
 															}}>
 															<TextareaInput
+																autoCapitalize='sentences'
 																placeholder='Décrivez le poste et les responsabilités...'
 																value={
 																	formData.description
@@ -2355,6 +2357,7 @@ const PostJob = () => {
 																value={
 																	currentMission
 																}
+																autoCapitalize='sentences'
 																onChangeText={
 																	setCurrentMission
 																}
@@ -2565,6 +2568,7 @@ const PostJob = () => {
 																value={
 																	currentProfile
 																}
+																autoCapitalize='sentences'
 																onChangeText={
 																	setCurrentProfile
 																}
