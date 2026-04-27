@@ -109,11 +109,14 @@ const STATUS_ORDER = [
 	"contract_signed_pro",
 ];
 
+const STATUS_ORDER_STANDARD = ["applied", "selected", "confirmed"];
+
 const STATUS_CONFIG = {
 	applied: {
 		title: "Candidature envoyée",
 		descriptionCandidate: "Votre candidature a été envoyée avec succès.",
 		descriptionPro: "Un candidat a postulé à cette annonce.",
+		messageCandidate: "Votre candidature est en cours d'examen. Le recruteur reviendra vers vous prochainement.",
 		color: Colors.light.success,
 	},
 
@@ -121,6 +124,7 @@ const STATUS_CONFIG = {
 		title: "Profil sélectionné",
 		descriptionCandidate: "Le recruteur étudie votre profil.",
 		descriptionPro: "Vous avez sélectionné ce candidat pour la suite.",
+		messageCandidate: "Votre profil a été sélectionné ! Le recruteur va rentrer en contact avec vous pour la suite du processus.",
 		color: Colors.light.tint,
 	},
 
@@ -128,6 +132,7 @@ const STATUS_CONFIG = {
 		title: "Contrat envoyé",
 		descriptionCandidate: "Un contrat vous a été transmis.",
 		descriptionPro: "Vous avez envoyé un contrat au candidat.",
+		messageCandidate: "Un contrat vous a été envoyé. Consultez-le et signez-le pour confirmer la mission.",
 		color: Colors.light.warning,
 	},
 
@@ -135,6 +140,7 @@ const STATUS_CONFIG = {
 		title: "Contrat signé",
 		descriptionCandidate: "Vous avez signé le contrat.",
 		descriptionPro: "Le candidat a signé le contrat.",
+		messageCandidate: "Vous avez signé le contrat. En attente de la signature du recruteur pour finaliser la mission.",
 		color: Colors.light.success,
 	},
 
@@ -144,6 +150,16 @@ const STATUS_CONFIG = {
 			"Le recruteur a signé le contrat. \nLa mission est confirmée.",
 		descriptionPro:
 			"Vous avez signé le contrat. \nLa mission est confirmée.",
+		messageCandidate: "Mission confirmée ! Les deux parties ont signé le contrat. Bonne mission !",
+		color: Colors.light.success,
+		isFinal: true,
+	},
+
+	confirmed: {
+		title: "Mission confirmée",
+		descriptionCandidate: "Le recruteur a confirmé votre mission.",
+		descriptionPro: "Vous avez confirmé la mission.",
+		messageCandidate: "Mission confirmée ! Le recruteur a validé votre participation. Bonne mission !",
 		color: Colors.light.success,
 		isFinal: true,
 	},
@@ -152,6 +168,7 @@ const STATUS_CONFIG = {
 		title: "Candidature refusée",
 		descriptionCandidate: "Votre candidature n’a pas été retenue.",
 		descriptionPro: "Vous avez refusé cette candidature.",
+		messageCandidate: "Votre candidature n'a pas été retenue pour ce poste. N'hésitez pas à postuler à d'autres annonces.",
 		color: Colors.light.danger,
 		isFinal: true,
 	},
@@ -192,6 +209,8 @@ const ApplicationScreen = () => {
 	const [showModal, setShowModal] = useState(false);
 	const [showSelectModal, setShowSelectModal] = useState(false);
 	const [showRejectModal, setShowRejectModal] = useState(false);
+	const [showConfirmMissionModal, setShowConfirmMissionModal] =
+		useState(false);
 	const [showGenerateContractModal, setShowGenerateContractModal] =
 		useState(false);
 	const [contractHourlyRate, setContractHourlyRate] = useState("");
@@ -700,6 +719,49 @@ const ApplicationScreen = () => {
 		setShowSelectModal(true);
 	};
 
+	const confirmMission = async () => {
+		await updateApplicationStatus(apply_id, "confirmed", "company");
+		setCurrentStatus("confirmed");
+
+		const supabase = createSupabaseClient(accessToken);
+		await supabase
+			.from("applications")
+			.update({ updated_at: new Date().toISOString() })
+			.eq("id", apply_id);
+
+		setShowConfirmMissionModal(false);
+
+		const { data: presenceData } = await supabase
+			.from("user_presence")
+			.select("apply_id")
+			.eq("user_id", application.candidate_id)
+			.eq("apply_id", apply_id)
+			.gte("last_seen", new Date(Date.now() - 5000).toISOString())
+			.single();
+
+		if (!presenceData) {
+			await createNotification({
+				recipientId: application.candidate_id,
+				actorId: application.company_id,
+				type: "mission_confirmed",
+				title: application.jobs.title,
+				body: "Le recruteur a confirmé votre mission.",
+				entityType: "application",
+				entityId: apply_id,
+			});
+		}
+
+		await sendRecruitmentStatusEmail(
+			application.profiles.email,
+			`${application.profiles.firstname} ${application.profiles.lastname}`,
+			application.companies?.name || application.jobs.company_name,
+			"confirmed",
+			application.jobs.title,
+			"candidate",
+			accessToken,
+		);
+	};
+
 	const confirmGenerateContract = async () => {
 		const isNowSelected = await updateApplicationStatus(
 			apply_id,
@@ -895,9 +957,14 @@ const ApplicationScreen = () => {
 			return steps;
 		}
 
+		// Choisir l'ordre selon le plan d'abonnement
+		const isStandard =
+			application?.companies?.subscription_status === "standard";
+		const order = isStandard ? STATUS_ORDER_STANDARD : STATUS_ORDER;
+
 		// Trouver le statut suivant
-		const currentIndex = STATUS_ORDER.indexOf(lastStatus);
-		const nextStatus = STATUS_ORDER[currentIndex + 1];
+		const currentIndex = order.indexOf(lastStatus);
+		const nextStatus = order[currentIndex + 1];
 
 		if (!nextStatus) return steps;
 
@@ -1468,61 +1535,89 @@ const ApplicationScreen = () => {
 						</VStack>
 					</Card>
 
-					{/* Bouton Messagerie */}
-					{currentStatus !== "applied" && currentStatus !== "" && (
-						<TouchableOpacity
-							onPress={() => setShowMessaging(true)}
-							activeOpacity={0.75}
-							style={{
-								borderRadius: 12,
-								paddingVertical: 14,
-								paddingHorizontal: 20,
-								backgroundColor: isDark
-									? Colors.dark.tint
-									: Colors.light.tint,
-								flexDirection: "row",
-								alignItems: "center",
-								justifyContent: "center",
-								gap: 10,
-							}}>
-							<Icon
-								as={MessagesSquare}
-								size='lg'
-								style={{ color: "#ffffff" }}
-							/>
-							<Text
+					{/* Message contextuel pour le candidat */}
+					{role === "candidat" &&
+						currentStatus !== "" &&
+						STATUS_CONFIG[currentStatus]?.messageCandidate && (
+							<Card
 								style={{
-									color: "#ffffff",
-									fontWeight: "700",
-									fontSize: 15,
+									padding: 16,
+									backgroundColor: STATUS_CONFIG[currentStatus]?.color + "18",
+									borderRadius: 12,
+									borderWidth: 1,
+									borderColor: STATUS_CONFIG[currentStatus]?.color + "55",
 								}}>
-								Messagerie
-							</Text>
-							{unreadMessagesCount > 0 && (
-								<Box
+								<Text
+									size="sm"
 									style={{
-										backgroundColor: isDark
-											? Colors.dark.danger
-											: Colors.light.danger,
-										borderRadius: 10,
-										minWidth: 20,
-										height: 20,
-										justifyContent: "center",
-										alignItems: "center",
-										paddingHorizontal: 5,
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
+										lineHeight: 20,
 									}}>
-									<Text
+									{STATUS_CONFIG[currentStatus].messageCandidate}
+								</Text>
+							</Card>
+						)}
+
+					{/* Bouton Messagerie */}
+					{currentStatus !== "applied" &&
+						currentStatus !== "" &&
+						application?.companies?.subscription_status !==
+							"standard" && (
+							<TouchableOpacity
+								onPress={() => setShowMessaging(true)}
+								activeOpacity={0.75}
+								style={{
+									borderRadius: 12,
+									paddingVertical: 14,
+									paddingHorizontal: 20,
+									backgroundColor: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: 10,
+								}}>
+								<Icon
+									as={MessagesSquare}
+									size='lg'
+									style={{ color: "#ffffff" }}
+								/>
+								<Text
+									style={{
+										color: "#ffffff",
+										fontWeight: "700",
+										fontSize: 15,
+									}}>
+									Messagerie
+								</Text>
+								{unreadMessagesCount > 0 && (
+									<Box
 										style={{
-											color: "#ffffff",
-											fontSize: 11,
-											fontWeight: "bold",
+											backgroundColor: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
+											borderRadius: 10,
+											minWidth: 20,
+											height: 20,
+											justifyContent: "center",
+											alignItems: "center",
+											paddingHorizontal: 5,
 										}}>
-										{unreadMessagesCount}
-									</Text>
-								</Box>
-							)}
-						</TouchableOpacity>
-					)}
+										<Text
+											style={{
+												color: "#ffffff",
+												fontSize: 11,
+												fontWeight: "bold",
+											}}>
+											{unreadMessagesCount}
+										</Text>
+									</Box>
+								)}
+							</TouchableOpacity>
+						)}
 
 					{/* Contrat Card */}
 					{(contractGenerated ||
@@ -1687,7 +1782,39 @@ const ApplicationScreen = () => {
 							)}
 							{currentStatus === "selected" && (
 								<>
-									{!draftContractExists &&
+									{application?.companies
+										?.subscription_status === "standard" ? (
+										<TouchableOpacity
+											onPress={() =>
+												setShowConfirmMissionModal(true)
+											}
+											activeOpacity={0.75}
+											style={{
+												borderRadius: 10,
+												paddingVertical: 13,
+												alignItems: "center",
+												borderWidth: 1,
+												borderColor: isDark
+													? Colors.dark.tint
+													: Colors.light.tint,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
+											}}>
+											<Text
+												style={{
+													fontWeight: "700",
+													fontSize: 14,
+													color: isDark
+														? Colors.dark.tint
+														: Colors.light.tint,
+												}}>
+												Confirmer la mission
+											</Text>
+										</TouchableOpacity>
+									) : (
+										!draftContractExists &&
 										!contractGenerated && (
 											<TouchableOpacity
 												onPress={() =>
@@ -1726,7 +1853,8 @@ const ApplicationScreen = () => {
 													Générer le contrat
 												</Text>
 											</TouchableOpacity>
-										)}
+										)
+									)}
 									<TouchableOpacity
 										onPress={() => handleReject()}
 										activeOpacity={0.75}
@@ -1844,6 +1972,121 @@ const ApplicationScreen = () => {
 							</TouchableOpacity>
 							<TouchableOpacity
 								onPress={confirmSelect}
+								activeOpacity={0.75}
+								style={{
+									flex: 1,
+									paddingVertical: 11,
+									borderRadius: 10,
+									alignItems: "center",
+									borderWidth: 1,
+									borderColor: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+									backgroundColor: "transparent",
+								}}>
+								<Text
+									style={{
+										fontWeight: "600",
+										fontSize: 14,
+										color: isDark
+											? Colors.dark.tint
+											: Colors.light.tint,
+									}}>
+									Confirmer
+								</Text>
+							</TouchableOpacity>
+						</HStack>
+					</VStack>
+				</ModalContent>
+			</Modal>
+
+			{/* Modal de confirmation de mission (standard) */}
+			<Modal
+				isOpen={showConfirmMissionModal}
+				onClose={() => setShowConfirmMissionModal(false)}>
+				<ModalBackdrop />
+				<ModalContent
+					style={{
+						maxWidth: 400,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
+						borderRadius: 16,
+						padding: 24,
+					}}>
+					<VStack space='lg' style={{ alignItems: "center" }}>
+						<Box
+							style={{
+								width: 64,
+								height: 64,
+								borderRadius: 32,
+								backgroundColor: "#dcfce7",
+								justifyContent: "center",
+								alignItems: "center",
+							}}>
+							<Icon
+								as={CheckCircle}
+								size='2xl'
+								style={{ color: Colors.light.success }}
+							/>
+						</Box>
+						<VStack space='sm' style={{ alignItems: "center" }}>
+							<Heading
+								size='xl'
+								style={{
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
+									textAlign: "center",
+								}}>
+								Confirmer la mission
+							</Heading>
+							<Text
+								size='md'
+								style={{
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
+									textAlign: "center",
+								}}>
+								Confirmez-vous la mission pour ce candidat ?
+								Cette action est définitive.
+							</Text>
+						</VStack>
+						<HStack
+							space='md'
+							style={{ width: "100%", marginTop: 8 }}>
+							<TouchableOpacity
+								onPress={() =>
+									setShowConfirmMissionModal(false)
+								}
+								activeOpacity={0.75}
+								style={{
+									flex: 1,
+									paddingVertical: 11,
+									borderRadius: 10,
+									alignItems: "center",
+									borderWidth: 1,
+									borderColor: isDark
+										? Colors.dark.border
+										: Colors.light.border,
+									backgroundColor: isDark
+										? Colors.dark.cardBackground
+										: Colors.light.cardBackground,
+								}}>
+								<Text
+									style={{
+										fontWeight: "600",
+										fontSize: 14,
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
+									}}>
+									Annuler
+								</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								onPress={confirmMission}
 								activeOpacity={0.75}
 								style={{
 									flex: 1,
