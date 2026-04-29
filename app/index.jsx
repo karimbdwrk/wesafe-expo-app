@@ -22,6 +22,7 @@ import { Shield, Briefcase, FileCheck, Users } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import LogoTitle from "@/assets/icons/Logo";
 import Colors from "@/constants/Colors";
 
 const Feature = ({ icon, label, isDark }) => {
@@ -67,11 +68,12 @@ export default function Home() {
 					alignItems: "center",
 					backgroundColor: bg,
 				}}>
-				<Image
-					source={require("@/assets/images/logo-wesafe-v2.png")}
-					style={{ width: 120, height: 120, marginBottom: 32 }}
-					resizeMode='contain'
-				/>
+				<View style={{ marginBottom: 32 }}>
+					<LogoTitle
+						colorScheme={isDark ? "dark" : "light"}
+						size={120}
+					/>
+				</View>
 				<ActivityIndicator size='large' color={tint} />
 			</View>
 		);
@@ -91,10 +93,9 @@ export default function Home() {
 						paddingTop: 56,
 						paddingBottom: 32,
 					}}>
-					<Image
-						source={require("@/assets/images/logo-wesafe-v2.png")}
-						style={{ width: 110, height: 110 }}
-						resizeMode='contain'
+					<LogoTitle
+						colorScheme={isDark ? "dark" : "light"}
+						size={110}
 					/>
 					<RNText
 						style={{
