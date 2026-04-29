@@ -37,6 +37,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
+import LogoTitle from "@/assets/icons/Logo";
 import Colors from "@/constants/Colors";
 import { createSupabaseClient } from "@/lib/supabase";
 
@@ -281,10 +282,9 @@ const CreateCompany = () => {
 								paddingTop: 32,
 								paddingBottom: 24,
 							}}>
-							<Image
-								source={require("@/assets/images/logo-wesafe-v2.png")}
-								style={{ width: 70, height: 70 }}
-								resizeMode='contain'
+							<LogoTitle
+								colorScheme={isDark ? "dark" : "light"}
+								size={70}
 							/>
 							<Text
 								style={{

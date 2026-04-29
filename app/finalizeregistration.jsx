@@ -15,6 +15,7 @@ import { Briefcase, User, LogOut } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import LogoTitle from "@/assets/icons/Logo";
 import Colors from "@/constants/Colors";
 
 const FinalizeRegistrationScreen = () => {
@@ -26,7 +27,9 @@ const FinalizeRegistrationScreen = () => {
 		<SafeAreaView
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.background,
 			}}>
 			<VStack
 				style={{ flex: 1, paddingHorizontal: 24, paddingBottom: 32 }}>
@@ -43,11 +46,20 @@ const FinalizeRegistrationScreen = () => {
 						<Icon
 							as={LogOut}
 							size='sm'
-							style={{ color: isDark ? Colors.dark.danger : Colors.light.danger }}
+							style={{
+								color: isDark
+									? Colors.dark.danger
+									: Colors.light.danger,
+							}}
 						/>
 						<Text
 							size='sm'
-							style={{ color: isDark ? Colors.dark.danger : Colors.light.danger, fontWeight: "600" }}>
+							style={{
+								color: isDark
+									? Colors.dark.danger
+									: Colors.light.danger,
+								fontWeight: "600",
+							}}>
 							Déconnexion
 						</Text>
 					</HStack>
@@ -60,16 +72,17 @@ const FinalizeRegistrationScreen = () => {
 						paddingTop: 32,
 						paddingBottom: 40,
 					}}>
-					<Image
-						source={require("@/assets/images/logo-wesafe-v2.png")}
-						style={{ width: 90, height: 90 }}
-						resizeMode='contain'
+					<LogoTitle
+						colorScheme={isDark ? "dark" : "light"}
+						size={90}
 					/>
 					<Text
 						style={{
 							fontSize: 24,
 							fontWeight: "800",
-							color: isDark ? Colors.dark.text : Colors.light.text,
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
 							marginTop: 20,
 							letterSpacing: -0.5,
 							textAlign: "center",
@@ -80,7 +93,9 @@ const FinalizeRegistrationScreen = () => {
 					<Text
 						size='sm'
 						style={{
-							color: isDark ? Colors.dark.muted : Colors.light.muted,
+							color: isDark
+								? Colors.dark.muted
+								: Colors.light.muted,
 							textAlign: "center",
 							marginTop: 8,
 							lineHeight: 16,
@@ -100,10 +115,14 @@ const FinalizeRegistrationScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 16,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.border : Colors.light.border,
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<HStack space='md' style={{ alignItems: "center" }}>
 								<Box
@@ -158,10 +177,14 @@ const FinalizeRegistrationScreen = () => {
 						<Card
 							style={{
 								padding: 20,
-								backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+								backgroundColor: isDark
+									? Colors.dark.cardBackground
+									: Colors.light.cardBackground,
 								borderRadius: 16,
 								borderWidth: 1,
-								borderColor: isDark ? Colors.dark.border : Colors.light.border,
+								borderColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
 							}}>
 							<HStack space='md' style={{ alignItems: "center" }}>
 								<Box

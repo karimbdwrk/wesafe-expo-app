@@ -45,6 +45,7 @@ import { createSupabaseClient } from "@/lib/supabase";
 import { useDataContext } from "@/context/DataContext";
 import { CREATE_PROFILE } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
+import LogoTitle from "@/assets/icons/Logo";
 import Colors from "@/constants/Colors";
 import { DRIVING_LICENSES } from "@/constants/drivinglicences";
 import { languages as LANGUAGES } from "@/constants/languages";
@@ -361,10 +362,9 @@ const CreateProfile = () => {
 								paddingTop: 32,
 								paddingBottom: 24,
 							}}>
-							<Image
-								source={require("@/assets/images/logo-wesafe-v2.png")}
-								style={{ width: 70, height: 70 }}
-								resizeMode='contain'
+							<LogoTitle
+								colorScheme={isDark ? "dark" : "light"}
+								size={70}
 							/>
 							<Text
 								style={{
