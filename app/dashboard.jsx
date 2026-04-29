@@ -63,6 +63,7 @@ import {
 	BookUser,
 	MessagesSquare,
 	Zap,
+	ShieldCheck,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -693,18 +694,43 @@ const DashboardScreen = () => {
 														"space-between",
 												}}>
 												<VStack className='mb-2'>
-													<Text
-														size='lg'
+													<HStack
+														space='xs'
 														style={{
-															fontWeight: "600",
-															color: isDark
-																? Colors.dark
-																		.text
-																: Colors.light
-																		.text,
+															alignItems:
+																"center",
 														}}>
-														{company?.name}
-													</Text>
+														<Text
+															size='lg'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
+																	? Colors
+																			.dark
+																			.text
+																	: Colors
+																			.light
+																			.text,
+															}}>
+															{company?.name}
+														</Text>
+														{(userCompany?.subscription_status ===
+															"standard_plus" ||
+															userCompany?.subscription_status ===
+																"premium") &&
+															company?.company_status ===
+																"active" && (
+																<ShieldCheck
+																	size={18}
+																	color={
+																		Colors
+																			.light
+																			.success
+																	}
+																/>
+															)}
+													</HStack>
 													{(company?.legal_representative_firstname ||
 														company?.legal_representative_lastname) && (
 														<Text
