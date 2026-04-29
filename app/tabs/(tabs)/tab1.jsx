@@ -58,6 +58,7 @@ import {
 	Zap,
 	BadgeEuro,
 	XCircle,
+	ShieldCheck,
 } from "lucide-react-native";
 
 import SuggestedJobs from "@/components/SuggestedJobs";
@@ -601,17 +602,30 @@ export default function Tab1() {
 								}}>
 								{getGreeting()}
 							</Text>
-							<Heading
-								size='2xl'
-								style={{
-									color: isDark
-										? Colors.dark.text
-										: Colors.light.text,
-									lineHeight: 34,
-									fontFamily: "Inter_800ExtraBold",
-								}}>
-								{userCompany?.name || "Tableau de bord"}
-							</Heading>
+							<HStack space='xs' style={{ alignItems: "center" }}>
+								<Heading
+									size='2xl'
+									style={{
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
+										lineHeight: 34,
+										fontFamily: "Inter_800ExtraBold",
+									}}>
+									{userCompany?.name || "Tableau de bord"}
+								</Heading>
+								{(userCompany?.subscription_status ===
+									"standard_plus" ||
+									userCompany?.subscription_status ===
+										"premium") &&
+									userCompany?.company_status ===
+										"active" && (
+										<ShieldCheck
+											size={22}
+											color={Colors.light.success}
+										/>
+									)}
+							</HStack>
 						</VStack>
 					</HStack>
 
