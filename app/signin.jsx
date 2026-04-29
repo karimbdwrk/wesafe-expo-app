@@ -31,6 +31,7 @@ import { EyeIcon, EyeOffIcon, Icon } from "@/components/ui/icon";
 import { ChevronLeft } from "lucide-react-native";
 
 import { useTheme } from "@/context/ThemeContext";
+import LogoTitle from "@/assets/icons/Logo";
 import Colors from "@/constants/Colors";
 
 const SignInScreen = () => {
@@ -252,10 +253,9 @@ const SignInScreen = () => {
 								paddingTop: 24,
 								paddingBottom: 32,
 							}}>
-							<Image
-								source={require("@/assets/images/logo-wesafe-v2.png")}
-								style={{ width: 80, height: 80 }}
-								resizeMode='contain'
+							<LogoTitle
+								colorScheme={isDark ? "dark" : "light"}
+								size={80}
 							/>
 							<Text
 								style={{

@@ -49,6 +49,7 @@ import { ChevronLeft } from "lucide-react-native";
 
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import LogoTitle from "@/assets/icons/Logo";
 import Colors from "@/constants/Colors";
 import { createSupabaseClient } from "../lib/supabase";
 import OTPForm from "../components/OTPForm";
@@ -58,14 +59,14 @@ const SignUpScreen = () => {
 	const router = useRouter();
 	const { isDark } = useTheme();
 	const scheme = isDark ? "dark" : "light";
-	const bg         = Colors[scheme].background;
-	const cardBg     = Colors[scheme].cardBackground;
-	const elevated   = Colors[scheme].elevated;
-	const border     = Colors[scheme].border;
+	const bg = Colors[scheme].background;
+	const cardBg = Colors[scheme].cardBackground;
+	const elevated = Colors[scheme].elevated;
+	const border = Colors[scheme].border;
 	const textPrimary = Colors[scheme].text;
-	const muted      = Colors[scheme].muted;
-	const tint       = Colors[scheme].tint;
-	const danger     = Colors[scheme].danger;
+	const muted = Colors[scheme].muted;
+	const tint = Colors[scheme].tint;
+	const danger = Colors[scheme].danger;
 	const initialRef = useRef(null);
 
 	const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
@@ -266,10 +267,9 @@ const SignUpScreen = () => {
 								paddingTop: 24,
 								paddingBottom: 32,
 							}}>
-							<Image
-								source={require("@/assets/images/logo-wesafe-v2.png")}
-								style={{ width: 80, height: 80 }}
-								resizeMode='contain'
+							<LogoTitle
+								colorScheme={isDark ? "dark" : "light"}
+								size={80}
 							/>
 							<Text
 								style={{
