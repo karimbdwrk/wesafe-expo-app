@@ -48,7 +48,11 @@ const PLANS = [
 		borderActive: "#3b82f6",
 		priceMonthly: null,
 		priceYearly: null,
-		features: ["3 offres publiées par mois", "Suivi des candidatures"],
+		features: [
+			"3 offres publiées par mois",
+			"Suivi des candidatures",
+			"Support par email",
+		],
 	},
 	{
 		key: "standard_plus",
