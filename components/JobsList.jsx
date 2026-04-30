@@ -285,7 +285,21 @@ export default function JobsList({
 				itemsPerPage,
 				"sponsorship_date.desc.nullslast,date.desc",
 			);
-			setJobs(data || []);
+
+			const SUBSCRIPTION_RANK = { premium: 1, standard_plus: 2 };
+			const sorted = (data || []).slice().sort((a, b) => {
+				const aSponsored = a.sponsorship_date != null ? 0 : 1;
+				const bSponsored = b.sponsorship_date != null ? 0 : 1;
+				if (aSponsored !== bSponsored) return aSponsored - bSponsored;
+				const aRank =
+					SUBSCRIPTION_RANK[a.companies?.subscription_status] ?? 3;
+				const bRank =
+					SUBSCRIPTION_RANK[b.companies?.subscription_status] ?? 3;
+				if (aRank !== bRank) return aRank - bRank;
+				return new Date(b.date) - new Date(a.date);
+			});
+
+			setJobs(sorted);
 			setTotalCount(totalCount || 0);
 		} catch (err) {
 			console.error("Erreur chargement jobs:", err);
