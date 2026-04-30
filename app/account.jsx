@@ -1463,14 +1463,29 @@ const AccountScreen = () => {
 									subtitle='Créez votre signature'
 									onPress={() => router.push("/signature")}
 									badgeText={
-										profile?.signature_url
-											? "Validée"
-											: null
+										!profile?.signature_url
+											? null
+											: profile?.signature_status ===
+												  "verified"
+												? "Validée"
+												: profile?.signature_status ===
+													  "pending"
+													? "En attente"
+													: profile?.signature_status ===
+														  "rejected"
+														? "Refusée"
+														: null
 									}
 									badgeColor={
-										profile?.signature_url
+										profile?.signature_status === "verified"
 											? "success"
-											: undefined
+											: profile?.signature_status ===
+												  "pending"
+												? "warning"
+												: profile?.signature_status ===
+													  "rejected"
+													? "error"
+													: undefined
 									}
 								/>
 
