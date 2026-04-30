@@ -22,11 +22,24 @@ import {
 } from "lucide-react-native";
 
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 
 const FAQScreen = () => {
 	const { isDark } = useTheme();
 	const router = useRouter();
 	const [expandedItems, setExpandedItems] = useState([]);
+
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const cardBg = isDark
+		? Colors.dark.cardBackground
+		: Colors.light.cardBackground;
+	const border = isDark ? Colors.dark.border : Colors.light.border;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textMuted = isDark
+		? Colors.dark.textSecondary
+		: Colors.light.textSecondary;
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
+	const tint20 = isDark ? Colors.dark.tint20 : Colors.light.tint20;
 
 	const toggleItem = (id) => {
 		setExpandedItems((prev) =>
@@ -160,10 +173,10 @@ const FAQScreen = () => {
 				<Card
 					style={{
 						padding: 16,
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: cardBg,
 						borderRadius: 12,
 						borderWidth: 1,
-						borderColor: isDark ? "#4b5563" : "#e5e7eb",
+						borderColor: border,
 						marginBottom: 12,
 					}}>
 					<HStack
@@ -177,7 +190,7 @@ const FAQScreen = () => {
 								flex: 1,
 								fontWeight: "600",
 								fontSize: 15,
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: textPrimary,
 							}}>
 							{item.question}
 						</Text>
@@ -185,7 +198,7 @@ const FAQScreen = () => {
 							as={isExpanded ? ChevronUp : ChevronDown}
 							size='lg'
 							style={{
-								color: isDark ? "#60a5fa" : "#2563eb",
+								color: tint,
 							}}
 						/>
 					</HStack>
@@ -196,7 +209,7 @@ const FAQScreen = () => {
 								style={{
 									fontSize: 14,
 									lineHeight: 20,
-									color: isDark ? "#d1d5db" : "#4b5563",
+									color: textMuted,
 								}}>
 								{item.answer}
 							</Text>
@@ -210,15 +223,11 @@ const FAQScreen = () => {
 	const CategorySection = ({ category }) => (
 		<VStack space='md' style={{ marginBottom: 24 }}>
 			<HStack space='sm' style={{ alignItems: "center" }}>
-				<Icon
-					as={category.icon}
-					size='lg'
-					style={{ color: isDark ? "#60a5fa" : "#2563eb" }}
-				/>
+				<Icon as={category.icon} size='lg' style={{ color: tint }} />
 				<Heading
 					size='lg'
 					style={{
-						color: isDark ? "#f3f4f6" : "#111827",
+						color: textPrimary,
 					}}>
 					{category.category}
 				</Heading>
@@ -235,7 +244,7 @@ const FAQScreen = () => {
 		<Box
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? "#1f2937" : "#f9fafb",
+				backgroundColor: bg,
 			}}>
 			<ScrollView
 				style={{ flex: 1 }}
@@ -245,23 +254,23 @@ const FAQScreen = () => {
 					<Card
 						style={{
 							padding: 20,
-							backgroundColor: isDark ? "#374151" : "#ffffff",
+							backgroundColor: cardBg,
 							borderRadius: 12,
 							borderWidth: 1,
-							borderColor: isDark ? "#4b5563" : "#e5e7eb",
+							borderColor: border,
 						}}>
 						<VStack space='sm' style={{ alignItems: "center" }}>
 							<Icon
 								as={HelpCircle}
 								size='xl'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: tint,
 								}}
 							/>
 							<Heading
 								size='xl'
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: textPrimary,
 									textAlign: "center",
 								}}>
 								Foire aux questions
@@ -269,7 +278,7 @@ const FAQScreen = () => {
 							<Text
 								style={{
 									fontSize: 14,
-									color: isDark ? "#9ca3af" : "#6b7280",
+									color: textMuted,
 									textAlign: "center",
 								}}>
 								Trouvez rapidement des réponses à vos questions
@@ -290,23 +299,23 @@ const FAQScreen = () => {
 					<Card
 						style={{
 							padding: 20,
-							backgroundColor: isDark ? "#1e3a8a" : "#dbeafe",
+							backgroundColor: tint20,
 							borderRadius: 12,
 							borderWidth: 1,
-							borderColor: isDark ? "#1e40af" : "#93c5fd",
+							borderColor: tint,
 						}}>
 						<VStack space='md'>
 							<Heading
 								size='md'
 								style={{
-									color: isDark ? "#dbeafe" : "#1e40af",
+									color: tint,
 								}}>
 								Vous ne trouvez pas de réponse ?
 							</Heading>
 							<Text
 								style={{
 									fontSize: 14,
-									color: isDark ? "#bfdbfe" : "#1e40af",
+									color: textMuted,
 								}}>
 								Notre équipe de support est là pour vous aider.
 								Contactez-nous directement depuis l'application.
