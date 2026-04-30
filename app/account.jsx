@@ -533,63 +533,7 @@ const AccountScreen = () => {
 							}}>
 							Mon QR Code
 						</Heading>
-						{/* <TouchableOpacity
-							onPress={() => setShowQRModal(false)}
-							activeOpacity={0.7}
-							style={{
-								backgroundColor: bg,
-								borderRadius: 999,
-								padding: 8,
-							}}>
-							<Icon
-								as={X}
-								size='sm'
-								style={{
-									color: textSecondary,
-								}}
-							/>
-						</TouchableOpacity> */}
 					</HStack>
-
-					{/* Avatar + nom + prénom */}
-					{/* <HStack
-						space='md'
-						style={{
-							alignItems: "center",
-							width: "100%",
-							marginTop: 20,
-							marginBottom: 28,
-							paddingHorizontal: 12,
-						}}>
-						<Avatar size='lg'>
-							<AvatarFallbackText>
-								{profile?.firstname} {profile?.lastname}
-							</AvatarFallbackText>
-							{profile?.avatar_url && (
-								<AvatarImage
-									source={{ uri: profile.avatar_url }}
-								/>
-							)}
-						</Avatar>
-						<VStack>
-							<Heading
-								size='sm'
-								style={{
-									color: textPrimary,
-								}}>
-								{profile?.firstname} {profile?.lastname}
-							</Heading>
-							{profile?.job_title ? (
-								<Text
-									size='sm'
-									style={{
-										color: textSecondary,
-									}}>
-									{profile.job_title}
-								</Text>
-							) : null}
-						</VStack>
-					</HStack> */}
 
 					{/* QR Code */}
 					<View
@@ -1243,52 +1187,99 @@ const AccountScreen = () => {
 											</HStack>
 										)}
 
-										{profile?.driving_licenses && (
-											<HStack
-												space='sm'
-												style={{
-													alignItems: "center",
-												}}>
-												<Icon
-													as={Car}
-													size='sm'
+										{profile?.driving_licenses &&
+											profile.driving_licenses.length >
+												0 && (
+												<HStack
+													space='sm'
 													style={{
-														color: textSecondary,
-													}}
-												/>
-												<Text
-													size='sm'
-													style={{
-														color: textPrimary,
+														alignItems: "center",
 													}}>
-													Permis{" "}
-													{profile.driving_licenses}
-												</Text>
-											</HStack>
-										)}
+													<Icon
+														as={Car}
+														size='sm'
+														style={{
+															color: textSecondary,
+														}}
+													/>
+													<Text
+														size='sm'
+														style={{
+															color: textPrimary,
+														}}>
+														Permis{" "}
+														{(() => {
+															try {
+																const v =
+																	Array.isArray(
+																		profile.driving_licenses,
+																	)
+																		? profile.driving_licenses
+																		: JSON.parse(
+																				profile.driving_licenses,
+																			);
+																return Array.isArray(
+																	v,
+																)
+																	? v.join(
+																			", ",
+																		)
+																	: String(v);
+															} catch {
+																return String(
+																	profile.driving_licenses,
+																);
+															}
+														})()}
+													</Text>
+												</HStack>
+											)}
 
-										{profile?.languages && (
-											<HStack
-												space='sm'
-												style={{
-													alignItems: "center",
-												}}>
-												<Icon
-													as={Languages}
-													size='sm'
+										{profile?.languages &&
+											profile.languages.length > 0 && (
+												<HStack
+													space='sm'
 													style={{
-														color: textSecondary,
-													}}
-												/>
-												<Text
-													size='sm'
-													style={{
-														color: textPrimary,
+														alignItems: "center",
 													}}>
-													{profile.languages}
-												</Text>
-											</HStack>
-										)}
+													<Icon
+														as={Languages}
+														size='sm'
+														style={{
+															color: textSecondary,
+														}}
+													/>
+													<Text
+														size='sm'
+														style={{
+															color: textPrimary,
+														}}>
+														{(() => {
+															try {
+																const v =
+																	Array.isArray(
+																		profile.languages,
+																	)
+																		? profile.languages
+																		: JSON.parse(
+																				profile.languages,
+																			);
+																return Array.isArray(
+																	v,
+																)
+																	? v.join(
+																			", ",
+																		)
+																	: String(v);
+															} catch {
+																return String(
+																	profile.languages,
+																);
+															}
+														})()}
+													</Text>
+												</HStack>
+											)}
 									</VStack>
 
 									{profile?.qualifications &&
@@ -1522,142 +1513,10 @@ const AccountScreen = () => {
 									subtitle='Suivez vos candidatures'
 									onPress={() => router.push("/applications")}
 								/>
-								{/* <TouchableOpacity
-									onPress={() => router.push("/messaging")}
-									activeOpacity={0.7}>
-									<Card
-										style={{
-											padding: 16,
-											backgroundColor: isDark
-												? Colors.dark.cardBackground
-												: Colors.light.cardBackground,
-											borderRadius: 12,
-											borderWidth: 1,
-											borderColor: isDark
-												? Colors.dark.border
-												: Colors.light.border,
-										}}>
-										<HStack
-											style={{
-												alignItems: "center",
-												justifyContent: "space-between",
-											}}>
-											<HStack
-												space='md'
-												style={{
-													flex: 1,
-													alignItems: "center",
-												}}>
-												<Box
-													style={{
-														width: 40,
-														height: 40,
-														borderRadius: 20,
-														backgroundColor: isDark
-															? Colors.dark
-																	.background
-															: Colors.light
-																	.background,
-														justifyContent:
-															"center",
-														alignItems: "center",
-													}}>
-													<Icon
-														as={MessagesSquare}
-														size='lg'
-														style={{
-															color: isDark
-																? Colors.dark
-																		.tint
-																: Colors.light
-																		.tint,
-														}}
-													/>
-												</Box>
-												<VStack
-													style={{ flex: 1 }}
-													space='xs'>
-													<HStack
-														space='xs'
-														style={{
-															alignItems:
-																"center",
-														}}>
-														<Text
-															size='md'
-															style={{
-																fontWeight:
-																	"600",
-																color: isDark
-																	? Colors
-																			.dark
-																			.text
-																	: Colors
-																			.light
-																			.text,
-															}}>
-															Messagerie
-														</Text>
-														{unreadMessagesCount >
-															0 && (
-															<Box
-																style={{
-																	marginLeft: 4,
-																	minWidth: 18,
-																	height: 18,
-																	borderRadius: 9,
-																	paddingHorizontal: 5,
-																	justifyContent:
-																		"center",
-																	alignItems:
-																		"center",
-																	backgroundColor:
-																		"#ef4444",
-																}}>
-																<Text
-																	style={{
-																		color: "#fff",
-																		fontSize: 10,
-																		fontWeight:
-																			"700",
-																		lineHeight: 14,
-																	}}>
-																	{
-																		unreadMessagesCount
-																	}
-																</Text>
-															</Box>
-														)}
-													</HStack>
-													<Text
-														size='sm'
-														style={{
-															color: isDark
-																? Colors.dark
-																		.muted
-																: Colors.light
-																		.muted,
-														}}>
-														Vos conversations
-													</Text>
-												</VStack>
-											</HStack>
-											<Icon
-												as={ChevronRight}
-												size='lg'
-												style={{
-													color: isDark
-														? Colors.dark.muted
-														: Colors.light.muted,
-												}}
-											/>
-										</HStack>
-									</Card>
-								</TouchableOpacity> */}
 
 								<Divider style={{ marginVertical: 16 }} />
 
-								<TouchableOpacity
+								{/* <TouchableOpacity
 									onPress={openSupportSheet}
 									activeOpacity={0.7}>
 									<Card
@@ -1790,7 +1649,7 @@ const AccountScreen = () => {
 											/>
 										</HStack>
 									</Card>
-								</TouchableOpacity>
+								</TouchableOpacity> */}
 
 								<ActionCard
 									icon={Settings}
