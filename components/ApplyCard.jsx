@@ -33,6 +33,7 @@ import {
 	MapPin,
 	BadgeEuro,
 } from "lucide-react-native";
+import { View } from "react-native";
 
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
@@ -238,10 +239,32 @@ const ApplyCard = ({
 					}}>
 					{/* Unread Messages */}
 					{unreadMessagesCount > 0 && (
-						<Badge size='sm' variant='solid' action='error'>
-							<BadgeIcon as={MessageCircle} className='mr-2' />
-							<BadgeText>{unreadMessagesCount}</BadgeText>
-						</Badge>
+						<View
+							style={{
+								flexDirection: "row",
+								alignItems: "center",
+								gap: 4,
+								backgroundColor: "#ef4444",
+								borderRadius: 20,
+								paddingHorizontal: 8,
+								paddingVertical: 4,
+								shadowColor: "#ef4444",
+								shadowOffset: { width: 0, height: 2 },
+								shadowOpacity: 0.45,
+								shadowRadius: 4,
+								elevation: 4,
+							}}>
+							<MessageCircle size={12} color='#fff' />
+							<Text
+								style={{
+									color: "#fff",
+									fontSize: 11,
+									fontWeight: "700",
+									lineHeight: 14,
+								}}>
+								{unreadMessagesCount}
+							</Text>
+						</View>
 					)}
 				</VStack>
 				<HStack
