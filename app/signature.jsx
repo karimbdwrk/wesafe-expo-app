@@ -78,11 +78,24 @@ const SignatureScreen = () => {
 	const [signatureImg, setSignatureImg] = useState(null);
 	const [signatureStatus, setSignatureStatus] = useState(null);
 	const [showActionsheet, setShowActionsheet] = useState(false);
+	// Garde l'URL uploadée localement pour éviter qu'un refresh du contexte
+	// ne réécrive avec l'ancien param de navigation
+	const uploadedUrlRef = React.useRef(null);
 
 	const canEdit = signatureStatus !== "verified";
 
 	// Lire les nouvelles valeurs après chaque refresh du contexte
 	useEffect(() => {
+		// Si on vient de faire un upload, ne pas laisser le param stale écraser
+		if (uploadedUrlRef.current) {
+			setSignatureImg(uploadedUrlRef.current);
+			setSignatureStatus(
+				userProfile?.signature_status ??
+					userCompany?.signature_status ??
+					null,
+			);
+			return;
+		}
 		if (signatureUrl) {
 			setSignatureImg(signatureUrl);
 		} else {
@@ -160,6 +173,7 @@ const SignatureScreen = () => {
 				signature_status: "pending",
 			});
 			// Mettre à jour l'aperçu immédiatement avec la nouvelle URL
+			uploadedUrlRef.current = publicUrl;
 			setSignatureImg(publicUrl);
 			setSignatureStatus("pending");
 			trackActivity(
