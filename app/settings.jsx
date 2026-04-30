@@ -43,7 +43,12 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 import { useDataContext } from "@/context/DataContext";
-import { SIGN_OUT, DELETE_ACCOUNT, TOGGLE_PUSH_NOTIFICATIONS, TOGGLE_DARK_MODE } from "@/utils/activityEvents";
+import {
+	SIGN_OUT,
+	DELETE_ACCOUNT,
+	TOGGLE_PUSH_NOTIFICATIONS,
+	TOGGLE_DARK_MODE,
+} from "@/utils/activityEvents";
 
 const Settings = () => {
 	const { user, role, accessToken, signOut } = useAuth();
@@ -214,14 +219,20 @@ const Settings = () => {
 					<Icon
 						as={icon}
 						size='lg'
-						style={{ color: isDark ? Colors.dark.tint : Colors.light.tint }}
+						style={{
+							color: isDark
+								? Colors.dark.tint
+								: Colors.light.tint,
+						}}
 					/>
 					<VStack style={{ flex: 1 }}>
 						<Text
 							style={{
 								fontWeight: "600",
 								fontSize: 16,
-								color: isDark ? Colors.dark.text : Colors.light.text,
+								color: isDark
+									? Colors.dark.text
+									: Colors.light.text,
 							}}>
 							{title}
 						</Text>
@@ -229,7 +240,9 @@ const Settings = () => {
 							<Text
 								style={{
 									fontSize: 14,
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									marginTop: 2,
 								}}>
 								{subtitle}
@@ -240,7 +253,11 @@ const Settings = () => {
 						<Icon
 							as={ChevronRight}
 							size='lg'
-							style={{ color: isDark ? Colors.dark.muted : Colors.light.muted }}
+							style={{
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
+							}}
 						/>
 					)}
 				</HStack>
@@ -257,13 +274,19 @@ const Settings = () => {
 					alignItems: "center",
 					paddingVertical: 16,
 				}}>
-				<Icon as={icon} size='lg' style={{ color: Colors.light.tint }} />
+				<Icon
+					as={icon}
+					size='lg'
+					style={{ color: Colors.light.tint }}
+				/>
 				<VStack style={{ flex: 1 }}>
 					<Text
 						style={{
 							fontWeight: "600",
 							fontSize: 16,
-							color: isDark ? Colors.dark.text : Colors.light.text,
+							color: isDark
+								? Colors.dark.text
+								: Colors.light.text,
 						}}>
 						{title}
 					</Text>
@@ -271,7 +294,9 @@ const Settings = () => {
 						<Text
 							style={{
 								fontSize: 14,
-								color: isDark ? Colors.dark.muted : Colors.light.muted,
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 								marginTop: 2,
 							}}>
 							{subtitle}
@@ -288,7 +313,9 @@ const Settings = () => {
 		<ScrollView
 			style={{
 				flex: 1,
-				backgroundColor: isDark ? Colors.dark.background : Colors.light.background,
+				backgroundColor: isDark
+					? Colors.dark.background
+					: Colors.light.background,
 			}}>
 			<VStack style={{ padding: 16, gap: 24, paddingBottom: 100 }}>
 				{/* Header */}
@@ -342,14 +369,18 @@ const Settings = () => {
 				<Card
 					style={{
 						padding: 16,
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 					}}>
 					<VStack>
 						<Text
 							style={{
 								fontSize: 12,
 								fontWeight: "700",
-								color: isDark ? Colors.dark.muted : Colors.light.muted,
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 								marginBottom: 8,
 								textTransform: "uppercase",
 								letterSpacing: 0.5,
@@ -370,14 +401,18 @@ const Settings = () => {
 				<Card
 					style={{
 						padding: 16,
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 					}}>
 					<VStack>
 						<Text
 							style={{
 								fontSize: 12,
 								fontWeight: "700",
-								color: isDark ? Colors.dark.muted : Colors.light.muted,
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 								marginBottom: 8,
 								textTransform: "uppercase",
 								letterSpacing: 0.5,
@@ -439,14 +474,18 @@ const Settings = () => {
 				<Card
 					style={{
 						padding: 16,
-						backgroundColor: isDark ? Colors.dark.cardBackground : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
 					}}>
 					<VStack>
 						<Text
 							style={{
 								fontSize: 12,
 								fontWeight: "700",
-								color: isDark ? Colors.dark.muted : Colors.light.muted,
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
 								marginBottom: 8,
 								textTransform: "uppercase",
 								letterSpacing: 0.5,
@@ -458,7 +497,9 @@ const Settings = () => {
 							title="Centre d'aide"
 							subtitle='FAQ et documentation'
 							onPress={() => {
-								router.push("/faq");
+								router.push(
+									role === "pro" ? "/faqpro" : "/faq",
+								);
 							}}
 						/>
 						<SettingItem
@@ -498,7 +539,9 @@ const Settings = () => {
 				<AlertDialogBackdrop />
 				<AlertDialogContent
 					style={{
-						backgroundColor: isDark ? Colors.dark.background : Colors.light.cardBackground,
+						backgroundColor: isDark
+							? Colors.dark.background
+							: Colors.light.cardBackground,
 						borderRadius: 16,
 						padding: 24,
 					}}>
@@ -512,7 +555,9 @@ const Settings = () => {
 							<Heading
 								size='lg'
 								style={{
-									color: isDark ? Colors.dark.text : Colors.light.text,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Supprimer mon compte
 							</Heading>
@@ -522,7 +567,9 @@ const Settings = () => {
 						<VStack space='md' style={{ marginTop: 12 }}>
 							<Text
 								style={{
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									fontSize: 15,
 									lineHeight: 22,
 								}}>
@@ -540,14 +587,18 @@ const Settings = () => {
 							</Text>
 							<Text
 								style={{
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									fontSize: 14,
 									lineHeight: 20,
 								}}>
 								Si vous changez d'avis, envoyez-nous un email à{" "}
 								<Text
 									style={{
-										color: isDark ? Colors.dark.tint : Colors.light.tint,
+										color: isDark
+											? Colors.dark.tint
+											: Colors.light.tint,
 										fontWeight: "600",
 									}}>
 									support@wesafe.fr
@@ -556,7 +607,9 @@ const Settings = () => {
 							</Text>
 							<Text
 								style={{
-									color: isDark ? Colors.dark.muted : Colors.light.muted,
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
 									fontSize: 13,
 									fontStyle: "italic",
 								}}>
