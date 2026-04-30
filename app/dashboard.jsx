@@ -57,6 +57,7 @@ import {
 	ChevronRight,
 	FileText,
 	Settings,
+	HelpCircle,
 	LogOut,
 	ScanLine,
 	Users,
