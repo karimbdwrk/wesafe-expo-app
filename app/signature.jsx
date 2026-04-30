@@ -75,8 +75,15 @@ const SignatureScreen = () => {
 
 	const { signatureUrl, isPro, type } = useLocalSearchParams();
 
-	const [signatureImg, setSignatureImg] = useState(null);
-	const [signatureStatus, setSignatureStatus] = useState(null);
+	const [signatureImg, setSignatureImg] = useState(
+		signatureUrl ??
+			userProfile?.signature_url ??
+			userCompany?.signature_url ??
+			null,
+	);
+	const [signatureStatus, setSignatureStatus] = useState(
+		userProfile?.signature_status ?? userCompany?.signature_status ?? null,
+	);
 	const [showActionsheet, setShowActionsheet] = useState(false);
 	// Garde l'URL uploadée localement pour éviter qu'un refresh du contexte
 	// ne réécrive avec l'ancien param de navigation
