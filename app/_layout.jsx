@@ -518,6 +518,13 @@ function RootLayoutNav() {
 								}}
 							/>
 							<Stack.Screen
+								name='faqpro'
+								options={{
+									headerShown: true,
+									headerTitle: "Centre d'aide",
+								}}
+							/>
+							<Stack.Screen
 								name='lastminute'
 								options={{
 									headerShown: true,
