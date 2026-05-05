@@ -1569,50 +1569,6 @@ const PostJob = () => {
 								}}
 							/>
 						</Box>
-						{/* Crédits d'annonces restants — plan standard uniquement */}
-						{userCompany?.subscription_status === "standard" &&
-							jobCount !== null &&
-							(() => {
-								const remaining = Math.max(0, 3 - jobCount);
-								return (
-									<HStack
-										space='xs'
-										style={{
-											alignItems: "center",
-											marginTop: 4,
-											// backgroundColor: "pink",
-										}}>
-										<Icon
-											as={FileText}
-											size='xs'
-											style={{
-												color:
-													remaining === 0
-														? Colors.dark.danger
-														: isDark
-															? Colors.dark.muted
-															: Colors.light
-																	.muted,
-											}}
-										/>
-										<Text
-											size='xs'
-											style={{
-												color:
-													remaining === 0
-														? Colors.dark.danger
-														: isDark
-															? Colors.dark.muted
-															: Colors.light
-																	.muted,
-											}}>
-											{remaining === 0
-												? "Aucune annonce gratuite restante"
-												: `${remaining} annonce${remaining > 1 ? "s" : ""} gratuite${remaining > 1 ? "s" : ""} restante${remaining > 1 ? "s" : ""} (30j)`}
-										</Text>
-									</HStack>
-								);
-							})()}
 					</VStack>
 				</Box>
 
@@ -1790,6 +1746,84 @@ const PostJob = () => {
 											padding: 20,
 											paddingBottom: 100,
 										}}>
+										{/* Décompte offres restantes — standard & standard_plus */}
+										{(userCompany?.subscription_status ===
+											"standard" ||
+											userCompany?.subscription_status ===
+												"standard_plus") &&
+											jobCount !== null &&
+											(() => {
+												const max =
+													userCompany.subscription_status ===
+													"standard_plus"
+														? 10
+														: 3;
+												const remaining = Math.max(
+													0,
+													max - jobCount,
+												);
+												const isEmpty = remaining === 0;
+												const color = isEmpty
+													? isDark
+														? Colors.dark.danger
+														: Colors.light.danger
+													: remaining <= 2
+														? isDark
+															? Colors.dark
+																	.warning
+															: Colors.light
+																	.warning
+														: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted;
+												const bgColor = isEmpty
+													? isDark
+														? Colors.dark.danger20
+														: Colors.light.danger20
+													: remaining <= 2
+														? isDark
+															? Colors.dark
+																	.warning20
+															: Colors.light
+																	.warning20
+														: isDark
+															? Colors.dark
+																	.elevated
+															: Colors.light
+																	.elevated;
+												return (
+													<HStack
+														space='sm'
+														style={{
+															alignItems:
+																"center",
+															backgroundColor:
+																bgColor,
+															borderRadius: 10,
+															paddingHorizontal: 14,
+															paddingVertical: 10,
+														}}>
+														<Icon
+															as={FileText}
+															size='sm'
+															style={{ color }}
+														/>
+														<Text
+															size='sm'
+															style={{
+																color,
+																flex: 1,
+																fontWeight:
+																	"500",
+															}}>
+															{isEmpty
+																? `Quota atteint — ${max} offre${max > 1 ? "s" : ""} publiée${max > 1 ? "s" : ""} sur ${max}`
+																: `${remaining} offre${remaining > 1 ? "s" : ""} restante${remaining > 1 ? "s" : ""} sur ${max} (30 jours)`}
+														</Text>
+													</HStack>
+												);
+											})()}
 										<Card
 											style={{
 												padding: 20,
