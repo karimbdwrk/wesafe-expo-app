@@ -76,7 +76,11 @@ const STEPS = [
 	{ id: 5, title: "Récapitulatif" },
 ];
 
-const CONTRACT_TYPES = ["CDD", "CDI"];
+const CONTRACT_TYPES = [
+	{ value: "CDI", label: "CDI" },
+	{ value: "CDD", label: "CDD" },
+	{ value: "CDD Vacations", label: "Vacations" },
+];
 
 const WEEK_DAYS = [
 	"Lundi",
@@ -225,7 +229,15 @@ const DatePickerButton = ({
 );
 
 // Tappable time selector button (flex: 1, centered text)
-const TimePickerButton = ({ value, placeholder, onPress, bg, border, muted, textPrimary }) => (
+const TimePickerButton = ({
+	value,
+	placeholder,
+	onPress,
+	bg,
+	border,
+	muted,
+	textPrimary,
+}) => (
 	<TouchableOpacity
 		onPress={onPress}
 		activeOpacity={0.7}
@@ -280,7 +292,13 @@ const TimeRangePicker = ({
 );
 
 // Dropdown list of address autocomplete suggestions
-const AddressSuggestionList = ({ results, onSelect, cardBg, border, textPrimary }) => {
+const AddressSuggestionList = ({
+	results,
+	onSelect,
+	cardBg,
+	border,
+	textPrimary,
+}) => {
 	if (!results?.length) return null;
 	return (
 		<VStack
@@ -352,7 +370,15 @@ const AddDashedButton = ({ label, onPress, border, muted }) => (
 );
 
 // Pill-style selector (contract type, location type…)
-const PillSelector = ({ options, value, onChange, tint, border, textPrimary, size = "md" }) => {
+const PillSelector = ({
+	options,
+	value,
+	onChange,
+	tint,
+	border,
+	textPrimary,
+	size = "md",
+}) => {
 	const ph =
 		size === "sm"
 			? { paddingHorizontal: 14, paddingVertical: 7 }
@@ -391,7 +417,15 @@ const PillSelector = ({ options, value, onChange, tint, border, textPrimary, siz
 
 // Unified date/time picker actionsheet — replaces the 3 separate actionsheets
 // pickerState shape: { mode: 'date'|'time', title: string, value: Date, onConfirm: (date) => void }
-const PickerActionsheet = ({ pickerState, onClose, onChange, onConfirm, cardBg, tint, textPrimary }) => (
+const PickerActionsheet = ({
+	pickerState,
+	onClose,
+	onChange,
+	onConfirm,
+	cardBg,
+	tint,
+	textPrimary,
+}) => (
 	<Actionsheet isOpen={pickerState !== null} onClose={onClose}>
 		<ActionsheetBackdrop />
 		<ActionsheetContent style={{ backgroundColor: cardBg }}>
@@ -415,7 +449,9 @@ const PickerActionsheet = ({ pickerState, onClose, onChange, onConfirm, cardBg, 
 					mode={pickerState?.mode || "date"}
 					display='spinner'
 					is24Hour
-					minuteInterval={pickerState?.mode === "time" ? 5 : undefined}
+					minuteInterval={
+						pickerState?.mode === "time" ? 5 : undefined
+					}
 					onChange={onChange}
 					style={{ width: "100%" }}
 				/>
@@ -471,10 +507,20 @@ const ContractGenerationScreen = () => {
 
 	// ─── Address autocomplete state ─────────────────────────────────────────────
 
-	const [singleAddr, setSingleAddr] = useState({ query: "", results: [], selected: null });
+	const [singleAddr, setSingleAddr] = useState({
+		query: "",
+		results: [],
+		selected: null,
+	});
 	// Each entry: { query, results, selected }
-	const [multiAddresses, setMultiAddresses] = useState([{ query: "", results: [], selected: null }]);
-	const [zoneAddr, setZoneAddr] = useState({ query: "", results: [], selected: null });
+	const [multiAddresses, setMultiAddresses] = useState([
+		{ query: "", results: [], selected: null },
+	]);
+	const [zoneAddr, setZoneAddr] = useState({
+		query: "",
+		results: [],
+		selected: null,
+	});
 
 	// ─── Animations ─────────────────────────────────────────────────────────────
 
@@ -560,7 +606,10 @@ const ContractGenerationScreen = () => {
 				const visibleHeight = windowHeight - e.endCoordinates.height;
 				const targetScrollOffset = y + height / 2 - visibleHeight / 2;
 				if (targetScrollOffset > 0)
-					scrollRef.scrollTo({ y: targetScrollOffset, animated: true });
+					scrollRef.scrollTo({
+						y: targetScrollOffset,
+						animated: true,
+					});
 			});
 		});
 		return () => sub.remove();
@@ -571,8 +620,12 @@ const ContractGenerationScreen = () => {
 		if (!application_id) return;
 
 		const parseVacations = (raw) => {
-			if (!raw || !Array.isArray(raw)) return [];
-			return raw.map((v) => ({
+			let arr = raw;
+			if (typeof raw === "string") {
+				try { arr = JSON.parse(raw); } catch { return []; }
+			}
+			if (!arr || !Array.isArray(arr)) return [];
+			return arr.map((v) => ({
 				date: v.date ? new Date(v.date) : null,
 				start_time: v.start_time || "",
 				end_time: v.end_time || "",
@@ -625,19 +678,29 @@ const ContractGenerationScreen = () => {
 						start_date: isoToDate(ct.start_date),
 						end_date: isoToDate(ct.end_date),
 						total_hours:
-							ct.total_hours != null ? String(ct.total_hours) : "",
-						schedule_known: schedule.schedule_known ?? false,
-						week_schedule: schedule.week_schedule ?? prev.week_schedule,
+							ct.total_hours != null
+								? String(ct.total_hours)
+								: "",
+						schedule_known:
+							ct.contract_type === "CDD Vacations"
+								? true
+								: (schedule.schedule_known ?? false),
+						week_schedule:
+							schedule.week_schedule ?? prev.week_schedule,
 						vacations: parseVacations(schedule.vacations),
 						work_location:
-							wLocType !== "multiple" ? ct.work_location || "" : "",
+							wLocType !== "multiple"
+								? ct.work_location || ""
+								: "",
 						work_location_name: ct.work_location_name || "",
 						work_location_type: wLocType,
 						work_locations: wLocs,
 						job_title: ct.job_title || "",
 						job_description: ct.job_description || "",
 						hourly_rate:
-							ct.hourly_rate != null ? String(ct.hourly_rate) : "",
+							ct.hourly_rate != null
+								? String(ct.hourly_rate)
+								: "",
 						meal_bonus:
 							ct.meal_bonus != null ? String(ct.meal_bonus) : "",
 						transport_bonus:
@@ -645,9 +708,13 @@ const ContractGenerationScreen = () => {
 								? String(ct.transport_bonus)
 								: "",
 						night_bonus:
-							ct.night_bonus != null ? String(ct.night_bonus) : "",
+							ct.night_bonus != null
+								? String(ct.night_bonus)
+								: "",
 						sunday_bonus:
-							ct.sunday_bonus != null ? String(ct.sunday_bonus) : "",
+							ct.sunday_bonus != null
+								? String(ct.sunday_bonus)
+								: "",
 						holiday_bonus:
 							ct.holiday_bonus != null
 								? String(ct.holiday_bonus)
@@ -664,6 +731,24 @@ const ContractGenerationScreen = () => {
 						trial_period: ct.trial_period || "",
 						custom_clauses: ct.custom_clauses || "",
 					}));
+
+					// If the job has date_mode=vacations, force the type and
+					// fill vacations from the job when the contract has none yet
+					const job = data?.jobs;
+					if (job?.date_mode === "vacations") {
+						const jobVacations = parseVacations(job.vacations);
+						if (jobVacations.length > 0) {
+							setFormData((prev) => ({
+								...prev,
+								contract_type: "CDD Vacations",
+								schedule_known: true,
+								vacations:
+									prev.vacations.length > 0
+										? prev.vacations
+										: jobVacations,
+							}));
+						}
+					}
 					return;
 				}
 
@@ -672,15 +757,22 @@ const ContractGenerationScreen = () => {
 
 				const mapContractType = (v) => {
 					if (!v) return "";
-					const upper = v.toUpperCase();
-					return upper === "CDI" || upper === "CDD" ? upper : "";
+					const normalized = v.trim();
+					if (normalized.toUpperCase() === "CDI") return "CDI";
+					if (normalized.toUpperCase() === "CDD") return "CDD";
+					if (normalized === "CDD Vacations") return "CDD Vacations";
+					return "";
 				};
 
 				const vacations = parseVacations(job.vacations);
+				const isVacationsMode =
+					job.date_mode === "vacations" && vacations.length > 0;
+				const mappedType = isVacationsMode
+					? "CDD Vacations"
+					: mapContractType(job.contract_type);
 				setFormData((prev) => ({
 					...prev,
-					contract_type:
-						mapContractType(job.contract_type) || prev.contract_type,
+					contract_type: mappedType || prev.contract_type,
 					start_date: isoToDate(job.start_date) ?? prev.start_date,
 					end_date: isoToDate(job.end_date) ?? prev.end_date,
 					job_title: job.title || prev.job_title,
@@ -690,6 +782,9 @@ const ContractGenerationScreen = () => {
 					...(vacations.length > 0 && {
 						schedule_known: true,
 						vacations,
+					}),
+					...(mappedType === "CDD Vacations" && {
+						schedule_known: true,
 					}),
 				}));
 			} catch (err) {
@@ -867,11 +962,14 @@ const ContractGenerationScreen = () => {
 				return showError("Veuillez choisir un type de contrat");
 			if (!formData.start_date)
 				return showError("Veuillez saisir une date de début");
-			if (formData.contract_type === "CDD" && !formData.end_date)
+			if (
+				["CDD", "CDD Vacations"].includes(formData.contract_type) &&
+				!formData.end_date
+			)
 				return showError("La date de fin est obligatoire pour un CDD");
 			if (
-				formData.contract_type === "CDD" &&
-				!formData.contract_reason?.trim()
+				["CDD", "CDD Vacations"].includes(formData.contract_type) &&
+				!formData.cdd_reason_code
 			)
 				return showError(
 					"Le motif de recours est obligatoire pour un CDD",
@@ -1009,7 +1107,10 @@ const ContractGenerationScreen = () => {
 
 			if (error) throw error;
 
-			if (status === "published" && existingContractStatus !== "published") {
+			if (
+				status === "published" &&
+				existingContractStatus !== "published"
+			) {
 				await updateApplicationStatus(
 					application_id,
 					"contract_sent",
@@ -1099,9 +1200,13 @@ const ContractGenerationScreen = () => {
 			<Card style={cardStyle}>
 				<Text style={labelStyle}>Type de contrat *</Text>
 				<PillSelector
-					options={CONTRACT_TYPES.map((t) => ({ value: t, label: t }))}
+					options={CONTRACT_TYPES}
 					value={formData.contract_type}
-					onChange={(v) => updateField("contract_type", v)}
+					onChange={(v) => {
+						updateField("contract_type", v);
+						if (v === "CDD Vacations")
+							updateField("schedule_known", true);
+					}}
 					tint={tint}
 					border={border}
 					textPrimary={textPrimary}
@@ -1110,11 +1215,16 @@ const ContractGenerationScreen = () => {
 
 			{/* Motif de recours (CDD only) */}
 			{(formData.contract_type === "CDD" ||
+				formData.contract_type === "CDD Vacations" ||
 				formData.contract_type === "Intérim") && (
 				<Card style={cardStyle}>
 					<Text style={labelStyle}>
 						Motif de recours
-						{formData.contract_type === "CDD" ? " *" : ""}
+						{["CDD", "CDD Vacations"].includes(
+							formData.contract_type,
+						)
+							? " *"
+							: ""}
 					</Text>
 
 					{/* Reason code selector */}
@@ -1169,7 +1279,7 @@ const ContractGenerationScreen = () => {
 					</Text>
 					<Textarea style={{ ...inputStyle, minHeight: 72 }}>
 						<TextareaInput
-							placeholder="Ex : Remplacement de M. Dupont en congé maladie..."
+							placeholder='Ex : Remplacement de M. Dupont en congé maladie...'
 							value={formData.contract_reason}
 							onChangeText={(v) =>
 								updateField("contract_reason", v)
@@ -1186,8 +1296,11 @@ const ContractGenerationScreen = () => {
 				<DatePickerButton
 					value={formData.start_date}
 					onPress={() =>
-						openPicker("date", "Date de début", formData.start_date, (date) =>
-							updateField("start_date", date),
+						openPicker(
+							"date",
+							"Date de début",
+							formData.start_date,
+							(date) => updateField("start_date", date),
 						)
 					}
 					{...colorProps}
@@ -1199,7 +1312,11 @@ const ContractGenerationScreen = () => {
 				<Card style={cardStyle}>
 					<Text style={labelStyle}>
 						Date de fin
-						{formData.contract_type === "CDD" ? " *" : ""}
+						{["CDD", "CDD Vacations"].includes(
+							formData.contract_type,
+						)
+							? " *"
+							: ""}
 					</Text>
 					<DatePickerButton
 						value={formData.end_date}
@@ -1225,7 +1342,8 @@ const ContractGenerationScreen = () => {
 						formData.end_date >=
 							new Date(
 								new Date(formData.start_date).setMonth(
-									new Date(formData.start_date).getMonth() + 1,
+									new Date(formData.start_date).getMonth() +
+										1,
 								),
 							))
 						? "Nombre d'heures mensuelles *"
@@ -1244,25 +1362,29 @@ const ContractGenerationScreen = () => {
 
 			{/* Schedule */}
 			<Card style={cardStyle}>
-				<HStack
-					style={{
-						justifyContent: "space-between",
-						alignItems: "center",
-						marginBottom: formData.schedule_known ? 16 : 0,
-					}}>
-					<Text
+				{formData.contract_type !== "CDD Vacations" && (
+					<HStack
 						style={{
-							fontSize: 13,
-							fontWeight: "600",
-							color: textPrimary,
+							justifyContent: "space-between",
+							alignItems: "center",
+							marginBottom: formData.schedule_known ? 16 : 0,
 						}}>
-						Planning connu ?
-					</Text>
-					<Switch
-						value={formData.schedule_known}
-						onValueChange={(v) => updateField("schedule_known", v)}
-					/>
-				</HStack>
+						<Text
+							style={{
+								fontSize: 13,
+								fontWeight: "600",
+								color: textPrimary,
+							}}>
+							Planning connu ?
+						</Text>
+						<Switch
+							value={formData.schedule_known}
+							onValueChange={(v) =>
+								updateField("schedule_known", v)
+							}
+						/>
+					</HStack>
+				)}
 
 				{/* CDI – weekly schedule */}
 				{formData.schedule_known &&
@@ -1282,9 +1404,8 @@ const ContractGenerationScreen = () => {
 										style={{
 											justifyContent: "space-between",
 											alignItems: "center",
-											marginBottom: formData.week_schedule[
-												day
-											].enabled
+											marginBottom: formData
+												.week_schedule[day].enabled
 												? 8
 												: 0,
 										}}>
@@ -1299,7 +1420,8 @@ const ContractGenerationScreen = () => {
 										</Text>
 										<Switch
 											value={
-												formData.week_schedule[day].enabled
+												formData.week_schedule[day]
+													.enabled
 											}
 											onValueChange={(v) =>
 												updateWeekDay(day, "enabled", v)
@@ -1309,7 +1431,8 @@ const ContractGenerationScreen = () => {
 									{formData.week_schedule[day].enabled && (
 										<TimeRangePicker
 											startValue={
-												formData.week_schedule[day].start
+												formData.week_schedule[day]
+													.start
 											}
 											endValue={
 												formData.week_schedule[day].end
@@ -1319,7 +1442,12 @@ const ContractGenerationScreen = () => {
 													"time",
 													"Heure de début",
 													new Date(
-														new Date().setHours(8, 0, 0, 0),
+														new Date().setHours(
+															8,
+															0,
+															0,
+															0,
+														),
 													),
 													(time) =>
 														updateWeekDay(
@@ -1357,107 +1485,113 @@ const ContractGenerationScreen = () => {
 						</VStack>
 					)}
 
-				{/* CDD – vacations */}
-				{formData.schedule_known &&
-					formData.contract_type !== "CDI" && (
-						<VStack space='sm'>
-							{formData.vacations.map((vacation, index) => (
-								<Card
-									key={index}
+				{/* CDD / CDD Vacations – vacations */}
+				{(formData.contract_type === "CDD Vacations" ||
+					(formData.schedule_known &&
+						formData.contract_type !== "CDI")) && (
+					<VStack space='sm'>
+						{formData.vacations.map((vacation, index) => (
+							<Card
+								key={index}
+								style={{
+									backgroundColor: bg,
+									borderRadius: 8,
+									padding: 12,
+									marginBottom: 0,
+								}}>
+								<HStack
 									style={{
-										backgroundColor: bg,
-										borderRadius: 8,
-										padding: 12,
-										marginBottom: 0,
+										justifyContent: "space-between",
+										alignItems: "center",
+										marginBottom: 10,
 									}}>
-									<HStack
+									<Text
 										style={{
-											justifyContent: "space-between",
-											alignItems: "center",
-											marginBottom: 10,
+											fontSize: 12,
+											fontWeight: "700",
+											color: muted,
 										}}>
-										<Text
-											style={{
-												fontSize: 12,
-												fontWeight: "700",
-												color: muted,
-											}}>
-											Vacation {index + 1}
-										</Text>
-										<TouchableOpacity
-											onPress={() => removeVacation(index)}
-											activeOpacity={0.7}>
-											<Icon
-												as={Trash2}
-												size='sm'
-												style={{ color: danger }}
-											/>
-										</TouchableOpacity>
-									</HStack>
-									<DatePickerButton
-										value={vacation.date}
-										placeholder='Date de la vacation'
-										onPress={() =>
-											openPicker(
-												"date",
-												"Date de la vacation",
-												vacation.date,
-												(date) =>
-													updateVacation(
-														index,
-														"date",
-														date,
-													),
-											)
-										}
-										style={{ padding: 10, marginBottom: 8 }}
-										{...colorProps}
-									/>
-									<TimeRangePicker
-										startValue={vacation.start_time}
-										endValue={vacation.end_time}
-										onStartPress={() =>
-											openPicker(
-												"time",
-												"Heure de début",
-												new Date(
-													new Date().setHours(8, 0, 0, 0),
+										Vacation {index + 1}
+									</Text>
+									<TouchableOpacity
+										onPress={() => removeVacation(index)}
+										activeOpacity={0.7}>
+										<Icon
+											as={Trash2}
+											size='sm'
+											style={{ color: danger }}
+										/>
+									</TouchableOpacity>
+								</HStack>
+								<DatePickerButton
+									value={vacation.date}
+									placeholder='Date de la vacation'
+									onPress={() =>
+										openPicker(
+											"date",
+											"Date de la vacation",
+											vacation.date,
+											(date) =>
+												updateVacation(
+													index,
+													"date",
+													date,
 												),
-												(time) =>
-													updateVacation(
-														index,
-														"start_time",
-														formatTime(time),
-													),
-											)
-										}
-										onEndPress={() =>
-											openPicker(
-												"time",
-												"Heure de fin",
-												new Date(
-													new Date().setHours(18, 0, 0, 0),
+										)
+									}
+									style={{ padding: 10, marginBottom: 8 }}
+									{...colorProps}
+								/>
+								<TimeRangePicker
+									startValue={vacation.start_time}
+									endValue={vacation.end_time}
+									onStartPress={() =>
+										openPicker(
+											"time",
+											"Heure de début",
+											new Date(
+												new Date().setHours(8, 0, 0, 0),
+											),
+											(time) =>
+												updateVacation(
+													index,
+													"start_time",
+													formatTime(time),
 												),
-												(time) =>
-													updateVacation(
-														index,
-														"end_time",
-														formatTime(time),
-													),
-											)
-										}
-										{...colorProps}
-									/>
-								</Card>
-							))}
-							<AddDashedButton
-								label='Ajouter une vacation'
-								onPress={addVacation}
-								border={border}
-								muted={muted}
-							/>
-						</VStack>
-					)}
+										)
+									}
+									onEndPress={() =>
+										openPicker(
+											"time",
+											"Heure de fin",
+											new Date(
+												new Date().setHours(
+													18,
+													0,
+													0,
+													0,
+												),
+											),
+											(time) =>
+												updateVacation(
+													index,
+													"end_time",
+													formatTime(time),
+												),
+										)
+									}
+									{...colorProps}
+								/>
+							</Card>
+						))}
+						<AddDashedButton
+							label='Ajouter une vacation'
+							onPress={addVacation}
+							border={border}
+							muted={muted}
+						/>
+					</VStack>
+				)}
 			</Card>
 		</ScrollView>
 	);
@@ -1471,7 +1605,11 @@ const ContractGenerationScreen = () => {
 					placeholder='Rechercher une adresse...'
 					value={singleAddr.query}
 					onChangeText={(v) => {
-						setSingleAddr((p) => ({ ...p, query: v, selected: null }));
+						setSingleAddr((p) => ({
+							...p,
+							query: v,
+							selected: null,
+						}));
 						updateField("work_location", v);
 						searchAddress(v, (results) =>
 							setSingleAddr((p) => ({ ...p, results })),
@@ -1555,7 +1693,11 @@ const ContractGenerationScreen = () => {
 					placeholder='Rechercher un département ou une région...'
 					value={zoneAddr.query}
 					onChangeText={(v) => {
-						setZoneAddr((p) => ({ ...p, query: v, selected: null }));
+						setZoneAddr((p) => ({
+							...p,
+							query: v,
+							selected: null,
+						}));
 						updateField("work_location", v);
 						searchZone(v);
 					}}
@@ -1613,7 +1755,10 @@ const ContractGenerationScreen = () => {
 									{item.type === "reg" ? "RÉG" : "DEP"}
 								</Text>
 								<Text
-									style={{ fontSize: 14, color: textPrimary }}>
+									style={{
+										fontSize: 14,
+										color: textPrimary,
+									}}>
 									{item.label}
 								</Text>
 							</HStack>
@@ -1749,9 +1894,7 @@ const ContractGenerationScreen = () => {
 			</Card>
 
 			<Card style={cardStyle}>
-				<Text style={labelStyle}>
-					Taux heures supplémentaires (€)
-				</Text>
+				<Text style={labelStyle}>Taux heures supplémentaires (€)</Text>
 				<Input style={inputStyle}>
 					<InputField
 						placeholder='Ex : 15.63'
@@ -1797,8 +1940,7 @@ const ContractGenerationScreen = () => {
 								alignItems: "center",
 								justifyContent: "space-between",
 							}}>
-							<Text
-								style={{ color: textPrimary, fontSize: 14 }}>
+							<Text style={{ color: textPrimary, fontSize: 14 }}>
 								{label}
 							</Text>
 							<Switch
@@ -1884,19 +2026,21 @@ const ContractGenerationScreen = () => {
 	);
 
 	const renderStep5 = () => {
-		const scheduleValue = !formData.schedule_known
-			? "Non communiqué"
-			: formData.contract_type === "CDI"
-				? Object.entries(formData.week_schedule)
-						.filter(([, v]) => v.enabled)
-						.map(
-							([d, v]) =>
-								`${d.slice(0, 3)}${v.start ? ` ${v.start}→${v.end}` : ""}`,
-						)
-						.join(", ") || "Aucun jour"
-				: formData.vacations.length
-					? `${formData.vacations.length} vacation(s)`
-					: "Aucune vacation";
+		const scheduleValue =
+			formData.contract_type === "CDD Vacations" ||
+			formData.schedule_known
+				? formData.contract_type === "CDI"
+					? Object.entries(formData.week_schedule)
+							.filter(([, v]) => v.enabled)
+							.map(
+								([d, v]) =>
+									`${d.slice(0, 3)}${v.start ? ` ${v.start}→${v.end}` : ""}`,
+							)
+							.join(", ") || "Aucun jour"
+					: formData.vacations.length
+						? `${formData.vacations.length} vacation(s)`
+						: "Aucune vacation"
+				: "Non communiqué";
 
 		const locationValue =
 			formData.work_location_type === "multiple"
@@ -1933,11 +2077,11 @@ const ContractGenerationScreen = () => {
 						{
 							label: "Motif",
 							value: formData.cdd_reason_code
-								? CDD_REASON_CODES.find(
+								? (CDD_REASON_CODES.find(
 										(r) =>
 											r.value ===
 											formData.cdd_reason_code,
-									)?.label ?? null
+									)?.label ?? null)
 								: null,
 						},
 						{
@@ -2371,8 +2515,7 @@ const ContractGenerationScreen = () => {
 							Motif de recours
 						</Text>
 						{CDD_REASON_CODES.map(({ value, label }) => {
-							const selected =
-								formData.cdd_reason_code === value;
+							const selected = formData.cdd_reason_code === value;
 							return (
 								<TouchableOpacity
 									key={value}
@@ -2399,8 +2542,12 @@ const ContractGenerationScreen = () => {
 									<Text
 										style={{
 											fontSize: 14,
-											fontWeight: selected ? "600" : "400",
-											color: selected ? tint : textPrimary,
+											fontWeight: selected
+												? "600"
+												: "400",
+											color: selected
+												? tint
+												: textPrimary,
 											flex: 1,
 										}}>
 										{label}
