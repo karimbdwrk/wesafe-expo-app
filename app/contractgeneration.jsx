@@ -960,10 +960,13 @@ const ContractGenerationScreen = () => {
 		if (currentStep === 1) {
 			if (!formData.contract_type)
 				return showError("Veuillez choisir un type de contrat");
-			if (!formData.start_date)
+			if (
+				formData.contract_type !== "CDD Vacations" &&
+				!formData.start_date
+			)
 				return showError("Veuillez saisir une date de début");
 			if (
-				["CDD", "CDD Vacations"].includes(formData.contract_type) &&
+				formData.contract_type === "CDD" &&
 				!formData.end_date
 			)
 				return showError("La date de fin est obligatoire pour un CDD");
@@ -1290,25 +1293,28 @@ const ContractGenerationScreen = () => {
 				</Card>
 			)}
 
-			{/* Start date */}
-			<Card style={cardStyle}>
-				<Text style={labelStyle}>Date de début *</Text>
-				<DatePickerButton
-					value={formData.start_date}
-					onPress={() =>
-						openPicker(
-							"date",
-							"Date de début",
-							formData.start_date,
-							(date) => updateField("start_date", date),
-						)
-					}
-					{...colorProps}
-				/>
-			</Card>
+			{/* Start date (hidden for CDD Vacations) */}
+			{formData.contract_type !== "CDD Vacations" && (
+				<Card style={cardStyle}>
+					<Text style={labelStyle}>Date de début *</Text>
+					<DatePickerButton
+						value={formData.start_date}
+						onPress={() =>
+							openPicker(
+								"date",
+								"Date de début",
+								formData.start_date,
+								(date) => updateField("start_date", date),
+							)
+						}
+						{...colorProps}
+					/>
+				</Card>
+			)}
 
-			{/* End date (not for CDI) */}
-			{formData.contract_type !== "CDI" && (
+			{/* End date (not for CDI or CDD Vacations) */}
+			{formData.contract_type !== "CDI" &&
+				formData.contract_type !== "CDD Vacations" && (
 				<Card style={cardStyle}>
 					<Text style={labelStyle}>
 						Date de fin
@@ -1331,6 +1337,31 @@ const ContractGenerationScreen = () => {
 						{...colorProps}
 					/>
 				</Card>
+			)}
+
+			{/* CDD classique – minimum 1 month notice */}
+			{formData.contract_type === "CDD" && (
+				<HStack
+					style={{
+						backgroundColor: tint + "18",
+						borderRadius: 8,
+						borderWidth: 1,
+						borderColor: tint + "40",
+						padding: 12,
+						gap: 8,
+						alignItems: "flex-start",
+						marginBottom: 12,
+					}}>
+					<Icon
+						as={AlertCircle}
+						size='sm'
+						style={{ color: tint, marginTop: 1 }}
+					/>
+					<Text style={{ fontSize: 13, color: tint, flex: 1, lineHeight: 18 }}>
+						Le CDD classique est réservé aux missions d'au moins 1 mois.
+						Pour une mission courte ou ponctuelle, utilisez le CDD Vacations.
+					</Text>
+				</HStack>
 			)}
 
 			{/* Total / monthly hours */}
@@ -1485,10 +1516,8 @@ const ContractGenerationScreen = () => {
 						</VStack>
 					)}
 
-				{/* CDD / CDD Vacations – vacations */}
-				{(formData.contract_type === "CDD Vacations" ||
-					(formData.schedule_known &&
-						formData.contract_type !== "CDI")) && (
+				{/* CDD Vacations only – vacations */}
+				{formData.contract_type === "CDD Vacations" && (
 					<VStack space='sm'>
 						{formData.vacations.map((vacation, index) => (
 							<Card
