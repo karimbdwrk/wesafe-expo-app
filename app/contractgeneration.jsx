@@ -10,12 +10,11 @@ import {
 	TextInput,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter, useLocalSearchParams, Stack } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Box } from "@/components/ui/box";
-import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,7 +25,6 @@ import { Textarea, TextareaInput } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/toast";
 import CustomToast from "@/components/CustomToast";
-import { Badge, BadgeText } from "@/components/ui/badge";
 import {
 	AlertDialog,
 	AlertDialogBackdrop,
@@ -46,10 +44,8 @@ import {
 import {
 	ChevronLeft,
 	ChevronRight,
-	FileText,
+	ChevronDown,
 	MapPin,
-	BadgeEuro,
-	Settings2,
 	Plus,
 	Trash2,
 	CalendarDays,
@@ -68,6 +64,8 @@ import Colors from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 
+// ─── Constants ─────────────────────────────────────────────────────────────────
+
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const STEPS = [
@@ -78,7 +76,6 @@ const STEPS = [
 	{ id: 5, title: "Récapitulatif" },
 ];
 
-// const CONTRACT_TYPES = ["CDD", "CDI", "Intérim", "Saisonnier"];
 const CONTRACT_TYPES = ["CDD", "CDI"];
 
 const WEEK_DAYS = [
@@ -91,227 +88,409 @@ const WEEK_DAYS = [
 	"Dimanche",
 ];
 
+const BONUS_FIELDS = [
+	{ key: "meal_bonus", label: "Prime panier repas (€)" },
+	{ key: "transport_bonus", label: "Indemnité transport (€)" },
+	{ key: "night_bonus", label: "Prime nuit (€)" },
+	{ key: "sunday_bonus", label: "Prime dimanche (€)" },
+	{ key: "holiday_bonus", label: "Prime jour férié (€)" },
+];
+
+const CONDITION_FIELDS = [
+	{ key: "is_night", label: "Travail de nuit" },
+	{ key: "is_sunday", label: "Travail le dimanche" },
+	{ key: "is_holiday", label: "Travail les jours fériés" },
+];
+
+const LOCATION_TYPES = [
+	{ value: "single", label: "Adresse unique" },
+	{ value: "multiple", label: "Plusieurs adresses" },
+	{ value: "zone", label: "Zone / Région" },
+];
+
+const CDD_REASON_CODES = [
+	{ value: "remplacement", label: "Remplacement d'un salarié" },
+	{
+		value: "accroissement_temporaire",
+		label: "Accroissement temporaire d'activité",
+	},
+	{ value: "evenementiel", label: "Événementiel" },
+	{ value: "saisonnier", label: "Emploi saisonnier" },
+];
+
+// ─── Utility helpers ────────────────────────────────────────────────────────────
+
+const formatDate = (date) => date?.toLocaleDateString("fr-FR") ?? "";
+
+const formatTime = (date) => {
+	const h = String(date.getHours()).padStart(2, "0");
+	const m = String(date.getMinutes()).padStart(2, "0");
+	return `${h}:${m}`;
+};
+
+const formatDateISO = (d) => (d ? d.toISOString().split("T")[0] : null);
+
+const isoToDate = (iso) => (iso ? new Date(iso) : null);
+
+const toFloatOrNull = (v) => (v ? parseFloat(v) : null);
+
+// ─── Sub-components ─────────────────────────────────────────────────────────────
+
+// Single label/value row used in the recap step
+const SummaryRow = ({ label, value, muted, textPrimary }) => {
+	if (!value) return null;
+	return (
+		<HStack style={{ justifyContent: "space-between", paddingVertical: 2 }}>
+			<Text style={{ fontSize: 13, color: muted }}>{label}</Text>
+			<Text
+				style={{
+					fontSize: 13,
+					fontWeight: "600",
+					color: textPrimary,
+					maxWidth: "55%",
+					textAlign: "right",
+				}}>
+				{value}
+			</Text>
+		</HStack>
+	);
+};
+
+// Titled recap card with a list of label/value rows
+const SummarySection = ({
+	title,
+	rows,
+	cardStyle,
+	tint,
+	border,
+	muted,
+	textPrimary,
+}) => (
+	<Card style={{ ...cardStyle, borderWidth: 1, borderColor: border }}>
+		<Text
+			style={{
+				fontSize: 12,
+				fontWeight: "700",
+				color: tint,
+				marginBottom: 10,
+				textTransform: "uppercase",
+				letterSpacing: 0.5,
+			}}>
+			{title}
+		</Text>
+		<VStack space='sm'>
+			{rows.map(({ label, value }) => (
+				<SummaryRow
+					key={label}
+					label={label}
+					value={value}
+					muted={muted}
+					textPrimary={textPrimary}
+				/>
+			))}
+		</VStack>
+	</Card>
+);
+
+// Tappable date selector showing formatted date or placeholder
+const DatePickerButton = ({
+	value,
+	placeholder = "Sélectionner une date",
+	onPress,
+	bg,
+	border,
+	muted,
+	textPrimary,
+	style: extraStyle,
+}) => (
+	<TouchableOpacity
+		onPress={onPress}
+		activeOpacity={0.7}
+		style={{
+			backgroundColor: bg,
+			borderColor: border,
+			borderWidth: 1,
+			borderRadius: 8,
+			padding: 12,
+			flexDirection: "row",
+			alignItems: "center",
+			gap: 8,
+			...extraStyle,
+		}}>
+		<Icon as={CalendarDays} size='sm' style={{ color: muted }} />
+		<Text style={{ color: value ? textPrimary : muted }}>
+			{value ? formatDate(value) : placeholder}
+		</Text>
+	</TouchableOpacity>
+);
+
+// Tappable time selector button (flex: 1, centered text)
+const TimePickerButton = ({ value, placeholder, onPress, bg, border, muted, textPrimary }) => (
+	<TouchableOpacity
+		onPress={onPress}
+		activeOpacity={0.7}
+		style={{
+			backgroundColor: bg,
+			borderColor: border,
+			borderWidth: 1,
+			borderRadius: 8,
+			padding: 10,
+			flex: 1,
+			alignItems: "center",
+		}}>
+		<Text style={{ fontSize: 13, color: value ? textPrimary : muted }}>
+			{value || placeholder}
+		</Text>
+	</TouchableOpacity>
+);
+
+// Clock icon + start→end time selectors in a row
+const TimeRangePicker = ({
+	startValue,
+	endValue,
+	onStartPress,
+	onEndPress,
+	bg,
+	border,
+	muted,
+	textPrimary,
+}) => (
+	<HStack space='sm' style={{ alignItems: "center" }}>
+		<Icon as={Clock} size='xs' style={{ color: muted }} />
+		<TimePickerButton
+			value={startValue}
+			placeholder='Début'
+			onPress={onStartPress}
+			bg={bg}
+			border={border}
+			muted={muted}
+			textPrimary={textPrimary}
+		/>
+		<Text style={{ color: muted, fontWeight: "600" }}>→</Text>
+		<TimePickerButton
+			value={endValue}
+			placeholder='Fin'
+			onPress={onEndPress}
+			bg={bg}
+			border={border}
+			muted={muted}
+			textPrimary={textPrimary}
+		/>
+	</HStack>
+);
+
+// Dropdown list of address autocomplete suggestions
+const AddressSuggestionList = ({ results, onSelect, cardBg, border, textPrimary }) => {
+	if (!results?.length) return null;
+	return (
+		<VStack
+			style={{
+				borderRadius: 8,
+				overflow: "hidden",
+				borderWidth: 1,
+				borderColor: border,
+			}}>
+			{results.map((item, idx) => (
+				<TouchableOpacity
+					key={idx}
+					onPress={() => onSelect(item)}
+					activeOpacity={0.7}
+					style={{
+						padding: 12,
+						backgroundColor: cardBg,
+						borderBottomWidth: idx < results.length - 1 ? 1 : 0,
+						borderBottomColor: border,
+					}}>
+					<Text style={{ fontSize: 14, color: textPrimary }}>
+						{item.label}
+					</Text>
+				</TouchableOpacity>
+			))}
+		</VStack>
+	);
+};
+
+// Confirmed address badge with pin icon
+const SelectedAddressBadge = ({ address, isDark, tint }) => {
+	if (!address) return null;
+	return (
+		<HStack
+			style={{
+				padding: 12,
+				borderRadius: 8,
+				backgroundColor: isDark ? "#1e3a5f" : "#eff6ff",
+				alignItems: "center",
+				gap: 8,
+			}}>
+			<Icon as={MapPin} size='sm' style={{ color: tint }} />
+			<Text style={{ fontSize: 14, color: tint, flex: 1 }}>
+				{address.label}
+			</Text>
+		</HStack>
+	);
+};
+
+// Dashed "add" button (add vacation, add address…)
+const AddDashedButton = ({ label, onPress, border, muted }) => (
+	<TouchableOpacity
+		onPress={onPress}
+		activeOpacity={0.7}
+		style={{
+			flexDirection: "row",
+			alignItems: "center",
+			justifyContent: "center",
+			gap: 8,
+			paddingVertical: 10,
+			borderRadius: 8,
+			borderWidth: 1.5,
+			borderStyle: "dashed",
+			borderColor: border,
+		}}>
+		<Icon as={Plus} size='sm' style={{ color: muted }} />
+		<Text style={{ fontSize: 13, color: muted }}>{label}</Text>
+	</TouchableOpacity>
+);
+
+// Pill-style selector (contract type, location type…)
+const PillSelector = ({ options, value, onChange, tint, border, textPrimary, size = "md" }) => {
+	const ph =
+		size === "sm"
+			? { paddingHorizontal: 14, paddingVertical: 7 }
+			: { paddingHorizontal: 16, paddingVertical: 8 };
+	const fs = size === "sm" ? 12 : 13;
+	return (
+		<HStack style={{ flexWrap: "wrap", gap: 8 }}>
+			{options.map(({ value: v, label }) => {
+				const active = value === v;
+				return (
+					<TouchableOpacity
+						key={v}
+						onPress={() => onChange(v)}
+						activeOpacity={0.7}
+						style={{
+							...ph,
+							borderRadius: 20,
+							borderWidth: 1.5,
+							borderColor: active ? tint : border,
+							backgroundColor: active ? tint : "transparent",
+						}}>
+						<Text
+							style={{
+								fontSize: fs,
+								fontWeight: "600",
+								color: active ? "#ffffff" : textPrimary,
+							}}>
+							{label}
+						</Text>
+					</TouchableOpacity>
+				);
+			})}
+		</HStack>
+	);
+};
+
+// Unified date/time picker actionsheet — replaces the 3 separate actionsheets
+// pickerState shape: { mode: 'date'|'time', title: string, value: Date, onConfirm: (date) => void }
+const PickerActionsheet = ({ pickerState, onClose, onChange, onConfirm, cardBg, tint, textPrimary }) => (
+	<Actionsheet isOpen={pickerState !== null} onClose={onClose}>
+		<ActionsheetBackdrop />
+		<ActionsheetContent style={{ backgroundColor: cardBg }}>
+			<ActionsheetDragIndicatorWrapper>
+				<ActionsheetDragIndicator />
+			</ActionsheetDragIndicatorWrapper>
+			<VStack
+				style={{ width: "100%", padding: 20, paddingBottom: 32 }}
+				space='md'>
+				<Text
+					style={{
+						fontSize: 16,
+						fontWeight: "700",
+						color: textPrimary,
+						textAlign: "center",
+					}}>
+					{pickerState?.title}
+				</Text>
+				<DateTimePicker
+					value={pickerState?.value || new Date()}
+					mode={pickerState?.mode || "date"}
+					display='spinner'
+					is24Hour
+					minuteInterval={pickerState?.mode === "time" ? 5 : undefined}
+					onChange={onChange}
+					style={{ width: "100%" }}
+				/>
+				<Button
+					onPress={onConfirm}
+					style={{ backgroundColor: tint, borderRadius: 12 }}>
+					<ButtonText style={{ color: "#ffffff", fontWeight: "700" }}>
+						Confirmer
+					</ButtonText>
+				</Button>
+			</VStack>
+		</ActionsheetContent>
+	</Actionsheet>
+);
+
+// ─── Main Component ─────────────────────────────────────────────────────────────
+
 const ContractGenerationScreen = () => {
 	const { application_id } = useLocalSearchParams();
 	const { isDark } = useTheme();
 	const scheme = isDark ? "dark" : "light";
-	const bg = Colors[scheme].background;
-	const cardBg = Colors[scheme].cardBackground;
-	const border = Colors[scheme].border;
-	const textPrimary = Colors[scheme].text;
-	const muted = Colors[scheme].muted;
-	const tint = Colors[scheme].tint;
-	const success = Colors[scheme].success;
-	const danger = Colors[scheme].danger;
+	const {
+		background: bg,
+		cardBackground: cardBg,
+		border,
+		text: textPrimary,
+		muted,
+		tint,
+		success,
+		danger,
+	} = Colors[scheme];
+
 	const router = useRouter();
 	const toast = useToast();
 	const { accessToken } = useAuth();
 	const { getById, updateApplicationStatus } = useDataContext();
 
+	// ─── Application state ──────────────────────────────────────────────────────
+
 	const [applicationData, setApplicationData] = useState(null);
 	const [existingContractId, setExistingContractId] = useState(null);
 	const [existingContractStatus, setExistingContractStatus] = useState(null);
 
-	useEffect(() => {
-		if (!application_id) return;
-		const fetchApplicationData = async () => {
-			try {
-				const supabase = createSupabaseClient(accessToken);
-
-				const data = await getById(
-					"applications",
-					application_id,
-					"*,jobs(*), profiles(*), companies(*)",
-				);
-				setApplicationData(data);
-
-				const isoToDate = (iso) => (iso ? new Date(iso) : null);
-				const parseVacations = (raw) => {
-					if (!raw || !Array.isArray(raw)) return [];
-					return raw.map((v) => ({
-						date: v.date ? new Date(v.date) : null,
-						start_time: v.start_time || "",
-						end_time: v.end_time || "",
-					}));
-				};
-
-				// Vérifier si un contrat existe déjà pour cette candidature (draft ou published)
-				const { data: existingContract } = await supabase
-					.from("contracts")
-					.select("*")
-					.eq("apply_id", application_id)
-					.in("status", ["draft", "published"])
-					.order("created_at", { ascending: false })
-					.limit(1)
-					.maybeSingle();
-
-				if (existingContract) {
-					// Contrat trouvé → pré-remplir depuis le contrat
-					setExistingContractId(existingContract.id);
-					setExistingContractStatus(existingContract.status);
-					const c = existingContract;
-					const schedule = c.schedule || {};
-					const wLocType = c.work_location_type || "single";
-					const wLocs =
-						wLocType === "multiple"
-							? (() => {
-									try {
-										return (
-											JSON.parse(c.work_location) || [""]
-										);
-									} catch {
-										return [""];
-									}
-								})()
-							: [""];
-
-					setFormData((prev) => ({
-						...prev,
-						contract_type: c.contract_type || "",
-						contract_reason: c.contract_reason || "",
-						start_date: isoToDate(c.start_date),
-						end_date: isoToDate(c.end_date),
-						total_hours:
-							c.total_hours != null ? String(c.total_hours) : "",
-						schedule_known: schedule.schedule_known ?? false,
-						week_schedule:
-							schedule.week_schedule ?? prev.week_schedule,
-						vacations: parseVacations(schedule.vacations),
-						work_location:
-							wLocType !== "multiple"
-								? c.work_location || ""
-								: "",
-						work_location_name: c.work_location_name || "",
-						work_location_type: wLocType,
-						work_locations: wLocs,
-						job_title: c.job_title || "",
-						job_description: c.job_description || "",
-						hourly_rate:
-							c.hourly_rate != null ? String(c.hourly_rate) : "",
-						meal_bonus:
-							c.meal_bonus != null ? String(c.meal_bonus) : "",
-						transport_bonus:
-							c.transport_bonus != null
-								? String(c.transport_bonus)
-								: "",
-						night_bonus:
-							c.night_bonus != null ? String(c.night_bonus) : "",
-						sunday_bonus:
-							c.sunday_bonus != null
-								? String(c.sunday_bonus)
-								: "",
-						holiday_bonus:
-							c.holiday_bonus != null
-								? String(c.holiday_bonus)
-								: "",
-						overtime_rate:
-							c.overtime_rate != null
-								? String(c.overtime_rate)
-								: "",
-						is_night: c.is_night ?? false,
-						is_sunday: c.is_sunday ?? false,
-						is_holiday: c.is_holiday ?? false,
-						equipment_provided: c.equipment_provided ?? false,
-						equipment_details: c.equipment_details || "",
-						trial_period: c.trial_period || "",
-						custom_clauses: c.custom_clauses || "",
-					}));
-					return; // Ne pas écraser avec les données du job
-				}
-
-				// Pas de brouillon → pré-remplir depuis le job
-				const job = data?.jobs;
-				if (!job) return;
-
-				const mapContractType = (v) => {
-					if (!v) return "";
-					const upper = v.toUpperCase();
-					if (upper === "CDI" || upper === "CDD") return upper;
-					return "";
-				};
-
-				const vacations = parseVacations(job.vacations);
-				const contractType = mapContractType(job.contract_type);
-
-				setFormData((prev) => ({
-					...prev,
-					contract_type: contractType || prev.contract_type,
-					start_date: isoToDate(job.start_date) ?? prev.start_date,
-					end_date: isoToDate(job.end_date) ?? prev.end_date,
-					job_title: job.title || prev.job_title,
-					hourly_rate: job.salary_hourly
-						? String(job.salary_hourly)
-						: prev.hourly_rate,
-					...(vacations.length > 0 && {
-						schedule_known: true,
-						vacations,
-					}),
-				}));
-			} catch (err) {
-				console.error("[ContractGen] Erreur fetch application :", err);
-			}
-		};
-		fetchApplicationData();
-	}, [application_id]);
+	// ─── UI state ───────────────────────────────────────────────────────────────
 
 	const [currentStep, setCurrentStep] = useState(1);
-	const [showContractDatePicker, setShowContractDatePicker] = useState(null);
-	const [tempContractDate, setTempContractDate] = useState(new Date());
-	const [showVacationDatePicker, setShowVacationDatePicker] = useState(null);
-	const [tempVacationDate, setTempVacationDate] = useState(new Date());
-	const [showTimePicker, setShowTimePicker] = useState(null);
-	const [tempTime, setTempTime] = useState(new Date());
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+	const [showReasonCodeSheet, setShowReasonCodeSheet] = useState(false);
+
+	// Unified picker state — replaces 6 separate picker/temp-date state vars
+	const [pickerState, setPickerState] = useState(null);
+
+	// ─── Address autocomplete state ─────────────────────────────────────────────
+
+	const [singleAddr, setSingleAddr] = useState({ query: "", results: [], selected: null });
+	// Each entry: { query, results, selected }
+	const [multiAddresses, setMultiAddresses] = useState([{ query: "", results: [], selected: null }]);
+	const [zoneAddr, setZoneAddr] = useState({ query: "", results: [], selected: null });
+
+	// ─── Animations ─────────────────────────────────────────────────────────────
 
 	const scrollX = useRef(new Animated.Value(0)).current;
 	const scrollViewRefs = useRef([null, null, null, null, null]);
 	const currentStepRef = useRef(currentStep);
-
-	useEffect(() => {
-		currentStepRef.current = currentStep;
-	}, [currentStep]);
-
-	// Autoscroll pour centrer l'input focalisé dans l'espace visible
-	useEffect(() => {
-		const event =
-			Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-		const sub = Keyboard.addListener(event, (e) => {
-			const keyboardHeight = e.endCoordinates.height;
-			const focused = TextInput.State.currentlyFocusedInput?.();
-			if (!focused) return;
-			const scrollRef =
-				scrollViewRefs.current[currentStepRef.current - 1];
-			if (!scrollRef) return;
-			focused.measureInWindow((x, y, width, height) => {
-				const windowHeight = Dimensions.get("window").height;
-				const visibleHeight = windowHeight - keyboardHeight;
-				const inputCenterY = y + height / 2;
-				const targetScrollOffset = inputCenterY - visibleHeight / 2;
-				if (targetScrollOffset > 0) {
-					scrollRef.scrollTo({
-						y: targetScrollOffset,
-						animated: true,
-					});
-				}
-			});
-		});
-		return () => sub.remove();
-	}, []);
-
 	const progressAnim = useRef(
 		new Animated.Value(((currentStep - 1) / (STEPS.length - 1)) * 100),
 	).current;
 
-	useEffect(() => {
-		Animated.timing(progressAnim, {
-			toValue: ((currentStep - 1) / (STEPS.length - 1)) * 100,
-			duration: 300,
-			useNativeDriver: false,
-		}).start();
-	}, [currentStep]);
+	// ─── Form state ─────────────────────────────────────────────────────────────
 
 	const [formData, setFormData] = useState({
 		// Step 1
 		contract_type: "",
+		cdd_reason_code: "",
 		contract_reason: "",
 		start_date: null,
 		end_date: null,
@@ -352,11 +531,181 @@ const ContractGenerationScreen = () => {
 		custom_clauses: "",
 	});
 
-	const updateField = (field, value) => {
-		setFormData((prev) => ({ ...prev, [field]: value }));
-	};
+	// ─── Effects ─────────────────────────────────────────────────────────────────
 
-	const updateWeekDay = (day, field, value) => {
+	useEffect(() => {
+		currentStepRef.current = currentStep;
+	}, [currentStep]);
+
+	useEffect(() => {
+		Animated.timing(progressAnim, {
+			toValue: ((currentStep - 1) / (STEPS.length - 1)) * 100,
+			duration: 300,
+			useNativeDriver: false,
+		}).start();
+	}, [currentStep]);
+
+	// Autoscroll to keep focused input above keyboard
+	useEffect(() => {
+		const event =
+			Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+		const sub = Keyboard.addListener(event, (e) => {
+			const focused = TextInput.State.currentlyFocusedInput?.();
+			if (!focused) return;
+			const scrollRef =
+				scrollViewRefs.current[currentStepRef.current - 1];
+			if (!scrollRef) return;
+			focused.measureInWindow((x, y, width, height) => {
+				const windowHeight = Dimensions.get("window").height;
+				const visibleHeight = windowHeight - e.endCoordinates.height;
+				const targetScrollOffset = y + height / 2 - visibleHeight / 2;
+				if (targetScrollOffset > 0)
+					scrollRef.scrollTo({ y: targetScrollOffset, animated: true });
+			});
+		});
+		return () => sub.remove();
+	}, []);
+
+	// Fetch application + existing contract, then pre-fill form
+	useEffect(() => {
+		if (!application_id) return;
+
+		const parseVacations = (raw) => {
+			if (!raw || !Array.isArray(raw)) return [];
+			return raw.map((v) => ({
+				date: v.date ? new Date(v.date) : null,
+				start_time: v.start_time || "",
+				end_time: v.end_time || "",
+			}));
+		};
+
+		const fetchApplicationData = async () => {
+			try {
+				const supabase = createSupabaseClient(accessToken);
+				const data = await getById(
+					"applications",
+					application_id,
+					"*,jobs(*), profiles(*), companies(*)",
+				);
+				setApplicationData(data);
+
+				const { data: existingContract } = await supabase
+					.from("contracts")
+					.select("*")
+					.eq("apply_id", application_id)
+					.in("status", ["draft", "published"])
+					.order("created_at", { ascending: false })
+					.limit(1)
+					.maybeSingle();
+
+				if (existingContract) {
+					setExistingContractId(existingContract.id);
+					setExistingContractStatus(existingContract.status);
+					const ct = existingContract;
+					const schedule = ct.schedule || {};
+					const wLocType = ct.work_location_type || "single";
+					const wLocs =
+						wLocType === "multiple"
+							? (() => {
+									try {
+										return (
+											JSON.parse(ct.work_location) || [""]
+										);
+									} catch {
+										return [""];
+									}
+								})()
+							: [""];
+
+					setFormData((prev) => ({
+						...prev,
+						contract_type: ct.contract_type || "",
+						cdd_reason_code: ct.cdd_reason_code || "",
+						contract_reason: ct.contract_reason || "",
+						start_date: isoToDate(ct.start_date),
+						end_date: isoToDate(ct.end_date),
+						total_hours:
+							ct.total_hours != null ? String(ct.total_hours) : "",
+						schedule_known: schedule.schedule_known ?? false,
+						week_schedule: schedule.week_schedule ?? prev.week_schedule,
+						vacations: parseVacations(schedule.vacations),
+						work_location:
+							wLocType !== "multiple" ? ct.work_location || "" : "",
+						work_location_name: ct.work_location_name || "",
+						work_location_type: wLocType,
+						work_locations: wLocs,
+						job_title: ct.job_title || "",
+						job_description: ct.job_description || "",
+						hourly_rate:
+							ct.hourly_rate != null ? String(ct.hourly_rate) : "",
+						meal_bonus:
+							ct.meal_bonus != null ? String(ct.meal_bonus) : "",
+						transport_bonus:
+							ct.transport_bonus != null
+								? String(ct.transport_bonus)
+								: "",
+						night_bonus:
+							ct.night_bonus != null ? String(ct.night_bonus) : "",
+						sunday_bonus:
+							ct.sunday_bonus != null ? String(ct.sunday_bonus) : "",
+						holiday_bonus:
+							ct.holiday_bonus != null
+								? String(ct.holiday_bonus)
+								: "",
+						overtime_rate:
+							ct.overtime_rate != null
+								? String(ct.overtime_rate)
+								: "",
+						is_night: ct.is_night ?? false,
+						is_sunday: ct.is_sunday ?? false,
+						is_holiday: ct.is_holiday ?? false,
+						equipment_provided: ct.equipment_provided ?? false,
+						equipment_details: ct.equipment_details || "",
+						trial_period: ct.trial_period || "",
+						custom_clauses: ct.custom_clauses || "",
+					}));
+					return;
+				}
+
+				const job = data?.jobs;
+				if (!job) return;
+
+				const mapContractType = (v) => {
+					if (!v) return "";
+					const upper = v.toUpperCase();
+					return upper === "CDI" || upper === "CDD" ? upper : "";
+				};
+
+				const vacations = parseVacations(job.vacations);
+				setFormData((prev) => ({
+					...prev,
+					contract_type:
+						mapContractType(job.contract_type) || prev.contract_type,
+					start_date: isoToDate(job.start_date) ?? prev.start_date,
+					end_date: isoToDate(job.end_date) ?? prev.end_date,
+					job_title: job.title || prev.job_title,
+					hourly_rate: job.salary_hourly
+						? String(job.salary_hourly)
+						: prev.hourly_rate,
+					...(vacations.length > 0 && {
+						schedule_known: true,
+						vacations,
+					}),
+				}));
+			} catch (err) {
+				console.error("[ContractGen] Erreur fetch application :", err);
+			}
+		};
+
+		fetchApplicationData();
+	}, [application_id]);
+
+	// ─── Form helpers ────────────────────────────────────────────────────────────
+
+	const updateField = (field, value) =>
+		setFormData((prev) => ({ ...prev, [field]: value }));
+
+	const updateWeekDay = (day, field, value) =>
 		setFormData((prev) => ({
 			...prev,
 			week_schedule: {
@@ -364,9 +713,8 @@ const ContractGenerationScreen = () => {
 				[day]: { ...prev.week_schedule[day], [field]: value },
 			},
 		}));
-	};
 
-	const addVacation = () => {
+	const addVacation = () =>
 		setFormData((prev) => ({
 			...prev,
 			vacations: [
@@ -374,76 +722,21 @@ const ContractGenerationScreen = () => {
 				{ date: null, start_time: "", end_time: "" },
 			],
 		}));
-	};
 
-	const removeVacation = (index) => {
+	const removeVacation = (index) =>
 		setFormData((prev) => ({
 			...prev,
 			vacations: prev.vacations.filter((_, i) => i !== index),
 		}));
-	};
 
-	const updateVacation = (index, field, value) => {
+	const updateVacation = (index, field, value) =>
 		setFormData((prev) => {
 			const updated = [...prev.vacations];
 			updated[index] = { ...updated[index], [field]: value };
 			return { ...prev, vacations: updated };
 		});
-	};
 
-	const goToNextStep = () => {
-		Keyboard.dismiss();
-		if (currentStep < STEPS.length) {
-			Animated.timing(scrollX, {
-				toValue: -SCREEN_WIDTH * currentStep,
-				duration: 300,
-				useNativeDriver: true,
-			}).start();
-			setCurrentStep(currentStep + 1);
-			setTimeout(() => {
-				if (scrollViewRefs.current[currentStep]) {
-					scrollViewRefs.current[currentStep].scrollTo({
-						y: 0,
-						animated: true,
-					});
-				}
-			}, 100);
-		}
-	};
-
-	const goToPreviousStep = () => {
-		Keyboard.dismiss();
-		if (currentStep > 1) {
-			Animated.timing(scrollX, {
-				toValue: -SCREEN_WIDTH * (currentStep - 2),
-				duration: 300,
-				useNativeDriver: true,
-			}).start();
-			setCurrentStep(currentStep - 1);
-			setTimeout(() => {
-				if (scrollViewRefs.current[currentStep - 2]) {
-					scrollViewRefs.current[currentStep - 2].scrollTo({
-						y: 0,
-						animated: true,
-					});
-				}
-			}, 100);
-		}
-	};
-
-	const showError = (message) => {
-		toast.show({
-			placement: "top",
-			render: ({ id }) => (
-				<CustomToast
-					id={id}
-					icon={AlertCircle}
-					color={danger}
-					title={message}
-				/>
-			),
-		});
-	};
+	// ─── Address helpers ─────────────────────────────────────────────────────────
 
 	const searchAddress = async (query, callback) => {
 		if (!query || query.length < 3) {
@@ -467,6 +760,105 @@ const ContractGenerationScreen = () => {
 			callback([]);
 		}
 	};
+
+	const searchZone = (query) => {
+		if (!query || query.length < 3) {
+			setZoneAddr((p) => ({ ...p, results: [] }));
+			return;
+		}
+		const q = query.toLowerCase();
+		const depMatches = departements
+			.filter(
+				(d) =>
+					d.nom.toLowerCase().includes(q) ||
+					d.code.toLowerCase().includes(q),
+			)
+			.slice(0, 5)
+			.map((d) => ({ label: `${d.nom} (${d.code})`, type: "dep" }));
+		const regMatches = regions
+			.filter((r) => r.nom.toLowerCase().includes(q))
+			.slice(0, 5)
+			.map((r) => ({ label: `Région ${r.nom}`, type: "reg" }));
+		setZoneAddr((p) => ({
+			...p,
+			results: [...depMatches, ...regMatches].slice(0, 5),
+		}));
+	};
+
+	const resetAddressState = () => {
+		setSingleAddr({ query: "", results: [], selected: null });
+		setMultiAddresses([{ query: "", results: [], selected: null }]);
+		setZoneAddr({ query: "", results: [], selected: null });
+	};
+
+	const updateMultiAddress = (i, patch) =>
+		setMultiAddresses((prev) => {
+			const updated = [...prev];
+			updated[i] = { ...updated[i], ...patch };
+			return updated;
+		});
+
+	const handleMultiAddressQuery = (i, v) => {
+		updateMultiAddress(i, { query: v, selected: null });
+		const ul = [...formData.work_locations];
+		ul[i] = v;
+		updateField("work_locations", ul);
+		searchAddress(v, (results) => updateMultiAddress(i, { results }));
+	};
+
+	const handleMultiAddressSelect = (i, item) => {
+		updateMultiAddress(i, { query: "", results: [], selected: item });
+		const ul = [...formData.work_locations];
+		ul[i] = item.label;
+		updateField("work_locations", ul);
+	};
+
+	const addMultiAddress = () => {
+		setMultiAddresses((prev) => [
+			...prev,
+			{ query: "", results: [], selected: null },
+		]);
+		updateField("work_locations", [...formData.work_locations, ""]);
+	};
+
+	const removeMultiAddress = (i) => {
+		setMultiAddresses((prev) => prev.filter((_, idx) => idx !== i));
+		updateField(
+			"work_locations",
+			formData.work_locations.filter((_, idx) => idx !== i),
+		);
+	};
+
+	// ─── Picker helpers ──────────────────────────────────────────────────────────
+
+	const openPicker = (mode, title, value, onConfirm) =>
+		setPickerState({ mode, title, value: value || new Date(), onConfirm });
+
+	const handlePickerChange = (_, date) => {
+		if (date) setPickerState((p) => (p ? { ...p, value: date } : null));
+	};
+
+	const handlePickerConfirm = () => {
+		if (pickerState) {
+			pickerState.onConfirm(pickerState.value);
+			setPickerState(null);
+		}
+	};
+
+	// ─── Navigation helpers ──────────────────────────────────────────────────────
+
+	const showError = (message) =>
+		toast.show({
+			placement: "top",
+			render: ({ id }) => (
+				<CustomToast
+					id={id}
+					icon={AlertCircle}
+					color={danger}
+					title={message}
+				/>
+			),
+		});
 
 	const validateStep = () => {
 		Keyboard.dismiss();
@@ -510,62 +902,54 @@ const ContractGenerationScreen = () => {
 		goToNextStep();
 	};
 
-	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-
-	// Autocomplete zone / région
-	const [zoneQuery, setZoneQuery] = useState("");
-	const [zoneResults, setZoneResults] = useState([]);
-	const [zoneSelected, setZoneSelected] = useState(null);
-
-	const searchZone = (query) => {
-		if (!query || query.length < 3) {
-			setZoneResults([]);
-			return;
-		}
-		const q = query.toLowerCase();
-		const depMatches = departements
-			.filter(
-				(d) =>
-					d.nom.toLowerCase().includes(q) ||
-					d.code.toLowerCase().includes(q),
-			)
-			.slice(0, 5)
-			.map((d) => ({ label: `${d.nom} (${d.code})`, type: "dep" }));
-		const regMatches = regions
-			.filter((r) => r.nom.toLowerCase().includes(q))
-			.slice(0, 5)
-			.map((r) => ({ label: `Région ${r.nom}`, type: "reg" }));
-		const combined = [...depMatches, ...regMatches].slice(0, 5);
-		setZoneResults(combined);
+	const goToNextStep = () => {
+		Keyboard.dismiss();
+		if (currentStep >= STEPS.length) return;
+		Animated.timing(scrollX, {
+			toValue: -SCREEN_WIDTH * currentStep,
+			duration: 300,
+			useNativeDriver: true,
+		}).start();
+		setCurrentStep(currentStep + 1);
+		setTimeout(() => {
+			scrollViewRefs.current[currentStep]?.scrollTo({
+				y: 0,
+				animated: true,
+			});
+		}, 100);
 	};
 
-	// Autocomplete adresse unique
-	const [singleAddressQuery, setSingleAddressQuery] = useState("");
-	const [singleAddressResults, setSingleAddressResults] = useState([]);
-	const [singleSelectedAddress, setSingleSelectedAddress] = useState(null);
-	// Autocomplete plusieurs adresses
-	const [multiAddressQueries, setMultiAddressQueries] = useState([""]);
-	const [multiAddressResults, setMultiAddressResults] = useState([[]]);
-	const [multiSelectedAddresses, setMultiSelectedAddresses] = useState([
-		null,
-	]);
+	const goToPreviousStep = () => {
+		Keyboard.dismiss();
+		if (currentStep <= 1) return;
+		Animated.timing(scrollX, {
+			toValue: -SCREEN_WIDTH * (currentStep - 2),
+			duration: 300,
+			useNativeDriver: true,
+		}).start();
+		setCurrentStep(currentStep - 1);
+		setTimeout(() => {
+			scrollViewRefs.current[currentStep - 2]?.scrollTo({
+				y: 0,
+				animated: true,
+			});
+		}, 100);
+	};
+
+	// ─── Submit ──────────────────────────────────────────────────────────────────
 
 	const handleSubmit = async (status = "draft") => {
 		setIsSubmitting(true);
 		try {
 			const supabase = createSupabaseClient(accessToken);
-			const formatDateISO = (d) =>
-				d ? d.toISOString().split("T")[0] : null;
 
-			const editablePayload = {
+			const payload = {
 				contract_type: formData.contract_type,
+				cdd_reason_code: formData.cdd_reason_code || null,
 				contract_reason: formData.contract_reason || null,
 				start_date: formatDateISO(formData.start_date),
 				end_date: formatDateISO(formData.end_date),
-				total_hours: formData.total_hours
-					? parseFloat(formData.total_hours)
-					: null,
+				total_hours: toFloatOrNull(formData.total_hours),
 				schedule: {
 					schedule_known: formData.schedule_known,
 					week_schedule: formData.week_schedule,
@@ -581,27 +965,13 @@ const ContractGenerationScreen = () => {
 				work_location_name: formData.work_location_name || null,
 				job_title: formData.job_title,
 				job_description: formData.job_description || null,
-				hourly_rate: formData.hourly_rate
-					? parseFloat(formData.hourly_rate)
-					: null,
-				overtime_rate: formData.overtime_rate
-					? parseFloat(formData.overtime_rate)
-					: null,
-				meal_bonus: formData.meal_bonus
-					? parseFloat(formData.meal_bonus)
-					: null,
-				transport_bonus: formData.transport_bonus
-					? parseFloat(formData.transport_bonus)
-					: null,
-				night_bonus: formData.night_bonus
-					? parseFloat(formData.night_bonus)
-					: null,
-				sunday_bonus: formData.sunday_bonus
-					? parseFloat(formData.sunday_bonus)
-					: null,
-				holiday_bonus: formData.holiday_bonus
-					? parseFloat(formData.holiday_bonus)
-					: null,
+				hourly_rate: toFloatOrNull(formData.hourly_rate),
+				overtime_rate: toFloatOrNull(formData.overtime_rate),
+				meal_bonus: toFloatOrNull(formData.meal_bonus),
+				transport_bonus: toFloatOrNull(formData.transport_bonus),
+				night_bonus: toFloatOrNull(formData.night_bonus),
+				sunday_bonus: toFloatOrNull(formData.sunday_bonus),
+				holiday_bonus: toFloatOrNull(formData.holiday_bonus),
 				is_night: formData.is_night,
 				is_sunday: formData.is_sunday,
 				is_holiday: formData.is_holiday,
@@ -609,30 +979,28 @@ const ContractGenerationScreen = () => {
 				equipment_details: formData.equipment_details || null,
 				trial_period: formData.trial_period || null,
 				custom_clauses: formData.custom_clauses || null,
-				status: status,
+				status,
+			};
+
+			const snapshots = {
+				company_snapshot: applicationData?.companies ?? null,
+				candidate_snapshot: applicationData?.profiles ?? null,
 			};
 
 			let error;
 			if (existingContractId) {
-				// Brouillon existant → mise à jour (on rafraîchit aussi les snapshots)
 				({ error } = await supabase
 					.from("contracts")
-					.update({
-						...editablePayload,
-						company_snapshot: applicationData?.companies ?? null,
-						candidate_snapshot: applicationData?.profiles ?? null,
-					})
+					.update({ ...payload, ...snapshots })
 					.eq("id", existingContractId));
 			} else {
-				// Nouveau contrat → insertion
 				({ error } = await supabase.from("contracts").insert({
-					...editablePayload,
+					...payload,
+					...snapshots,
 					apply_id: application_id,
 					job_id: applicationData?.jobs?.id ?? null,
 					company_id: applicationData?.companies?.id ?? null,
 					candidate_id: applicationData?.profiles?.id ?? null,
-					company_snapshot: applicationData?.companies ?? null,
-					candidate_snapshot: applicationData?.profiles ?? null,
 					generated_at: new Date().toISOString(),
 					isSigned: false,
 					isProSigned: false,
@@ -641,18 +1009,12 @@ const ContractGenerationScreen = () => {
 
 			if (error) throw error;
 
-			// Si c'est la première publication (pas encore published avant)
-			if (
-				status === "published" &&
-				existingContractStatus !== "published"
-			) {
+			if (status === "published" && existingContractStatus !== "published") {
 				await updateApplicationStatus(
 					application_id,
 					"contract_sent",
 					"company",
 				);
-
-				// Notifier le candidat par email
 				try {
 					const candidate = applicationData?.profiles;
 					const company = applicationData?.companies;
@@ -700,27 +1062,8 @@ const ContractGenerationScreen = () => {
 		}
 	};
 
-	const formatDate = (date) => {
-		if (!date) return "";
-		return date.toLocaleDateString("fr-FR");
-	};
+	// ─── Shared styles ────────────────────────────────────────────────────────────
 
-	const parseTimeToDate = (timeStr) => {
-		const d = new Date();
-		if (timeStr) {
-			const [h, m] = timeStr.split(":").map(Number);
-			if (!isNaN(h)) d.setHours(h, isNaN(m) ? 0 : m, 0, 0);
-		}
-		return d;
-	};
-
-	const formatTime = (date) => {
-		const h = String(date.getHours()).padStart(2, "0");
-		const m = String(date.getMinutes()).padStart(2, "0");
-		return `${h}:${m}`;
-	};
-
-	// ─── Styles partagés ───────────────────────────────────────────────────────
 	const cardStyle = {
 		backgroundColor: cardBg,
 		borderRadius: 12,
@@ -733,60 +1076,39 @@ const ContractGenerationScreen = () => {
 		color: textPrimary,
 		marginBottom: 6,
 	};
-	const inputStyle = {
-		backgroundColor: bg,
-		borderColor: border,
-	};
+	const inputStyle = { backgroundColor: bg, borderColor: border };
 	const inputTextStyle = { color: textPrimary };
 
-	// ─── Step 1 : Informations du contrat ─────────────────────────────────────
+	// Shared scroll view props for each step panel
+	const stepScrollProps = (idx) => ({
+		ref: (ref) => (scrollViewRefs.current[idx] = ref),
+		style: { flex: 1 },
+		contentContainerStyle: { padding: 20, paddingBottom: 120 },
+		keyboardShouldPersistTaps: "handled",
+		showsVerticalScrollIndicator: false,
+	});
+
+	// Shared color props forwarded to sub-components
+	const colorProps = { bg, border, muted, textPrimary };
+
+	// ─── Step renderers ──────────────────────────────────────────────────────────
+
 	const renderStep1 = () => (
-		<ScrollView
-			ref={(ref) => (scrollViewRefs.current[0] = ref)}
-			style={{ flex: 1 }}
-			contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
-			keyboardShouldPersistTaps='handled'
-			showsVerticalScrollIndicator={false}>
-			{/* Type de contrat */}
+		<ScrollView {...stepScrollProps(0)}>
+			{/* Contract type */}
 			<Card style={cardStyle}>
 				<Text style={labelStyle}>Type de contrat *</Text>
-				<HStack space='sm' style={{ flexWrap: "wrap", gap: 8 }}>
-					{CONTRACT_TYPES.map((type) => (
-						<TouchableOpacity
-							key={type}
-							onPress={() => updateField("contract_type", type)}
-							activeOpacity={0.7}
-							style={{
-								paddingHorizontal: 16,
-								paddingVertical: 8,
-								borderRadius: 20,
-								borderWidth: 1.5,
-								borderColor:
-									formData.contract_type === type
-										? tint
-										: border,
-								backgroundColor:
-									formData.contract_type === type
-										? tint
-										: "transparent",
-							}}>
-							<Text
-								style={{
-									fontSize: 13,
-									fontWeight: "600",
-									color:
-										formData.contract_type === type
-											? "#ffffff"
-											: textPrimary,
-								}}>
-								{type}
-							</Text>
-						</TouchableOpacity>
-					))}
-				</HStack>
+				<PillSelector
+					options={CONTRACT_TYPES.map((t) => ({ value: t, label: t }))}
+					value={formData.contract_type}
+					onChange={(v) => updateField("contract_type", v)}
+					tint={tint}
+					border={border}
+					textPrimary={textPrimary}
+				/>
 			</Card>
 
-			{/* Motif de recours */}
+			{/* Motif de recours (CDD only) */}
 			{(formData.contract_type === "CDD" ||
 				formData.contract_type === "Intérim") && (
 				<Card style={cardStyle}>
@@ -794,9 +1116,60 @@ const ContractGenerationScreen = () => {
 						Motif de recours
 						{formData.contract_type === "CDD" ? " *" : ""}
 					</Text>
-					<Textarea style={{ ...inputStyle, minHeight: 80 }}>
+
+					{/* Reason code selector */}
+					<TouchableOpacity
+						onPress={() => setShowReasonCodeSheet(true)}
+						activeOpacity={0.7}
+						style={{
+							backgroundColor: bg,
+							borderColor: formData.cdd_reason_code
+								? tint
+								: border,
+							borderWidth: 1,
+							borderRadius: 8,
+							paddingHorizontal: 14,
+							paddingVertical: 12,
+							flexDirection: "row",
+							alignItems: "center",
+							justifyContent: "space-between",
+							marginBottom: 12,
+						}}>
+						<Text
+							style={{
+								fontSize: 14,
+								color: formData.cdd_reason_code
+									? textPrimary
+									: muted,
+								flex: 1,
+							}}>
+							{formData.cdd_reason_code
+								? CDD_REASON_CODES.find(
+										(r) =>
+											r.value ===
+											formData.cdd_reason_code,
+									)?.label
+								: "Sélectionner un motif…"}
+						</Text>
+						<Icon
+							as={ChevronDown}
+							size='sm'
+							style={{ color: muted }}
+						/>
+					</TouchableOpacity>
+
+					{/* Optional free-text precision */}
+					<Text
+						style={{
+							fontSize: 12,
+							color: muted,
+							marginBottom: 6,
+						}}>
+						Précisions (optionnel)
+					</Text>
+					<Textarea style={{ ...inputStyle, minHeight: 72 }}>
 						<TextareaInput
-							placeholder="Ex : Remplacement d'un salarié absent, accroissement temporaire..."
+							placeholder="Ex : Remplacement de M. Dupont en congé maladie..."
 							value={formData.contract_reason}
 							onChangeText={(v) =>
 								updateField("contract_reason", v)
@@ -807,79 +1180,43 @@ const ContractGenerationScreen = () => {
 				</Card>
 			)}
 
-			{/* Dates */}
+			{/* Start date */}
 			<Card style={cardStyle}>
 				<Text style={labelStyle}>Date de début *</Text>
-				<TouchableOpacity
-					onPress={() => {
-						setTempContractDate(formData.start_date || new Date());
-						setShowContractDatePicker("start");
-					}}
-					style={{
-						...inputStyle,
-						borderWidth: 1,
-						borderRadius: 8,
-						padding: 12,
-						flexDirection: "row",
-						alignItems: "center",
-						gap: 8,
-					}}>
-					<Icon
-						as={CalendarDays}
-						size='sm'
-						style={{ color: muted }}
-					/>
-					<Text
-						style={{
-							color: formData.start_date ? textPrimary : muted,
-						}}>
-						{formData.start_date
-							? formatDate(formData.start_date)
-							: "Sélectionner une date"}
-					</Text>
-				</TouchableOpacity>
+				<DatePickerButton
+					value={formData.start_date}
+					onPress={() =>
+						openPicker("date", "Date de début", formData.start_date, (date) =>
+							updateField("start_date", date),
+						)
+					}
+					{...colorProps}
+				/>
 			</Card>
 
+			{/* End date (not for CDI) */}
 			{formData.contract_type !== "CDI" && (
 				<Card style={cardStyle}>
 					<Text style={labelStyle}>
 						Date de fin
 						{formData.contract_type === "CDD" ? " *" : ""}
 					</Text>
-					<TouchableOpacity
-						onPress={() => {
-							setTempContractDate(
-								formData.end_date || new Date(),
-							);
-							setShowContractDatePicker("end");
-						}}
-						style={{
-							...inputStyle,
-							borderWidth: 1,
-							borderRadius: 8,
-							padding: 12,
-							flexDirection: "row",
-							alignItems: "center",
-							gap: 8,
-						}}>
-						<Icon
-							as={CalendarDays}
-							size='sm'
-							style={{ color: muted }}
-						/>
-						<Text
-							style={{
-								color: formData.end_date ? textPrimary : muted,
-							}}>
-							{formData.end_date
-								? formatDate(formData.end_date)
-								: "Sélectionner une date"}
-						</Text>
-					</TouchableOpacity>
+					<DatePickerButton
+						value={formData.end_date}
+						onPress={() =>
+							openPicker(
+								"date",
+								"Date de fin",
+								formData.end_date,
+								(date) => updateField("end_date", date),
+							)
+						}
+						{...colorProps}
+					/>
 				</Card>
 			)}
 
-			{/* Durée hebdomadaire */}
+			{/* Total / monthly hours */}
 			<Card style={cardStyle}>
 				<Text style={labelStyle}>
 					{formData.contract_type === "CDI" ||
@@ -888,8 +1225,7 @@ const ContractGenerationScreen = () => {
 						formData.end_date >=
 							new Date(
 								new Date(formData.start_date).setMonth(
-									new Date(formData.start_date).getMonth() +
-										1,
+									new Date(formData.start_date).getMonth() + 1,
 								),
 							))
 						? "Nombre d'heures mensuelles *"
@@ -906,7 +1242,7 @@ const ContractGenerationScreen = () => {
 				</Input>
 			</Card>
 
-			{/* Planning */}
+			{/* Schedule */}
 			<Card style={cardStyle}>
 				<HStack
 					style={{
@@ -928,7 +1264,7 @@ const ContractGenerationScreen = () => {
 					/>
 				</HStack>
 
-				{/* CDI – Semaine type */}
+				{/* CDI – weekly schedule */}
 				{formData.schedule_known &&
 					formData.contract_type === "CDI" && (
 						<VStack space='xs'>
@@ -946,8 +1282,9 @@ const ContractGenerationScreen = () => {
 										style={{
 											justifyContent: "space-between",
 											alignItems: "center",
-											marginBottom: formData
-												.week_schedule[day].enabled
+											marginBottom: formData.week_schedule[
+												day
+											].enabled
 												? 8
 												: 0,
 										}}>
@@ -962,8 +1299,7 @@ const ContractGenerationScreen = () => {
 										</Text>
 										<Switch
 											value={
-												formData.week_schedule[day]
-													.enabled
+												formData.week_schedule[day].enabled
 											}
 											onValueChange={(v) =>
 												updateWeekDay(day, "enabled", v)
@@ -971,111 +1307,57 @@ const ContractGenerationScreen = () => {
 										/>
 									</HStack>
 									{formData.week_schedule[day].enabled && (
-										<HStack
-											space='sm'
-											style={{ alignItems: "center" }}>
-											<Icon
-												as={Clock}
-												size='xs'
-												style={{
-													color: muted,
-												}}
-											/>
-											<TouchableOpacity
-												onPress={() => {
-													setTempTime(
-														new Date(
-															new Date().setHours(
-																8,
-																0,
-																0,
-																0,
-															),
+										<TimeRangePicker
+											startValue={
+												formData.week_schedule[day].start
+											}
+											endValue={
+												formData.week_schedule[day].end
+											}
+											onStartPress={() =>
+												openPicker(
+													"time",
+													"Heure de début",
+													new Date(
+														new Date().setHours(8, 0, 0, 0),
+													),
+													(time) =>
+														updateWeekDay(
+															day,
+															"start",
+															formatTime(time),
 														),
-													);
-													setShowTimePicker({
-														source: "cdi",
-														day,
-														field: "start",
-													});
-												}}
-												activeOpacity={0.7}
-												style={{
-													...inputStyle,
-													borderWidth: 1,
-													borderRadius: 8,
-													padding: 10,
-													flex: 1,
-													alignItems: "center",
-												}}>
-												<Text
-													style={{
-														fontSize: 13,
-														color: formData
-															.week_schedule[day]
-															.start
-															? textPrimary
-															: muted,
-													}}>
-													{formData.week_schedule[day]
-														.start || "Début"}
-												</Text>
-											</TouchableOpacity>
-											<Text
-												style={{
-													color: muted,
-													fontWeight: "600",
-												}}>
-												→
-											</Text>
-											<TouchableOpacity
-												onPress={() => {
-													setTempTime(
-														new Date(
-															new Date().setHours(
-																18,
-																0,
-																0,
-																0,
-															),
+												)
+											}
+											onEndPress={() =>
+												openPicker(
+													"time",
+													"Heure de fin",
+													new Date(
+														new Date().setHours(
+															18,
+															0,
+															0,
+															0,
 														),
-													);
-													setShowTimePicker({
-														source: "cdi",
-														day,
-														field: "end",
-													});
-												}}
-												activeOpacity={0.7}
-												style={{
-													...inputStyle,
-													borderWidth: 1,
-													borderRadius: 8,
-													padding: 10,
-													flex: 1,
-													alignItems: "center",
-												}}>
-												<Text
-													style={{
-														fontSize: 13,
-														color: formData
-															.week_schedule[day]
-															.end
-															? textPrimary
-															: muted,
-													}}>
-													{formData.week_schedule[day]
-														.end || "Fin"}
-												</Text>
-											</TouchableOpacity>
-										</HStack>
+													),
+													(time) =>
+														updateWeekDay(
+															day,
+															"end",
+															formatTime(time),
+														),
+												)
+											}
+											{...colorProps}
+										/>
 									)}
 								</VStack>
 							))}
 						</VStack>
 					)}
 
-				{/* CDD – Vacations */}
+				{/* CDD – vacations */}
 				{formData.schedule_known &&
 					formData.contract_type !== "CDI" && (
 						<VStack space='sm'>
@@ -1103,9 +1385,7 @@ const ContractGenerationScreen = () => {
 											Vacation {index + 1}
 										</Text>
 										<TouchableOpacity
-											onPress={() =>
-												removeVacation(index)
-											}
+											onPress={() => removeVacation(index)}
 											activeOpacity={0.7}>
 											<Icon
 												as={Trash2}
@@ -1114,183 +1394,278 @@ const ContractGenerationScreen = () => {
 											/>
 										</TouchableOpacity>
 									</HStack>
-
-									{/* Date */}
-									<TouchableOpacity
-										onPress={() => {
-											setTempVacationDate(
-												vacation.date || new Date(),
-											);
-											setShowVacationDatePicker(index);
-										}}
-										style={{
-											...inputStyle,
-											borderWidth: 1,
-											borderRadius: 8,
-											padding: 10,
-											flexDirection: "row",
-											alignItems: "center",
-											gap: 8,
-											marginBottom: 8,
-										}}>
-										<Icon
-											as={CalendarDays}
-											size='xs'
-											style={{
-												color: muted,
-											}}
-										/>
-										<Text
-											style={{
-												fontSize: 13,
-												color: vacation.date
-													? textPrimary
-													: muted,
-											}}>
-											{vacation.date
-												? formatDate(vacation.date)
-												: "Date de la vacation"}
-										</Text>
-									</TouchableOpacity>
-									{/* Heures */}
-									<HStack
-										space='sm'
-										style={{ alignItems: "center" }}>
-										<Icon
-											as={Clock}
-											size='xs'
-											style={{
-												color: muted,
-											}}
-										/>
-										<TouchableOpacity
-											onPress={() => {
-												setTempTime(
-													new Date(
-														new Date().setHours(
-															8,
-															0,
-															0,
-															0,
-														),
+									<DatePickerButton
+										value={vacation.date}
+										placeholder='Date de la vacation'
+										onPress={() =>
+											openPicker(
+												"date",
+												"Date de la vacation",
+												vacation.date,
+												(date) =>
+													updateVacation(
+														index,
+														"date",
+														date,
 													),
-												);
-												setShowTimePicker({
-													source: "vacation",
-													index,
-													field: "start_time",
-												});
-											}}
-											activeOpacity={0.7}
-											style={{
-												...inputStyle,
-												borderWidth: 1,
-												borderRadius: 8,
-												padding: 10,
-												flex: 1,
-												alignItems: "center",
-											}}>
-											<Text
-												style={{
-													fontSize: 13,
-													color: vacation.start_time
-														? textPrimary
-														: muted,
-												}}>
-												{vacation.start_time || "Début"}
-											</Text>
-										</TouchableOpacity>
-										<Text
-											style={{
-												color: muted,
-												fontWeight: "600",
-											}}>
-											→
-										</Text>
-										<TouchableOpacity
-											onPress={() => {
-												setTempTime(
-													new Date(
-														new Date().setHours(
-															18,
-															0,
-															0,
-															0,
-														),
+											)
+										}
+										style={{ padding: 10, marginBottom: 8 }}
+										{...colorProps}
+									/>
+									<TimeRangePicker
+										startValue={vacation.start_time}
+										endValue={vacation.end_time}
+										onStartPress={() =>
+											openPicker(
+												"time",
+												"Heure de début",
+												new Date(
+													new Date().setHours(8, 0, 0, 0),
+												),
+												(time) =>
+													updateVacation(
+														index,
+														"start_time",
+														formatTime(time),
 													),
-												);
-												setShowTimePicker({
-													source: "vacation",
-													index,
-													field: "end_time",
-												});
-											}}
-											activeOpacity={0.7}
-											style={{
-												...inputStyle,
-												borderWidth: 1,
-												borderRadius: 8,
-												padding: 10,
-												flex: 1,
-												alignItems: "center",
-											}}>
-											<Text
-												style={{
-													fontSize: 13,
-													color: vacation.end_time
-														? textPrimary
-														: muted,
-												}}>
-												{vacation.end_time || "Fin"}
-											</Text>
-										</TouchableOpacity>
-									</HStack>
+											)
+										}
+										onEndPress={() =>
+											openPicker(
+												"time",
+												"Heure de fin",
+												new Date(
+													new Date().setHours(18, 0, 0, 0),
+												),
+												(time) =>
+													updateVacation(
+														index,
+														"end_time",
+														formatTime(time),
+													),
+											)
+										}
+										{...colorProps}
+									/>
 								</Card>
 							))}
-
-							<TouchableOpacity
+							<AddDashedButton
+								label='Ajouter une vacation'
 								onPress={addVacation}
-								activeOpacity={0.7}
-								style={{
-									flexDirection: "row",
-									alignItems: "center",
-									justifyContent: "center",
-									gap: 8,
-									paddingVertical: 10,
-									borderRadius: 8,
-									borderWidth: 1.5,
-									borderStyle: "dashed",
-									borderColor: border,
-								}}>
-								<Icon
-									as={Plus}
-									size='sm'
-									style={{
-										color: muted,
-									}}
-								/>
-								<Text
-									style={{
-										fontSize: 13,
-										color: muted,
-									}}>
-									Ajouter une vacation
-								</Text>
-							</TouchableOpacity>
+								border={border}
+								muted={muted}
+							/>
 						</VStack>
 					)}
 			</Card>
 		</ScrollView>
 	);
 
-	// ─── Step 2 : Poste & Lieu ────────────────────────────────────────────────
+	// Address sub-renderers (called from renderStep2)
+
+	const renderSingleAddress = () => (
+		<VStack space='sm'>
+			<Input style={inputStyle}>
+				<InputField
+					placeholder='Rechercher une adresse...'
+					value={singleAddr.query}
+					onChangeText={(v) => {
+						setSingleAddr((p) => ({ ...p, query: v, selected: null }));
+						updateField("work_location", v);
+						searchAddress(v, (results) =>
+							setSingleAddr((p) => ({ ...p, results })),
+						);
+					}}
+					style={inputTextStyle}
+				/>
+			</Input>
+			<AddressSuggestionList
+				results={singleAddr.results}
+				onSelect={(item) => {
+					setSingleAddr({ query: "", results: [], selected: item });
+					updateField("work_location", item.label);
+				}}
+				cardBg={cardBg}
+				border={border}
+				textPrimary={textPrimary}
+			/>
+			<SelectedAddressBadge
+				address={singleAddr.selected}
+				isDark={isDark}
+				tint={tint}
+			/>
+		</VStack>
+	);
+
+	const renderMultiAddress = () => (
+		<VStack space='sm'>
+			{multiAddresses.map((addr, i) => (
+				<VStack key={i} space='xs'>
+					<HStack space='sm' style={{ alignItems: "center" }}>
+						<Input style={{ ...inputStyle, flex: 1 }}>
+							<InputField
+								placeholder={`Rechercher adresse ${i + 1}...`}
+								value={addr.query}
+								onChangeText={(v) =>
+									handleMultiAddressQuery(i, v)
+								}
+								style={inputTextStyle}
+							/>
+						</Input>
+						{multiAddresses.length > 1 && (
+							<TouchableOpacity
+								onPress={() => removeMultiAddress(i)}
+								activeOpacity={0.7}>
+								<Icon
+									as={Trash2}
+									size='sm'
+									style={{ color: danger }}
+								/>
+							</TouchableOpacity>
+						)}
+					</HStack>
+					<AddressSuggestionList
+						results={addr.results}
+						onSelect={(item) => handleMultiAddressSelect(i, item)}
+						cardBg={cardBg}
+						border={border}
+						textPrimary={textPrimary}
+					/>
+					<SelectedAddressBadge
+						address={addr.selected}
+						isDark={isDark}
+						tint={tint}
+					/>
+				</VStack>
+			))}
+			<AddDashedButton
+				label='Ajouter une adresse'
+				onPress={addMultiAddress}
+				border={border}
+				muted={muted}
+			/>
+		</VStack>
+	);
+
+	const renderZoneAddress = () => (
+		<VStack space='sm'>
+			<Input style={inputStyle}>
+				<InputField
+					placeholder='Rechercher un département ou une région...'
+					value={zoneAddr.query}
+					onChangeText={(v) => {
+						setZoneAddr((p) => ({ ...p, query: v, selected: null }));
+						updateField("work_location", v);
+						searchZone(v);
+					}}
+					style={inputTextStyle}
+				/>
+			</Input>
+			{zoneAddr.results.length > 0 && (
+				<VStack
+					style={{
+						borderRadius: 8,
+						overflow: "hidden",
+						borderWidth: 1,
+						borderColor: border,
+					}}>
+					{zoneAddr.results.map((item, idx) => (
+						<TouchableOpacity
+							key={idx}
+							onPress={() => {
+								setZoneAddr({
+									query: "",
+									results: [],
+									selected: item,
+								});
+								updateField("work_location", item.label);
+							}}
+							activeOpacity={0.7}
+							style={{
+								padding: 12,
+								backgroundColor: cardBg,
+								borderBottomWidth:
+									idx < zoneAddr.results.length - 1 ? 1 : 0,
+								borderBottomColor: border,
+							}}>
+							<HStack style={{ alignItems: "center", gap: 8 }}>
+								<Text
+									style={{
+										fontSize: 10,
+										fontWeight: "700",
+										color:
+											item.type === "reg"
+												? "#8b5cf6"
+												: tint,
+										paddingHorizontal: 6,
+										paddingVertical: 2,
+										borderRadius: 4,
+										backgroundColor:
+											item.type === "reg"
+												? isDark
+													? "#3b1f6f"
+													: "#ede9fe"
+												: isDark
+													? "#1e3a5f"
+													: "#dbeafe",
+									}}>
+									{item.type === "reg" ? "RÉG" : "DEP"}
+								</Text>
+								<Text
+									style={{ fontSize: 14, color: textPrimary }}>
+									{item.label}
+								</Text>
+							</HStack>
+						</TouchableOpacity>
+					))}
+				</VStack>
+			)}
+			{zoneAddr.selected && (
+				<HStack
+					style={{
+						padding: 12,
+						borderRadius: 8,
+						backgroundColor: isDark
+							? zoneAddr.selected.type === "reg"
+								? "#3b1f6f"
+								: "#1e3a5f"
+							: zoneAddr.selected.type === "reg"
+								? "#ede9fe"
+								: "#eff6ff",
+						alignItems: "center",
+						gap: 8,
+					}}>
+					<Icon
+						as={MapPin}
+						size='sm'
+						style={{
+							color:
+								zoneAddr.selected.type === "reg"
+									? "#8b5cf6"
+									: tint,
+						}}
+					/>
+					<Text
+						style={{
+							fontSize: 14,
+							flex: 1,
+							color:
+								zoneAddr.selected.type === "reg"
+									? isDark
+										? "#c4b5fd"
+										: "#7c3aed"
+									: tint,
+						}}>
+						{zoneAddr.selected.label}
+					</Text>
+				</HStack>
+			)}
+		</VStack>
+	);
+
 	const renderStep2 = () => (
-		<ScrollView
-			ref={(ref) => (scrollViewRefs.current[1] = ref)}
-			style={{ flex: 1 }}
-			contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
-			keyboardShouldPersistTaps='handled'
-			showsVerticalScrollIndicator={false}>
+		<ScrollView {...stepScrollProps(1)}>
 			<Card style={cardStyle}>
 				<Text style={labelStyle}>Intitulé du poste *</Text>
 				<Input style={inputStyle}>
@@ -1317,500 +1692,30 @@ const ContractGenerationScreen = () => {
 				</Input>
 
 				<Text style={labelStyle}>Type de lieu *</Text>
-				<HStack style={{ flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-					{[
-						{ value: "single", label: "Adresse unique" },
-						{ value: "multiple", label: "Plusieurs adresses" },
-						{ value: "zone", label: "Zone / Région" },
-					].map(({ value, label }) => (
-						<TouchableOpacity
-							key={value}
-							onPress={() => {
-								updateField("work_location_type", value);
-								updateField("work_location", "");
-								updateField("work_locations", [""]);
-								updateField("work_location_name", "");
-								setSingleAddressQuery("");
-								setSingleAddressResults([]);
-								setSingleSelectedAddress(null);
-								setMultiAddressQueries([""]);
-								setMultiAddressResults([[]]);
-								setMultiSelectedAddresses([null]);
-								setZoneQuery("");
-								setZoneResults([]);
-								setZoneSelected(null);
-							}}
-							activeOpacity={0.7}
-							style={{
-								paddingHorizontal: 14,
-								paddingVertical: 7,
-								borderRadius: 20,
-								borderWidth: 1.5,
-								borderColor:
-									formData.work_location_type === value
-										? tint
-										: border,
-								backgroundColor:
-									formData.work_location_type === value
-										? tint
-										: "transparent",
-							}}>
-							<Text
-								style={{
-									fontSize: 12,
-									fontWeight: "600",
-									color:
-										formData.work_location_type === value
-											? "#ffffff"
-											: textPrimary,
-								}}>
-								{label}
-							</Text>
-						</TouchableOpacity>
-					))}
-				</HStack>
+				<PillSelector
+					options={LOCATION_TYPES}
+					value={formData.work_location_type}
+					onChange={(v) => {
+						updateField("work_location_type", v);
+						updateField("work_location", "");
+						updateField("work_locations", [""]);
+						updateField("work_location_name", "");
+						resetAddressState();
+					}}
+					tint={tint}
+					border={border}
+					textPrimary={textPrimary}
+					size='sm'
+				/>
 
-				{/* Adresse unique – autocomplete */}
-				{formData.work_location_type === "single" && (
-					<VStack space='sm'>
-						<Input style={inputStyle}>
-							<InputField
-								placeholder='Rechercher une adresse...'
-								value={singleAddressQuery}
-								onChangeText={(v) => {
-									setSingleAddressQuery(v);
-									updateField("work_location", v);
-									setSingleSelectedAddress(null);
-									searchAddress(v, setSingleAddressResults);
-								}}
-								style={inputTextStyle}
-							/>
-						</Input>
-						{singleAddressResults.length > 0 && (
-							<VStack
-								style={{
-									borderRadius: 8,
-									overflow: "hidden",
-									borderWidth: 1,
-									borderColor: border,
-								}}>
-								{singleAddressResults.map((item, idx) => (
-									<TouchableOpacity
-										key={idx}
-										onPress={() => {
-											setSingleSelectedAddress(item);
-											setSingleAddressQuery("");
-											setSingleAddressResults([]);
-											updateField(
-												"work_location",
-												item.label,
-											);
-										}}
-										activeOpacity={0.7}
-										style={{
-											padding: 12,
-											backgroundColor: cardBg,
-											borderBottomWidth:
-												idx <
-												singleAddressResults.length - 1
-													? 1
-													: 0,
-											borderBottomColor: border,
-										}}>
-										<Text
-											style={{
-												fontSize: 14,
-												color: textPrimary,
-											}}>
-											{item.label}
-										</Text>
-									</TouchableOpacity>
-								))}
-							</VStack>
-						)}
-						{singleSelectedAddress && (
-							<HStack
-								style={{
-									padding: 12,
-									borderRadius: 8,
-									backgroundColor: isDark
-										? "#1e3a5f"
-										: "#eff6ff",
-									alignItems: "center",
-									gap: 8,
-								}}>
-								<Icon
-									as={MapPin}
-									size='sm'
-									style={{ color: tint }}
-								/>
-								<Text
-									style={{
-										fontSize: 14,
-										color: tint,
-										flex: 1,
-									}}>
-									{singleSelectedAddress.label}
-								</Text>
-							</HStack>
-						)}
-					</VStack>
-				)}
-
-				{/* Plusieurs adresses – autocomplete par ligne */}
-				{formData.work_location_type === "multiple" && (
-					<VStack space='sm'>
-						{formData.work_locations.map((addr, i) => (
-							<VStack key={i} space='xs'>
-								<HStack
-									space='sm'
-									style={{ alignItems: "center" }}>
-									<Input style={{ ...inputStyle, flex: 1 }}>
-										<InputField
-											placeholder={`Rechercher adresse ${i + 1}...`}
-											value={multiAddressQueries[i] ?? ""}
-											onChangeText={(v) => {
-												const uq = [
-													...multiAddressQueries,
-												];
-												uq[i] = v;
-												setMultiAddressQueries(uq);
-												const ul = [
-													...formData.work_locations,
-												];
-												ul[i] = v;
-												updateField(
-													"work_locations",
-													ul,
-												);
-												const us = [
-													...multiSelectedAddresses,
-												];
-												us[i] = null;
-												setMultiSelectedAddresses(us);
-												searchAddress(v, (results) => {
-													const ur = [
-														...multiAddressResults,
-													];
-													ur[i] = results;
-													setMultiAddressResults(ur);
-												});
-											}}
-											style={inputTextStyle}
-										/>
-									</Input>
-									{formData.work_locations.length > 1 && (
-										<TouchableOpacity
-											onPress={() => {
-												updateField(
-													"work_locations",
-													formData.work_locations.filter(
-														(_, idx) => idx !== i,
-													),
-												);
-												setMultiAddressQueries(
-													multiAddressQueries.filter(
-														(_, idx) => idx !== i,
-													),
-												);
-												setMultiAddressResults(
-													multiAddressResults.filter(
-														(_, idx) => idx !== i,
-													),
-												);
-												setMultiSelectedAddresses(
-													multiSelectedAddresses.filter(
-														(_, idx) => idx !== i,
-													),
-												);
-											}}
-											activeOpacity={0.7}>
-											<Icon
-												as={Trash2}
-												size='sm'
-												style={{ color: danger }}
-											/>
-										</TouchableOpacity>
-									)}
-								</HStack>
-								{(multiAddressResults[i] || []).length > 0 && (
-									<VStack
-										style={{
-											borderRadius: 8,
-											overflow: "hidden",
-											borderWidth: 1,
-											borderColor: border,
-										}}>
-										{(multiAddressResults[i] || []).map(
-											(item, idx) => (
-												<TouchableOpacity
-													key={idx}
-													onPress={() => {
-														const us = [
-															...multiSelectedAddresses,
-														];
-														us[i] = item;
-														setMultiSelectedAddresses(
-															us,
-														);
-														const uq = [
-															...multiAddressQueries,
-														];
-														uq[i] = "";
-														setMultiAddressQueries(
-															uq,
-														);
-														const ur = [
-															...multiAddressResults,
-														];
-														ur[i] = [];
-														setMultiAddressResults(
-															ur,
-														);
-														const ul = [
-															...formData.work_locations,
-														];
-														ul[i] = item.label;
-														updateField(
-															"work_locations",
-															ul,
-														);
-													}}
-													activeOpacity={0.7}
-													style={{
-														padding: 12,
-														backgroundColor: cardBg,
-														borderBottomWidth:
-															idx <
-															(
-																multiAddressResults[
-																	i
-																] || []
-															).length -
-																1
-																? 1
-																: 0,
-														borderBottomColor:
-															border,
-													}}>
-													<Text
-														style={{
-															fontSize: 14,
-															color: textPrimary,
-														}}>
-														{item.label}
-													</Text>
-												</TouchableOpacity>
-											),
-										)}
-									</VStack>
-								)}
-								{multiSelectedAddresses[i] && (
-									<HStack
-										style={{
-											padding: 12,
-											borderRadius: 8,
-											backgroundColor: isDark
-												? "#1e3a5f"
-												: "#eff6ff",
-											alignItems: "center",
-											gap: 8,
-										}}>
-										<Icon
-											as={MapPin}
-											size='sm'
-											style={{ color: tint }}
-										/>
-										<Text
-											style={{
-												fontSize: 14,
-												color: tint,
-												flex: 1,
-											}}>
-											{multiSelectedAddresses[i].label}
-										</Text>
-									</HStack>
-								)}
-							</VStack>
-						))}
-						<TouchableOpacity
-							onPress={() => {
-								updateField("work_locations", [
-									...formData.work_locations,
-									"",
-								]);
-								setMultiAddressQueries([
-									...multiAddressQueries,
-									"",
-								]);
-								setMultiAddressResults([
-									...multiAddressResults,
-									[],
-								]);
-								setMultiSelectedAddresses([
-									...multiSelectedAddresses,
-									null,
-								]);
-							}}
-							activeOpacity={0.7}
-							style={{
-								flexDirection: "row",
-								alignItems: "center",
-								justifyContent: "center",
-								gap: 8,
-								paddingVertical: 10,
-								borderRadius: 8,
-								borderWidth: 1.5,
-								borderStyle: "dashed",
-								borderColor: border,
-							}}>
-							<Icon
-								as={Plus}
-								size='sm'
-								style={{
-									color: muted,
-								}}
-							/>
-							<Text
-								style={{
-									fontSize: 13,
-									color: muted,
-								}}>
-								Ajouter une adresse
-							</Text>
-						</TouchableOpacity>
-					</VStack>
-				)}
-
-				{/* Zone / Région */}
-				{formData.work_location_type === "zone" && (
-					<VStack space='sm'>
-						<Input style={inputStyle}>
-							<InputField
-								placeholder='Rechercher un département ou une région...'
-								value={zoneQuery}
-								onChangeText={(v) => {
-									setZoneQuery(v);
-									updateField("work_location", v);
-									setZoneSelected(null);
-									searchZone(v);
-								}}
-								style={inputTextStyle}
-							/>
-						</Input>
-						{zoneResults.length > 0 && (
-							<VStack
-								style={{
-									borderRadius: 8,
-									overflow: "hidden",
-									borderWidth: 1,
-									borderColor: border,
-								}}>
-								{zoneResults.map((item, idx) => (
-									<TouchableOpacity
-										key={idx}
-										onPress={() => {
-											setZoneSelected(item);
-											setZoneQuery("");
-											setZoneResults([]);
-											updateField(
-												"work_location",
-												item.label,
-											);
-										}}
-										activeOpacity={0.7}
-										style={{
-											padding: 12,
-											backgroundColor: cardBg,
-											borderBottomWidth:
-												idx < zoneResults.length - 1
-													? 1
-													: 0,
-											borderBottomColor: border,
-										}}>
-										<HStack
-											style={{
-												alignItems: "center",
-												gap: 8,
-											}}>
-											<Text
-												style={{
-													fontSize: 10,
-													fontWeight: "700",
-													color:
-														item.type === "reg"
-															? "#8b5cf6"
-															: tint,
-													paddingHorizontal: 6,
-													paddingVertical: 2,
-													borderRadius: 4,
-													backgroundColor:
-														item.type === "reg"
-															? isDark
-																? "#3b1f6f"
-																: "#ede9fe"
-															: isDark
-																? "#1e3a5f"
-																: "#dbeafe",
-												}}>
-												{item.type === "reg"
-													? "RÉG"
-													: "DEP"}
-											</Text>
-											<Text
-												style={{
-													fontSize: 14,
-													color: textPrimary,
-												}}>
-												{item.label}
-											</Text>
-										</HStack>
-									</TouchableOpacity>
-								))}
-							</VStack>
-						)}
-						{zoneSelected && (
-							<HStack
-								style={{
-									padding: 12,
-									borderRadius: 8,
-									backgroundColor: isDark
-										? zoneSelected.type === "reg"
-											? "#3b1f6f"
-											: "#1e3a5f"
-										: zoneSelected.type === "reg"
-											? "#ede9fe"
-											: "#eff6ff",
-									alignItems: "center",
-									gap: 8,
-								}}>
-								<Icon
-									as={MapPin}
-									size='sm'
-									style={{
-										color:
-											zoneSelected.type === "reg"
-												? "#8b5cf6"
-												: tint,
-									}}
-								/>
-								<Text
-									style={{
-										fontSize: 14,
-										color:
-											zoneSelected.type === "reg"
-												? isDark
-													? "#c4b5fd"
-													: "#7c3aed"
-												: tint,
-										flex: 1,
-									}}>
-									{zoneSelected.label}
-								</Text>
-							</HStack>
-						)}
-					</VStack>
-				)}
+				<Box style={{ marginTop: 12 }}>
+					{formData.work_location_type === "single" &&
+						renderSingleAddress()}
+					{formData.work_location_type === "multiple" &&
+						renderMultiAddress()}
+					{formData.work_location_type === "zone" &&
+						renderZoneAddress()}
+				</Box>
 			</Card>
 
 			<Card style={cardStyle}>
@@ -1828,14 +1733,8 @@ const ContractGenerationScreen = () => {
 		</ScrollView>
 	);
 
-	// ─── Step 3 : Rémunération ────────────────────────────────────────────────
 	const renderStep3 = () => (
-		<ScrollView
-			ref={(ref) => (scrollViewRefs.current[2] = ref)}
-			style={{ flex: 1 }}
-			contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
-			keyboardShouldPersistTaps='handled'
-			showsVerticalScrollIndicator={false}>
+		<ScrollView {...stepScrollProps(2)}>
 			<Card style={cardStyle}>
 				<Text style={labelStyle}>Taux horaire brut (€) *</Text>
 				<Input style={inputStyle}>
@@ -1850,7 +1749,9 @@ const ContractGenerationScreen = () => {
 			</Card>
 
 			<Card style={cardStyle}>
-				<Text style={labelStyle}>Taux heures supplémentaires (€)</Text>
+				<Text style={labelStyle}>
+					Taux heures supplémentaires (€)
+				</Text>
 				<Input style={inputStyle}>
 					<InputField
 						placeholder='Ex : 15.63'
@@ -1862,26 +1763,12 @@ const ContractGenerationScreen = () => {
 				</Input>
 			</Card>
 
-			{/* Primes */}
 			<Card style={cardStyle}>
 				<Text style={{ ...labelStyle, marginBottom: 12 }}>Primes</Text>
 				<VStack space='md'>
-					{[
-						{ key: "meal_bonus", label: "Prime panier repas (€)" },
-						{
-							key: "transport_bonus",
-							label: "Indemnité transport (€)",
-						},
-						{ key: "night_bonus", label: "Prime nuit (€)" },
-						{ key: "sunday_bonus", label: "Prime dimanche (€)" },
-						{ key: "holiday_bonus", label: "Prime jour férié (€)" },
-					].map(({ key, label }) => (
+					{BONUS_FIELDS.map(({ key, label }) => (
 						<VStack key={key} space='xs'>
-							<Text
-								style={{
-									fontSize: 12,
-									color: muted,
-								}}>
+							<Text style={{ fontSize: 12, color: muted }}>
 								{label}
 							</Text>
 							<Input style={inputStyle}>
@@ -1898,20 +1785,12 @@ const ContractGenerationScreen = () => {
 				</VStack>
 			</Card>
 
-			{/* Conditions particulières */}
 			<Card style={cardStyle}>
 				<Text style={{ ...labelStyle, marginBottom: 12 }}>
 					Conditions particulières
 				</Text>
 				<VStack space='md'>
-					{[
-						{ key: "is_night", label: "Travail de nuit" },
-						{ key: "is_sunday", label: "Travail le dimanche" },
-						{
-							key: "is_holiday",
-							label: "Travail les jours fériés",
-						},
-					].map(({ key, label }) => (
+					{CONDITION_FIELDS.map(({ key, label }) => (
 						<HStack
 							key={key}
 							style={{
@@ -1919,19 +1798,13 @@ const ContractGenerationScreen = () => {
 								justifyContent: "space-between",
 							}}>
 							<Text
-								style={{
-									color: textPrimary,
-									fontSize: 14,
-								}}>
+								style={{ color: textPrimary, fontSize: 14 }}>
 								{label}
 							</Text>
 							<Switch
 								value={formData[key]}
 								onValueChange={(v) => updateField(key, v)}
-								trackColor={{
-									false: border,
-									true: tint,
-								}}
+								trackColor={{ false: border, true: tint }}
 							/>
 						</HStack>
 					))}
@@ -1940,21 +1813,13 @@ const ContractGenerationScreen = () => {
 		</ScrollView>
 	);
 
-	// ─── Step 4 : Clauses & Équipement ────────────────────────────────────────
 	const renderStep4 = () => (
-		<ScrollView
-			ref={(ref) => (scrollViewRefs.current[3] = ref)}
-			style={{ flex: 1 }}
-			contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
-			keyboardShouldPersistTaps='handled'
-			showsVerticalScrollIndicator={false}>
-			{/* Équipement */}
+		<ScrollView {...stepScrollProps(3)}>
 			<Card style={cardStyle}>
 				<HStack
 					style={{
 						alignItems: "center",
 						justifyContent: "space-between",
-						// marginBottom: 12,
 					}}>
 					<Text style={labelStyle}>
 						Équipement fourni par l'employeur
@@ -1964,10 +1829,7 @@ const ContractGenerationScreen = () => {
 						onValueChange={(v) =>
 							updateField("equipment_provided", v)
 						}
-						trackColor={{
-							false: border,
-							true: tint,
-						}}
+						trackColor={{ false: border, true: tint }}
 					/>
 				</HStack>
 				{formData.equipment_provided && (
@@ -1995,7 +1857,6 @@ const ContractGenerationScreen = () => {
 				)}
 			</Card>
 
-			{/* Période d'essai */}
 			<Card style={cardStyle}>
 				<Text style={labelStyle}>Période d'essai</Text>
 				<Input style={inputStyle}>
@@ -2008,7 +1869,6 @@ const ContractGenerationScreen = () => {
 				</Input>
 			</Card>
 
-			{/* Clauses personnalisées */}
 			<Card style={{ ...cardStyle, paddingBottom: 60 }}>
 				<Text style={labelStyle}>Clauses particulières</Text>
 				<Textarea style={{ ...inputStyle, minHeight: 140 }}>
@@ -2023,51 +1883,63 @@ const ContractGenerationScreen = () => {
 		</ScrollView>
 	);
 
-	// ─── Step 5 : Récapitulatif ───────────────────────────────────────────────
-	const renderStep5 = () => (
-		<ScrollView
-			ref={(ref) => (scrollViewRefs.current[4] = ref)}
-			style={{ flex: 1 }}
-			contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
-			showsVerticalScrollIndicator={false}>
-			<VStack space='xs' style={{ marginBottom: 16 }}>
-				<Text
-					style={{
-						fontSize: 16,
-						fontWeight: "700",
-						color: textPrimary,
-					}}>
-					Vérifiez les informations
-				</Text>
-				<Text
-					style={{
-						fontSize: 13,
-						color: muted,
-					}}>
-					Confirmez avant de générer le contrat.
-				</Text>
-			</VStack>
+	const renderStep5 = () => {
+		const scheduleValue = !formData.schedule_known
+			? "Non communiqué"
+			: formData.contract_type === "CDI"
+				? Object.entries(formData.week_schedule)
+						.filter(([, v]) => v.enabled)
+						.map(
+							([d, v]) =>
+								`${d.slice(0, 3)}${v.start ? ` ${v.start}→${v.end}` : ""}`,
+						)
+						.join(", ") || "Aucun jour"
+				: formData.vacations.length
+					? `${formData.vacations.length} vacation(s)`
+					: "Aucune vacation";
 
-			<Card
-				style={{
-					...cardStyle,
-					borderWidth: 1,
-					borderColor: border,
-				}}>
-				<Text
-					style={{
-						fontSize: 12,
-						fontWeight: "700",
-						color: tint,
-						marginBottom: 10,
-						textTransform: "uppercase",
-						letterSpacing: 0.5,
-					}}>
-					Contrat
-				</Text>
-				<VStack space='sm'>
-					{[
+		const locationValue =
+			formData.work_location_type === "multiple"
+				? formData.work_locations.filter((a) => a.trim()).join(", ") ||
+					null
+				: formData.work_location || null;
+
+		const sectionProps = { cardStyle, tint, border, muted, textPrimary };
+
+		return (
+			<ScrollView
+				ref={(ref) => (scrollViewRefs.current[4] = ref)}
+				style={{ flex: 1 }}
+				contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
+				showsVerticalScrollIndicator={false}>
+				<VStack space='xs' style={{ marginBottom: 16 }}>
+					<Text
+						style={{
+							fontSize: 16,
+							fontWeight: "700",
+							color: textPrimary,
+						}}>
+						Vérifiez les informations
+					</Text>
+					<Text style={{ fontSize: 13, color: muted }}>
+						Confirmez avant de générer le contrat.
+					</Text>
+				</VStack>
+
+				<SummarySection
+					title='Contrat'
+					rows={[
 						{ label: "Type", value: formData.contract_type },
+						{
+							label: "Motif",
+							value: formData.cdd_reason_code
+								? CDD_REASON_CODES.find(
+										(r) =>
+											r.value ===
+											formData.cdd_reason_code,
+									)?.label ?? null
+								: null,
+						},
 						{
 							label: "Début",
 							value: formData.start_date
@@ -2086,140 +1958,27 @@ const ContractGenerationScreen = () => {
 								? `${formData.total_hours} h`
 								: null,
 						},
-						{
-							label: "Planning",
-							value: !formData.schedule_known
-								? "Non communiqué"
-								: formData.contract_type === "CDI"
-									? Object.entries(formData.week_schedule)
-											.filter(([, v]) => v.enabled)
-											.map(
-												([d, v]) =>
-													`${d.slice(0, 3)}${
-														v.start
-															? ` ${v.start}→${v.end}`
-															: ""
-													}`,
-											)
-											.join(", ") || "Aucun jour"
-									: formData.vacations.length
-										? `${formData.vacations.length} vacation(s)`
-										: "Aucune vacation",
-						},
-					].map(({ label, value }) =>
-						value ? (
-							<HStack
-								key={label}
-								style={{
-									justifyContent: "space-between",
-									paddingVertical: 2,
-								}}>
-								<Text
-									style={{
-										fontSize: 13,
-										color: muted,
-									}}>
-									{label}
-								</Text>
-								<Text
-									style={{
-										fontSize: 13,
-										fontWeight: "600",
-										color: textPrimary,
-										maxWidth: "55%",
-										textAlign: "right",
-									}}>
-									{value}
-								</Text>
-							</HStack>
-						) : null,
-					)}
-				</VStack>
-			</Card>
+						{ label: "Planning", value: scheduleValue },
+					]}
+					{...sectionProps}
+				/>
 
-			<Card
-				style={{
-					...cardStyle,
-					borderWidth: 1,
-					borderColor: border,
-				}}>
-				<Text
-					style={{
-						fontSize: 12,
-						fontWeight: "700",
-						color: tint,
-						marginBottom: 10,
-						textTransform: "uppercase",
-						letterSpacing: 0.5,
-					}}>
-					Poste
-				</Text>
-				<VStack space='sm'>
-					{[
+				<SummarySection
+					title='Poste'
+					rows={[
 						{ label: "Intitulé", value: formData.job_title },
-						{
-							label: "Lieu",
-							value:
-								formData.work_location_type === "multiple"
-									? formData.work_locations
-											.filter((a) => a.trim())
-											.join(", ") || null
-									: formData.work_location || null,
-						},
+						{ label: "Lieu", value: locationValue },
 						{
 							label: "Description",
 							value: formData.job_description,
 						},
-					].map(({ label, value }) =>
-						value ? (
-							<HStack
-								key={label}
-								style={{
-									justifyContent: "space-between",
-									paddingVertical: 2,
-								}}>
-								<Text
-									style={{
-										fontSize: 13,
-										color: muted,
-									}}>
-									{label}
-								</Text>
-								<Text
-									style={{
-										fontSize: 13,
-										fontWeight: "600",
-										color: textPrimary,
-										maxWidth: "55%",
-										textAlign: "right",
-									}}>
-									{value}
-								</Text>
-							</HStack>
-						) : null,
-					)}
-				</VStack>
-			</Card>
+					]}
+					{...sectionProps}
+				/>
 
-			<Card
-				style={{
-					...cardStyle,
-					borderWidth: 1,
-					borderColor: border,
-				}}>
-				<Text
-					style={{
-						fontSize: 12,
-						fontWeight: "700",
-						color: tint,
-						marginBottom: 10,
-						textTransform: "uppercase",
-						letterSpacing: 0.5,
-					}}>
-					Rémunération
-				</Text>
-				<VStack space='sm'>
-					{[
+				<SummarySection
+					title='Rémunération'
+					rows={[
 						{
 							label: "Taux horaire",
 							value: formData.hourly_rate
@@ -2274,54 +2033,13 @@ const ContractGenerationScreen = () => {
 							label: "Jours fériés",
 							value: formData.is_holiday ? "Oui" : null,
 						},
-					].map(({ label, value }) =>
-						value ? (
-							<HStack
-								key={label}
-								style={{
-									justifyContent: "space-between",
-									paddingVertical: 2,
-								}}>
-								<Text
-									style={{
-										fontSize: 13,
-										color: muted,
-									}}>
-									{label}
-								</Text>
-								<Text
-									style={{
-										fontSize: 13,
-										fontWeight: "600",
-										color: textPrimary,
-									}}>
-									{value}
-								</Text>
-							</HStack>
-						) : null,
-					)}
-				</VStack>
-			</Card>
+					]}
+					{...sectionProps}
+				/>
 
-			<Card
-				style={{
-					...cardStyle,
-					borderWidth: 1,
-					borderColor: border,
-				}}>
-				<Text
-					style={{
-						fontSize: 12,
-						fontWeight: "700",
-						color: tint,
-						marginBottom: 10,
-						textTransform: "uppercase",
-						letterSpacing: 0.5,
-					}}>
-					Clauses & Équipement
-				</Text>
-				<VStack space='sm'>
-					{[
+				<SummarySection
+					title='Clauses & Équipement'
+					rows={[
 						{
 							label: "Équipement fourni",
 							value: formData.equipment_provided ? "Oui" : "Non",
@@ -2338,38 +2056,14 @@ const ContractGenerationScreen = () => {
 							label: "Clauses particulières",
 							value: formData.custom_clauses || null,
 						},
-					].map(({ label, value }) =>
-						value ? (
-							<HStack
-								key={label}
-								style={{
-									justifyContent: "space-between",
-									paddingVertical: 2,
-								}}>
-								<Text
-									style={{
-										fontSize: 13,
-										color: muted,
-									}}>
-									{label}
-								</Text>
-								<Text
-									style={{
-										fontSize: 13,
-										fontWeight: "600",
-										color: textPrimary,
-										maxWidth: "55%",
-										textAlign: "right",
-									}}>
-									{value}
-								</Text>
-							</HStack>
-						) : null,
-					)}
-				</VStack>
-			</Card>
-		</ScrollView>
-	);
+					]}
+					{...sectionProps}
+				/>
+			</ScrollView>
+		);
+	};
+
+	// ─── Render ──────────────────────────────────────────────────────────────────
 
 	return (
 		<>
@@ -2377,12 +2071,8 @@ const ContractGenerationScreen = () => {
 				behavior='height'
 				style={{ flex: 1 }}
 				keyboardVerticalOffset={80}>
-				<Box
-					style={{
-						flex: 1,
-						backgroundColor: bg,
-					}}>
-					{/* ── Progress Bar ── */}
+				<Box style={{ flex: 1, backgroundColor: bg }}>
+					{/* Progress bar */}
 					<Box
 						style={{
 							paddingTop: 14,
@@ -2406,11 +2096,7 @@ const ContractGenerationScreen = () => {
 									}}>
 									{STEPS[currentStep - 1].title}
 								</Text>
-								<Text
-									style={{
-										fontSize: 12,
-										color: muted,
-									}}>
+								<Text style={{ fontSize: 12, color: muted }}>
 									Étape {currentStep}/{STEPS.length}
 								</Text>
 							</HStack>
@@ -2437,7 +2123,7 @@ const ContractGenerationScreen = () => {
 						</VStack>
 					</Box>
 
-					{/* ── Steps Content ── */}
+					{/* Steps — all rendered, translated off-screen */}
 					<Box style={{ flex: 1, overflow: "hidden" }}>
 						<Animated.View
 							style={{
@@ -2446,27 +2132,23 @@ const ContractGenerationScreen = () => {
 								width: SCREEN_WIDTH * STEPS.length,
 								transform: [{ translateX: scrollX }],
 							}}>
-							<Box style={{ width: SCREEN_WIDTH }}>
-								{renderStep1()}
-							</Box>
-							<Box style={{ width: SCREEN_WIDTH }}>
-								{renderStep2()}
-							</Box>
-							<Box style={{ width: SCREEN_WIDTH }}>
-								{renderStep3()}
-							</Box>
-							<Box style={{ width: SCREEN_WIDTH }}>
-								{renderStep4()}
-							</Box>
-							<Box style={{ width: SCREEN_WIDTH }}>
-								{renderStep5()}
-							</Box>
+							{[
+								renderStep1,
+								renderStep2,
+								renderStep3,
+								renderStep4,
+								renderStep5,
+							].map((render, i) => (
+								<Box key={i} style={{ width: SCREEN_WIDTH }}>
+									{render()}
+								</Box>
+							))}
 						</Animated.View>
 					</Box>
 				</Box>
 			</KeyboardAvoidingView>
 
-			{/* ── Bottom Fixed Navigation ── */}
+			{/* Bottom navigation */}
 			<Box
 				style={{
 					padding: 16,
@@ -2476,36 +2158,25 @@ const ContractGenerationScreen = () => {
 					borderTopColor: border,
 				}}>
 				<HStack space='md'>
-					{currentStep > 1 ? (
+					{currentStep > 1 && (
 						<Button
 							variant='outline'
 							onPress={goToPreviousStep}
-							style={{
-								flex: 1,
-								borderColor: border,
-							}}>
+							style={{ flex: 1, borderColor: border }}>
 							<ButtonIcon
 								as={ChevronLeft}
-								style={{
-									color: textPrimary,
-								}}
+								style={{ color: textPrimary }}
 							/>
-							<ButtonText
-								style={{
-									color: textPrimary,
-								}}>
+							<ButtonText style={{ color: textPrimary }}>
 								Précédent
 							</ButtonText>
 						</Button>
-					) : null}
-
+					)}
 					{currentStep < STEPS.length ? (
 						<Button
 							onPress={validateStep}
-							style={{
-								flex: 2,
-								backgroundColor: tint,
-							}}>
+							disabled={isSubmitting}
+							style={{ flex: 2, backgroundColor: tint }}>
 							<ButtonText style={{ color: "#ffffff" }}>
 								Suivant
 							</ButtonText>
@@ -2536,7 +2207,7 @@ const ContractGenerationScreen = () => {
 				</HStack>
 			</Box>
 
-			{/* Alert Dialog : confirmation génération contrat */}
+			{/* Confirm dialog */}
 			<AlertDialog
 				isOpen={showConfirmDialog}
 				onClose={() => setShowConfirmDialog(false)}>
@@ -2586,7 +2257,6 @@ const ContractGenerationScreen = () => {
 							</Text>
 						</Text>
 						<VStack space='sm'>
-							{/* Option Brouillon — masquée si contrat déjà publié */}
 							{existingContractStatus !== "published" && (
 								<TouchableOpacity
 									onPress={() => {
@@ -2622,7 +2292,6 @@ const ContractGenerationScreen = () => {
 									</Text>
 								</TouchableOpacity>
 							)}
-							{/* Option Publier */}
 							<TouchableOpacity
 								onPress={() => {
 									setShowConfirmDialog(false);
@@ -2666,14 +2335,8 @@ const ContractGenerationScreen = () => {
 						<Button
 							variant='outline'
 							onPress={() => setShowConfirmDialog(false)}
-							style={{
-								flex: 1,
-								borderColor: border,
-							}}>
-							<ButtonText
-								style={{
-									color: textPrimary,
-								}}>
+							style={{ flex: 1, borderColor: border }}>
+							<ButtonText style={{ color: textPrimary }}>
 								Annuler
 							</ButtonText>
 						</Button>
@@ -2681,15 +2344,12 @@ const ContractGenerationScreen = () => {
 				</AlertDialogContent>
 			</AlertDialog>
 
-			{/* Actionsheet : date picker contrat (début / fin) */}
+			{/* CDD reason code selector */}
 			<Actionsheet
-				isOpen={showContractDatePicker !== null}
-				onClose={() => setShowContractDatePicker(null)}>
+				isOpen={showReasonCodeSheet}
+				onClose={() => setShowReasonCodeSheet(false)}>
 				<ActionsheetBackdrop />
-				<ActionsheetContent
-					style={{
-						backgroundColor: cardBg,
-					}}>
+				<ActionsheetContent style={{ backgroundColor: cardBg }}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
 					</ActionsheetDragIndicatorWrapper>
@@ -2699,184 +2359,76 @@ const ContractGenerationScreen = () => {
 							padding: 20,
 							paddingBottom: 32,
 						}}
-						space='md'>
+						space='sm'>
 						<Text
 							style={{
 								fontSize: 16,
 								fontWeight: "700",
 								color: textPrimary,
 								textAlign: "center",
+								marginBottom: 8,
 							}}>
-							{showContractDatePicker === "start"
-								? "Date de début"
-								: "Date de fin"}
+							Motif de recours
 						</Text>
-						<DateTimePicker
-							value={tempContractDate}
-							mode='date'
-							display='spinner'
-							onChange={(_, date) => {
-								if (date) setTempContractDate(date);
-							}}
-							style={{ width: "100%" }}
-						/>
-						<Button
-							onPress={() => {
-								if (showContractDatePicker === "start") {
-									updateField("start_date", tempContractDate);
-								} else if (showContractDatePicker === "end") {
-									updateField("end_date", tempContractDate);
-								}
-								setShowContractDatePicker(null);
-							}}
-							style={{
-								backgroundColor: tint,
-								borderRadius: 12,
-							}}>
-							<ButtonText
-								style={{ color: "#ffffff", fontWeight: "700" }}>
-								Confirmer
-							</ButtonText>
-						</Button>
+						{CDD_REASON_CODES.map(({ value, label }) => {
+							const selected =
+								formData.cdd_reason_code === value;
+							return (
+								<TouchableOpacity
+									key={value}
+									onPress={() => {
+										updateField("cdd_reason_code", value);
+										setShowReasonCodeSheet(false);
+									}}
+									activeOpacity={0.7}
+									style={{
+										flexDirection: "row",
+										alignItems: "center",
+										justifyContent: "space-between",
+										paddingVertical: 14,
+										paddingHorizontal: 16,
+										borderRadius: 12,
+										borderWidth: 1.5,
+										borderColor: selected ? tint : border,
+										backgroundColor: selected
+											? isDark
+												? "#1e3a5f"
+												: "#eff6ff"
+											: "transparent",
+									}}>
+									<Text
+										style={{
+											fontSize: 14,
+											fontWeight: selected ? "600" : "400",
+											color: selected ? tint : textPrimary,
+											flex: 1,
+										}}>
+										{label}
+									</Text>
+									{selected && (
+										<Icon
+											as={CheckCircle}
+											size='sm'
+											style={{ color: tint }}
+										/>
+									)}
+								</TouchableOpacity>
+							);
+						})}
 					</VStack>
 				</ActionsheetContent>
 			</Actionsheet>
 
-			{/* Actionsheet : time picker */}
-			<Actionsheet
-				isOpen={showTimePicker !== null}
-				onClose={() => setShowTimePicker(null)}>
-				<ActionsheetBackdrop />
-				<ActionsheetContent
-					style={{
-						backgroundColor: cardBg,
-					}}>
-					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
-					</ActionsheetDragIndicatorWrapper>
-					<VStack
-						style={{
-							width: "100%",
-							padding: 20,
-							paddingBottom: 32,
-						}}
-						space='md'>
-						<Text
-							style={{
-								fontSize: 16,
-								fontWeight: "700",
-								color: textPrimary,
-								textAlign: "center",
-							}}>
-							{showTimePicker?.field === "start" ||
-							showTimePicker?.field === "start_time"
-								? "Heure de début"
-								: "Heure de fin"}
-						</Text>
-						<DateTimePicker
-							value={tempTime}
-							mode='time'
-							display='spinner'
-							is24Hour
-							minuteInterval={5}
-							onChange={(_, time) => {
-								if (time) setTempTime(time);
-							}}
-							style={{ width: "100%" }}
-						/>
-						<Button
-							onPress={() => {
-								if (showTimePicker !== null) {
-									const formatted = formatTime(tempTime);
-									if (showTimePicker.source === "cdi") {
-										updateWeekDay(
-											showTimePicker.day,
-											showTimePicker.field,
-											formatted,
-										);
-									} else {
-										updateVacation(
-											showTimePicker.index,
-											showTimePicker.field,
-											formatted,
-										);
-									}
-								}
-								setShowTimePicker(null);
-							}}
-							style={{
-								backgroundColor: tint,
-								borderRadius: 12,
-							}}>
-							<ButtonText
-								style={{ color: "#ffffff", fontWeight: "700" }}>
-								Confirmer
-							</ButtonText>
-						</Button>
-					</VStack>
-				</ActionsheetContent>
-			</Actionsheet>
-
-			{/* Actionsheet : date picker vacation */}
-			<Actionsheet
-				isOpen={showVacationDatePicker !== null}
-				onClose={() => setShowVacationDatePicker(null)}>
-				<ActionsheetBackdrop />
-				<ActionsheetContent
-					style={{
-						backgroundColor: cardBg,
-					}}>
-					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
-					</ActionsheetDragIndicatorWrapper>
-					<VStack
-						style={{
-							width: "100%",
-							padding: 20,
-							paddingBottom: 32,
-						}}
-						space='md'>
-						<Text
-							style={{
-								fontSize: 16,
-								fontWeight: "700",
-								color: textPrimary,
-								textAlign: "center",
-							}}>
-							Date de la vacation
-						</Text>
-						<DateTimePicker
-							value={tempVacationDate}
-							mode='date'
-							display='spinner'
-							onChange={(_, date) => {
-								if (date) setTempVacationDate(date);
-							}}
-							style={{ width: "100%" }}
-						/>
-						<Button
-							onPress={() => {
-								if (showVacationDatePicker !== null) {
-									updateVacation(
-										showVacationDatePicker,
-										"date",
-										tempVacationDate,
-									);
-								}
-								setShowVacationDatePicker(null);
-							}}
-							style={{
-								backgroundColor: tint,
-								borderRadius: 12,
-							}}>
-							<ButtonText
-								style={{ color: "#ffffff", fontWeight: "700" }}>
-								Confirmer
-							</ButtonText>
-						</Button>
-					</VStack>
-				</ActionsheetContent>
-			</Actionsheet>
+			{/* Unified date/time picker — replaces 3 separate actionsheets */}
+			<PickerActionsheet
+				pickerState={pickerState}
+				onClose={() => setPickerState(null)}
+				onChange={handlePickerChange}
+				onConfirm={handlePickerConfirm}
+				cardBg={cardBg}
+				tint={tint}
+				textPrimary={textPrimary}
+			/>
 		</>
 	);
 };
