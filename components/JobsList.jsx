@@ -286,17 +286,32 @@ export default function JobsList({
 				"sponsorship_date.desc.nullslast,date.desc",
 			);
 
-			const SUBSCRIPTION_RANK = { premium: 1, standard_plus: 2 };
+			// Priorité absolue : 0 = meilleur
+			// 0 sponsorisé premium  1 sponsorisé standard_plus  2 sponsorisé reste
+			// 3 non-sponsorisé premium  4 non-sponsorisé standard_plus  5 non-sponsorisé reste
+			const TIER = { premium: 0, standard_plus: 1 };
+			const now = new Date();
+			now.setHours(0, 0, 0, 0);
+			const isActiveSponsorship = (job) =>
+				job.sponsorship_date != null &&
+				new Date(job.sponsorship_date) >= now;
+			const getSortPriority = (job) => {
+				const tier =
+					TIER[job.companies?.subscription_status] ?? 2;
+				return isActiveSponsorship(job) ? tier : tier + 3;
+			};
+
 			const sorted = (data || []).slice().sort((a, b) => {
-				const aSponsored = a.sponsorship_date != null ? 0 : 1;
-				const bSponsored = b.sponsorship_date != null ? 0 : 1;
-				if (aSponsored !== bSponsored) return aSponsored - bSponsored;
-				const aRank =
-					SUBSCRIPTION_RANK[a.companies?.subscription_status] ?? 3;
-				const bRank =
-					SUBSCRIPTION_RANK[b.companies?.subscription_status] ?? 3;
-				if (aRank !== bRank) return aRank - bRank;
-				return new Date(b.date) - new Date(a.date);
+				const diff = getSortPriority(a) - getSortPriority(b);
+				if (diff !== 0) return diff;
+				// À priorité égale : sponsorisés actifs par date de sponsoring, autres par date de publication
+				const aDate = isActiveSponsorship(a)
+					? a.sponsorship_date
+					: a.date;
+				const bDate = isActiveSponsorship(b)
+					? b.sponsorship_date
+					: b.date;
+				return new Date(bDate) - new Date(aDate);
 			});
 
 			setJobs(sorted);
