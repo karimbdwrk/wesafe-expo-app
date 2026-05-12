@@ -138,6 +138,26 @@ const isoToDate = (iso) => (iso ? new Date(iso) : null);
 
 const toFloatOrNull = (v) => (v ? parseFloat(v) : null);
 
+const numToStr = (v) => (v != null ? String(v) : "");
+
+const scheduleRecapLabel = (formData) => {
+	if (formData.contract_type !== "CDD Vacations" && !formData.schedule_known)
+		return "Non communiqué";
+	if (formData.contract_type === "CDI")
+		return (
+			Object.entries(formData.week_schedule)
+				.filter(([, v]) => v.enabled)
+				.map(
+					([d, v]) =>
+						`${d.slice(0, 3)}${v.start ? ` ${v.start}→${v.end}` : ""}`,
+				)
+				.join(", ") || "Aucun jour"
+		);
+	return formData.vacations.length
+		? `${formData.vacations.length} vacation(s)`
+		: "Aucune vacation";
+};
+
 // ─── Sub-components ─────────────────────────────────────────────────────────────
 
 // Single label/value row used in the recap step
@@ -467,6 +487,330 @@ const PickerActionsheet = ({
 	</Actionsheet>
 );
 
+// Inline alert/info banner with tint colour
+const InfoBanner = ({ message, tint }) => (
+	<HStack
+		style={{
+			backgroundColor: tint + "18",
+			borderRadius: 8,
+			borderWidth: 1,
+			borderColor: tint + "40",
+			padding: 12,
+			gap: 8,
+			alignItems: "flex-start",
+			marginBottom: 12,
+		}}>
+		<Icon as={AlertCircle} size='sm' style={{ color: tint, marginTop: 1 }} />
+		<Text style={{ fontSize: 13, color: tint, flex: 1, lineHeight: 18 }}>
+			{message}
+		</Text>
+	</HStack>
+);
+
+// Weekly schedule editor — one row per day with time range pickers
+const WeekScheduleEditor = ({
+	weekSchedule,
+	onToggleDay,
+	onStartPress,
+	onEndPress,
+	bg,
+	border,
+	muted,
+	textPrimary,
+}) => (
+	<VStack space='xs'>
+		{WEEK_DAYS.map((day, idx) => (
+			<VStack key={day}>
+				{idx > 0 && (
+					<Divider style={{ marginVertical: 8, backgroundColor: border }} />
+				)}
+				<HStack
+					style={{
+						justifyContent: "space-between",
+						alignItems: "center",
+						marginBottom: weekSchedule[day].enabled ? 8 : 0,
+					}}>
+					<Text
+						style={{
+							fontSize: 13,
+							fontWeight: "600",
+							color: textPrimary,
+							width: 88,
+						}}>
+						{day}
+					</Text>
+					<Switch
+						value={weekSchedule[day].enabled}
+						onValueChange={(v) => onToggleDay(day, v)}
+					/>
+				</HStack>
+				{weekSchedule[day].enabled && (
+					<TimeRangePicker
+						startValue={weekSchedule[day].start}
+						endValue={weekSchedule[day].end}
+						onStartPress={() => onStartPress(day)}
+						onEndPress={() => onEndPress(day)}
+						bg={bg}
+						border={border}
+						muted={muted}
+						textPrimary={textPrimary}
+					/>
+				)}
+			</VStack>
+		))}
+	</VStack>
+);
+
+// Single vacation entry card
+const VacationCard = ({
+	vacation,
+	index,
+	onRemove,
+	onDatePress,
+	onStartTimePress,
+	onEndTimePress,
+	bg,
+	border,
+	muted,
+	textPrimary,
+	danger,
+}) => (
+	<Card
+		style={{
+			backgroundColor: bg,
+			borderRadius: 8,
+			padding: 12,
+			marginBottom: 0,
+		}}>
+		<HStack
+			style={{
+				justifyContent: "space-between",
+				alignItems: "center",
+				marginBottom: 10,
+			}}>
+			<Text style={{ fontSize: 12, fontWeight: "700", color: muted }}>
+				Vacation {index + 1}
+			</Text>
+			<TouchableOpacity onPress={onRemove} activeOpacity={0.7}>
+				<Icon as={Trash2} size='sm' style={{ color: danger }} />
+			</TouchableOpacity>
+		</HStack>
+		<DatePickerButton
+			value={vacation.date}
+			placeholder='Date de la vacation'
+			onPress={onDatePress}
+			style={{ padding: 10, marginBottom: 8 }}
+			bg={bg}
+			border={border}
+			muted={muted}
+			textPrimary={textPrimary}
+		/>
+		<TimeRangePicker
+			startValue={vacation.start_time}
+			endValue={vacation.end_time}
+			onStartPress={onStartTimePress}
+			onEndPress={onEndTimePress}
+			bg={bg}
+			border={border}
+			muted={muted}
+			textPrimary={textPrimary}
+		/>
+	</Card>
+);
+
+// CDD reason-code selector actionsheet
+const ReasonCodeSheet = ({
+	isOpen,
+	onClose,
+	value,
+	onChange,
+	isDark,
+	cardBg,
+	tint,
+	textPrimary,
+	border,
+}) => (
+	<Actionsheet isOpen={isOpen} onClose={onClose}>
+		<ActionsheetBackdrop />
+		<ActionsheetContent style={{ backgroundColor: cardBg }}>
+			<ActionsheetDragIndicatorWrapper>
+				<ActionsheetDragIndicator />
+			</ActionsheetDragIndicatorWrapper>
+			<VStack
+				style={{ width: "100%", padding: 20, paddingBottom: 32 }}
+				space='sm'>
+				<Text
+					style={{
+						fontSize: 16,
+						fontWeight: "700",
+						color: textPrimary,
+						textAlign: "center",
+						marginBottom: 8,
+					}}>
+					Motif de recours
+				</Text>
+				{CDD_REASON_CODES.map(({ value: v, label }) => {
+					const selected = value === v;
+					return (
+						<TouchableOpacity
+							key={v}
+							onPress={() => onChange(v)}
+							activeOpacity={0.7}
+							style={{
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "space-between",
+								paddingVertical: 14,
+								paddingHorizontal: 16,
+								borderRadius: 12,
+								borderWidth: 1.5,
+								borderColor: selected ? tint : border,
+								backgroundColor: selected
+									? isDark
+										? "#1e3a5f"
+										: "#eff6ff"
+									: "transparent",
+							}}>
+							<Text
+								style={{
+									fontSize: 14,
+									fontWeight: selected ? "600" : "400",
+									color: selected ? tint : textPrimary,
+									flex: 1,
+								}}>
+								{label}
+							</Text>
+							{selected && (
+								<Icon as={CheckCircle} size='sm' style={{ color: tint }} />
+							)}
+						</TouchableOpacity>
+					);
+				})}
+			</VStack>
+		</ActionsheetContent>
+	</Actionsheet>
+);
+
+// Final-step confirm dialog — draft vs publish
+const ConfirmDialog = ({
+	isOpen,
+	onClose,
+	existingStatus,
+	applicantFirstName,
+	applicantLastName,
+	jobTitle,
+	onDraft,
+	onPublish,
+	isDark,
+	cardBg,
+	bg,
+	border,
+	textPrimary,
+	muted,
+	success,
+}) => (
+	<AlertDialog isOpen={isOpen} onClose={onClose}>
+		<AlertDialogBackdrop />
+		<AlertDialogContent
+			style={{ backgroundColor: cardBg, borderRadius: 16, margin: 24 }}>
+			<AlertDialogHeader>
+				<Text
+					style={{ fontSize: 17, fontWeight: "700", color: textPrimary }}>
+					{existingStatus === "published"
+						? "Enregistrer les modifications"
+						: "Générer le contrat"}
+				</Text>
+			</AlertDialogHeader>
+			<AlertDialogBody>
+				<Text
+					style={{
+						fontSize: 14,
+						color: muted,
+						lineHeight: 20,
+						marginBottom: 16,
+					}}>
+					Contrat pour{" "}
+					<Text style={{ fontWeight: "700", color: textPrimary }}>
+						{applicantFirstName} {applicantLastName}
+					</Text>{" "}
+					— poste{" "}
+					<Text style={{ fontWeight: "700", color: textPrimary }}>
+						{jobTitle}
+					</Text>
+				</Text>
+				<VStack space='sm'>
+					{existingStatus !== "published" && (
+						<TouchableOpacity
+							onPress={onDraft}
+							activeOpacity={0.7}
+							style={{
+								borderWidth: 1.5,
+								borderColor: border,
+								borderRadius: 12,
+								padding: 14,
+								backgroundColor: bg,
+							}}>
+							<Text
+								style={{
+									fontSize: 14,
+									fontWeight: "700",
+									color: textPrimary,
+									marginBottom: 4,
+								}}>
+								📝 Enregistrer en brouillon
+							</Text>
+							<Text style={{ fontSize: 12, color: muted, lineHeight: 18 }}>
+								Sauvegarder pour compléter ou modifier plus tard. Le
+								candidat ne pourra pas encore le signer.
+							</Text>
+						</TouchableOpacity>
+					)}
+					<TouchableOpacity
+						onPress={onPublish}
+						activeOpacity={0.7}
+						style={{
+							borderWidth: 1.5,
+							borderColor: success,
+							borderRadius: 12,
+							padding: 14,
+							backgroundColor: isDark ? "#052e16" : "#f0fdf4",
+						}}>
+						<Text
+							style={{
+								fontSize: 14,
+								fontWeight: "700",
+								color: success,
+								marginBottom: 4,
+							}}>
+							{existingStatus === "published"
+								? "✅ Enregistrer les modifications"
+								: "✅ Publier le contrat"}
+						</Text>
+						<Text
+							style={{
+								fontSize: 12,
+								color: isDark ? "#86efac" : "#166534",
+								lineHeight: 18,
+							}}>
+							{existingStatus === "published"
+								? "Ce contrat est déjà publié. Les modifications seront enregistrées et visibles immédiatement par le candidat."
+								: "Finaliser et envoyer au candidat pour signature. Cette action est irréversible."}
+						</Text>
+					</TouchableOpacity>
+				</VStack>
+			</AlertDialogBody>
+			<AlertDialogFooter style={{ paddingTop: 12 }}>
+				<Button
+					variant='outline'
+					onPress={onClose}
+					style={{ flex: 1, borderColor: border }}>
+					<ButtonText style={{ color: textPrimary }}>Annuler</ButtonText>
+				</Button>
+			</AlertDialogFooter>
+		</AlertDialogContent>
+	</AlertDialog>
+);
+
 // ─── Main Component ─────────────────────────────────────────────────────────────
 
 const ContractGenerationScreen = () => {
@@ -677,10 +1021,7 @@ const ContractGenerationScreen = () => {
 						contract_reason: ct.contract_reason || "",
 						start_date: isoToDate(ct.start_date),
 						end_date: isoToDate(ct.end_date),
-						total_hours:
-							ct.total_hours != null
-								? String(ct.total_hours)
-								: "",
+						total_hours: numToStr(ct.total_hours),
 						schedule_known:
 							ct.contract_type === "CDD Vacations"
 								? true
@@ -697,32 +1038,13 @@ const ContractGenerationScreen = () => {
 						work_locations: wLocs,
 						job_title: ct.job_title || "",
 						job_description: ct.job_description || "",
-						hourly_rate:
-							ct.hourly_rate != null
-								? String(ct.hourly_rate)
-								: "",
-						meal_bonus:
-							ct.meal_bonus != null ? String(ct.meal_bonus) : "",
-						transport_bonus:
-							ct.transport_bonus != null
-								? String(ct.transport_bonus)
-								: "",
-						night_bonus:
-							ct.night_bonus != null
-								? String(ct.night_bonus)
-								: "",
-						sunday_bonus:
-							ct.sunday_bonus != null
-								? String(ct.sunday_bonus)
-								: "",
-						holiday_bonus:
-							ct.holiday_bonus != null
-								? String(ct.holiday_bonus)
-								: "",
-						overtime_rate:
-							ct.overtime_rate != null
-								? String(ct.overtime_rate)
-								: "",
+						hourly_rate: numToStr(ct.hourly_rate),
+						meal_bonus: numToStr(ct.meal_bonus),
+						transport_bonus: numToStr(ct.transport_bonus),
+						night_bonus: numToStr(ct.night_bonus),
+						sunday_bonus: numToStr(ct.sunday_bonus),
+						holiday_bonus: numToStr(ct.holiday_bonus),
+						overtime_rate: numToStr(ct.overtime_rate),
 						is_night: ct.is_night ?? false,
 						is_sunday: ct.is_sunday ?? false,
 						is_holiday: ct.is_holiday ?? false,
@@ -1341,27 +1663,10 @@ const ContractGenerationScreen = () => {
 
 			{/* CDD classique – minimum 1 month notice */}
 			{formData.contract_type === "CDD" && (
-				<HStack
-					style={{
-						backgroundColor: tint + "18",
-						borderRadius: 8,
-						borderWidth: 1,
-						borderColor: tint + "40",
-						padding: 12,
-						gap: 8,
-						alignItems: "flex-start",
-						marginBottom: 12,
-					}}>
-					<Icon
-						as={AlertCircle}
-						size='sm'
-						style={{ color: tint, marginTop: 1 }}
-					/>
-					<Text style={{ fontSize: 13, color: tint, flex: 1, lineHeight: 18 }}>
-						Le CDD classique est réservé aux missions d'au moins 1 mois.
-						Pour une mission courte ou ponctuelle, utilisez le CDD Vacations.
-					</Text>
-				</HStack>
+				<InfoBanner
+					message="Le CDD classique est réservé aux missions d'au moins 1 mois. Pour une mission courte ou ponctuelle, utilisez le CDD Vacations."
+					tint={tint}
+				/>
 			)}
 
 			{/* Total / monthly hours */}
@@ -1420,198 +1725,82 @@ const ContractGenerationScreen = () => {
 				{/* CDI – weekly schedule */}
 				{formData.schedule_known &&
 					formData.contract_type === "CDI" && (
-						<VStack space='xs'>
-							{WEEK_DAYS.map((day, idx) => (
-								<VStack key={day}>
-									{idx > 0 && (
-										<Divider
-											style={{
-												marginVertical: 8,
-												backgroundColor: border,
-											}}
-										/>
-									)}
-									<HStack
-										style={{
-											justifyContent: "space-between",
-											alignItems: "center",
-											marginBottom: formData
-												.week_schedule[day].enabled
-												? 8
-												: 0,
-										}}>
-										<Text
-											style={{
-												fontSize: 13,
-												fontWeight: "600",
-												color: textPrimary,
-												width: 88,
-											}}>
-											{day}
-										</Text>
-										<Switch
-											value={
-												formData.week_schedule[day]
-													.enabled
-											}
-											onValueChange={(v) =>
-												updateWeekDay(day, "enabled", v)
-											}
-										/>
-									</HStack>
-									{formData.week_schedule[day].enabled && (
-										<TimeRangePicker
-											startValue={
-												formData.week_schedule[day]
-													.start
-											}
-											endValue={
-												formData.week_schedule[day].end
-											}
-											onStartPress={() =>
-												openPicker(
-													"time",
-													"Heure de début",
-													new Date(
-														new Date().setHours(
-															8,
-															0,
-															0,
-															0,
-														),
-													),
-													(time) =>
-														updateWeekDay(
-															day,
-															"start",
-															formatTime(time),
-														),
-												)
-											}
-											onEndPress={() =>
-												openPicker(
-													"time",
-													"Heure de fin",
-													new Date(
-														new Date().setHours(
-															18,
-															0,
-															0,
-															0,
-														),
-													),
-													(time) =>
-														updateWeekDay(
-															day,
-															"end",
-															formatTime(time),
-														),
-												)
-											}
-											{...colorProps}
-										/>
-									)}
-								</VStack>
-							))}
-						</VStack>
+						<WeekScheduleEditor
+							weekSchedule={formData.week_schedule}
+							onToggleDay={(day, v) =>
+								updateWeekDay(day, "enabled", v)
+							}
+							onStartPress={(day) =>
+								openPicker(
+									"time",
+									"Heure de début",
+									new Date(new Date().setHours(8, 0, 0, 0)),
+									(time) =>
+										updateWeekDay(day, "start", formatTime(time)),
+								)
+							}
+							onEndPress={(day) =>
+								openPicker(
+									"time",
+									"Heure de fin",
+									new Date(new Date().setHours(18, 0, 0, 0)),
+									(time) =>
+										updateWeekDay(day, "end", formatTime(time)),
+								)
+							}
+							{...colorProps}
+						/>
 					)}
 
 				{/* CDD Vacations only – vacations */}
 				{formData.contract_type === "CDD Vacations" && (
 					<VStack space='sm'>
 						{formData.vacations.map((vacation, index) => (
-							<Card
+							<VacationCard
 								key={index}
-								style={{
-									backgroundColor: bg,
-									borderRadius: 8,
-									padding: 12,
-									marginBottom: 0,
-								}}>
-								<HStack
-									style={{
-										justifyContent: "space-between",
-										alignItems: "center",
-										marginBottom: 10,
-									}}>
-									<Text
-										style={{
-											fontSize: 12,
-											fontWeight: "700",
-											color: muted,
-										}}>
-										Vacation {index + 1}
-									</Text>
-									<TouchableOpacity
-										onPress={() => removeVacation(index)}
-										activeOpacity={0.7}>
-										<Icon
-											as={Trash2}
-											size='sm'
-											style={{ color: danger }}
-										/>
-									</TouchableOpacity>
-								</HStack>
-								<DatePickerButton
-									value={vacation.date}
-									placeholder='Date de la vacation'
-									onPress={() =>
-										openPicker(
-											"date",
-											"Date de la vacation",
-											vacation.date,
-											(date) =>
-												updateVacation(
-													index,
-													"date",
-													date,
-												),
-										)
-									}
-									style={{ padding: 10, marginBottom: 8 }}
-									{...colorProps}
-								/>
-								<TimeRangePicker
-									startValue={vacation.start_time}
-									endValue={vacation.end_time}
-									onStartPress={() =>
-										openPicker(
-											"time",
-											"Heure de début",
-											new Date(
-												new Date().setHours(8, 0, 0, 0),
+								vacation={vacation}
+								index={index}
+								onRemove={() => removeVacation(index)}
+								onDatePress={() =>
+									openPicker(
+										"date",
+										"Date de la vacation",
+										vacation.date,
+										(date) =>
+											updateVacation(index, "date", date),
+									)
+								}
+								onStartTimePress={() =>
+									openPicker(
+										"time",
+										"Heure de début",
+										new Date(new Date().setHours(8, 0, 0, 0)),
+										(time) =>
+											updateVacation(
+												index,
+												"start_time",
+												formatTime(time),
 											),
-											(time) =>
-												updateVacation(
-													index,
-													"start_time",
-													formatTime(time),
-												),
-										)
-									}
-									onEndPress={() =>
-										openPicker(
-											"time",
-											"Heure de fin",
-											new Date(
-												new Date().setHours(
-													18,
-													0,
-													0,
-													0,
-												),
+									)
+								}
+								onEndTimePress={() =>
+									openPicker(
+										"time",
+										"Heure de fin",
+										new Date(
+											new Date().setHours(18, 0, 0, 0),
+										),
+										(time) =>
+											updateVacation(
+												index,
+												"end_time",
+												formatTime(time),
 											),
-											(time) =>
-												updateVacation(
-													index,
-													"end_time",
-													formatTime(time),
-												),
-										)
-									}
-									{...colorProps}
-								/>
-							</Card>
+									)
+								}
+								danger={danger}
+								{...colorProps}
+							/>
 						))}
 						<AddDashedButton
 							label='Ajouter une vacation'
@@ -2055,21 +2244,7 @@ const ContractGenerationScreen = () => {
 	);
 
 	const renderStep5 = () => {
-		const scheduleValue =
-			formData.contract_type === "CDD Vacations" ||
-			formData.schedule_known
-				? formData.contract_type === "CDI"
-					? Object.entries(formData.week_schedule)
-							.filter(([, v]) => v.enabled)
-							.map(
-								([d, v]) =>
-									`${d.slice(0, 3)}${v.start ? ` ${v.start}→${v.end}` : ""}`,
-							)
-							.join(", ") || "Aucun jour"
-					: formData.vacations.length
-						? `${formData.vacations.length} vacation(s)`
-						: "Aucune vacation"
-				: "Non communiqué";
+		const scheduleValue = scheduleRecapLabel(formData);
 
 		const locationValue =
 			formData.work_location_type === "multiple"
@@ -2381,219 +2556,45 @@ const ContractGenerationScreen = () => {
 			</Box>
 
 			{/* Confirm dialog */}
-			<AlertDialog
+			<ConfirmDialog
 				isOpen={showConfirmDialog}
-				onClose={() => setShowConfirmDialog(false)}>
-				<AlertDialogBackdrop />
-				<AlertDialogContent
-					style={{
-						backgroundColor: cardBg,
-						borderRadius: 16,
-						margin: 24,
-					}}>
-					<AlertDialogHeader>
-						<Text
-							style={{
-								fontSize: 17,
-								fontWeight: "700",
-								color: textPrimary,
-							}}>
-							{existingContractStatus === "published"
-								? "Enregistrer les modifications"
-								: "Générer le contrat"}
-						</Text>
-					</AlertDialogHeader>
-					<AlertDialogBody>
-						<Text
-							style={{
-								fontSize: 14,
-								color: muted,
-								lineHeight: 20,
-								marginBottom: 16,
-							}}>
-							Contrat pour{" "}
-							<Text
-								style={{
-									fontWeight: "700",
-									color: textPrimary,
-								}}>
-								{applicationData?.profiles?.firstname}{" "}
-								{applicationData?.profiles?.lastname}
-							</Text>{" "}
-							— poste{" "}
-							<Text
-								style={{
-									fontWeight: "700",
-									color: textPrimary,
-								}}>
-								{formData.job_title}
-							</Text>
-						</Text>
-						<VStack space='sm'>
-							{existingContractStatus !== "published" && (
-								<TouchableOpacity
-									onPress={() => {
-										setShowConfirmDialog(false);
-										handleSubmit("draft");
-									}}
-									activeOpacity={0.7}
-									style={{
-										borderWidth: 1.5,
-										borderColor: border,
-										borderRadius: 12,
-										padding: 14,
-										backgroundColor: bg,
-									}}>
-									<Text
-										style={{
-											fontSize: 14,
-											fontWeight: "700",
-											color: textPrimary,
-											marginBottom: 4,
-										}}>
-										📝 Enregistrer en brouillon
-									</Text>
-									<Text
-										style={{
-											fontSize: 12,
-											color: muted,
-											lineHeight: 18,
-										}}>
-										Sauvegarder pour compléter ou modifier
-										plus tard. Le candidat ne pourra pas
-										encore le signer.
-									</Text>
-								</TouchableOpacity>
-							)}
-							<TouchableOpacity
-								onPress={() => {
-									setShowConfirmDialog(false);
-									handleSubmit("published");
-								}}
-								activeOpacity={0.7}
-								style={{
-									borderWidth: 1.5,
-									borderColor: success,
-									borderRadius: 12,
-									padding: 14,
-									backgroundColor: isDark
-										? "#052e16"
-										: "#f0fdf4",
-								}}>
-								<Text
-									style={{
-										fontSize: 14,
-										fontWeight: "700",
-										color: success,
-										marginBottom: 4,
-									}}>
-									{existingContractStatus === "published"
-										? "✅ Enregistrer les modifications"
-										: "✅ Publier le contrat"}
-								</Text>
-								<Text
-									style={{
-										fontSize: 12,
-										color: isDark ? "#86efac" : "#166534",
-										lineHeight: 18,
-									}}>
-									{existingContractStatus === "published"
-										? "Ce contrat est déjà publié. Les modifications seront enregistrées et visibles immédiatement par le candidat."
-										: "Finaliser et envoyer au candidat pour signature. Cette action est irréversible."}
-								</Text>
-							</TouchableOpacity>
-						</VStack>
-					</AlertDialogBody>
-					<AlertDialogFooter style={{ paddingTop: 12 }}>
-						<Button
-							variant='outline'
-							onPress={() => setShowConfirmDialog(false)}
-							style={{ flex: 1, borderColor: border }}>
-							<ButtonText style={{ color: textPrimary }}>
-								Annuler
-							</ButtonText>
-						</Button>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
+				onClose={() => setShowConfirmDialog(false)}
+				existingStatus={existingContractStatus}
+				applicantFirstName={applicationData?.profiles?.firstname}
+				applicantLastName={applicationData?.profiles?.lastname}
+				jobTitle={formData.job_title}
+				onDraft={() => {
+					setShowConfirmDialog(false);
+					handleSubmit("draft");
+				}}
+				onPublish={() => {
+					setShowConfirmDialog(false);
+					handleSubmit("published");
+				}}
+				isDark={isDark}
+				cardBg={cardBg}
+				bg={bg}
+				border={border}
+				textPrimary={textPrimary}
+				muted={muted}
+				success={success}
+			/>
 
 			{/* CDD reason code selector */}
-			<Actionsheet
+			<ReasonCodeSheet
 				isOpen={showReasonCodeSheet}
-				onClose={() => setShowReasonCodeSheet(false)}>
-				<ActionsheetBackdrop />
-				<ActionsheetContent style={{ backgroundColor: cardBg }}>
-					<ActionsheetDragIndicatorWrapper>
-						<ActionsheetDragIndicator />
-					</ActionsheetDragIndicatorWrapper>
-					<VStack
-						style={{
-							width: "100%",
-							padding: 20,
-							paddingBottom: 32,
-						}}
-						space='sm'>
-						<Text
-							style={{
-								fontSize: 16,
-								fontWeight: "700",
-								color: textPrimary,
-								textAlign: "center",
-								marginBottom: 8,
-							}}>
-							Motif de recours
-						</Text>
-						{CDD_REASON_CODES.map(({ value, label }) => {
-							const selected = formData.cdd_reason_code === value;
-							return (
-								<TouchableOpacity
-									key={value}
-									onPress={() => {
-										updateField("cdd_reason_code", value);
-										setShowReasonCodeSheet(false);
-									}}
-									activeOpacity={0.7}
-									style={{
-										flexDirection: "row",
-										alignItems: "center",
-										justifyContent: "space-between",
-										paddingVertical: 14,
-										paddingHorizontal: 16,
-										borderRadius: 12,
-										borderWidth: 1.5,
-										borderColor: selected ? tint : border,
-										backgroundColor: selected
-											? isDark
-												? "#1e3a5f"
-												: "#eff6ff"
-											: "transparent",
-									}}>
-									<Text
-										style={{
-											fontSize: 14,
-											fontWeight: selected
-												? "600"
-												: "400",
-											color: selected
-												? tint
-												: textPrimary,
-											flex: 1,
-										}}>
-										{label}
-									</Text>
-									{selected && (
-										<Icon
-											as={CheckCircle}
-											size='sm'
-											style={{ color: tint }}
-										/>
-									)}
-								</TouchableOpacity>
-							);
-						})}
-					</VStack>
-				</ActionsheetContent>
-			</Actionsheet>
+				onClose={() => setShowReasonCodeSheet(false)}
+				value={formData.cdd_reason_code}
+				onChange={(v) => {
+					updateField("cdd_reason_code", v);
+					setShowReasonCodeSheet(false);
+				}}
+				isDark={isDark}
+				cardBg={cardBg}
+				tint={tint}
+				textPrimary={textPrimary}
+				border={border}
+			/>
 
 			{/* Unified date/time picker — replaces 3 separate actionsheets */}
 			<PickerActionsheet
