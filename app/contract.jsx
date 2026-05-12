@@ -81,6 +81,118 @@ const formatDateFR = (iso) => {
 	}
 };
 
+// ── HTML template helpers (used in handleDownloadAndUploadPdf) ──────────────
+const fr = (iso) => {
+	if (!iso) return "—";
+	try {
+		return new Date(iso).toLocaleDateString("fr-FR");
+	} catch {
+		return "—";
+	}
+};
+const money = (v) => (v != null && v !== "" ? `${v} €` : null);
+const row = (label, value) =>
+	value
+		? `<tr><td class="lbl">${label}</td><td class="val">${value}</td></tr>`
+		: "";
+const fmt2 = (n) =>
+	n != null
+		? n.toLocaleString("fr-FR", {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			})
+		: "—";
+
+// ── Shared display sub-components ────────────────────────────────────────────
+const InfoRow = ({ label, value, cardBorder, textSecondary, textPrimary }) => {
+	if (value === null || value === undefined || value === "") return null;
+	return (
+		<HStack
+			style={{
+				justifyContent: "space-between",
+				paddingVertical: 8,
+				borderBottomWidth: 1,
+				borderBottomColor: cardBorder,
+			}}>
+			<Text style={{ color: textSecondary, fontSize: 13, flex: 1 }}>
+				{label}
+			</Text>
+			<Text
+				style={{
+					color: textPrimary,
+					fontSize: 13,
+					fontWeight: "500",
+					flex: 1.2,
+					textAlign: "right",
+				}}>
+				{String(value)}
+			</Text>
+		</HStack>
+	);
+};
+
+const SectionHeader = ({ icon, title, tint, textPrimary }) => (
+	<HStack space='sm' style={{ alignItems: "center", marginBottom: 14 }}>
+		<Icon as={icon} size='sm' style={{ color: tint }} />
+		<Text style={{ fontSize: 15, fontWeight: "700", color: textPrimary }}>
+			{title}
+		</Text>
+	</HStack>
+);
+
+const SignatureRow = ({
+	label,
+	name,
+	signed,
+	noBorder,
+	cardBorder,
+	textSecondary,
+	textPrimary,
+	signedColor,
+	pendingColor,
+}) => (
+	<HStack
+		style={{
+			justifyContent: "space-between",
+			alignItems: "center",
+			paddingVertical: 12,
+			...(noBorder
+				? {}
+				: { borderBottomWidth: 1, borderBottomColor: cardBorder }),
+		}}>
+		<VStack style={{ gap: 2 }}>
+			<Text
+				style={{
+					color: textSecondary,
+					fontSize: 11,
+					fontWeight: "700",
+					textTransform: "uppercase",
+					letterSpacing: 0.5,
+				}}>
+				{label}
+			</Text>
+			<Text style={{ color: textPrimary, fontSize: 14, fontWeight: "500" }}>
+				{name || "—"}
+			</Text>
+		</VStack>
+		<HStack space='xs' style={{ alignItems: "center" }}>
+			<Icon
+				as={Clock}
+				size='sm'
+				style={{ color: signed ? signedColor : pendingColor }}
+			/>
+			<Text
+				style={{
+					fontSize: 13,
+					fontWeight: "600",
+					color: signed ? signedColor : pendingColor,
+				}}>
+				{signed ? "Signé" : "En attente"}
+			</Text>
+		</HStack>
+	</HStack>
+);
+
 const ContractScreen = () => {
 	const { apply_id } = useLocalSearchParams();
 	const router = useRouter();
@@ -602,27 +714,12 @@ const ContractScreen = () => {
 	const handleDownloadAndUploadPdf = async () => {
 		if (!company || !candidate || !job) return;
 
-		// ── helpers ──────────────────────────────────────────────────
 		const dc = contract?.company_snapshot || company;
 		const dd = contract?.candidate_snapshot || candidate;
 		const sched = contract?.schedule || {};
 		const ws = sched.week_schedule || {};
 		const vacs = sched.vacations || [];
 		const schedKnown = sched.schedule_known || false;
-
-		const fr = (iso) => {
-			if (!iso) return "—";
-			try {
-				return new Date(iso).toLocaleDateString("fr-FR");
-			} catch {
-				return "—";
-			}
-		};
-		const money = (v) => (v != null && v !== "" ? `${v} €` : null);
-		const row = (label, value) =>
-			value
-				? `<tr><td class="lbl">${label}</td><td class="val">${value}</td></tr>`
-				: "";
 
 		// ── Lieux de travail ─────────────────────────────────────────
 		const wLocType = contract?.work_location_type || "single";
@@ -711,14 +808,6 @@ const ContractScreen = () => {
 			hourlyRate != null
 				? Math.round(monthlyHours * hourlyRate * 100) / 100
 				: null;
-		const fmt2 = (n) =>
-			n != null
-				? n.toLocaleString("fr-FR", {
-						minimumFractionDigits: 2,
-						maximumFractionDigits: 2,
-					})
-				: "—";
-
 		// Article counter
 		let artN = 0;
 		const art = (title) => `Article ${++artN} – ${title}`;
@@ -1116,7 +1205,7 @@ const ContractScreen = () => {
 <div class="section">
   <p class="section-title">${art("Durée et date de prise de poste")}</p>
   <table class="data">
-    ${row("Date de début", fr(contract?.start_date))}
+    ${row("Date de début", fr(contract?.start_date ?? vacs[0]?.date))}
     ${isCDD ? row("Date de fin prévisible", contract?.end_date ? fr(contract.end_date) : "Sans terme précis") : ""}
     ${row("Volume horaire mensuel", `${fmt2(monthlyHours)} h / mois`)}
   </table>
@@ -1689,52 +1778,12 @@ ${
 		}
 	}
 
-	// Composant ligne d'information
-	const InfoRow = ({ label, value }) => {
-		if (value === null || value === undefined || value === "") return null;
-		return (
-			<HStack
-				style={{
-					justifyContent: "space-between",
-					paddingVertical: 8,
-					borderBottomWidth: 1,
-					borderBottomColor: cardBorder,
-				}}>
-				<Text style={{ color: textSecondary, fontSize: 13, flex: 1 }}>
-					{label}
-				</Text>
-				<Text
-					style={{
-						color: textPrimary,
-						fontSize: 13,
-						fontWeight: "500",
-						flex: 1.2,
-						textAlign: "right",
-					}}>
-					{String(value)}
-				</Text>
-			</HStack>
-		);
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
+	const colorProps = { cardBorder, textSecondary, textPrimary };
+	const sigColors = {
+		signedColor: isDark ? Colors.dark.success : Colors.light.success,
+		pendingColor: isDark ? Colors.dark.muted : Colors.light.muted,
 	};
-
-	// En-tête de section
-	const SectionHeader = ({ icon, title }) => (
-		<HStack space='sm' style={{ alignItems: "center", marginBottom: 14 }}>
-			<Icon
-				as={icon}
-				size='sm'
-				style={{ color: isDark ? Colors.dark.tint : Colors.light.tint }}
-			/>
-			<Text
-				style={{
-					fontSize: 15,
-					fontWeight: "700",
-					color: textPrimary,
-				}}>
-				{title}
-			</Text>
-		</HStack>
-	);
 
 	// Config badge statut
 	const statusLabel =
@@ -1758,6 +1807,9 @@ ${
 		: contract?.status === "published"
 			? "#dbeafe"
 			: Colors.light.background;
+
+	const IR = (p) => <InfoRow {...colorProps} {...p} />;
+	const SH = (p) => <SectionHeader tint={tint} textPrimary={textPrimary} {...p} />;
 
 	return (
 		<Box style={{ flex: 1, backgroundColor: bg }}>
@@ -1801,7 +1853,7 @@ ${
 								style={{
 									fontSize: 12,
 									fontWeight: "600",
-									color: "isDark ? Colors.dark.success : Colors.light.success",
+									color: isDark ? Colors.dark.success : Colors.light.success,
 								}}>
 								Signé
 							</Text>
@@ -1837,24 +1889,24 @@ ${
 
 				{/* Card : Entreprise */}
 				<Box style={cardStyle}>
-					<SectionHeader icon={Building2} title='Entreprise' />
-					<InfoRow
+					<SH icon={Building2} title='Entreprise' />
+					<IR
 						label='Raison sociale'
 						value={displayCompany?.name}
 					/>
-					<InfoRow
+					<IR
 						label='SIRET'
 						value={formatSiret(displayCompany?.siret)}
 					/>
 					{displayCompany?.address ? (
-						<InfoRow
+						<IR
 							label='Adresse'
 							value={displayCompany.address}
 						/>
 					) : displayCompany?.street ||
 					  displayCompany?.postcode ||
 					  displayCompany?.city ? (
-						<InfoRow
+						<IR
 							label='Adresse'
 							value={[
 								displayCompany.street,
@@ -1866,7 +1918,7 @@ ${
 						/>
 					) : null}
 					{displayCompany?.legal_representative ? (
-						<InfoRow
+						<IR
 							label='Représentant légal'
 							value={displayCompany.legal_representative}
 						/>
@@ -1875,8 +1927,8 @@ ${
 
 				{/* Card : Candidat */}
 				<Box style={cardStyle}>
-					<SectionHeader icon={User} title='Candidat' />
-					<InfoRow
+					<SH icon={User} title='Candidat' />
+					<IR
 						label='Nom'
 						value={
 							`${displayCandidate?.firstname || ""} ${displayCandidate?.lastname || ""}`.trim() ||
@@ -1884,19 +1936,19 @@ ${
 						}
 					/>
 					{displayCandidate?.birth_date ? (
-						<InfoRow
+						<IR
 							label='Date de naissance'
 							value={formatDateFR(displayCandidate.birth_date)}
 						/>
 					) : null}
 					{displayCandidate?.social_security_number ? (
-						<InfoRow
+						<IR
 							label='N° Sécurité sociale'
 							value={displayCandidate.social_security_number}
 						/>
 					) : null}
 					{displayCandidate?.address ? (
-						<InfoRow
+						<IR
 							label='Adresse'
 							value={displayCandidate.address}
 						/>
@@ -1905,41 +1957,43 @@ ${
 
 				{/* Card : Informations contractuelles */}
 				<Box style={cardStyle}>
-					<SectionHeader icon={Calendar} title='Contrat' />
-					<InfoRow
+					<SH icon={Calendar} title='Contrat' />
+					<IR
 						label='Type de contrat'
 						value={contract?.contract_type}
 					/>
 					{contract?.category ? (
-						<InfoRow
+						<IR
 							label='Classification'
 							value={contract.category}
 						/>
 					) : null}
 					{contract?.contract_reason ? (
-						<InfoRow
+						<IR
 							label='Motif de recrutement'
 							value={contract.contract_reason}
 						/>
 					) : null}
-					<InfoRow
+					<IR
 						label='Date de début'
-						value={formatDateFR(contract?.start_date)}
+						value={formatDateFR(
+							contract?.start_date ?? vacations[0]?.date,
+						)}
 					/>
 					{contract?.end_date ? (
-						<InfoRow
+						<IR
 							label='Date de fin'
 							value={formatDateFR(contract.end_date)}
 						/>
 					) : null}
 					{contract?.total_hours != null ? (
-						<InfoRow
+						<IR
 							label='Volume horaire'
 							value={`${contract.total_hours}h`}
 						/>
 					) : null}
 					{contract?.trial_period ? (
-						<InfoRow
+						<IR
 							label="Période d'essai"
 							value={contract.trial_period}
 						/>
@@ -1949,7 +2003,7 @@ ${
 				{/* Card : Lieu de travail */}
 				{contract?.work_location || contract?.work_location_name ? (
 					<Box style={cardStyle}>
-						<SectionHeader icon={MapPin} title='Lieu de travail' />
+						<SH icon={MapPin} title='Lieu de travail' />
 						{contract?.work_location_name ? (
 							<Text
 								style={{
@@ -1978,7 +2032,7 @@ ${
 												height: 6,
 												borderRadius: 3,
 												backgroundColor:
-													"isDark ? Colors.dark.tint : Colors.light.tint",
+													isDark ? Colors.dark.tint : Colors.light.tint,
 												marginRight: 10,
 											}}
 										/>
@@ -2016,45 +2070,45 @@ ${
 
 				{/* Card : Rémunération */}
 				<Box style={cardStyle}>
-					<SectionHeader icon={Banknote} title='Rémunération' />
+					<SH icon={Banknote} title='Rémunération' />
 					{contract?.hourly_rate != null ? (
-						<InfoRow
+						<IR
 							label='Taux horaire brut'
 							value={`${contract.hourly_rate} €/h`}
 						/>
 					) : null}
 					{contract?.overtime_rate != null ? (
-						<InfoRow
+						<IR
 							label='Taux heures supplémentaires'
 							value={`${contract.overtime_rate} €/h`}
 						/>
 					) : null}
 					{contract?.meal_bonus != null ? (
-						<InfoRow
+						<IR
 							label='Prime de repas'
 							value={`${contract.meal_bonus} €`}
 						/>
 					) : null}
 					{contract?.transport_bonus != null ? (
-						<InfoRow
+						<IR
 							label='Prime de transport'
 							value={`${contract.transport_bonus} €`}
 						/>
 					) : null}
 					{contract?.is_night && contract?.night_bonus != null ? (
-						<InfoRow
+						<IR
 							label='Majoration nuit'
 							value={`${contract.night_bonus} €`}
 						/>
 					) : null}
 					{contract?.is_sunday && contract?.sunday_bonus != null ? (
-						<InfoRow
+						<IR
 							label='Majoration dimanche'
 							value={`${contract.sunday_bonus} €`}
 						/>
 					) : null}
 					{contract?.is_holiday && contract?.holiday_bonus != null ? (
-						<InfoRow
+						<IR
 							label='Majoration jour férié'
 							value={`${contract.holiday_bonus} €`}
 						/>
@@ -2064,7 +2118,7 @@ ${
 				{/* Card : Planning */}
 				{scheduleKnown ? (
 					<Box style={cardStyle}>
-						<SectionHeader icon={Clock} title='Planning' />
+						<SH icon={Clock} title='Planning' />
 						{Object.entries(weekSchedule)
 							.filter(([, v]) => v?.enabled)
 							.map(([day, hours]) => (
@@ -2156,10 +2210,7 @@ ${
 				{/* Card : Équipement & Clauses */}
 				{contract?.equipment_provided || contract?.custom_clauses ? (
 					<Box style={cardStyle}>
-						<SectionHeader
-							icon={FileText}
-							title='Clauses & Équipement'
-						/>
+						<SH icon={FileText} title='Clauses & Équipement' />
 						{contract?.equipment_provided ? (
 							<>
 								<HStack
@@ -2173,7 +2224,7 @@ ${
 										as={CheckCircle}
 										size='xs'
 										style={{
-											color: "isDark ? Colors.dark.success : Colors.light.success",
+											color: isDark ? Colors.dark.success : Colors.light.success,
 											marginRight: 8,
 										}}
 									/>
@@ -2229,7 +2280,7 @@ ${
 
 				{/* Card : Mentions légales */}
 				<Box style={cardStyle}>
-					<SectionHeader icon={FileText} title='Mentions légales' />
+					<SH icon={FileText} title='Mentions légales' />
 					<Text
 						style={{
 							color: textSecondary,
@@ -2251,124 +2302,22 @@ ${
 
 				{/* Card : Signatures */}
 				<Box style={cardStyle}>
-					<SectionHeader icon={Signature} title='Signatures' />
-					{/* Candidat */}
-					<HStack
-						style={{
-							justifyContent: "space-between",
-							alignItems: "center",
-							paddingVertical: 12,
-							borderBottomWidth: 1,
-							borderBottomColor: cardBorder,
-						}}>
-						<VStack style={{ gap: 2 }}>
-							<Text
-								style={{
-									color: textSecondary,
-									fontSize: 11,
-									fontWeight: "700",
-									textTransform: "uppercase",
-									letterSpacing: 0.5,
-								}}>
-								Candidat
-							</Text>
-							<Text
-								style={{
-									color: textPrimary,
-									fontSize: 14,
-									fontWeight: "500",
-								}}>
-								{`${displayCandidate?.firstname || ""} ${displayCandidate?.lastname || ""}`.trim() ||
-									"—"}
-							</Text>
-						</VStack>
-						<HStack space='xs' style={{ alignItems: "center" }}>
-							<Icon
-								as={Clock}
-								size='sm'
-								style={{
-									color: isSigned
-										? isDark
-											? Colors.dark.success
-											: Colors.light.success
-										: isDark
-											? Colors.dark.muted
-											: Colors.light.muted,
-								}}
-							/>
-							<Text
-								style={{
-									fontSize: 13,
-									fontWeight: "600",
-									color: isSigned
-										? isDark
-											? Colors.dark.success
-											: Colors.light.success
-										: isDark
-											? Colors.dark.muted
-											: Colors.light.muted,
-								}}>
-								{isSigned ? "Signé" : "En attente"}
-							</Text>
-						</HStack>
-					</HStack>
-					{/* Entreprise */}
-					<HStack
-						style={{
-							justifyContent: "space-between",
-							alignItems: "center",
-							paddingVertical: 12,
-						}}>
-						<VStack style={{ gap: 2 }}>
-							<Text
-								style={{
-									color: textSecondary,
-									fontSize: 11,
-									fontWeight: "700",
-									textTransform: "uppercase",
-									letterSpacing: 0.5,
-								}}>
-								Entreprise
-							</Text>
-							<Text
-								style={{
-									color: textPrimary,
-									fontSize: 14,
-									fontWeight: "500",
-								}}>
-								{displayCompany?.name || "—"}
-							</Text>
-						</VStack>
-						<HStack space='xs' style={{ alignItems: "center" }}>
-							<Icon
-								as={Clock}
-								size='sm'
-								style={{
-									color: isProSigned
-										? isDark
-											? Colors.dark.success
-											: Colors.light.success
-										: isDark
-											? Colors.dark.muted
-											: Colors.light.muted,
-								}}
-							/>
-							<Text
-								style={{
-									fontSize: 13,
-									fontWeight: "600",
-									color: isProSigned
-										? isDark
-											? Colors.dark.success
-											: Colors.light.success
-										: isDark
-											? Colors.dark.muted
-											: Colors.light.muted,
-								}}>
-								{isProSigned ? "Signé" : "En attente"}
-							</Text>
-						</HStack>
-					</HStack>
+					<SH icon={Signature} title='Signatures' />
+					<SignatureRow
+						label='Candidat'
+						name={`${displayCandidate?.firstname || ""} ${displayCandidate?.lastname || ""}`.trim()}
+						signed={isSigned}
+						{...colorProps}
+						{...sigColors}
+					/>
+					<SignatureRow
+						label='Entreprise'
+						name={displayCompany?.name}
+						signed={isProSigned}
+						noBorder
+						{...colorProps}
+						{...sigColors}
+					/>
 				</Box>
 
 				{/* Action : Modifier le contrat (pro uniquement, pas encore signé des deux côtés) */}
@@ -2628,7 +2577,7 @@ ${
 								{error ? (
 									<Text
 										style={{
-											color: "isDark ? Colors.dark.danger : Colors.light.danger",
+											color: isDark ? Colors.dark.danger : Colors.light.danger,
 											fontSize: 13,
 										}}>
 										{error}
