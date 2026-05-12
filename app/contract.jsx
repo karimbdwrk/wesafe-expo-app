@@ -102,6 +102,13 @@ const fmt2 = (n) =>
 				maximumFractionDigits: 2,
 			})
 		: "—";
+const fmtH = (n) =>
+	n != null
+		? n.toLocaleString("fr-FR", {
+				minimumFractionDigits: 0,
+				maximumFractionDigits: 2,
+			})
+		: "—";
 
 // ── Shared display sub-components ────────────────────────────────────────────
 const InfoRow = ({ label, value, cardBorder, textSecondary, textPrimary }) => {
@@ -335,7 +342,7 @@ const buildPartiesSection = (dc, dd, artFn) => `
       <p class="col-label">Le Salarié</p>
       <table class="data">
         ${row("Nom et prénom", `${dd?.firstname || ""} ${dd?.lastname || ""}`.trim() || null)}
-        ${row("Date de naissance", fr(dd?.birth_date))}
+        ${row("Date de naissance", fr(dd?.birthday))}
         ${row("Lieu de naissance", dd?.birth_place || null)}
         ${row("Nationalité", dd?.nationality || null)}
         ${row("N° Sécurité sociale", dd?.social_security_number || null)}
@@ -368,7 +375,7 @@ const buildRemuSection = ({ contract, remuRows, monthlyHours, hourlyRate, monthl
     <p class="salary-title">Détail du salaire brut mensuel</p>
     <table>
       <tr><td class="sl">Taux horaire brut</td><td class="sv">${fmt2(hourlyRate)}&nbsp;€ / h</td></tr>
-      <tr><td class="sl">Heures mensuelles</td><td class="sv">${fmt2(monthlyHours)}&nbsp;h</td></tr>
+      <tr><td class="sl">Heures mensuelles</td><td class="sv">${fmtH(monthlyHours)}&nbsp;h</td></tr>
       ${contract?.meal_bonus != null && contract.meal_bonus !== "" ? `<tr><td class="sl">Prime de repas</td><td class="sv">variable</td></tr>` : ""}
       <tr class="total-row"><td>Salaire brut mensuel de base</td><td style="text-align:right;">${fmt2(monthlySalary)}&nbsp;€ brut</td></tr>
     </table>
@@ -456,7 +463,7 @@ ${buildLocationSection({ contract, locHtml, wLocType, artFn: art })}
 
 <div class="section">
   <p class="section-title">${art("Durée du travail et horaires")}</p>
-  <p class="legal">La durée mensuelle de travail est fixée à <strong>${fmt2(monthlyHours)} heures / mois</strong>.</p>
+  <p class="legal">La durée mensuelle de travail est fixée à <strong>${fmtH(monthlyHours)} heures / mois</strong>.</p>
   ${schedKnown && Object.entries(ws).some(([, v]) => v?.enabled)
     ? `<table class="planning" style="margin-top:8px;">
         <thead><tr><th style="width:30%">Jour</th><th style="width:35%">Horaires</th><th>Amplitude</th></tr></thead>
@@ -538,7 +545,7 @@ ${buildPartiesSection(dc, dd, art)}
   <table class="data">
     ${row("Date de début", fr(contract?.start_date))}
     ${contract?.end_date ? row("Date de fin", fr(contract.end_date)) : row("Terme", "Sans terme précis")}
-    ${row("Volume horaire mensuel", `${fmt2(monthlyHours)} h / mois`)}
+    ${row("Volume horaire mensuel", `${fmtH(monthlyHours)} h / mois`)}
     ${row("Intitulé du poste", contract?.job_title || null)}
     ${row("Classification / Catégorie", contract?.category || null)}
   </table>
@@ -553,7 +560,7 @@ ${buildLocationSection({ contract, locHtml, wLocType, artFn: art })}
 
 <div class="section">
   <p class="section-title">${art("Durée du travail et horaires")}</p>
-  <p class="legal">La durée mensuelle de travail est fixée à <strong>${fmt2(monthlyHours)} heures / mois</strong>.</p>
+  <p class="legal">La durée mensuelle de travail est fixée à <strong>${fmtH(monthlyHours)} heures / mois</strong>.</p>
   ${schedKnown && Object.entries(ws).some(([, v]) => v?.enabled)
     ? `<table class="planning" style="margin-top:8px;">
         <thead><tr><th style="width:30%">Jour</th><th style="width:35%">Horaires</th><th>Amplitude</th></tr></thead>
@@ -704,10 +711,13 @@ ${buildSigPage({ dc, dd, contract, company, candidate, legalNotice: `<strong>⚠
 
 // ── Template CDI ──────────────────────────────────────────────────────────────
 const buildCdiHtml = (d) => {
-  const { dc, dd, contract, company, candidate, apply, ws, schedKnown, DAY_FR, monthlyHours } = d;
+  const { dc, dd, contract, company, candidate, apply, ws, schedKnown, DAY_FR, monthlyHours, hourlyRate, monthlySalary } = d;
   const refId = apply?.id?.substring(0, 8)?.toUpperCase() || "—";
   const genDate = fr(new Date().toISOString());
   const compAddr = dc?.address || [dc?.street, dc?.postcode, dc?.city].filter(Boolean).join(", ") || "—";
+  const legalRepName = [dc?.legal_representative_firstname, dc?.legal_representative_lastname].filter(Boolean).join(" ") || dc?.legal_representative || "—";
+  const legalRepRole = dc?.legal_representative_role || "Dirigeant";
+  const initials = [dd?.firstname?.[0], dd?.lastname?.[0]].filter(Boolean).map(l => l.toUpperCase() + ".").join("") || "";
   const collective = contract?.collective_agreement || "CCN Sécurité privée — IDCC 1351";
   const calcDur = (s, e) => {
     try {
@@ -762,7 +772,7 @@ const buildCdiHtml = (d) => {
   .party-name { font-family: 'Inter', sans-serif; font-size: 13pt; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
   .party-detail { display: flex; gap: 6px; font-size: 8.5pt; color: var(--ink-light); margin-bottom: 3px; }
   .party-detail .label { color: var(--muted); min-width: 90px; flex-shrink: 0; }
-  .section { margin-bottom: 18px; }
+  .section { margin-bottom: 28px; }
   .section-title { font-family: 'Inter', sans-serif; font-size: 12pt; font-weight: 600; color: var(--navy); border-left: 3px solid var(--gold); padding-left: 10px; margin-bottom: 10px; line-height: 1.2; }
   .article-number { font-size: 7.5pt; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); margin-bottom: 3px; }
   .info-table { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 6px; }
@@ -791,10 +801,10 @@ const buildCdiHtml = (d) => {
   .bonus-row .bonus-value { font-weight: 600; color: var(--navy); }
   .legal-text { font-size: 8.5pt; color: var(--ink-light); line-height: 1.6; text-align: justify; }
   .cnaps-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--navy); color: var(--white); font-size: 7.5pt; padding: 4px 10px; font-weight: 500; letter-spacing: 0.5px; }
-  .signatures-section { margin-top: 28px; padding-top: 20px; border-top: 2px solid var(--navy); }
+  .signatures-section { margin-top: 28px; padding-top: 20px; border-top: 2px solid var(--navy); page-break-inside: avoid; break-inside: avoid; }
   .signatures-title { font-family: 'Inter', sans-serif; font-size: 12pt; font-weight: 600; color: var(--navy); margin-bottom: 16px; text-align: center; letter-spacing: 1px; text-transform: uppercase; }
-  .signatures-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 20px; width: 100%; }
-  .sig-block { border: 1px solid var(--border); padding: 16px; }
+  .signatures-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 20px; width: 100%; page-break-inside: avoid; break-inside: avoid; }
+  .sig-block { border: 1px solid var(--border); padding: 16px; page-break-inside: avoid; break-inside: avoid; }
   .sig-block .sig-role { font-size: 7.5pt; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
   .sig-block .sig-name { font-family: 'Inter', sans-serif; font-size: 12pt; color: var(--navy); margin-bottom: 12px; font-weight: 600; }
   .sig-image-zone { height: 60px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; background: #fbfbfb; }
@@ -804,22 +814,19 @@ const buildCdiHtml = (d) => {
   .sig-mention { font-size: 7.5pt; color: var(--muted); font-style: italic; margin-top: 4px; }
   .page-footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 7.5pt; color: var(--muted); }
   .text-bold { font-weight: 600; }
-  @media print { body { background: white; } .page { margin: 0; padding: 15mm 18mm; width: 100%; } }
+  .pdf-running-header { display: none; position: fixed; top: 0; left: 0; right: 0; height: 40px; background: white; border-bottom: 1px solid var(--border); padding: 0 20mm; align-items: center; justify-content: space-between; font-size: 8pt; z-index: 9999; box-sizing: border-box; }
+  .pdf-running-header .rh-title { font-weight: 600; color: var(--ink); font-size: 8pt; }
+  .pdf-running-header .rh-ref { color: var(--muted); font-size: 7.5pt; }
+  @page { size: A4; margin: 40px 0; }
+  @media print { body { background: white; margin: 0; padding: 40px 0; } .page { margin: 0; padding: 0 20mm; width: 100%; box-sizing: border-box; } .pdf-running-header { display: flex !important; } }
 </style>
 </head>
 <body>
+<div class="pdf-running-header">
+  <span class="rh-title">${dc?.name || "—"} — Contrat à Durée Indéterminée</span>
+  <span class="rh-ref">Réf. ${refId}</span>
+</div>
 <div class="page">
-
-  <header class="contract-header">
-    <div class="header-left">
-      <span class="company-logo">${dc?.name || "—"}</span>
-      <span class="company-sub">${dc?.legal_form || "—"} — SIRET ${formatSiret(dc?.siret) || "—"}</span>
-    </div>
-    <div class="header-right">
-      <div class="contract-badge">CDI</div>
-      <div class="contract-ref">Réf. ${refId}</div>
-    </div>
-  </header>
 
   <div class="title-block">
     <h1>Contrat de Travail<br>à Durée Indéterminée</h1>
@@ -833,15 +840,15 @@ const buildCdiHtml = (d) => {
       <div class="party-detail"><span class="label">Forme juridique</span><span>${dc?.legal_form || "—"}</span></div>
       <div class="party-detail"><span class="label">SIRET</span><span>${formatSiret(dc?.siret) || "—"}</span></div>
       <div class="party-detail"><span class="label">Siège social</span><span>${compAddr}</span></div>
-      <div class="party-detail"><span class="label">Représenté par</span><span>${dc?.legal_representative || "—"}, ${dc?.legal_representative_role || "Dirigeant"}</span></div>
+      <div class="party-detail"><span class="label">Représenté par</span><span>${legalRepName}, ${legalRepRole}</span></div>
     </div>
     <div class="party-card candidate">
       <div class="party-label">Le / La Salarié(e)</div>
       <div class="party-name">${dd?.firstname || ""} ${dd?.lastname || ""}</div>
-      <div class="party-detail"><span class="label">Date de naissance</span><span>${fr(dd?.birth_date)}</span></div>
-      <div class="party-detail"><span class="label">Adresse</span><span>${dd?.address || "—"}</span></div>
+      <div class="party-detail"><span class="label">Date de naissance</span><span>${fr(dd?.birthday)}</span></div>
+      <div class="party-detail"><span class="label">Adresse</span><span>${[dd?.street, [dd?.postcode, dd?.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || dd?.address || "—"}</span></div>
       <div class="party-detail"><span class="label">N° Sécu</span><span>${dd?.social_security_number || "—"}</span></div>
-      <div class="party-detail"><span class="label">Nationalité</span><span>${dd?.nationality || "—"}</span></div>
+      <div class="party-detail"><span class="label">Nationalité</span><span>${dd?.nationality || (dd?.id_type === "residence_permit" ? "—" : "Française")}</span></div>
     </div>
   </div>
 
@@ -861,10 +868,6 @@ const buildCdiHtml = (d) => {
     <div class="section-title">Fonctions et qualification</div>
     <table class="info-table">
       <tr><td>Intitulé du poste</td><td class="text-bold">${contract?.job_title || "—"}</td></tr>
-      <tr><td>Classification / Niveau</td><td>${contract?.level || "—"}</td></tr>
-      <tr><td>Position / Coefficient</td><td>${contract?.position || "—"} — ${contract?.coefficient || "—"}</td></tr>
-      <tr><td>Statut</td><td>${contract?.category || "—"}</td></tr>
-      <tr><td>Carte professionnelle CNAPS</td><td><span class="cnaps-badge">N° ${dd?.cnaps_number || "—"} — expire le ${fr(dd?.cnaps_expiration_date)}</span></td></tr>
     </table>
     <p class="legal-text" style="margin-top:10px">Le (la) Salarié(e) exercera les missions principales suivantes :</p>
     <ul class="mission-list"><li>${contract?.job_description || "Sécurité des personnes et des biens"}</li></ul>
@@ -886,7 +889,7 @@ const buildCdiHtml = (d) => {
     <div class="article-number">Article 4</div>
     <div class="section-title">Durée du travail</div>
     <table class="info-table">
-      <tr><td>Volume mensuel contractuel</td><td class="text-bold">${fmt2(monthlyHours)} heures / mois</td></tr>
+      <tr><td>Volume mensuel contractuel</td><td class="text-bold">${fmtH(monthlyHours)} heures / mois</td></tr>
     </table>
     ${schedRows ? `<p class="legal-text" style="margin-top:10px">Répartition des horaires :</p>
     <table class="schedule-table">
@@ -905,10 +908,11 @@ const buildCdiHtml = (d) => {
     <div class="article-number">Article 5</div>
     <div class="section-title">Rémunération</div>
     <div class="remu-grid">
-      <div class="remu-card"><span class="remu-value">${contract?.hourly_rate || "—"} €</span><div class="remu-label">Taux horaire brut</div></div>
-      <div class="remu-card"><span class="remu-value">${fmt2(monthlyHours)} h</span><div class="remu-label">Volume horaire contractuel</div></div>
+      <div class="remu-card"><span class="remu-value">${hourlyRate != null ? fmt2(hourlyRate) : "—"} €</span><div class="remu-label">Taux horaire brut</div></div>
+      <div class="remu-card"><span class="remu-value">${fmtH(monthlyHours)} h</span><div class="remu-label">Volume horaire contractuel</div></div>
       <div class="remu-card"><span class="remu-value">${contract?.overtime_rate != null ? contract.overtime_rate + " %" : "—"}</span><div class="remu-label">Majoration heures sup.</div></div>
     </div>
+    ${monthlySalary != null ? `<div class="highlight-box" style="margin-top:10px; font-size:10pt; text-align:center;"><strong>Salaire brut mensuel de base : ${fmt2(monthlySalary)} €</strong></div>` : ""}
     <p class="legal-text" style="margin-top:12px">La rémunération est versée mensuellement par virement bancaire sur le compte indiqué par le (la) Salarié(e).</p>
     <p class="legal-text" style="margin-top:10px; margin-bottom:6px"><strong>Primes et indemnités :</strong></p>
     <div class="bonus-grid">
@@ -987,7 +991,8 @@ const buildCdiHtml = (d) => {
     <div class="signatures-grid">
       <div class="sig-block">
         <div class="sig-role">Pour l'Employeur</div>
-        <div class="sig-name">${dc?.legal_representative || "—"}</div>
+        <div class="sig-name">${legalRepName}</div>
+        <div class="sig-mention" style="margin-bottom:8px;">${legalRepRole}</div>
         <div class="sig-image-zone" style="position:relative;">
           ${company?.stamp_url ? `<img src="${company.stamp_url}" alt="Tampon" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); max-height:55px; max-width:90%; opacity:0.5; object-fit:contain; z-index:0;"/>` : ""}
           <div style="position:relative; z-index:1;">${sigCo}</div>
@@ -1006,9 +1011,7 @@ const buildCdiHtml = (d) => {
   </div>
 
   <footer class="page-footer">
-    <span>${dc?.name || "—"} — SIRET ${formatSiret(dc?.siret) || "—"}</span>
-    <span>Contrat CDI — ${contract?.job_title || "—"} — Version 1.0</span>
-    <span>Généré le ${genDate}</span>
+    <span>Généré le ${genDate} par WeSafe Recruitment</span>
   </footer>
 
 </div></body></html>`;
@@ -1016,10 +1019,17 @@ const buildCdiHtml = (d) => {
 
 // ── Template CDD classique ────────────────────────────────────────────────────
 const buildCddHtml = (d) => {
-  const { dc, dd, contract, company, candidate, apply, ws, schedKnown, DAY_FR, monthlyHours } = d;
+  const { dc, dd, contract, company, candidate, apply, ws, schedKnown, DAY_FR, monthlyHours, hourlyRate, monthlySalary } = d;
   const refId = apply?.id?.substring(0, 8)?.toUpperCase() || "—";
   const genDate = fr(new Date().toISOString());
   const compAddr = dc?.address || [dc?.street, dc?.postcode, dc?.city].filter(Boolean).join(", ") || "—";
+  const legalRepName = [dc?.legal_representative_firstname, dc?.legal_representative_lastname].filter(Boolean).join(" ") || dc?.legal_representative || "—";
+  const legalRepRole = dc?.legal_representative_role || "Dirigeant";
+  const initials = [dd?.firstname?.[0], dd?.lastname?.[0]].filter(Boolean).map(l => l.toUpperCase() + ".").join("") || "";
+  const cddDays = contract?.start_date && contract?.end_date
+    ? Math.round((new Date(contract.end_date) - new Date(contract.start_date)) / 86400000)
+    : null;
+  const isLongCdd = cddDays == null || cddDays > 30;
   const collective = contract?.collective_agreement || "CCN Sécurité privée — IDCC 1351";
   const calcDur = (s, e) => {
     try {
@@ -1076,7 +1086,7 @@ const buildCddHtml = (d) => {
   .party-name { font-family: 'Inter', sans-serif; font-size: 13pt; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
   .party-detail { display: flex; gap: 6px; font-size: 8.5pt; color: var(--ink-light); margin-bottom: 3px; }
   .party-detail .label { color: var(--muted); min-width: 90px; flex-shrink: 0; }
-  .section { margin-bottom: 18px; }
+  .section { margin-bottom: 28px; }
   .section-title { font-family: 'Inter', sans-serif; font-size: 12pt; font-weight: 600; color: var(--navy); border-left: 3px solid var(--accent); padding-left: 10px; margin-bottom: 10px; line-height: 1.2; }
   .article-number { font-size: 7.5pt; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 3px; }
   .motif-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0; }
@@ -1114,10 +1124,10 @@ const buildCddHtml = (d) => {
   .ifc-box { background: #f0f8f4; border: 1px solid #2ecc71; border-left: 4px solid #27ae60; padding: 10px 14px; font-size: 8.5pt; color: var(--ink-light); margin-top: 8px; }
   .legal-text { font-size: 8.5pt; color: var(--ink-light); line-height: 1.6; text-align: justify; }
   .cnaps-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--navy); color: var(--white); font-size: 7.5pt; padding: 4px 10px; font-weight: 500; }
-  .signatures-section { margin-top: 28px; padding-top: 20px; border-top: 2px solid var(--navy); }
+  .signatures-section { margin-top: 28px; padding-top: 20px; border-top: 2px solid var(--navy); page-break-inside: avoid; break-inside: avoid; }
   .signatures-title { font-family: 'Inter', sans-serif; font-size: 12pt; font-weight: 600; color: var(--navy); margin-bottom: 16px; text-align: center; letter-spacing: 1px; text-transform: uppercase; }
-  .signatures-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 20px; width: 100%; }
-  .sig-block { border: 1px solid var(--border); padding: 16px; }
+  .signatures-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 20px; width: 100%; page-break-inside: avoid; break-inside: avoid; }
+  .sig-block { border: 1px solid var(--border); padding: 16px; page-break-inside: avoid; break-inside: avoid; }
   .sig-block .sig-role { font-size: 7.5pt; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
   .sig-block .sig-name { font-family: 'Inter', sans-serif; font-size: 12pt; color: var(--navy); margin-bottom: 12px; font-weight: 600; }
   .sig-image-zone { height: 60px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; background: #fbfbfb; }
@@ -1127,22 +1137,19 @@ const buildCddHtml = (d) => {
   .sig-mention { font-size: 7.5pt; color: var(--muted); font-style: italic; margin-top: 4px; }
   .page-footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 7.5pt; color: var(--muted); }
   .text-bold { font-weight: 600; }
-  @media print { body { background: white; } .page { margin: 0; padding: 15mm 18mm; width: 100%; } }
+  .pdf-running-header { display: none; position: fixed; top: 0; left: 0; right: 0; height: 40px; background: white; border-bottom: 1px solid var(--border); padding: 0 20mm; align-items: center; justify-content: space-between; font-size: 8pt; z-index: 9999; box-sizing: border-box; }
+  .pdf-running-header .rh-title { font-weight: 600; color: var(--ink); font-size: 8pt; }
+  .pdf-running-header .rh-ref { color: var(--muted); font-size: 7.5pt; }
+  @page { size: A4; margin: 40px 0; }
+  @media print { body { background: white; margin: 0; padding: 40px 0; } .page { margin: 0; padding: 0 20mm; width: 100%; box-sizing: border-box; } .pdf-running-header { display: flex !important; } }
 </style>
 </head>
 <body>
+<div class="pdf-running-header">
+  <span class="rh-title">${dc?.name || "—"} — Contrat à Durée Déterminée</span>
+  <span class="rh-ref">Réf. ${refId}</span>
+</div>
 <div class="page">
-
-  <header class="contract-header">
-    <div class="header-left">
-      <span class="company-logo">${dc?.name || "—"}</span>
-      <span class="company-sub">${dc?.legal_form || "—"} — SIRET ${formatSiret(dc?.siret) || "—"}</span>
-    </div>
-    <div>
-      <div class="contract-badge">CDD</div>
-      <div class="contract-ref">Réf. ${refId}</div>
-    </div>
-  </header>
 
   <div class="alert-banner"><strong>⚠ Contrat d'exception :</strong> Le CDD ne peut être conclu que pour les motifs limitativement énumérés par le Code du travail (art. L1242-2). Tout CDD conclu en dehors de ces cas peut être requalifié en CDI.</div>
 
@@ -1158,15 +1165,15 @@ const buildCddHtml = (d) => {
       <div class="party-detail"><span class="label">Forme juridique</span><span>${dc?.legal_form || "—"}</span></div>
       <div class="party-detail"><span class="label">SIRET</span><span>${formatSiret(dc?.siret) || "—"}</span></div>
       <div class="party-detail"><span class="label">Siège social</span><span>${compAddr}</span></div>
-      <div class="party-detail"><span class="label">Représenté par</span><span>${dc?.legal_representative || "—"}, ${dc?.legal_representative_role || "Dirigeant"}</span></div>
+      <div class="party-detail"><span class="label">Représenté par</span><span>${legalRepName}, ${legalRepRole}</span></div>
     </div>
     <div class="party-card candidate">
       <div class="party-label">Le / La Salarié(e)</div>
       <div class="party-name">${dd?.firstname || ""} ${dd?.lastname || ""}</div>
-      <div class="party-detail"><span class="label">Date de naissance</span><span>${fr(dd?.birth_date)}</span></div>
-      <div class="party-detail"><span class="label">Adresse</span><span>${dd?.address || "—"}</span></div>
+      <div class="party-detail"><span class="label">Date de naissance</span><span>${fr(dd?.birthday)}</span></div>
+      <div class="party-detail"><span class="label">Adresse</span><span>${[dd?.street, [dd?.postcode, dd?.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || dd?.address || "—"}</span></div>
       <div class="party-detail"><span class="label">N° Sécu</span><span>${dd?.social_security_number || "—"}</span></div>
-      <div class="party-detail"><span class="label">Nationalité</span><span>${dd?.nationality || "—"}</span></div>
+      <div class="party-detail"><span class="label">Nationalité</span><span>${dd?.nationality || (dd?.id_type === "residence_permit" ? "—" : "Française")}</span></div>
     </div>
   </div>
 
@@ -1208,10 +1215,6 @@ const buildCddHtml = (d) => {
     <div class="section-title">Fonctions et qualification</div>
     <table class="info-table">
       <tr><td>Intitulé du poste</td><td class="text-bold">${contract?.job_title || "—"}</td></tr>
-      <tr><td>Classification / Niveau</td><td>${contract?.level || "—"}</td></tr>
-      <tr><td>Position / Coefficient</td><td>${contract?.position || "—"} — ${contract?.coefficient || "—"}</td></tr>
-      <tr><td>Statut</td><td>${contract?.category || "—"}</td></tr>
-      <tr><td>Carte professionnelle CNAPS</td><td><span class="cnaps-badge">N° ${dd?.cnaps_number || "—"} — expire le ${fr(dd?.cnaps_expiration_date)}</span></td></tr>
     </table>
     <p class="legal-text" style="margin-top:10px">Le (la) Salarié(e) exercera les missions principales suivantes :</p>
     <ul class="mission-list"><li>${contract?.job_description || "Sécurité des personnes et des biens"}</li></ul>
@@ -1231,7 +1234,7 @@ const buildCddHtml = (d) => {
     <div class="article-number">Article 5</div>
     <div class="section-title">Durée du travail</div>
     <table class="info-table">
-      <tr><td>Volume mensuel contractuel</td><td class="text-bold">${fmt2(monthlyHours)} heures / mois</td></tr>
+      <tr><td>Volume mensuel contractuel</td><td class="text-bold">${fmtH(monthlyHours)} heures / mois</td></tr>
     </table>
     ${schedRows ? `<table class="schedule-table" style="margin-top:10px">
       <thead><tr><th>Jour</th><th>Heure début</th><th>Heure fin</th><th>Durée</th></tr></thead>
@@ -1249,10 +1252,11 @@ const buildCddHtml = (d) => {
     <div class="article-number">Article 6</div>
     <div class="section-title">Rémunération</div>
     <div class="remu-grid">
-      <div class="remu-card"><span class="remu-value">${contract?.hourly_rate || "—"} €</span><div class="remu-label">Taux horaire brut</div></div>
-      <div class="remu-card"><span class="remu-value">${fmt2(monthlyHours)} h</span><div class="remu-label">Volume horaire</div></div>
+      <div class="remu-card"><span class="remu-value">${hourlyRate != null ? fmt2(hourlyRate) : "—"} €</span><div class="remu-label">Taux horaire brut</div></div>
+      <div class="remu-card"><span class="remu-value">${fmtH(monthlyHours)} h</span><div class="remu-label">Volume horaire</div></div>
       <div class="remu-card"><span class="remu-value">${contract?.overtime_rate != null ? contract.overtime_rate + " %" : "—"}</span><div class="remu-label">Majoration H. sup.</div></div>
     </div>
+    ${monthlySalary != null ? `<div class="highlight-box" style="margin-top:10px; font-size:10pt; text-align:center;"><strong>${isLongCdd ? "Salaire brut mensuel de base" : "Salaire brut total du contrat"} : ${fmt2(monthlySalary)} €</strong></div>` : ""}
     <p class="legal-text" style="margin-top:10px; margin-bottom:6px"><strong>Primes et indemnités :</strong></p>
     <div class="bonus-grid">
       <div class="bonus-row"><span class="bonus-label">Indemnité repas</span><span class="bonus-value">${contract?.meal_bonus != null && contract.meal_bonus !== "" ? contract.meal_bonus + " €" : "—"}</span></div>
@@ -1335,7 +1339,8 @@ const buildCddHtml = (d) => {
     <div class="signatures-grid">
       <div class="sig-block">
         <div class="sig-role">Pour l'Employeur</div>
-        <div class="sig-name">${dc?.legal_representative || "—"}</div>
+        <div class="sig-name">${legalRepName}</div>
+        <div class="sig-mention" style="margin-bottom:8px;">${legalRepRole}</div>
         <div class="sig-image-zone" style="position:relative;">
           ${company?.stamp_url ? `<img src="${company.stamp_url}" alt="Tampon" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); max-height:55px; max-width:90%; opacity:0.5; object-fit:contain; z-index:0;"/>` : ""}
           <div style="position:relative; z-index:1;">${sigCo}</div>
@@ -1354,9 +1359,7 @@ const buildCddHtml = (d) => {
   </div>
 
   <footer class="page-footer">
-    <span>${dc?.name || "—"} — SIRET ${formatSiret(dc?.siret) || "—"}</span>
-    <span>Contrat CDD — ${contract?.job_title || "—"} — Version 1.0</span>
-    <span>Généré le ${genDate}</span>
+    <span>Généré le ${genDate} par WeSafe Recruitment</span>
   </footer>
 
 </div></body></html>`;
@@ -1364,10 +1367,13 @@ const buildCddHtml = (d) => {
 
 // ── Template CDD Vacations ────────────────────────────────────────────────────
 const buildVacationsHtml = (d) => {
-  const { dc, dd, contract, company, candidate, apply, monthlyHours, vacs } = d;
+  const { dc, dd, contract, company, candidate, apply, monthlyHours, hourlyRate, monthlySalary, vacs } = d;
   const refId = apply?.id?.substring(0, 8)?.toUpperCase() || "—";
   const genDate = fr(new Date().toISOString());
   const compAddr = dc?.address || [dc?.street, dc?.postcode, dc?.city].filter(Boolean).join(", ") || "—";
+  const legalRepName = [dc?.legal_representative_firstname, dc?.legal_representative_lastname].filter(Boolean).join(" ") || dc?.legal_representative || "—";
+  const legalRepRole = dc?.legal_representative_role || "Dirigeant";
+  const initials = [dd?.firstname?.[0], dd?.lastname?.[0]].filter(Boolean).map(l => l.toUpperCase() + ".").join("") || "";
   const collective = contract?.collective_agreement || "CCN Sécurité privée — IDCC 1351";
   const startDate = fr(contract?.start_date ?? (vacs.length > 0 ? vacs[0].date : null));
   const endDate = fr(contract?.end_date ?? (vacs.length > 0 ? vacs[vacs.length - 1].date : null));
@@ -1450,7 +1456,7 @@ const buildVacationsHtml = (d) => {
   .party-name { font-family: 'Inter', sans-serif; font-size: 13pt; font-weight: 600; color: var(--dark); margin-bottom: 8px; }
   .party-detail { display: flex; gap: 6px; font-size: 8.5pt; color: var(--ink-light); margin-bottom: 3px; }
   .party-detail .label { color: var(--muted); min-width: 90px; flex-shrink: 0; }
-  .section { margin-bottom: 16px; }
+  .section { margin-bottom: 28px; }
   .section-title { font-family: 'Inter', sans-serif; font-size: 12pt; font-weight: 600; color: var(--dark); border-left: 3px solid var(--teal); padding-left: 10px; margin-bottom: 10px; line-height: 1.2; }
   .article-number { font-size: 7.5pt; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--teal); margin-bottom: 3px; }
   .info-table { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 6px; }
@@ -1493,10 +1499,10 @@ const buildVacationsHtml = (d) => {
   .mission-list li:last-child { border-bottom: none; }
   .mission-list li::before { content: "—"; color: var(--teal); font-weight: 600; flex-shrink: 0; }
   .legal-text { font-size: 8.5pt; color: var(--ink-light); line-height: 1.6; text-align: justify; }
-  .signatures-section { margin-top: 28px; padding-top: 20px; border-top: 2px solid var(--dark); }
+  .signatures-section { margin-top: 28px; padding-top: 20px; border-top: 2px solid var(--dark); page-break-inside: avoid; break-inside: avoid; }
   .signatures-title { font-family: 'Inter', sans-serif; font-size: 12pt; font-weight: 600; color: var(--dark); margin-bottom: 16px; text-align: center; letter-spacing: 1px; text-transform: uppercase; }
-  .signatures-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 20px; width: 100%; }
-  .sig-block { border: 1px solid var(--border); padding: 16px; }
+  .signatures-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 20px; width: 100%; page-break-inside: avoid; break-inside: avoid; }
+  .sig-block { border: 1px solid var(--border); padding: 16px; page-break-inside: avoid; break-inside: avoid; }
   .sig-block .sig-role { font-size: 7.5pt; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
   .sig-block .sig-name { font-family: 'Inter', sans-serif; font-size: 12pt; color: var(--dark); margin-bottom: 12px; font-weight: 600; }
   .sig-image-zone { height: 60px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; background: #fbfbfb; }
@@ -1506,22 +1512,19 @@ const buildVacationsHtml = (d) => {
   .sig-mention { font-size: 7.5pt; color: var(--muted); font-style: italic; margin-top: 4px; }
   .page-footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 7.5pt; color: var(--muted); }
   .text-bold { font-weight: 600; }
-  @media print { body { background: white; } .page { margin: 0; padding: 15mm 18mm; width: 100%; } .header-stripe { margin: 0 -18mm; padding: 14px 18mm; } }
+  .pdf-running-header { display: none; position: fixed; top: 0; left: 0; right: 0; height: 40px; background: white; border-bottom: 1px solid var(--border); padding: 0 20mm; align-items: center; justify-content: space-between; font-size: 8pt; z-index: 9999; box-sizing: border-box; }
+  .pdf-running-header .rh-title { font-weight: 600; color: var(--ink); font-size: 8pt; }
+  .pdf-running-header .rh-ref { color: var(--muted); font-size: 7.5pt; }
+  @page { size: A4; margin: 40px 0; }
+  @media print { body { background: white; margin: 0; padding: 40px 0; } .page { margin: 0; padding: 0 20mm; width: 100%; box-sizing: border-box; } .pdf-running-header { display: flex !important; } }
 </style>
 </head>
 <body>
+<div class="pdf-running-header">
+  <span class="rh-title">${dc?.name || "—"} — CDD Vacations</span>
+  <span class="rh-ref">Réf. ${refId}</span>
+</div>
 <div class="page">
-
-  <div class="header-stripe">
-    <div>
-      <div class="company-logo">${dc?.name || "—"}</div>
-      <div class="company-sub">${dc?.legal_form || "—"} — SIRET ${formatSiret(dc?.siret) || "—"}</div>
-    </div>
-    <div class="header-right-block">
-      <div><span class="contract-badge">CDD</span><span class="contract-sub-badge">Vacations</span></div>
-      <div class="contract-ref">Réf. ${refId}</div>
-    </div>
-  </div>
 
   <div class="title-block">
     <h1>Contrat de Travail à Durée Déterminée<br><em style="font-style:italic; font-weight:400;">Contrat de Vacations</em></h1>
@@ -1540,15 +1543,15 @@ const buildVacationsHtml = (d) => {
       <div class="party-detail"><span class="label">Forme juridique</span><span>${dc?.legal_form || "—"}</span></div>
       <div class="party-detail"><span class="label">SIRET</span><span>${formatSiret(dc?.siret) || "—"}</span></div>
       <div class="party-detail"><span class="label">Siège social</span><span>${compAddr}</span></div>
-      <div class="party-detail"><span class="label">Représenté par</span><span>${dc?.legal_representative || "—"}, ${dc?.legal_representative_role || "Dirigeant"}</span></div>
+      <div class="party-detail"><span class="label">Représenté par</span><span>${legalRepName}, ${legalRepRole}</span></div>
     </div>
     <div class="party-card candidate">
       <div class="party-label">L'Agent de Sécurité</div>
       <div class="party-name">${dd?.firstname || ""} ${dd?.lastname || ""}</div>
-      <div class="party-detail"><span class="label">Date de naissance</span><span>${fr(dd?.birth_date)}</span></div>
-      <div class="party-detail"><span class="label">Adresse</span><span>${dd?.address || "—"}</span></div>
+      <div class="party-detail"><span class="label">Date de naissance</span><span>${fr(dd?.birthday)}</span></div>
+      <div class="party-detail"><span class="label">Adresse</span><span>${[dd?.street, [dd?.postcode, dd?.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || dd?.address || "—"}</span></div>
       <div class="party-detail"><span class="label">N° Sécu</span><span>${dd?.social_security_number || "—"}</span></div>
-      <div class="party-detail"><span class="label">Nationalité</span><span>${dd?.nationality || "—"}</span></div>
+      <div class="party-detail"><span class="label">Nationalité</span><span>${dd?.nationality || (dd?.id_type === "residence_permit" ? "—" : "Française")}</span></div>
     </div>
   </div>
 
@@ -1569,18 +1572,7 @@ const buildVacationsHtml = (d) => {
     <div class="section-title">Qualification et habilitations professionnelles</div>
     <table class="info-table">
       <tr><td>Intitulé du poste</td><td class="text-bold">${contract?.job_title || "—"}</td></tr>
-      <tr><td>Catégorie</td><td>${contract?.category || "—"}</td></tr>
-      <tr><td>Niveau / Échelon</td><td>${contract?.level || "—"}</td></tr>
-      <tr><td>Position</td><td>${contract?.position || "—"}</td></tr>
-      <tr><td>Coefficient</td><td>${contract?.coefficient || "—"}</td></tr>
     </table>
-    <div class="cnaps-block">
-      <div class="cnaps-info">
-        <div class="cnaps-num">CNAPS N° ${dd?.cnaps_number || "—"}</div>
-        <div class="cnaps-exp">Carte professionnelle valable jusqu'au ${fr(dd?.cnaps_expiration_date)}</div>
-      </div>
-    </div>
-    <p class="legal-text" style="margin-top:10px">Le (la) salarié(e) s'engage à maintenir en cours de validité sa carte professionnelle CNAPS et toutes les habilitations requises pendant toute la durée du contrat.</p>
   </div>
 
   <div class="section">
@@ -1602,7 +1594,7 @@ const buildVacationsHtml = (d) => {
     <div class="article-number">Article 4</div>
     <div class="section-title">Planning des vacations</div>
     <table class="info-table" style="margin-bottom:10px">
-      <tr><td>Volume total contractuel</td><td class="text-bold">${fmt2(monthlyHours)} heures</td></tr>
+      <tr><td>Volume total contractuel</td><td class="text-bold">${fmtH(monthlyHours)} heures</td></tr>
     </table>
     ${vacRows ? `<div class="planning-header">Planning détaillé des vacations</div>
     <table class="vacation-table">
@@ -1622,8 +1614,8 @@ const buildVacationsHtml = (d) => {
     <div class="article-number">Article 5</div>
     <div class="section-title">Rémunération</div>
     <div class="remu-main">
-      <div class="remu-card primary"><span class="remu-value">${contract?.hourly_rate || "—"} €</span><div class="remu-label">Taux horaire brut</div></div>
-      <div class="remu-card"><span class="remu-value">${fmt2(monthlyHours)} h</span><div class="remu-label">Volume total</div></div>
+      <div class="remu-card primary"><span class="remu-value">${hourlyRate != null ? fmt2(hourlyRate) : "—"} €</span><div class="remu-label">Taux horaire brut</div></div>
+      <div class="remu-card"><span class="remu-value">${fmtH(monthlyHours)} h</span><div class="remu-label">Volume total</div></div>
       <div class="remu-card"><span class="remu-value">${contract?.overtime_rate != null ? contract.overtime_rate + " %" : "—"}</span><div class="remu-label">Maj. H. sup.</div></div>
     </div>
     <div class="bonus-section">
@@ -1637,6 +1629,7 @@ const buildVacationsHtml = (d) => {
         <div class="bonus-item"><span class="b-label">IFC (fin contrat)</span><span class="b-value">10 %</span></div>
       </div>
     </div>
+    ${monthlySalary != null ? `<div class="highlight-box" style="margin-top:10px; font-size:10pt; text-align:center;"><strong>Salaire brut total du contrat : ${fmt2(monthlySalary)} €</strong></div>` : ""}
     <p class="legal-text" style="margin-top:10px">La rémunération est versée mensuellement par virement bancaire, sur la base des heures effectivement réalisées.</p>
     <div class="highlight-box" style="margin-top:8px"><strong>Indemnité de fin de contrat :</strong> Au terme du présent contrat, le (la) Salarié(e) percevra une indemnité de précarité égale à 10 % de la rémunération brute totale perçue (art. L1243-8 C.trav.).</div>
     ${contract?.equipment_provided ? `<div class="highlight-box" style="margin-top:8px"><strong>Tenue et équipements fournis :</strong> ${contract?.equipment_details || "—"}</div>` : ""}
@@ -1702,7 +1695,8 @@ const buildVacationsHtml = (d) => {
     <div class="signatures-grid">
       <div class="sig-block">
         <div class="sig-role">Pour l'Employeur</div>
-        <div class="sig-name">${dc?.legal_representative || "—"}</div>
+        <div class="sig-name">${legalRepName}</div>
+        <div class="sig-mention" style="margin-bottom:8px;">${legalRepRole}</div>
         <div class="sig-image-zone" style="position:relative;">
           ${company?.stamp_url ? `<img src="${company.stamp_url}" alt="Tampon" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); max-height:55px; max-width:90%; opacity:0.5; object-fit:contain; z-index:0;"/>` : ""}
           <div style="position:relative; z-index:1;">${sigCo}</div>
@@ -1721,9 +1715,7 @@ const buildVacationsHtml = (d) => {
   </div>
 
   <footer class="page-footer">
-    <span>${dc?.name || "—"} — SIRET ${formatSiret(dc?.siret) || "—"}</span>
-    <span>CDD Vacations — ${contract?.job_title || "—"} — Version 1.0</span>
-    <span>Généré le ${genDate}</span>
+    <span>Généré le ${genDate} par WeSafe Recruitment</span>
   </footer>
 
 </div></body></html>`;
@@ -2250,8 +2242,8 @@ const ContractScreen = () => {
 	const handleDownloadAndUploadPdf = async () => {
 		if (!company || !candidate || !job) return;
 
-		const dc = contract?.company_snapshot || company;
-		const dd = contract?.candidate_snapshot || candidate;
+		const dc = { ...(company || {}), ...(contract?.company_snapshot || {}) };
+		const dd = { ...(candidate || {}), ...(contract?.candidate_snapshot || {}) };
 		const sched = contract?.schedule || {};
 		const ws = sched.week_schedule || {};
 		const vacs = sched.vacations || [];
@@ -2282,7 +2274,13 @@ const ContractScreen = () => {
 			contract?.is_holiday ? row("Majoration jour férié", money(contract?.holiday_bonus)) : "",
 		].join("");
 
-		const monthlyHours = contract?.total_hours ? Math.round(parseFloat(contract.total_hours) * 100) / 100 : 151.67;
+		const rawHours = contract?.total_hours ? parseFloat(contract.total_hours) : null;
+		const jobWeeklyH = job?.weekly_hours ? parseFloat(job.weekly_hours) : null;
+		const monthlyHours = rawHours != null && rawHours % 1 !== 0
+			? Math.round(rawHours * 100) / 100
+			: jobWeeklyH != null
+				? Math.round(jobWeeklyH * 52 / 12 * 100) / 100
+				: rawHours ?? 151.67;
 		const hourlyRate = contract?.hourly_rate ? parseFloat(contract.hourly_rate) : null;
 		const monthlySalary = hourlyRate != null ? Math.round(monthlyHours * hourlyRate * 100) / 100 : null;
 
