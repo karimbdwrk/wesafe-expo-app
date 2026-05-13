@@ -1,15 +1,26 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { View, TextInput } from "react-native";
 import { HStack } from "@/components/ui/hstack";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 
-export default function OTPForm({ onSubmit }) {
+export default function OTPForm({ onSubmit, status, onReset }) {
 	const [otp, setOtp] = useState(new Array(6).fill(""));
 	const inputs = useRef([]);
 	const { isDark } = useTheme();
 
+	useEffect(() => {
+		if (status === "error") {
+			const t = setTimeout(() => {
+				setOtp(new Array(6).fill(""));
+				inputs.current[0]?.focus();
+			}, 700);
+			return () => clearTimeout(t);
+		}
+	}, [status]);
+
 	const handleChange = (text, index) => {
+		if (status && onReset) onReset();
 		if (/^\d$/.test(text)) {
 			const newOtp = [...otp];
 			newOtp[index] = text;
@@ -36,6 +47,15 @@ export default function OTPForm({ onSubmit }) {
 		}
 	};
 
+	const borderColor =
+		status === "success"
+			? "#22c55e"
+			: status === "error"
+				? "#ef4444"
+				: isDark
+					? Colors.dark.border
+					: Colors.light.border;
+
 	return (
 		<View style={{ padding: 15 }}>
 			<HStack style={{ gap: 12 }} justifyContent='center'>
@@ -46,10 +66,8 @@ export default function OTPForm({ onSubmit }) {
 						style={{
 							width: 40,
 							height: 50,
-							borderWidth: 1,
-							borderColor: isDark
-								? Colors.dark.border
-								: Colors.light.border,
+							borderWidth: status ? 2 : 1,
+							borderColor,
 							borderRadius: 5,
 							fontSize: 18,
 							textAlign: "center",
