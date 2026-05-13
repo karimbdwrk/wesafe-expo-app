@@ -16,6 +16,7 @@ import { Briefcase, User, LogOut } from "lucide-react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import LogoTitle from "@/assets/icons/Logo";
+import LogoName from "@/components/LogoName";
 import Colors from "@/constants/Colors";
 
 const FinalizeRegistrationScreen = () => {
@@ -76,6 +77,7 @@ const FinalizeRegistrationScreen = () => {
 						colorScheme={isDark ? "dark" : "light"}
 						size={90}
 					/>
+					<LogoName />
 					<Text
 						style={{
 							fontSize: 24,
@@ -88,7 +90,7 @@ const FinalizeRegistrationScreen = () => {
 							textAlign: "center",
 							lineHeight: 30,
 						}}>
-						Bienvenue sur WeSafe !
+						Bienvenue
 					</Text>
 					<Text
 						size='sm'
