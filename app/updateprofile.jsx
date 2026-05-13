@@ -9,7 +9,6 @@ import {
 	useWindowDimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
-import axios from "axios";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 import {
@@ -69,6 +68,7 @@ import {
 } from "@/components/ui/actionsheet";
 import { DRIVING_LICENSES } from "@/constants/drivinglicences";
 import { languages as LANGUAGES } from "@/constants/languages";
+import { regions } from "@/constants/regions";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/services/twilioApi";
 
 const UpdateProfile = () => {
@@ -92,8 +92,8 @@ const UpdateProfile = () => {
 	const [gender, setGender] = useState("");
 	const [birthday, setBirthday] = useState(new Date());
 	const [showDatePicker, setShowDatePicker] = useState(false);
+	const [street, setStreet] = useState("");
 	const [postcode, setPostcode] = useState("");
-	const [postcodeSearch, setPostcodeSearch] = useState("");
 	const [city, setCity] = useState("");
 	const [department, setDepartment] = useState("");
 	const [region, setRegion] = useState("");
@@ -101,6 +101,10 @@ const UpdateProfile = () => {
 	const [regionCode, setRegionCode] = useState("");
 	const [latitude, setLatitude] = useState(null);
 	const [longitude, setLongitude] = useState(null);
+	const [addrQuery, setAddrQuery] = useState("");
+	const [addrResults, setAddrResults] = useState([]);
+	const [addrSelected, setAddrSelected] = useState(null);
+	const [addrLoading, setAddrLoading] = useState(false);
 	const [formerSoldier, setFormerSoldier] = useState(false);
 	const [drivingLicenses, setDrivingLicenses] = useState([]);
 	const [languages, setLanguages] = useState([]);
@@ -124,7 +128,7 @@ const UpdateProfile = () => {
 	const firstnameRef = useRef(null);
 	const lastnameRef = useRef(null);
 	const phoneRef = useRef(null);
-	const postcodeRef = useRef(null);
+	const addrRef = useRef(null);
 	const heightRef = useRef(null);
 	const weightRef = useRef(null);
 
@@ -144,7 +148,6 @@ const UpdateProfile = () => {
 			}, 100);
 		}
 	};
-	const [cities, setCities] = useState([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [loading, setLoading] = useState(true);
 
@@ -162,8 +165,8 @@ const UpdateProfile = () => {
 				setBirthday(
 					profile.birthday ? new Date(profile.birthday) : new Date(),
 				);
+				setStreet(profile.street || "");
 				setPostcode(profile.postcode || "");
-				setPostcodeSearch(profile.postcode || "");
 				setCity(profile.city || "");
 				setDepartment(profile.department || "");
 				setRegion(profile.region || "");
@@ -171,6 +174,30 @@ const UpdateProfile = () => {
 				setRegionCode(profile.region_code || "");
 				setLatitude(profile.latitude || null);
 				setLongitude(profile.longitude || null);
+				if (profile.city || profile.street) {
+					const label = [
+						profile.street,
+						[profile.postcode, profile.city]
+							.filter(Boolean)
+							.join(" "),
+					]
+						.filter(Boolean)
+						.join(", ");
+					const synth = {
+						label,
+						street: profile.street || "",
+						city: profile.city || "",
+						postcode: profile.postcode || "",
+						latitude: profile.latitude || null,
+						longitude: profile.longitude || null,
+						department_code: profile.department_code || "",
+						department: profile.department || "",
+						region: profile.region || "",
+						region_code: profile.region_code || "",
+					};
+					setAddrSelected(synth);
+					setAddrQuery(label);
+				}
 				setFormerSoldier(profile.former_soldier || false);
 				setDrivingLicenses(
 					(() => {
@@ -218,34 +245,56 @@ const UpdateProfile = () => {
 		}
 	};
 
-	const searchCities = async (postalCode) => {
-		if (postalCode.length !== 5) {
-			setCities([]);
+	const searchAddress = async (query) => {
+		if (!query || query.length < 3) {
+			setAddrResults([]);
 			return;
 		}
-
+		setAddrLoading(true);
 		try {
-			const response = await axios.get(
-				`https://geo.api.gouv.fr/communes?codePostal=${postalCode}&fields=nom,code,codesPostaux,codeDepartement,codeRegion,departement,region,centre&format=json`,
+			const res = await fetch(
+				`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=6`,
 			);
-			setCities(response.data);
-		} catch (error) {
-			console.error("Error fetching cities:", error);
+			const data = await res.json();
+			const results = (data.features || []).map((item) => {
+				const ctx = (item.properties.context || "").split(", ");
+				const regionName = ctx[2] || "";
+				const regionCode =
+					regions.find((r) => r.nom === regionName)?.code || "";
+				return {
+					label: item.properties.label,
+					street: item.properties.name,
+					city: item.properties.city,
+					postcode: item.properties.postcode,
+					latitude: item.geometry?.coordinates?.[1] ?? null,
+					longitude: item.geometry?.coordinates?.[0] ?? null,
+					department_code: ctx[0] || "",
+					department: ctx[1] || "",
+					region: regionName,
+					region_code: regionCode,
+				};
+			});
+			setAddrResults(results);
+		} catch {
+			setAddrResults([]);
+		} finally {
+			setAddrLoading(false);
 		}
 	};
 
-	const selectCity = (cityData) => {
-		setCity(cityData.nom);
-		setDepartment(cityData.departement?.nom || "");
-		setRegion(cityData.region?.nom || "");
-		setDepartmentCode(cityData.codeDepartement || "");
-		setRegionCode(cityData.codeRegion || "");
-		setLatitude(cityData.centre?.coordinates[1] || null);
-		setLongitude(cityData.centre?.coordinates[0] || null);
-		if (cityData.codesPostaux?.[0]) {
-			setPostcode(cityData.codesPostaux[0]);
-		}
-		setCities([]);
+	const handleAddrSelect = (item) => {
+		setAddrSelected(item);
+		setAddrQuery(item.label);
+		setAddrResults([]);
+		setStreet(item.street);
+		setCity(item.city);
+		setPostcode(item.postcode);
+		setDepartment(item.department);
+		setRegion(item.region);
+		setDepartmentCode(item.department_code);
+		setRegionCode(item.region_code);
+		setLatitude(item.latitude);
+		setLongitude(item.longitude);
 	};
 
 	const handleUpdateProfile = async () => {
@@ -275,6 +324,7 @@ const UpdateProfile = () => {
 				lastname,
 				gender,
 				birthday: birthday.toISOString().split("T")[0],
+				street,
 				postcode,
 				city,
 				department,
@@ -1234,7 +1284,7 @@ const UpdateProfile = () => {
 									}}
 								/>
 
-								{/* Code Postal */}
+								{/* Adresse */}
 								<VStack space='sm'>
 									<Text
 										size='sm'
@@ -1242,10 +1292,10 @@ const UpdateProfile = () => {
 											color: textPrimary,
 											fontWeight: "600",
 										}}>
-										Code Postal
+										Adresse
 									</Text>
 									<Input
-										ref={postcodeRef}
+										ref={addrRef}
 										style={{
 											backgroundColor: bg,
 											borderColor: cardBorder,
@@ -1259,138 +1309,124 @@ const UpdateProfile = () => {
 										</InputSlot>
 										<InputField
 											type='text'
-											placeholder='Entrez votre code postal'
-											value={postcodeSearch}
-											onChangeText={(text) => {
-												setPostcodeSearch(text);
-												searchCities(text);
+											placeholder='8 rue de la Paix, Paris...'
+											value={addrQuery}
+											onChangeText={(v) => {
+												setAddrQuery(v);
+												setAddrSelected(null);
+												searchAddress(v);
 											}}
-											onFocus={() => scrollToInput(postcodeRef)}
-											keyboardType='numeric'
-											maxLength={5}
-											style={{
-												color: textPrimary,
-											}}
+											onFocus={() =>
+												scrollToInput(addrRef)
+											}
+											style={{ color: textPrimary }}
 										/>
 									</Input>
-								</VStack>
 
-								{/* Ville */}
-								{cities.length > 0 && (
-									<VStack space='sm'>
-										<Text
-											size='sm'
-											style={{
-												color: textPrimary,
-												fontWeight: "600",
-											}}>
-											Sélectionnez votre ville
-										</Text>
+									{addrLoading && (
+										<ActivityIndicator
+											size='small'
+											color={tint}
+										/>
+									)}
+
+									{addrResults.length > 0 && !addrSelected && (
 										<VStack space='xs'>
-											{cities.map((cityData) => (
+											{addrResults.map((item, i) => (
 												<TouchableOpacity
-													key={cityData.code}
+													key={i}
+													activeOpacity={0.7}
 													onPress={() =>
-														selectCity(cityData)
+														handleAddrSelect(item)
 													}>
 													<Box
 														style={{
 															padding: 12,
-															backgroundColor:
-																city ===
-																cityData.nom
-																	? isDark
-																		? Colors
-																				.dark
-																				.background
-																		: "#dbeafe"
-																	: cardBg,
 															borderRadius: 8,
 															borderWidth: 1,
 															borderColor:
-																city ===
-																cityData.nom
-																	? tint
-																	: cardBorder,
+																cardBorder,
+															backgroundColor:
+																cardBg,
 														}}>
-														<Text
+														<HStack
+															space='sm'
 															style={{
-																color: textPrimary,
+																alignItems:
+																	"center",
 															}}>
-															{cityData.nom} (
-															{
-																cityData.codeDepartement
-															}
-															)
-														</Text>
+															<MapPin
+																size={16}
+																color={
+																	textSecondary
+																}
+															/>
+															<VStack
+																style={{
+																	flex: 1,
+																}}>
+																<Text
+																	style={{
+																		fontWeight:
+																			"600",
+																		color: textPrimary,
+																		fontSize: 14,
+																	}}>
+																	{item.street}
+																</Text>
+																<Text
+																	style={{
+																		color: textSecondary,
+																		fontSize: 12,
+																	}}>
+																	{
+																		item.postcode
+																	}{" "}
+																	{item.city}
+																</Text>
+															</VStack>
+														</HStack>
 													</Box>
 												</TouchableOpacity>
 											))}
 										</VStack>
-									</VStack>
-								)}
+									)}
 
-								{city && (
-									<>
-										<Divider
+									{addrSelected && (
+										<HStack
+											space='sm'
 											style={{
-												backgroundColor: cardBorder,
-											}}
-										/>
-
-										{/* Ville sélectionnée */}
-										<VStack space='sm'>
-											<Text
-												size='sm'
-												style={{
-													color: textPrimary,
-													fontWeight: "600",
-												}}>
-												Ville
-											</Text>
-											<Text
-												style={{
-													color: textSecondary,
-												}}>
-												{`${city} (${postcode})`}
-											</Text>
-										</VStack>
-										<VStack space='sm'>
-											<Text
-												size='sm'
-												style={{
-													color: textPrimary,
-													fontWeight: "600",
-												}}>
-												Département
-											</Text>
-											<Text
-												style={{
-													color: textSecondary,
-												}}>
-												{department} ({departmentCode})
-											</Text>
-										</VStack>
-
-										{/* Région */}
-										<VStack space='sm'>
-											<Text
-												size='sm'
-												style={{
-													color: textPrimary,
-													fontWeight: "600",
-												}}>
-												Région
-											</Text>
-											<Text
-												style={{
-													color: textSecondary,
-												}}>
-												{region}
-											</Text>
-										</VStack>
-									</>
-								)}
+												alignItems: "center",
+												padding: 12,
+												borderRadius: 10,
+												borderWidth: 2,
+												borderColor: tint,
+												backgroundColor: isDark
+													? Colors.dark.tint20
+													: Colors.light.tint20,
+											}}>
+											<MapPin size={16} color={tint} />
+											<VStack style={{ flex: 1 }}>
+												<Text
+													style={{
+														fontWeight: "700",
+														color: textPrimary,
+														fontSize: 14,
+													}}>
+													{addrSelected.label}
+												</Text>
+												<Text
+													style={{
+														color: textSecondary,
+														fontSize: 12,
+													}}>
+													{addrSelected.department} —{" "}
+													{addrSelected.region}
+												</Text>
+											</VStack>
+										</HStack>
+									)}
+								</VStack>
 
 								<Divider
 									style={{
