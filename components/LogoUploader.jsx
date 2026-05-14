@@ -18,6 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useImage } from "@/context/ImageContext";
 import { useTheme } from "@/context/ThemeContext";
 import CropPreview from "@/components/CropPreview";
+import Colors from "@/constants/Colors";
 import { Camera, Pen, User, Upload } from "lucide-react-native";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
@@ -31,6 +32,10 @@ const LogoUploader = ({ image }) => {
 	const { setImage } = useImage();
 	const { isDark } = useTheme();
 	const { width: screenWidth } = useWindowDimensions();
+	const tint = isDark ? Colors.dark.tint : Colors.light.tint;
+	const border = isDark ? Colors.dark.border : Colors.light.border;
+	const elevated = isDark ? Colors.dark.elevated : Colors.light.elevated;
+	const muted = isDark ? Colors.dark.muted : Colors.light.muted;
 
 	const [logoUrl, setLogoUrl] = useState(userCompany?.logo_url || null);
 	const [loading, setLoading] = useState(false);
@@ -128,18 +133,13 @@ const LogoUploader = ({ image }) => {
 									height: 120,
 									borderWidth: 2,
 									borderRadius: 15,
-									borderColor: isDark ? "#4b5563" : "#d1d5db",
+									borderColor: border,
 									borderStyle: "dashed",
 									justifyContent: "center",
 									alignItems: "center",
-									backgroundColor: isDark
-										? "#374151"
-										: "#f9fafb",
+									backgroundColor: elevated,
 								}}>
-								<Upload
-									size={40}
-									color={isDark ? "#9ca3af" : "#6b7280"}
-								/>
+								<Upload size={40} color={muted} />
 							</View>
 						)}
 					</VStack>
@@ -151,7 +151,7 @@ const LogoUploader = ({ image }) => {
 							position: "absolute",
 							bottom: -8,
 							right: -8,
-							backgroundColor: "#2563eb",
+							backgroundColor: tint,
 							shadowColor: "#000",
 							shadowOffset: { width: 0, height: 2 },
 							shadowOpacity: 0.25,
@@ -190,7 +190,7 @@ const LogoUploader = ({ image }) => {
 						naturalHeight={rawPhoto.height}
 						screenWidth={screenWidth}
 						frameRatio={1}
-						tint='#2563eb'
+						tint={tint}
 						onConfirm={(result) => {
 							setRawPhoto(null);
 							setShowCropModal(false);
