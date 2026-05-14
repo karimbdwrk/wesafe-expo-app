@@ -22,6 +22,18 @@ import { Card } from "@/components/ui/card";
 import { HStack } from "@/components/ui/hstack";
 import { Icon } from "@/components/ui/icon";
 import { Input, InputField } from "@/components/ui/input";
+import {
+	Select,
+	SelectTrigger,
+	SelectInput,
+	SelectIcon,
+	SelectPortal,
+	SelectBackdrop,
+	SelectContent,
+	SelectDragIndicatorWrapper,
+	SelectDragIndicator,
+	SelectItem,
+} from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 
@@ -44,6 +56,16 @@ import { createSupabaseClient } from "@/lib/supabase";
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 const DOCUMENTS_BUCKET = "kbis";
 
+const LEGAL_FORMS = [
+	{ label: "SASU — SAS Unipersonnelle", value: "SASU" },
+	{ label: "SAS — Société par Actions Simplifiée", value: "SAS" },
+	{ label: "EURL — SARL Unipersonnelle", value: "EURL" },
+	{ label: "SARL — Société à Responsabilité Limitée", value: "SARL" },
+	{ label: "ME — Micro-entreprise", value: "ME" },
+	{ label: "EI — Entreprise Individuelle", value: "EI" },
+	{ label: "SA — Société Anonyme", value: "SA" },
+];
+
 const CreateCompany = () => {
 	const router = useRouter();
 	const { user, setJustSignup, setRole, loadSession, accessToken } =
@@ -61,6 +83,7 @@ const CreateCompany = () => {
 
 	// Step 2
 	const [siret, setSiret] = useState("");
+	const [legalForm, setLegalForm] = useState("");
 
 	const formatSiret = (raw) => {
 		if (raw.length <= 3) return raw;
@@ -153,6 +176,7 @@ const CreateCompany = () => {
 				...(legalFirstname.trim() && {
 					legal_representative_firstname: legalFirstname.trim(),
 				}),
+			...(legalForm && { legal_form: legalForm }),
 			};
 
 			trackActivity("company_created");
@@ -471,6 +495,61 @@ const CreateCompany = () => {
 											}}>
 											{siret.length}/14 chiffres
 										</Text>
+									</VStack>
+
+									{/* Forme juridique */}
+									<VStack space='xs'>
+										<Text size='sm' style={labelStyle}>
+											Forme juridique
+										</Text>
+										<Select
+											selectedValue={legalForm}
+											onValueChange={setLegalForm}>
+											<SelectTrigger
+												variant='outline'
+												size='md'
+												style={{
+													backgroundColor: isDark
+														? Colors.dark.elevated
+														: Colors.light
+																.background,
+													borderColor: cardBorder,
+													borderRadius: 10,
+												}}>
+												<SelectInput
+													placeholder='Sélectionnez une forme juridique'
+													style={{
+														color: legalForm
+															? isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text
+															: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
+													}}
+												/>
+												<SelectIcon as={ChevronDown} />
+											</SelectTrigger>
+											<SelectPortal>
+												<SelectBackdrop />
+												<SelectContent>
+													<SelectDragIndicatorWrapper>
+														<SelectDragIndicator />
+													</SelectDragIndicatorWrapper>
+													{LEGAL_FORMS.map((f) => (
+														<SelectItem
+															key={f.value}
+															label={f.label}
+															value={f.value}
+														/>
+													))}
+												</SelectContent>
+											</SelectPortal>
+										</Select>
 									</VStack>
 
 									<Box
