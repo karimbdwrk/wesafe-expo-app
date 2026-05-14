@@ -280,11 +280,13 @@ export default function JobsList({
 			const { data, totalCount } = await getAll(
 				"jobs",
 				"*,companies(logo_url, name, subscription_status)",
-				`&is_archived=eq.FALSE${filters}&isLastMinute=eq.${isLastMinute}${lmFilters}`,
+				`&status=eq.published${filters}&isLastMinute=eq.${isLastMinute}${lmFilters}`,
 				page,
 				itemsPerPage,
-				"sponsorship_date.desc.nullslast,date.desc",
+				"created_at.desc",
 			);
+
+			console.log(totalCount, "annonces chargées avec les filtres:");
 
 			// Priorité absolue : 0 = meilleur
 			// 0 sponsorisé premium  1 sponsorisé standard_plus  2 sponsorisé reste
@@ -296,22 +298,14 @@ export default function JobsList({
 				job.sponsorship_date != null &&
 				new Date(job.sponsorship_date) >= now;
 			const getSortPriority = (job) => {
-				const tier =
-					TIER[job.companies?.subscription_status] ?? 2;
+				const tier = TIER[job.companies?.subscription_status] ?? 2;
 				return isActiveSponsorship(job) ? tier : tier + 3;
 			};
 
 			const sorted = (data || []).slice().sort((a, b) => {
 				const diff = getSortPriority(a) - getSortPriority(b);
 				if (diff !== 0) return diff;
-				// À priorité égale : sponsorisés actifs par date de sponsoring, autres par date de publication
-				const aDate = isActiveSponsorship(a)
-					? a.sponsorship_date
-					: a.date;
-				const bDate = isActiveSponsorship(b)
-					? b.sponsorship_date
-					: b.date;
-				return new Date(bDate) - new Date(aDate);
+				return new Date(b.created_at) - new Date(a.created_at);
 			});
 
 			setJobs(sorted);
