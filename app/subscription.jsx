@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useFocusEffect } from "expo-router";
-import { ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { ScrollView, TouchableOpacity, ActivityIndicator, Linking } from "react-native";
 import axios from "axios";
 import Constants from "expo-constants";
+import * as SecureStore from "expo-secure-store";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Box } from "@/components/ui/box";
@@ -18,6 +19,8 @@ import {
 	AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
 import { Button, ButtonText } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import {
 	CreditCard,
 	CheckCircle,
@@ -27,14 +30,16 @@ import {
 	Zap,
 	Star,
 	Check,
+	ExternalLink,
+	ShieldCheck,
 } from "lucide-react-native";
-
-import SubscriptionPaymentSheet from "../components/SubscriptionPaymentSheet";
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
+
+const { WEBSITE_URL = "https://wesafe-dashboard-gxat3vt1m-infowesafeapp-8042s-projects.vercel.app" } = Constants.expoConfig.extra;
 
 const PLANS = [
 	{
@@ -108,6 +113,26 @@ const SubscriptionScreen = () => {
 	const { getAll } = useDataContext();
 	const { isDark } = useTheme();
 	const router = useRouter();
+	const toast = useToast();
+
+	useEffect(() => {
+		if (userCompany && userCompany.company_status !== "active") {
+			toast.show({
+				placement: "top",
+				duration: 4000,
+				render: ({ id }) => (
+					<CustomToast
+						id={id}
+						icon={ShieldCheck}
+						color={isDark ? Colors.dark.muted : Colors.light.muted}
+						title='Compte non activé'
+						description='Votre entreprise doit être active pour accéder aux abonnements.'
+					/>
+				),
+			});
+			router.replace("/dashboard");
+		}
+	}, [userCompany?.company_status]);
 
 	const bg = isDark ? Colors.dark.background : Colors.light.background;
 	const cardBg = isDark
@@ -130,6 +155,17 @@ const SubscriptionScreen = () => {
 	const [interval, setInterval] = useState("monthly");
 	const [showCancelDialog, setShowCancelDialog] = useState(false);
 	const [cancelLoading, setCancelLoading] = useState(false);
+
+	const openWebsite = async (path = "/abonnements") => {
+		const refreshToken = await SecureStore.getItemAsync("refresh_token");
+		const base = `${WEBSITE_URL}${path}`;
+		if (accessToken && refreshToken) {
+			const hash = `#access_token=${accessToken}&refresh_token=${refreshToken}&token_type=bearer`;
+			await Linking.openURL(base + hash);
+		} else {
+			await Linking.openURL(base);
+		}
+	};
 
 	const handleCancel = async () => {
 		if (!activeSub?.stripe_subscription_id) return;
@@ -368,6 +404,48 @@ const SubscriptionScreen = () => {
 						</HStack>
 					</Box>
 				)}
+
+				{/* Website redirect banner */}
+				<TouchableOpacity
+					onPress={() => openWebsite("/dashboard/billing")}
+					activeOpacity={0.8}
+					style={{
+						borderRadius: 14,
+						borderWidth: 1,
+						borderColor: "#3b82f6",
+						backgroundColor: isDark ? "#1e3a5f" : "#eff6ff",
+						padding: 16,
+						flexDirection: "row",
+						alignItems: "center",
+						gap: 12,
+					}}>
+					<Box
+						style={{
+							width: 44,
+							height: 44,
+							borderRadius: 22,
+							backgroundColor: "#3b82f6",
+							justifyContent: "center",
+							alignItems: "center",
+						}}>
+						<ExternalLink size={20} color='#fff' />
+					</Box>
+					<VStack style={{ flex: 1 }} space='xs'>
+						<Text
+							style={{
+								fontWeight: "800",
+								fontSize: 15,
+								color: "#3b82f6",
+							}}>
+							Abonnements sur wesafe.fr
+						</Text>
+						<Text
+							size='sm'
+							style={{ color: isDark ? "#93c5fd" : "#1d4ed8" }}>
+							Les paiements se font sur notre site web. Venez la chercher.
+						</Text>
+					</VStack>
+				</TouchableOpacity>
 
 				{/* Plan cards */}
 				<VStack space='md'>
@@ -699,18 +777,30 @@ const SubscriptionScreen = () => {
 
 									{/* CTA */}
 									{!isCurrent && plan.key !== "standard" && (
-										<Box style={{ marginTop: 12 }}>
-											<SubscriptionPaymentSheet
-												company_id={userCompany?.id}
-												email={user?.email}
-												plan={plan.key}
-												interval={interval}
-												companyName={userCompany?.name}
-												firstName={
-													userCompany?.legal_representative_firstname
-												}
-											/>
-										</Box>
+										<TouchableOpacity
+											onPress={() => openWebsite("/dashboard/billing")}
+											activeOpacity={0.8}
+											style={{
+												marginTop: 12,
+												backgroundColor: plan.color,
+												borderRadius: 10,
+												paddingVertical: 12,
+												paddingHorizontal: 16,
+												flexDirection: "row",
+												alignItems: "center",
+												justifyContent: "center",
+												gap: 8,
+											}}>
+											<ExternalLink size={16} color='#fff' />
+											<Text
+												style={{
+													fontWeight: "700",
+													fontSize: 14,
+													color: "#fff",
+												}}>
+												{isUpgrade ? "Passer à " + plan.label : "Choisir " + plan.label}
+											</Text>
+										</TouchableOpacity>
 									)}
 								</VStack>
 							</Box>
