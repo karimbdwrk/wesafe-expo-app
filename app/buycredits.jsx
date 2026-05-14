@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { ScrollView, Alert, ActivityIndicator } from "react-native";
-import { useFocusEffect } from "expo-router";
-import axios from "axios";
+import { ScrollView, TouchableOpacity, Linking } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
 import Constants from "expo-constants";
+import * as SecureStore from "expo-secure-store";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
-import { BUY_CREDITS } from "@/utils/activityEvents";
-import { useStripePaymentHandler } from "../services/stripeApi";
+import { createSupabaseClient } from "@/lib/supabase";
 
 import { Box } from "@/components/ui/box";
 import { VStack } from "@/components/ui/vstack";
@@ -16,17 +15,45 @@ import { HStack } from "@/components/ui/hstack";
 import { Card } from "@/components/ui/card";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
-import { Button, ButtonText, ButtonSpinner } from "@/components/ui/button";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
-import { Coins, CreditCard, Check, Zap, Lightbulb } from "lucide-react-native";
+import {
+	Coins,
+	Check,
+	Zap,
+	Lightbulb,
+	ShieldCheck,
+	ExternalLink,
+} from "lucide-react-native";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
+
+const { WEBSITE_URL = "https://wesafe-dashboard-gxat3vt1m-infowesafeapp-8042s-projects.vercel.app" } = Constants.expoConfig.extra;
 
 const BuyCreditsScreen = () => {
-	const { user, userCompany, loadUserData, accessToken } = useAuth();
-	const { SUPABASE_URL } = Constants.expoConfig.extra;
-	const { getById, update, trackActivity } = useDataContext();
+	const { user, userCompany, accessToken } = useAuth();
+	const { getById } = useDataContext();
 	const { isDark } = useTheme();
-	const { initiateAndPresentPayment } = useStripePaymentHandler();
+	const router = useRouter();
+	const toast = useToast();
+	useEffect(() => {
+		if (userCompany && userCompany.company_status !== "active") {
+			toast.show({
+				placement: "top",
+				duration: 4000,
+				render: ({ id }) => (
+					<CustomToast
+						id={id}
+						icon={ShieldCheck}
+						color={isDark ? Colors.dark.muted : Colors.light.muted}
+						title='Compte non activé'
+						description='Votre entreprise doit être active pour accéder aux crédits.'
+					/>
+				),
+			});
+			router.replace("/dashboard");
+		}
+	}, [userCompany?.company_status]);
 
 	const bg = isDark ? Colors.dark.background : Colors.light.background;
 	const cardBg = isDark
@@ -40,94 +67,52 @@ const BuyCreditsScreen = () => {
 	const warning50 = isDark ? Colors.dark.warning50 : Colors.light.warning50;
 	const success = isDark ? Colors.dark.success : Colors.light.success;
 
-	const [loading, setLoading] = useState(false);
 	const [credits, setCredits] = useState(0);
-	const [companyId, setCompanyId] = useState(null);
 
-	const loadCompanyCredits = async (id) => {
-		setLoading(true);
-		const data = await getById("companies", id, `last_minute_credits`);
-		setCredits(data.last_minute_credits);
-		setLoading(false);
-	};
-
-	const addCompanyCredits = async (id) => {
-		setLoading(true);
-		const data = await update("companies", id, {
-			last_minute_credits: credits + 10,
-		});
-	};
-
-	const fetchUserAndCredits = async () => {
-		if (user) {
-			setCompanyId(user.id);
-			await loadCompanyCredits(user.id);
-		} else {
-			Alert.alert(
-				"Erreur",
-				"Vous devez être connecté pour acheter des crédits.",
-			);
-			navigation.navigate("Login");
-		}
+	const loadCompanyCredits = async () => {
+		if (!user?.id) return;
+		const data = await getById("companies", user.id, `last_minute_credits`);
+		setCredits(data?.last_minute_credits ?? 0);
 	};
 
 	useFocusEffect(
 		useCallback(() => {
-			fetchUserAndCredits();
-		}, [companyId]),
+			loadCompanyCredits();
+
+			if (!user?.id || !accessToken) return;
+			const supabase = createSupabaseClient(accessToken);
+			const channel = supabase
+				.channel(`buycredits-${user.id}`)
+				.on(
+					"postgres_changes",
+					{
+						event: "UPDATE",
+						schema: "public",
+						table: "companies",
+						filter: `id=eq.${user.id}`,
+					},
+					(payload) => {
+						if (payload.new?.last_minute_credits !== undefined) {
+							setCredits(payload.new.last_minute_credits);
+						}
+					},
+				)
+				.subscribe();
+
+			return () => {
+				supabase.removeChannel(channel);
+			};
+		}, [user?.id, accessToken]),
 	);
 
-	const handleBuyCredits = async () => {
-		trackActivity(BUY_CREDITS);
-		if (!companyId) {
-			Alert.alert(
-				"Erreur",
-				"ID de l'entreprise manquant. Veuillez vous reconnecter.",
-			);
-			return;
+	const openWebsite = async () => {
+		const refreshToken = await SecureStore.getItemAsync("refresh_token");
+		const base = `${WEBSITE_URL}/dashboard/billing`;
+		if (accessToken && refreshToken) {
+			await Linking.openURL(`${base}#access_token=${accessToken}&refresh_token=${refreshToken}&token_type=bearer`);
+		} else {
+			await Linking.openURL(base);
 		}
-		setLoading(true);
-		const result = await initiateAndPresentPayment(
-			companyId,
-			3000,
-			"credits_pack",
-		); // 3000 cents = 30 EUR
-
-		if (result.success) {
-			Alert.alert("Succès", "Votre pack de 10 crédits a été acheté !");
-			await addCompanyCredits(companyId);
-			await loadCompanyCredits(companyId);
-			loadUserData(companyId, accessToken);
-			// Email de facturation
-			try {
-				await axios.post(
-					`${SUPABASE_URL}/functions/v1/send-credits-invoice-email`,
-					{
-						firstName:
-							userCompany?.legal_representative_firstname || "",
-						email: user?.email,
-						companyName: userCompany?.name || "",
-						quantity: 10,
-						unitPrice: 3,
-						totalAmount: 30,
-						purchaseDate: new Date().toISOString(),
-					},
-					{
-						headers: {
-							Authorization: `Bearer ${accessToken}`,
-							"Content-Type": "application/json",
-						},
-					},
-				);
-				console.log("✅ Email facture crédits envoyé");
-			} catch (emailErr) {
-				console.error(
-					"❌ Erreur email facture crédits:",
-					emailErr.response?.data ?? emailErr.message,
-				);
-			}
-		}
-		setLoading(false);
 	};
 
 	return (
@@ -140,9 +125,9 @@ const BuyCreditsScreen = () => {
 			<VStack space='xl'>
 				{/* Header */}
 				<VStack space='md'>
-					<Heading size='2xl' style={{ color: textPrimary }}>
+					{/* <Heading size='2xl' style={{ color: textPrimary }}>
 						Crédits Last Minute
-					</Heading>
+					</Heading> */}
 					<Text size='md' style={{ color: muted }}>
 						Achetez des crédits pour publier vos annonces en mode
 						Last Minute
@@ -182,12 +167,47 @@ const BuyCreditsScreen = () => {
 								<Heading
 									size='2xl'
 									style={{ color: textPrimary }}>
-									{loading ? "..." : credits}
+									{credits}
 								</Heading>
 							</VStack>
 						</HStack>
 					</VStack>
 				</Card>
+
+				{/* Website redirect banner */}
+				<TouchableOpacity
+					onPress={openWebsite}
+					activeOpacity={0.8}
+					style={{
+						borderRadius: 14,
+						borderWidth: 1,
+						borderColor: warning,
+						backgroundColor: isDark ? Colors.dark.elevated : warning20,
+						padding: 16,
+						flexDirection: "row",
+						alignItems: "center",
+						gap: 12,
+					}}>
+					<Box
+						style={{
+							width: 44,
+							height: 44,
+							borderRadius: 22,
+							backgroundColor: warning,
+							justifyContent: "center",
+							alignItems: "center",
+						}}>
+						<ExternalLink size={20} color='#fff' />
+					</Box>
+					<VStack style={{ flex: 1 }} space='xs'>
+						<Text style={{ fontWeight: "800", fontSize: 15, color: warning }}>
+							Acheter des crédits sur wesafe.fr
+						</Text>
+						<Text size='sm' style={{ color: isDark ? Colors.dark.muted : Colors.light.muted }}>
+							Les achats se font sur notre site web. Venez la chercher.
+						</Text>
+					</VStack>
+				</TouchableOpacity>
 
 				{/* Pack Card */}
 				<Card
@@ -216,52 +236,28 @@ const BuyCreditsScreen = () => {
 
 						<VStack space='sm'>
 							<HStack space='sm' style={{ alignItems: "center" }}>
-								<Icon
-									as={Check}
-									size='sm'
-									style={{ color: success }}
-								/>
+								<Icon as={Check} size='sm' style={{ color: success }} />
 								<Text size='md' style={{ color: muted }}>
 									10 publications Last Minute
 								</Text>
 							</HStack>
 							<HStack space='sm' style={{ alignItems: "center" }}>
-								<Icon
-									as={Check}
-									size='sm'
-									style={{ color: success }}
-								/>
+								<Icon as={Check} size='sm' style={{ color: success }} />
 								<Text size='md' style={{ color: muted }}>
 									3€ par annonce au lieu de 5€
 								</Text>
 							</HStack>
 							<HStack space='sm' style={{ alignItems: "center" }}>
-								<Icon
-									as={Check}
-									size='sm'
-									style={{ color: success }}
-								/>
+								<Icon as={Check} size='sm' style={{ color: success }} />
 								<Text size='md' style={{ color: muted }}>
 									Économisez 20€ sur ce pack
 								</Text>
 							</HStack>
 						</VStack>
 
-						<Box
-							style={{
-								borderTopWidth: 1,
-								borderTopColor: border,
-								paddingTop: 16,
-							}}>
-							<HStack
-								space='sm'
-								style={{
-									alignItems: "center",
-									justifyContent: "space-between",
-								}}>
-								<Text
-									size='lg'
-									style={{ color: muted, fontWeight: "500" }}>
+						<Box style={{ borderTopWidth: 1, borderTopColor: border, paddingTop: 16 }}>
+							<HStack space='sm' style={{ alignItems: "center", justifyContent: "space-between" }}>
+								<Text size='lg' style={{ color: muted, fontWeight: "500" }}>
 									Prix total
 								</Text>
 								<Heading size='2xl' style={{ color: warning }}>
@@ -270,25 +266,23 @@ const BuyCreditsScreen = () => {
 							</HStack>
 						</Box>
 
-						<Button
-							size='lg'
-							action='primary'
-							onPress={handleBuyCredits}
-							isDisabled={loading || !companyId}
+						<TouchableOpacity
+							onPress={openWebsite}
+							activeOpacity={0.8}
 							style={{
 								backgroundColor: warning,
 								borderRadius: 8,
+								paddingVertical: 14,
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "center",
+								gap: 8,
 							}}>
-							{loading && <ButtonSpinner color='#ffffff' />}
-							<ButtonText style={{ color: "#ffffff" }}>
-								{loading
-									? "Traitement..."
-									: "Acheter maintenant"}
-							</ButtonText>
-							{!loading && (
-								<Icon as={CreditCard} color='#ffffff' />
-							)}
-						</Button>
+							<ExternalLink size={18} color='#fff' />
+							<Text style={{ fontWeight: "700", fontSize: 15, color: "#fff" }}>
+								Acheter sur le site
+							</Text>
+						</TouchableOpacity>
 					</VStack>
 				</Card>
 
