@@ -77,8 +77,9 @@ import Colors from "@/constants/Colors";
 
 import LogoUploader from "@/components/LogoUploader";
 import { OPEN_SUPPORT_CHAT, SIGN_OUT } from "@/utils/activityEvents";
-import SubscriptionPaymentSheet from "../components/SubscriptionPaymentSheet";
 import MessageThread from "@/components/MessageThread";
+import { useToast } from "@/components/ui/toast";
+import CustomToast from "@/components/CustomToast";
 import { width } from "dom-helpers";
 
 const { SUPABASE_URL, SUPABASE_API_KEY, SUPERADMIN_ID } =
@@ -106,6 +107,7 @@ const DashboardScreen = () => {
 	const { refreshNotifications } = useNotifications();
 
 	const router = useRouter();
+	const toast = useToast();
 	const { openSupport } = useLocalSearchParams();
 
 	const [loading, setLoading] = useState(true);
@@ -893,9 +895,25 @@ const DashboardScreen = () => {
 
 									{/* Subscription Status */}
 									<TouchableOpacity
-										onPress={() =>
-											router.push("/subscription")
-										}
+										onPress={() => {
+											if (company?.company_status === "active") {
+												router.push("/subscription");
+											} else {
+												toast.show({
+													placement: "top",
+													duration: 4000,
+													render: ({ id }) => (
+														<CustomToast
+															id={id}
+															icon={ShieldCheck}
+															color={isDark ? Colors.dark.muted : Colors.light.muted}
+															title='Compte non activé'
+															description='Votre entreprise doit être active pour accéder aux abonnements.'
+														/>
+													),
+												});
+											}
+										}}
 										activeOpacity={0.7}>
 										<HStack
 											style={{
@@ -944,24 +962,44 @@ const DashboardScreen = () => {
 													</BadgeText>
 												</Badge>
 											</HStack>
-											<Icon
-												as={ChevronRight}
-												size='sm'
-												style={{
-													color: isDark
-														? Colors.dark.muted
-														: Colors.light.muted,
-												}}
-											/>
+											{company?.company_status === "active" ? (
+												<Icon
+													as={ChevronRight}
+													size='sm'
+													style={{ color: isDark ? Colors.dark.muted : Colors.light.muted }}
+												/>
+											) : (
+												<Icon
+													as={ShieldCheck}
+													size='sm'
+													style={{ color: isDark ? Colors.dark.muted : Colors.light.muted }}
+												/>
+											)}
 										</HStack>
 									</TouchableOpacity>
 
 									<Divider />
-									{/* Subscription Status */}
+									{/* Credits */}
 									<TouchableOpacity
-										onPress={() =>
-											router.push("/buycredits")
-										}
+										onPress={() => {
+											if (company?.company_status === "active") {
+												router.push("/buycredits");
+											} else {
+												toast.show({
+													placement: "top",
+													duration: 4000,
+													render: ({ id }) => (
+														<CustomToast
+															id={id}
+															icon={ShieldCheck}
+															color={isDark ? Colors.dark.muted : Colors.light.muted}
+															title='Compte non activé'
+															description='Votre entreprise doit être active pour accéder aux crédits.'
+														/>
+													),
+												});
+											}
+										}}
 										activeOpacity={0.7}>
 										<HStack
 											style={{
