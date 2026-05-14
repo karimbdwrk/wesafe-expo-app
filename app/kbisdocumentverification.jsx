@@ -17,6 +17,18 @@ import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Input, InputField } from "@/components/ui/input";
+import {
+	Select,
+	SelectTrigger,
+	SelectInput,
+	SelectIcon,
+	SelectPortal,
+	SelectBackdrop,
+	SelectContent,
+	SelectDragIndicatorWrapper,
+	SelectDragIndicator,
+	SelectItem,
+} from "@/components/ui/select";
 import { Image } from "@/components/ui/image";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
@@ -30,11 +42,22 @@ import {
 	CheckCircle,
 	Clock,
 	AlertCircle,
+	ChevronDown,
 	FileText,
 	Upload,
 	X,
 	Lightbulb,
 } from "lucide-react-native";
+
+const LEGAL_FORMS = [
+	{ label: "SASU — SAS Unipersonnelle", value: "SASU" },
+	{ label: "SAS — Société par Actions Simplifiée", value: "SAS" },
+	{ label: "EURL — SARL Unipersonnelle", value: "EURL" },
+	{ label: "SARL — Société à Responsabilité Limitée", value: "SARL" },
+	{ label: "ME — Micro-entreprise", value: "ME" },
+	{ label: "EI — Entreprise Individuelle", value: "EI" },
+	{ label: "SA — Société Anonyme", value: "SA" },
+];
 
 import { useDataContext } from "@/context/DataContext";
 import { SUBMIT_KBIS_DOCUMENT } from "@/utils/activityEvents";
@@ -73,6 +96,8 @@ export default function KBISDocumentVerification() {
 
 	const [siret, setSiret] = useState("");
 	const [savedSiret, setSavedSiret] = useState("");
+	const [legalForm, setLegalForm] = useState("");
+	const [savedLegalForm, setSavedLegalForm] = useState("");
 
 	const formatSiret = (raw) => {
 		if (raw.length <= 3) return raw;
@@ -127,13 +152,17 @@ export default function KBISDocumentVerification() {
 				const companyData = await getById(
 					"companies",
 					user.id,
-					"kbis_verification_status,kbis_url,siret",
+					"kbis_verification_status,kbis_url,siret,legal_form",
 				);
 
 				if (companyData) {
 					setKbisUploadedStatus(companyData.kbis_verification_status);
 					setKbisUploadedUrl(companyData.kbis_url);
 					if (companyData.siret) setSavedSiret(companyData.siret);
+					if (companyData.legal_form) {
+						setSavedLegalForm(companyData.legal_form);
+						setLegalForm(companyData.legal_form);
+					}
 
 					console.log("Loaded company data:", {
 						kbis_verification_status:
@@ -226,6 +255,7 @@ export default function KBISDocumentVerification() {
 				kbis_url: kbisUrl,
 				kbis_verification_status: "pending",
 				...(siret.trim().length === 14 && { siret: siret.trim() }),
+				...(legalForm && { legal_form: legalForm }),
 			};
 			await update("companies", userCompany.id, updatePayload);
 
@@ -237,6 +267,7 @@ export default function KBISDocumentVerification() {
 			// Réinitialiser le formulaire
 			setKbisImage(null);
 			if (siret.trim().length === 14) setSavedSiret(siret.trim());
+			if (legalForm) setSavedLegalForm(legalForm);
 			setSiret("");
 
 			toast.show({
@@ -375,6 +406,15 @@ export default function KBISDocumentVerification() {
 												}}>
 												SIRET :{" "}
 												{formatSiret(savedSiret)}
+											</Text>
+										)}
+										{savedLegalForm.length > 0 && (
+											<Text
+												size='sm'
+												style={{
+													color: muted,
+												}}>
+												{savedLegalForm}
 											</Text>
 										)}
 									</VStack>
@@ -547,6 +587,55 @@ export default function KBISDocumentVerification() {
 										}}>
 										{siret.length}/14 chiffres
 									</Text>
+								</VStack>
+
+								{/* Forme juridique */}
+								<VStack space='xs'>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "600",
+											color: textPrimary,
+										}}>
+										Forme juridique
+									</Text>
+									<Select
+										selectedValue={legalForm}
+										onValueChange={setLegalForm}>
+										<SelectTrigger
+											variant='outline'
+											size='md'
+											style={{
+												backgroundColor: bg,
+												borderColor: border,
+												borderRadius: 8,
+											}}>
+											<SelectInput
+												placeholder='Sélectionnez une forme juridique'
+												style={{
+													color: legalForm
+														? textPrimary
+														: muted,
+												}}
+											/>
+											<SelectIcon as={ChevronDown} />
+										</SelectTrigger>
+										<SelectPortal>
+											<SelectBackdrop />
+											<SelectContent>
+												<SelectDragIndicatorWrapper>
+													<SelectDragIndicator />
+												</SelectDragIndicatorWrapper>
+												{LEGAL_FORMS.map((f) => (
+													<SelectItem
+														key={f.value}
+														label={f.label}
+														value={f.value}
+													/>
+												))}
+											</SelectContent>
+										</SelectPortal>
+									</Select>
 								</VStack>
 
 								{/* Document sélectionné */}
