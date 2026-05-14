@@ -42,6 +42,7 @@ import {
 	ChevronRight,
 	ChevronDown,
 	FileText,
+	MapPin,
 	Upload,
 	X,
 } from "lucide-react-native";
@@ -51,6 +52,7 @@ import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import LogoTitle from "@/assets/icons/Logo";
 import Colors from "@/constants/Colors";
+import { regions } from "@/constants/regions";
 import { createSupabaseClient } from "@/lib/supabase";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
@@ -85,6 +87,50 @@ const CreateCompany = () => {
 	const [siret, setSiret] = useState("");
 	const [legalForm, setLegalForm] = useState("");
 
+	// Step 3
+	const [addrQuery, setAddrQuery] = useState("");
+	const [addrResults, setAddrResults] = useState([]);
+	const [addrSelected, setAddrSelected] = useState(null);
+	const [addrLoading, setAddrLoading] = useState(false);
+
+	const searchAddress = async (query) => {
+		if (!query || query.length < 3) {
+			setAddrResults([]);
+			return;
+		}
+		setAddrLoading(true);
+		try {
+			const res = await fetch(
+				`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=6`,
+			);
+			const data = await res.json();
+			setAddrResults(
+				(data.features || []).map((item) => {
+					const ctx = (item.properties.context || "").split(", ");
+					const regionName = ctx[2] || "";
+					return {
+						label: item.properties.label,
+						street: item.properties.name,
+						city: item.properties.city,
+						postcode: item.properties.postcode,
+						// latitude: item.geometry?.coordinates?.[1] ?? null,
+						// longitude: item.geometry?.coordinates?.[0] ?? null,
+						// department_code: ctx[0] || "",
+						// department: ctx[1] || "",
+						// region: regionName,
+						// region_code:
+						// 	regions.find((r) => r.nom === regionName)?.code ||
+						// 	"",
+					};
+				}),
+			);
+		} catch {
+			setAddrResults([]);
+		} finally {
+			setAddrLoading(false);
+		}
+	};
+
 	const formatSiret = (raw) => {
 		if (raw.length <= 3) return raw;
 		if (raw.length <= 6) return `${raw.slice(0, 3)} ${raw.slice(3)}`;
@@ -95,7 +141,7 @@ const CreateCompany = () => {
 	const [kbisImage, setKbisImage] = useState(null);
 
 	// Progress bar animation
-	const PROGRESS_VALUES = [0, 100];
+	const PROGRESS_VALUES = [0, 50, 100];
 	const progressAnim = useRef(new Animated.Value(0)).current;
 
 	useEffect(() => {
@@ -106,12 +152,15 @@ const CreateCompany = () => {
 		}).start();
 	}, [step]);
 
-	const STEP_LABELS = ["Informations", "Documents"];
+	const STEP_LABELS = ["Informations", "Documents", "Siège social"];
 
 	// ─── Validation ───────────────────────────────────────────────
 	const canAdvance =
 		step === 1
-			? name.trim().length > 0
+			? name.trim().length > 0 &&
+				description.trim().length > 0 &&
+				legalLastname.trim().length > 0 &&
+				legalFirstname.trim().length > 0
 			: step === 2
 				? siret.trim().length === 14 && kbisImage !== null
 				: true;
@@ -169,14 +218,21 @@ const CreateCompany = () => {
 				email: user.email,
 				last_minute_credits: 0,
 				isConfirmed: false,
-				...(description.trim() && { description: description.trim() }),
-				...(legalLastname.trim() && {
-					legal_representative_lastname: legalLastname.trim(),
+				description: description.trim(),
+				legal_representative_lastname: legalLastname.trim(),
+				legal_representative_firstname: legalFirstname.trim(),
+				...(legalForm && { legal_form: legalForm }),
+				...(addrSelected && {
+					street: addrSelected.street,
+					city: addrSelected.city,
+					postcode: addrSelected.postcode,
+					department: addrSelected.department,
+					department_code: addrSelected.department_code,
+					region: addrSelected.region,
+					region_code: addrSelected.region_code,
+					latitude: addrSelected.latitude,
+					longitude: addrSelected.longitude,
 				}),
-				...(legalFirstname.trim() && {
-					legal_representative_firstname: legalFirstname.trim(),
-				}),
-			...(legalForm && { legal_form: legalForm }),
 			};
 
 			trackActivity("company_created");
@@ -328,7 +384,7 @@ const CreateCompany = () => {
 										: Colors.light.muted,
 									marginTop: 6,
 								}}>
-								Étape {step} / 2 — {STEP_LABELS[step - 1]}
+								Étape {step} / 3 — {STEP_LABELS[step - 1]}
 							</Text>
 						</VStack>
 
@@ -384,7 +440,7 @@ const CreateCompany = () => {
 
 									<VStack space='xs'>
 										<Text size='sm' style={labelStyle}>
-											Nom du représentant légal
+											Nom du représentant légal *
 										</Text>
 										<Input style={inputStyle}>
 											<InputField
@@ -398,7 +454,7 @@ const CreateCompany = () => {
 
 									<VStack space='xs'>
 										<Text size='sm' style={labelStyle}>
-											Prénom du représentant légal
+											Prénom du représentant légal *
 										</Text>
 										<Input style={inputStyle}>
 											<InputField
@@ -412,7 +468,7 @@ const CreateCompany = () => {
 
 									<VStack space='xs'>
 										<Text size='sm' style={labelStyle}>
-											Description
+											Description *
 										</Text>
 										<TextInput
 											placeholder='Décrivez votre entreprise…'
@@ -683,18 +739,168 @@ const CreateCompany = () => {
 							</Card>
 						)}
 
+						{/* ── STEP 3 : Siège social ── */}
+						{step === 3 && (
+							<Card
+								style={{
+									paddingHorizontal: 15,
+									paddingVertical: 20,
+									backgroundColor: cardBg,
+									borderRadius: 16,
+									borderWidth: 1,
+									borderColor: cardBorder,
+								}}>
+								<VStack space='lg'>
+									<VStack space='xs'>
+										<Text size='sm' style={labelStyle}>
+											Adresse du siège social
+										</Text>
+										<Input style={inputStyle}>
+											<InputField
+												placeholder='8 rue de la Paix, Paris...'
+												value={addrQuery}
+												onChangeText={(v) => {
+													setAddrQuery(v);
+													setAddrSelected(null);
+													searchAddress(v);
+												}}
+												style={inputTextStyle}
+											/>
+										</Input>
+									</VStack>
+
+									{addrLoading && (
+										<ActivityIndicator
+											size='small'
+											color={tint}
+										/>
+									)}
+
+									{addrResults.length > 0 &&
+										!addrSelected && (
+											<VStack space='xs'>
+												{addrResults.map((item, i) => (
+													<Button
+														key={i}
+														variant='outline'
+														style={{
+															borderColor:
+																cardBorder,
+															borderRadius: 10,
+															justifyContent:
+																"flex-start",
+															height: "auto",
+															paddingVertical: 10,
+														}}
+														onPress={() => {
+															setAddrSelected(
+																item,
+															);
+															setAddrQuery(
+																item.label,
+															);
+															setAddrResults([]);
+														}}>
+														<HStack
+															space='sm'
+															style={{
+																alignItems:
+																	"center",
+																flex: 1,
+															}}>
+															<MapPin
+																size={14}
+																color={muted}
+															/>
+															<VStack
+																style={{
+																	flex: 1,
+																}}>
+																<ButtonText
+																	style={{
+																		color: textColor,
+																		fontWeight:
+																			"600",
+																		fontSize: 13,
+																		textAlign:
+																			"left",
+																	}}>
+																	{
+																		item.street
+																	}
+																</ButtonText>
+																<ButtonText
+																	style={{
+																		color: muted,
+																		fontSize: 12,
+																		textAlign:
+																			"left",
+																	}}>
+																	{
+																		item.postcode
+																	}{" "}
+																	{item.city}
+																</ButtonText>
+															</VStack>
+														</HStack>
+													</Button>
+												))}
+											</VStack>
+										)}
+
+									{addrSelected && (
+										<HStack
+											space='sm'
+											style={{
+												alignItems: "center",
+												padding: 12,
+												borderRadius: 10,
+												borderWidth: 2,
+												borderColor: tint,
+												backgroundColor: isDark
+													? Colors.dark.tint20
+													: Colors.light.tint20,
+											}}>
+											<MapPin size={16} color={tint} />
+											<VStack style={{ flex: 1 }}>
+												<Text
+													style={{
+														fontWeight: "700",
+														color: textColor,
+														fontSize: 14,
+													}}>
+													{addrSelected.label}
+												</Text>
+												<Text
+													size='xs'
+													style={{ color: muted }}>
+													{addrSelected.department} —{" "}
+													{addrSelected.region}
+												</Text>
+											</VStack>
+										</HStack>
+									)}
+
+									<Text size='xs' style={{ color: muted }}>
+										Ce champ est optionnel, vous pourrez le
+										renseigner plus tard.
+									</Text>
+								</VStack>
+							</Card>
+						)}
+
 						{/* Navigation */}
 						<HStack
-							// space='md'
+							space='md'
 							style={{
 								marginTop: 24,
 								justifyContent: "space-between",
 							}}>
-							{step > 1 ? (
+							{step > 1 && (
 								<Button
 									variant='outline'
 									style={{
-										// flex: 1,
+										flex: 1,
 										borderRadius: 12,
 										height: 52,
 										borderColor: isDark
@@ -702,37 +908,40 @@ const CreateCompany = () => {
 											: Colors.light.border,
 									}}
 									onPress={() => setStep(step - 1)}>
-									<ButtonIcon
-										as={ChevronLeft}
-										size='sm'
-										style={{
-											color: isDark
-												? Colors.dark.textSecondary
-												: Colors.light.textSecondary,
-										}}
-									/>
-									<ButtonText
-										style={{
-											color: isDark
-												? Colors.dark.textSecondary
-												: Colors.light.textSecondary,
-										}}>
-										Précédent
-									</ButtonText>
+									<HStack
+										space='xs'
+										style={{ alignItems: "center" }}>
+										<Icon
+											as={ChevronLeft}
+											size='sm'
+											style={{
+												color: isDark
+													? Colors.dark.textSecondary
+													: Colors.light
+															.textSecondary,
+											}}
+										/>
+										<ButtonText
+											style={{
+												color: isDark
+													? Colors.dark.textSecondary
+													: Colors.light
+															.textSecondary,
+											}}>
+											Précédent
+										</ButtonText>
+									</HStack>
 								</Button>
-							) : (
-								<Box style={{ flex: 1 }} />
 							)}
 
-							{step < 2 ? (
+							{step < 3 ? (
 								<Button
 									style={{
-										width: "100%",
-										// flex: 1,
+										flex: 1,
 										backgroundColor: canAdvance
 											? tint
 											: isDark
-												? Colors.dark.elevated
+												? Colors.dark.cardBackground
 												: Colors.light.border,
 										borderRadius: 12,
 										height: 52,
@@ -741,29 +950,29 @@ const CreateCompany = () => {
 										if (canAdvance) setStep(step + 1);
 									}}
 									disabled={!canAdvance}>
-									<ButtonText
-										style={{
-											color: canAdvance
-												? "#ffffff"
-												: isDark
-													? Colors.dark.muted
-													: Colors.light.muted,
-											fontWeight: "700",
-											fontSize: 16,
-										}}>
-										Suivant
-									</ButtonText>
-									<ButtonIcon
-										as={ChevronRight}
-										size='sm'
-										style={{
-											color: canAdvance
-												? "#ffffff"
-												: isDark
-													? Colors.dark.muted
-													: Colors.light.muted,
-										}}
-									/>
+									<HStack
+										space='xs'
+										style={{ alignItems: "center" }}>
+										<ButtonText
+											style={{
+												color: canAdvance
+													? "#ffffff"
+													: muted,
+												fontWeight: "700",
+												fontSize: 16,
+											}}>
+											Suivant
+										</ButtonText>
+										<Icon
+											as={ChevronRight}
+											size='sm'
+											style={{
+												color: canAdvance
+													? "#ffffff"
+													: muted,
+											}}
+										/>
+									</HStack>
 								</Button>
 							) : submitting ? (
 								<ActivityIndicator
@@ -774,29 +983,17 @@ const CreateCompany = () => {
 							) : (
 								<Button
 									style={{
-										// flex: 1,
-										backgroundColor: canAdvance
-											? tint
-											: isDark
-												? Colors.dark.elevated
-												: Colors.light.border,
+										flex: 1,
+										backgroundColor: tint,
 										borderRadius: 12,
 										height: 52,
-										paddingHorizontal: 50,
 									}}
-									onPress={() => {
-										if (canAdvance) handleCreateCompany();
-									}}
-									disabled={!canAdvance}>
+									onPress={handleCreateCompany}>
 									<ButtonText
 										style={{
-											color: canAdvance
-												? "#ffffff"
-												: isDark
-													? Colors.dark.muted
-													: Colors.light.muted,
+											color: "#ffffff",
 											fontWeight: "700",
-											fontSize: 16,
+											fontSize: 14,
 										}}>
 										Créer mon entreprise
 									</ButtonText>
