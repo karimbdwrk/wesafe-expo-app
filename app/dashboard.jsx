@@ -690,7 +690,7 @@ const DashboardScreen = () => {
 											<HStack
 												space='sm'
 												style={{
-													alignItems: "center",
+													alignItems: "flex-start",
 													justifyContent:
 														"space-between",
 												}}>
@@ -761,6 +761,7 @@ const DashboardScreen = () => {
 												{company?.company_status ===
 													"pending" && (
 													<Badge
+														className='mt-1'
 														size='sm'
 														variant='solid'
 														action='warning'>
@@ -776,6 +777,7 @@ const DashboardScreen = () => {
 												{company?.company_status ===
 													"verified" && (
 													<Badge
+														className='mt-1'
 														size='sm'
 														variant='solid'
 														action='success'>
@@ -791,6 +793,7 @@ const DashboardScreen = () => {
 												{company?.company_status ===
 													"rejected" && (
 													<Badge
+														className='mt-1'
 														size='sm'
 														variant='solid'
 														action='error'>
@@ -806,6 +809,7 @@ const DashboardScreen = () => {
 												{company?.company_status ===
 													"suspended" && (
 													<Badge
+														className='mt-1'
 														size='sm'
 														variant='solid'
 														action='muted'>
