@@ -799,7 +799,7 @@ const DashboardScreen = () => {
 													</Badge>
 												)}
 												{company?.company_status ===
-													"verified" && (
+													"active" && (
 													<Badge
 														className='mt-1'
 														size='sm'
@@ -810,7 +810,7 @@ const DashboardScreen = () => {
 															className='mr-1'
 														/>
 														<BadgeText>
-															Vérifié
+															Vérifiée
 														</BadgeText>
 													</Badge>
 												)}
