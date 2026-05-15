@@ -276,6 +276,28 @@ const DashboardScreen = () => {
 						}
 					},
 				)
+				.on(
+					"postgres_changes",
+					{
+						event: "UPDATE",
+						schema: "public",
+						table: "companies",
+						filter: `id=eq.${user?.id}`,
+					},
+					(payload) => {
+						if (payload.new?.last_minute_credits !== undefined) {
+							setCompany((prev) =>
+								prev
+									? {
+											...prev,
+											last_minute_credits:
+												payload.new.last_minute_credits,
+										}
+									: prev,
+							);
+						}
+					},
+				)
 				.subscribe();
 
 			return () => {
@@ -896,7 +918,10 @@ const DashboardScreen = () => {
 									{/* Subscription Status */}
 									<TouchableOpacity
 										onPress={() => {
-											if (company?.company_status === "active") {
+											if (
+												company?.company_status ===
+												"active"
+											) {
 												router.push("/subscription");
 											} else {
 												toast.show({
@@ -906,7 +931,15 @@ const DashboardScreen = () => {
 														<CustomToast
 															id={id}
 															icon={ShieldCheck}
-															color={isDark ? Colors.dark.muted : Colors.light.muted}
+															color={
+																isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted
+															}
 															title='Compte non activé'
 															description='Votre entreprise doit être active pour accéder aux abonnements.'
 														/>
@@ -962,17 +995,28 @@ const DashboardScreen = () => {
 													</BadgeText>
 												</Badge>
 											</HStack>
-											{company?.company_status === "active" ? (
+											{company?.company_status ===
+											"active" ? (
 												<Icon
 													as={ChevronRight}
 													size='sm'
-													style={{ color: isDark ? Colors.dark.muted : Colors.light.muted }}
+													style={{
+														color: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
+													}}
 												/>
 											) : (
 												<Icon
 													as={ShieldCheck}
 													size='sm'
-													style={{ color: isDark ? Colors.dark.muted : Colors.light.muted }}
+													style={{
+														color: isDark
+															? Colors.dark.muted
+															: Colors.light
+																	.muted,
+													}}
 												/>
 											)}
 										</HStack>
@@ -982,7 +1026,10 @@ const DashboardScreen = () => {
 									{/* Credits */}
 									<TouchableOpacity
 										onPress={() => {
-											if (company?.company_status === "active") {
+											if (
+												company?.company_status ===
+												"active"
+											) {
 												router.push("/buycredits");
 											} else {
 												toast.show({
@@ -992,7 +1039,15 @@ const DashboardScreen = () => {
 														<CustomToast
 															id={id}
 															icon={ShieldCheck}
-															color={isDark ? Colors.dark.muted : Colors.light.muted}
+															color={
+																isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted
+															}
 															title='Compte non activé'
 															description='Votre entreprise doit être active pour accéder aux crédits.'
 														/>
