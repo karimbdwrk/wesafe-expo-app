@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useFocusEffect } from "expo-router";
-import { ScrollView, TouchableOpacity, ActivityIndicator, Linking } from "react-native";
+import {
+	ScrollView,
+	TouchableOpacity,
+	ActivityIndicator,
+	Linking,
+} from "react-native";
 import axios from "axios";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
@@ -38,8 +43,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
+import { createSupabaseClient } from "@/lib/supabase";
 
-const { WEBSITE_URL = "https://wesafe-dashboard-gxat3vt1m-infowesafeapp-8042s-projects.vercel.app" } = Constants.expoConfig.extra;
+const {
+	WEBSITE_URL = "https://wesafe-dashboard-gxat3vt1m-infowesafeapp-8042s-projects.vercel.app",
+} = Constants.expoConfig.extra;
 
 const PLANS = [
 	{
@@ -245,7 +253,29 @@ const SubscriptionScreen = () => {
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
-		}, []),
+
+			if (!user?.id || !accessToken) return;
+			const supabase = createSupabaseClient(accessToken);
+			const channel = supabase
+				.channel(`subscription-company-${user.id}`)
+				.on(
+					"postgres_changes",
+					{
+						event: "UPDATE",
+						schema: "public",
+						table: "companies",
+						filter: `id=eq.${user.id}`,
+					},
+					() => {
+						refreshUser();
+					},
+				)
+				.subscribe();
+
+			return () => {
+				supabase.removeChannel(channel);
+			};
+		}, [user?.id, accessToken]),
 	);
 
 	useEffect(() => {
@@ -442,7 +472,8 @@ const SubscriptionScreen = () => {
 						<Text
 							size='sm'
 							style={{ color: isDark ? "#93c5fd" : "#1d4ed8" }}>
-							Les paiements se font sur notre site web. Venez la chercher.
+							Les paiements se font sur notre site web. Venez la
+							chercher.
 						</Text>
 					</VStack>
 				</TouchableOpacity>
@@ -778,7 +809,11 @@ const SubscriptionScreen = () => {
 									{/* CTA */}
 									{!isCurrent && plan.key !== "standard" && (
 										<TouchableOpacity
-											onPress={() => openWebsite("/dashboard/billing")}
+											onPress={() =>
+												openWebsite(
+													"/dashboard/billing",
+												)
+											}
 											activeOpacity={0.8}
 											style={{
 												marginTop: 12,
@@ -791,14 +826,19 @@ const SubscriptionScreen = () => {
 												justifyContent: "center",
 												gap: 8,
 											}}>
-											<ExternalLink size={16} color='#fff' />
+											<ExternalLink
+												size={16}
+												color='#fff'
+											/>
 											<Text
 												style={{
 													fontWeight: "700",
 													fontSize: 14,
 													color: "#fff",
 												}}>
-												{isUpgrade ? "Passer à " + plan.label : "Choisir " + plan.label}
+												{isUpgrade
+													? "Passer à " + plan.label
+													: "Choisir " + plan.label}
 											</Text>
 										</TouchableOpacity>
 									)}
