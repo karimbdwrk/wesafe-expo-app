@@ -916,113 +916,84 @@ const DashboardScreen = () => {
 									<Divider />
 
 									{/* Subscription Status */}
-									<TouchableOpacity
-										onPress={() => {
-											if (
-												company?.company_status ===
-												"active"
-											) {
-												router.push("/subscription");
-											} else {
-												toast.show({
-													placement: "top",
-													duration: 4000,
-													render: ({ id }) => (
-														<CustomToast
-															id={id}
-															icon={ShieldCheck}
-															color={
-																isDark
+									{company?.company_status === "active" && (
+										<>
+											<TouchableOpacity
+												onPress={() =>
+													router.push("/subscription")
+												}
+												activeOpacity={0.7}>
+												<HStack
+													style={{
+														alignItems: "center",
+														justifyContent:
+															"space-between",
+													}}>
+													<HStack
+														space='sm'
+														style={{
+															alignItems:
+																"center",
+															flex: 1,
+															justifyContent:
+																"space-between",
+															paddingRight: 10,
+														}}>
+														<Text
+															size='sm'
+															style={{
+																fontWeight:
+																	"600",
+																color: isDark
 																	? Colors
 																			.dark
-																			.muted
+																			.text
 																	: Colors
 																			.light
-																			.muted
-															}
-															title='Compte non activé'
-															description='Votre entreprise doit être active pour accéder aux abonnements.'
-														/>
-													),
-												});
-											}
-										}}
-										activeOpacity={0.7}>
-										<HStack
-											style={{
-												alignItems: "center",
-												justifyContent: "space-between",
-											}}>
-											<HStack
-												space='sm'
-												style={{
-													alignItems: "center",
-													flex: 1,
-													justifyContent:
-														"space-between",
-													paddingRight: 10,
-												}}>
-												<Text
-													size='sm'
-													style={{
-														fontWeight: "600",
-														color: isDark
-															? Colors.dark.text
-															: Colors.light.text,
-													}}>
-													Statut d'abonnement
-												</Text>
-												<Badge
-													size='md'
-													variant='solid'
-													action={
-														userCompany?.subscription_status ===
-														"premium"
-															? "success"
-															: userCompany?.subscription_status ===
-																  "standard_plus"
-																? "info"
-																: "muted"
-													}>
-													<BadgeText>
-														{userCompany?.subscription_status ===
-														"premium"
-															? "Premium"
-															: userCompany?.subscription_status ===
-																  "standard_plus"
-																? "Standard+"
-																: "Standard"}
-													</BadgeText>
-												</Badge>
-											</HStack>
-											{company?.company_status ===
-											"active" ? (
-												<Icon
-													as={ChevronRight}
-													size='sm'
-													style={{
-														color: isDark
-															? Colors.dark.muted
-															: Colors.light
-																	.muted,
-													}}
-												/>
-											) : (
-												<Icon
-													as={ShieldCheck}
-													size='sm'
-													style={{
-														color: isDark
-															? Colors.dark.muted
-															: Colors.light
-																	.muted,
-													}}
-												/>
-											)}
-										</HStack>
-									</TouchableOpacity>
+																			.text,
+															}}>
+															Statut d'abonnement
+														</Text>
+														<Badge
+															size='md'
+															variant='solid'
+															action={
+																userCompany?.subscription_status ===
+																"premium"
+																	? "success"
+																	: userCompany?.subscription_status ===
+																		  "standard_plus"
+																		? "info"
+																		: "muted"
+															}>
+															<BadgeText>
+																{userCompany?.subscription_status ===
+																"premium"
+																	? "Premium"
+																	: userCompany?.subscription_status ===
+																		  "standard_plus"
+																		? "Standard+"
+																		: "Standard"}
+															</BadgeText>
+														</Badge>
+													</HStack>
+													<Icon
+														as={ChevronRight}
+														size='sm'
+														style={{
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
+														}}
+													/>
+												</HStack>
+											</TouchableOpacity>
 
-									<Divider />
+											<Divider />
+										</>
+									)}
 									{/* Credits */}
 									<TouchableOpacity
 										onPress={() => {
