@@ -328,9 +328,7 @@ const SubscriptionScreen = () => {
 							borderRadius: 14,
 							borderWidth: 1,
 							padding: 16,
-							backgroundColor: isDark
-								? (activePlan?.bgDark ?? "#1f2937")
-								: (activePlan?.bgLight ?? "#f5f3ff"),
+							backgroundColor: cardBg,
 							borderColor: activePlan?.borderActive ?? "#3b82f6",
 						}}>
 						<HStack
@@ -443,7 +441,7 @@ const SubscriptionScreen = () => {
 						borderRadius: 14,
 						borderWidth: 1,
 						borderColor: "#3b82f6",
-						backgroundColor: isDark ? "#1e3a5f" : "#eff6ff",
+						// backgroundColor: isDark ? "#1e3a5f" : "#eff6ff",
 						padding: 16,
 						flexDirection: "row",
 						alignItems: "center",
@@ -467,7 +465,7 @@ const SubscriptionScreen = () => {
 								fontSize: 15,
 								color: "#3b82f6",
 							}}>
-							Abonnements sur wesafe.fr
+							Abonnements sur wesafeapp.fr
 						</Text>
 						<Text
 							size='sm'
@@ -576,11 +574,7 @@ const SubscriptionScreen = () => {
 								<Box
 									style={{
 										padding: 16,
-										backgroundColor: isCurrent
-											? isDark
-												? plan.bgDark
-												: plan.bgLight
-											: "transparent",
+										backgroundColor: "transparent",
 										borderBottomWidth: 1,
 										borderBottomColor: elevated,
 									}}>
@@ -597,16 +591,10 @@ const SubscriptionScreen = () => {
 													width: 36,
 													height: 36,
 													borderRadius: 10,
-													backgroundColor: isCurrent
-														? isDark
-															? plan.bgDark
-															: plan.bgLight
-														: elevated,
+													backgroundColor: elevated,
 													justifyContent: "center",
 													alignItems: "center",
-													borderWidth: isCurrent
-														? 0
-														: 1,
+													borderWidth: 1,
 													borderColor: border,
 												}}>
 												<plan.Icon
