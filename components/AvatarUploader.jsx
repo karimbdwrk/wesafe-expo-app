@@ -134,35 +134,36 @@ const AvatarUploader = ({ image, onUpload }) => {
 
 		try {
 			const squareUri = await cropToSquare(values.uri);
+			setLocalPreview(squareUri); // met à jour avec la version recadrée
 			const formData = new FormData();
 			const filename = squareUri.split("/").pop();
 			const type = "image/jpeg";
 			formData.append("files", { uri: squareUri, name: filename, type });
 
+			// Nom de fichier unique par upload → URL différente à chaque fois → pas de cache CDN
+			const storagePath = `${user.id}/avatar_${Date.now()}.jpg`;
+
 			await axios.post(
-				`${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${user.id}_avatar.jpg`,
-				// Nom fixe par user → écrase la précédente, pas d'accumulation de fichiers
+				`${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${storagePath}`,
 				formData,
 				{
 					headers: {
-						// Ne pas forcer Content-Type : axios doit ajouter la boundary automatiquement
 						Authorization: `Bearer ${accessToken}`,
 						apikey: SUPABASE_API_KEY,
 					},
 				},
 			);
 
-			const publicUrl = `${STORAGE_URL}/${user.id}_avatar.jpg`;
+			const publicUrl = `${STORAGE_URL}/${storagePath}`;
 			await update("profiles", user.id, { avatar_url: publicUrl });
 			setAvatarUrl(publicUrl);
-			setCacheKey(Date.now()); // force le rechargement de l'image même si même URL
-			setLocalPreview(null);
+			// localPreview reste = squareUri (affichage immédiat côté client)
 			await loadUserData(user.id, accessToken);
 			if (typeof onUpload === "function") onUpload();
 		} catch (error) {
 			console.error("Error upload response:", error.response?.data);
 			console.error("Error upload:", error);
-			setLocalPreview(null);
+			setLocalPreview(null); // en cas d'erreur, revenir à l'URL CDN
 		} finally {
 			setLoading(false);
 		}
@@ -199,6 +200,7 @@ const AvatarUploader = ({ image, onUpload }) => {
 									}}>
 									{localPreview || avatarUrl ? (
 										<Image
+											key={`avatar-${cacheKey}`}
 											source={{
 												uri: localPreview
 													? localPreview
