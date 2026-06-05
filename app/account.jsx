@@ -1529,7 +1529,12 @@ const AccountScreen = () => {
 										profile?.social_security_verification_status ===
 											"verified"
 											? "Validés"
-											: null
+											: profile?.id_verification_status ===
+														"pending" ||
+												  profile?.social_security_verification_status ===
+														"pending"
+												? "En attente"
+												: null
 									}
 									badgeColor={
 										profile?.id_verification_status ===
@@ -1537,7 +1542,12 @@ const AccountScreen = () => {
 										profile?.social_security_verification_status ===
 											"verified"
 											? "success"
-											: undefined
+											: profile?.id_verification_status ===
+														"pending" ||
+												  profile?.social_security_verification_status ===
+														"pending"
+												? "warning"
+												: undefined
 									}
 								/>
 								<ActionCard
