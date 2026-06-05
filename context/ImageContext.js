@@ -5,10 +5,18 @@ const ImageContext = createContext();
 export const ImageProvider = ({ children }) => {
 	const [image, setImage] = useState(null);
 	const [signature, setSignature] = useState(null);
+	const [proDocImage, setProDocImage] = useState(null);
 
 	return (
 		<ImageContext.Provider
-			value={{ image, setImage, signature, setSignature }}>
+			value={{
+				image,
+				setImage,
+				signature,
+				setSignature,
+				proDocImage,
+				setProDocImage,
+			}}>
 			{children}
 		</ImageContext.Provider>
 	);
