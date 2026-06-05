@@ -76,6 +76,8 @@ import {
 	LogOut,
 	BookmarkCheck,
 	MessagesSquare,
+	Mail,
+	Phone,
 } from "lucide-react-native";
 
 import { supabase } from "@/lib/supabase";
@@ -911,33 +913,60 @@ const AccountScreen = () => {
 												)}
 											</HStack>
 											{profile?.email && (
-												<Text
-													size='sm'
+												<HStack
+													space='sm'
 													style={{
-														color: textSecondary,
+														alignItems: "center",
 													}}>
-													{profile.email}
-												</Text>
+													<Icon
+														as={Mail}
+														size='sm'
+														style={{
+															color: textSecondary,
+														}}
+													/>
+													<Text
+														size='sm'
+														style={{
+															color: textSecondary,
+														}}>
+														{profile.email}
+													</Text>
+												</HStack>
 											)}
 											{profile?.phone && (
-												<Text
-													size='sm'
+												<HStack
+													space='sm'
 													style={{
-														color: textSecondary,
+														alignItems: "center",
 													}}>
-													{profile.phone.startsWith(
-														"+33",
-													) &&
-													profile.phone.length === 12
-														? "+33 " +
-															profile.phone
-																.slice(3)
-																.replace(
-																	/(\d)(\d{2})(\d{2})(\d{2})(\d{2})/,
-																	"$1 $2 $3 $4 $5",
-																)
-														: profile.phone}
-												</Text>
+													<Icon
+														as={Phone}
+														size='sm'
+														style={{
+															color: textSecondary,
+														}}
+													/>
+													<Text
+														size='sm'
+														style={{
+															color: textSecondary,
+														}}>
+														{profile.phone.startsWith(
+															"+33",
+														) &&
+														profile.phone.length ===
+															12
+															? "+33 " +
+																profile.phone
+																	.slice(3)
+																	.replace(
+																		/(\d)(\d{2})(\d{2})(\d{2})(\d{2})/,
+																		"$1 $2 $3 $4 $5",
+																	)
+															: profile.phone}
+													</Text>
+												</HStack>
 											)}
 											{(verifiedDocs.cnaps.length > 0 ||
 												verifiedDocs.diplomas.length >
