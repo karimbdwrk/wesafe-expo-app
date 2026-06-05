@@ -75,6 +75,7 @@ const ProfileScreen = () => {
 	const [cnapsCards, setCnapsCards] = useState([]);
 	const [diplomas, setDiplomas] = useState([]);
 	const [avatarError, setAvatarError] = useState(false);
+	const [experiences, setExperiences] = useState([]);
 
 	const loadData = async () => {
 		const data = await getById("profiles", profile_id, `*`);
@@ -82,7 +83,7 @@ const ProfileScreen = () => {
 		setAvatarError(false);
 		setProfile(data);
 
-		const [certsResult, cnapsResult, diplomasResult] = await Promise.all([
+		const [certsResult, cnapsResult, diplomasResult, expResult] = await Promise.all([
 			getAll(
 				"user_certifications",
 				"*",
@@ -107,6 +108,14 @@ const ProfileScreen = () => {
 				100,
 				"created_at.desc",
 			),
+			getAll(
+				"experiences",
+				"*",
+				`&profile_id=eq.${profile_id}`,
+				1,
+				100,
+				"start_date.desc",
+			),
 		]);
 
 		console.log("certifications :", certsResult.data);
@@ -116,6 +125,7 @@ const ProfileScreen = () => {
 		setCertifications(certsResult.data ?? []);
 		setCnapsCards(cnapsResult.data ?? []);
 		setDiplomas(diplomasResult.data ?? []);
+		setExperiences(expResult.data ?? []);
 	};
 
 	const loadList = async () => {
@@ -869,6 +879,113 @@ const ProfileScreen = () => {
 									expiresAt={c.expires_at}
 									status={c.status}
 								/>
+							))}
+						</Card>
+					)}
+
+					{/* ── CV / Expériences ── */}
+					{experiences.length > 0 && (
+						<Card
+							style={{
+								backgroundColor: cardBg,
+								borderRadius: 12,
+								borderWidth: 1,
+								borderColor: cardBorder,
+								padding: 16,
+							}}>
+							<SectionHeader
+								icon={Briefcase}
+								title='Expériences'
+								iconColor='#d97706'
+								iconBg='#fef3c7'
+							/>
+							{experiences.map((exp) => (
+								<Box
+									key={exp.id}
+									style={{
+										paddingVertical: 10,
+										borderTopWidth: 1,
+										borderTopColor: cardBorder,
+									}}>
+									<VStack space='xs'>
+										<Text
+											size='sm'
+											style={{
+												color: sT,
+												fontWeight: "600",
+											}}>
+											{exp.title}
+										</Text>
+										{exp.company ? (
+											<HStack
+												space='xs'
+												style={{ alignItems: 'center' }}>
+												<Icon
+													as={Briefcase}
+													size='xs'
+													style={{ color: mT }}
+												/>
+												<Text
+													size='xs'
+													style={{ color: mT }}>
+													{exp.company}
+												</Text>
+											</HStack>
+										) : null}
+										{exp.location ? (
+											<HStack
+												space='xs'
+												style={{ alignItems: 'center' }}>
+												<Icon
+													as={MapPin}
+													size='xs'
+													style={{ color: mT }}
+												/>
+												<Text
+													size='xs'
+													style={{ color: mT }}>
+													{exp.location}
+												</Text>
+											</HStack>
+										) : null}
+										<HStack
+											space='xs'
+											style={{ alignItems: 'center' }}>
+											<Icon
+												as={Calendar}
+												size='xs'
+												style={{ color: mT }}
+											/>
+											<Text
+												size='xs'
+												style={{ color: mT }}>
+												{formatDate(exp.start_date)}
+												{exp.end_date
+													? ` → ${formatDate(exp.end_date)}`
+													: " → en cours"}
+											</Text>
+										</HStack>
+										{exp.category ? (
+											<Badge
+												size='sm'
+												variant='outline'
+												style={{ alignSelf: "flex-start" }}>
+												<BadgeText>{exp.category}</BadgeText>
+											</Badge>
+										) : null}
+										{exp.description ? (
+											<Text
+												size='xs'
+												style={{
+													color: mT,
+													marginTop: 2,
+													fontStyle: "italic",
+												}}>
+												{exp.description}
+											</Text>
+										) : null}
+									</VStack>
+								</Box>
 							))}
 						</Card>
 					)}
