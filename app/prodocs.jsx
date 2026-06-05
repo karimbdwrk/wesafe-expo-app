@@ -184,7 +184,7 @@ const ProDocs = () => {
 	const { trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const router = useRouter();
-	const { image, setImage } = useImage();
+	const { proDocImage, setProDocImage } = useImage();
 	const toast = useToast();
 
 	/* --- state --- */
@@ -262,11 +262,11 @@ const ProDocs = () => {
 
 	/* --- image from camera context --- */
 	useEffect(() => {
-		if (image) {
-			setDocImage(image);
-			setImage(null);
+		if (proDocImage) {
+			setDocImage(proDocImage);
+			setProDocImage(null);
 		}
-	}, [image]);
+	}, [proDocImage]);
 
 	/* --- image picker --- */
 	const pickFromGallery = async () => {
@@ -1676,7 +1676,7 @@ const ProDocs = () => {
 										: Colors.light.success,
 								}}
 								onPress={() => {
-									setImage(null);
+									setProDocImage(null);
 									router.push("/cameraprodocs");
 								}}>
 								<ButtonIcon as={Camera} />
