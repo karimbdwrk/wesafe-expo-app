@@ -1302,16 +1302,21 @@ const DashboardScreen = () => {
 									}
 								/>
 
-								<ActionCard
-									icon={BookUser}
-									title='Mes contacts'
-									subtitle='Gérer vos contacts'
-									onPress={() => {
-										router.push({
-											pathname: "/profilelist",
-										});
-									}}
-								/>
+								{(userCompany?.subscription_status ===
+									"standard_plus" ||
+									userCompany?.subscription_status ===
+										"premium") && (
+									<ActionCard
+										icon={BookUser}
+										title='Mes contacts'
+										subtitle='Gérer vos contacts'
+										onPress={() => {
+											router.push({
+												pathname: "/profilelist",
+											});
+										}}
+									/>
+								)}
 
 								<Divider style={{ marginVertical: 16 }} />
 
