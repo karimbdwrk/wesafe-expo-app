@@ -6,6 +6,7 @@ import { Image } from "react-native";
 
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
@@ -28,6 +29,7 @@ import { useDataContext } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 import { useImage } from "@/context/ImageContext";
 import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import {
 	Camera,
 	User,
@@ -55,7 +57,16 @@ const AvatarUploader = ({ image, onUpload }) => {
 	const handleClose = () => setShowActionsheet(false);
 
 	const [avatarUrl, setAvatarUrl] = useState(userProfile?.avatar_url || null);
+	const [localPreview, setLocalPreview] = useState(null);
 	const [loading, setLoading] = useState(false);
+	const [cacheKey, setCacheKey] = useState(() => Date.now());
+
+	// Synchronise l'état local quand userProfile change depuis l'extérieur
+	useEffect(() => {
+		if (userProfile?.avatar_url) {
+			setAvatarUrl(userProfile.avatar_url);
+		}
+	}, [userProfile?.avatar_url]);
 
 	useEffect(() => {
 		image && handleUpload(image);
@@ -97,37 +108,63 @@ const AvatarUploader = ({ image, onUpload }) => {
 		}
 	};
 
+	// Recadre l'image en carré 1:1 centré (800×800)
+	const cropToSquare = async (uri) => {
+		const { width, height } = await new Promise((resolve) => {
+			Image.getSize(uri, (w, h) => resolve({ width: w, height: h }));
+		});
+		const size = Math.min(width, height);
+		const originX = Math.floor((width - size) / 2);
+		const originY = Math.floor((height - size) / 2);
+		const result = await ImageManipulator.manipulateAsync(
+			uri,
+			[
+				{ crop: { originX, originY, width: size, height: size } },
+				{ resize: { width: 800, height: 800 } },
+			],
+			{ compress: 0.85, format: ImageManipulator.SaveFormat.JPEG },
+		);
+		return result.uri;
+	};
+
 	const handleUpload = async (values) => {
-		console.log("handleUpload values", values, accessToken);
+		setImage(null); // évite les doubles déclenchements
+		setLocalPreview(values.uri); // affichage immédiat avant upload
+		setLoading(true);
 
 		try {
-			console.log("values to upload", values);
+			const squareUri = await cropToSquare(values.uri);
 			const formData = new FormData();
-			let filename = values.uri.split("/").pop();
-			let match = /\.(\w+)$/.exec(filename);
-			let type = match ? `image/${match[1]}` : `image`;
-			formData.append("files", { uri: values.uri, name: filename, type });
+			const filename = squareUri.split("/").pop();
+			const type = "image/jpeg";
+			formData.append("files", { uri: squareUri, name: filename, type });
 
-			const response = await axios.post(
-				`${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${filename}`,
+			await axios.post(
+				`${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${user.id}_avatar.jpg`,
+				// Nom fixe par user → écrase la précédente, pas d'accumulation de fichiers
 				formData,
 				{
 					headers: {
-						"Content-Type": "multipart/form-data",
+						// Ne pas forcer Content-Type : axios doit ajouter la boundary automatiquement
 						Authorization: `Bearer ${accessToken}`,
 						apikey: SUPABASE_API_KEY,
 					},
 				},
 			);
-			console.log("Response upload:", response.data);
-			const publicUrl = `${STORAGE_URL}/${filename}`;
+
+			const publicUrl = `${STORAGE_URL}/${user.id}_avatar.jpg`;
 			await update("profiles", user.id, { avatar_url: publicUrl });
 			setAvatarUrl(publicUrl);
+			setCacheKey(Date.now()); // force le rechargement de l'image même si même URL
+			setLocalPreview(null);
 			await loadUserData(user.id, accessToken);
-			setImage(null);
 			if (typeof onUpload === "function") onUpload();
 		} catch (error) {
+			console.error("Error upload response:", error.response?.data);
 			console.error("Error upload:", error);
+			setLocalPreview(null);
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -155,13 +192,18 @@ const AvatarUploader = ({ image, onUpload }) => {
 										justifyContent: "center",
 										borderRadius: 15,
 										overflow: "hidden",
-										backgroundColor: avatarUrl
-											? "transparent"
-											: "#f3f4f6",
+										backgroundColor:
+											localPreview || avatarUrl
+												? "transparent"
+												: "#f3f4f6",
 									}}>
-									{avatarUrl ? (
+									{localPreview || avatarUrl ? (
 										<Image
-											source={{ uri: avatarUrl }}
+											source={{
+												uri: localPreview
+													? localPreview
+													: `${avatarUrl}?v=${cacheKey}`,
+											}}
 											style={{
 												width: 120,
 												height: 120,
@@ -204,7 +246,11 @@ const AvatarUploader = ({ image, onUpload }) => {
 				<ActionsheetBackdrop />
 				<ActionsheetContent
 					style={{
-						backgroundColor: isDark ? "#374151" : "#ffffff",
+						backgroundColor: isDark
+							? Colors.dark.elevated
+							: Colors.light.cardBackground,
+						borderTopLeftRadius: 16,
+						borderTopRightRadius: 16,
 					}}>
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
@@ -214,12 +260,19 @@ const AvatarUploader = ({ image, onUpload }) => {
 						<Heading
 							size='xl'
 							style={{
-								color: isDark ? "#f3f4f6" : "#111827",
+								color: isDark
+									? Colors.dark.text
+									: Colors.light.text,
 							}}>
 							Choisir une source
 						</Heading>
 
 						<ActionsheetItem
+							style={{
+								backgroundColor: isDark
+									? Colors.dark.elevated
+									: Colors.light.cardBackground,
+							}}
 							onPress={() => {
 								router.push("/camera");
 								setShowActionsheet(false);
@@ -228,47 +281,71 @@ const AvatarUploader = ({ image, onUpload }) => {
 								as={Camera}
 								size='lg'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
 									marginRight: 12,
 								}}
 							/>
 							<ActionsheetItemText
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Prendre une photo
 							</ActionsheetItemText>
 						</ActionsheetItem>
 
-						<ActionsheetItem onPress={pickImage}>
+						<ActionsheetItem
+							style={{
+								backgroundColor: isDark
+									? Colors.dark.elevated
+									: Colors.light.cardBackground,
+							}}
+							onPress={pickImage}>
 							<Icon
 								as={Images}
 								size='lg'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
 									marginRight: 12,
 								}}
 							/>
 							<ActionsheetItemText
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Galerie photo
 							</ActionsheetItemText>
 						</ActionsheetItem>
 
-						<ActionsheetItem onPress={pickDocument}>
+						<ActionsheetItem
+							style={{
+								backgroundColor: isDark
+									? Colors.dark.elevated
+									: Colors.light.cardBackground,
+							}}
+							onPress={pickDocument}>
 							<Icon
 								as={FileText}
 								size='lg'
 								style={{
-									color: isDark ? "#60a5fa" : "#2563eb",
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
 									marginRight: 12,
 								}}
 							/>
 							<ActionsheetItemText
 								style={{
-									color: isDark ? "#f3f4f6" : "#111827",
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
 								}}>
 								Fichiers
 							</ActionsheetItemText>
