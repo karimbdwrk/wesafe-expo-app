@@ -1,10 +1,10 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImageManipulator from "expo-image-manipulator";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import {
 	ScrollView,
 	TouchableOpacity,
@@ -47,6 +47,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
+import { useImage } from "@/context/ImageContext";
 import { SUBMIT_PRODOC } from "@/utils/activityEvents";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
@@ -178,10 +179,12 @@ const getDocInfo = (category, typeCode) => {
 /* Main component                                                       */
 /* ------------------------------------------------------------------ */
 
-const ProDocs = ({ navigation }) => {
+const ProDocs = () => {
 	const { user, accessToken } = useAuth();
 	const { trackActivity } = useDataContext();
 	const { isDark } = useTheme();
+	const router = useRouter();
+	const { image, setImage } = useImage();
 	const toast = useToast();
 
 	/* --- state --- */
@@ -256,6 +259,14 @@ const ProDocs = ({ navigation }) => {
 			loadDocs();
 		}, [loadDocs]),
 	);
+
+	/* --- image from camera context --- */
+	useEffect(() => {
+		if (image) {
+			setDocImage(image);
+			setImage(null);
+		}
+	}, [image]);
 
 	/* --- image picker --- */
 	const pickFromGallery = async () => {
@@ -1664,11 +1675,10 @@ const ProDocs = ({ navigation }) => {
 										? Colors.dark.success
 										: Colors.light.success,
 								}}
-								onPress={() =>
-									navigation?.navigate("CameraScreen", {
-										onCapture: setDocImage,
-									})
-								}>
+								onPress={() => {
+									setImage(null);
+									router.push("/cameraprodocs");
+								}}>
 								<ButtonIcon as={Camera} />
 								<ButtonText>Caméra</ButtonText>
 							</Button>
