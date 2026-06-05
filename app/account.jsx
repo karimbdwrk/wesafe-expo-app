@@ -1510,7 +1510,11 @@ const AccountScreen = () => {
 											? "success"
 											: undefined
 									}
-									subtitle='Cartes professionnels, diplômes, attestations...'
+								/>
+								<ActionCard
+									icon={FileText}
+									title='Documents professionnels'
+									subtitle='Cartes professionnelles, diplômes, attestations...'
 									onPress={() => router.push("/prodocs")}
 								/>
 								<Divider style={{ marginVertical: 16 }} />
