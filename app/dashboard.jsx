@@ -380,7 +380,9 @@ const DashboardScreen = () => {
 							)}
 						</VStack>
 					</HStack>
-					<HStack space='sm' style={{ alignItems: "center" }}>
+					<HStack
+						space='sm'
+						style={{ alignItems: "center", marginLeft: 8 }}>
 						{badgeText && (
 							<Badge
 								size='sm'
