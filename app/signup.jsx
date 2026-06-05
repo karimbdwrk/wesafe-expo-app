@@ -733,6 +733,16 @@ const SignUpScreen = () => {
 								status={otpStatus}
 								onReset={() => setOtpStatus(null)}
 							/>
+							<Text
+								size='xs'
+								style={{
+									textAlign: "center",
+									color: muted,
+									fontStyle: "italic",
+								}}>
+								Vous ne trouvez pas le code ? Pensez à vérifier
+								vos spams ou courriers indésirables.
+							</Text>
 							{countdown > 0 ? (
 								<Text
 									size='sm'
