@@ -110,6 +110,7 @@ const CreateProfile = () => {
 	const [birthdaySet, setBirthdaySet] = useState(false);
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [gender, setGender] = useState("");
+	const [phone, setPhone] = useState("");
 
 	const formatDate = (d) =>
 		`${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
@@ -122,6 +123,25 @@ const CreateProfile = () => {
 				/(^|[\s\-])(\S)/g,
 				(_, sep, char) => sep + char.toUpperCase(),
 			);
+	};
+
+	const formatPhone = (val) => {
+		let digits = val.replace(/\D/g, "");
+		// Supprimer le 0 initial si présent
+		if (digits.startsWith("0")) digits = digits.slice(1);
+		// N'accepter que les numéros mobiles (6 ou 7)
+		if (digits.length > 0 && digits[0] !== "6" && digits[0] !== "7") {
+			digits = "";
+		}
+		// Limiter à 9 chiffres
+		digits = digits.slice(0, 9);
+		// Formater : X XX XX XX XX
+		let formatted = "";
+		for (let i = 0; i < digits.length; i++) {
+			if (i === 1 || i === 3 || i === 5 || i === 7) formatted += " ";
+			formatted += digits[i];
+		}
+		return formatted;
 	};
 
 	// Step 2
@@ -189,6 +209,9 @@ const CreateProfile = () => {
 				lastname,
 				firstname,
 				email: user.email,
+				...(phone.replace(/\s/g, "").length === 9 && {
+					phone: `+33${phone.replace(/\s/g, "")}`,
+				}),
 				...(birthdaySet && {
 					birthday: `${birthdayDate.getFullYear()}-${String(birthdayDate.getMonth() + 1).padStart(2, "0")}-${String(birthdayDate.getDate()).padStart(2, "0")}`,
 				}),
@@ -370,6 +393,75 @@ const CreateProfile = () => {
 									borderColor: cardBorder,
 								}}>
 								<VStack space='lg'>
+									<VStack space='xs'>
+										<Text size='sm' style={labelStyle}>
+											Email
+										</Text>
+										<Input
+											style={[
+												inputStyle,
+												{ opacity: 0.6 },
+											]}>
+											<InputField
+												value={user?.email || ""}
+												editable={false}
+												style={inputTextStyle}
+											/>
+										</Input>
+									</VStack>
+
+									<VStack space='xs'>
+										<Text size='sm' style={labelStyle}>
+											Téléphone mobile
+										</Text>
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Box
+												style={[
+													inputStyle,
+													{
+														borderWidth: 1,
+														height: 44,
+														paddingHorizontal: 12,
+														justifyContent:
+															"center",
+														alignItems: "center",
+														opacity: 0.6,
+													},
+												]}>
+												<Text
+													style={[
+														inputTextStyle,
+														{
+															fontWeight: "600",
+															fontSize: 15,
+														},
+													]}>
+													+33
+												</Text>
+											</Box>
+											<Input
+												style={[
+													inputStyle,
+													{ flex: 1 },
+												]}>
+												<InputField
+													placeholder='6 XX XX XX XX'
+													value={phone}
+													onChangeText={(val) =>
+														setPhone(
+															formatPhone(val),
+														)
+													}
+													keyboardType='phone-pad'
+													maxLength={13}
+													style={inputTextStyle}
+												/>
+											</Input>
+										</HStack>
+									</VStack>
+
 									<VStack space='xs'>
 										<Text size='sm' style={labelStyle}>
 											Prénom *
@@ -661,89 +753,83 @@ const CreateProfile = () => {
 									{addrResults.length > 0 &&
 										!addrSelected && (
 											<VStack space='xs'>
-												{addrResults.map(
-													(item, i) => (
-														<TouchableOpacity
-															key={i}
-															activeOpacity={0.7}
-															onPress={() => {
-																setAddrSelected(
-																	item,
-																);
-																setAddrQuery(
-																	item.label,
-																);
-																setAddrResults(
-																	[],
-																);
+												{addrResults.map((item, i) => (
+													<TouchableOpacity
+														key={i}
+														activeOpacity={0.7}
+														onPress={() => {
+															setAddrSelected(
+																item,
+															);
+															setAddrQuery(
+																item.label,
+															);
+															setAddrResults([]);
+														}}>
+														<Card
+															style={{
+																padding: 12,
+																borderRadius: 10,
+																borderWidth: 1,
+																borderColor:
+																	isDark
+																		? Colors
+																				.dark
+																				.border
+																		: Colors
+																				.light
+																				.border,
+																backgroundColor:
+																	isDark
+																		? Colors
+																				.dark
+																				.elevated
+																		: Colors
+																				.light
+																				.background,
 															}}>
-															<Card
+															<HStack
+																space='sm'
 																style={{
-																	padding: 12,
-																	borderRadius: 10,
-																	borderWidth: 1,
-																	borderColor:
-																		isDark
-																			? Colors
-																					.dark
-																					.border
-																			: Colors
-																					.light
-																					.border,
-																	backgroundColor:
-																		isDark
-																			? Colors
-																					.dark
-																					.elevated
-																			: Colors
-																					.light
-																					.background,
+																	alignItems:
+																		"center",
 																}}>
-																<HStack
-																	space='sm'
+																<Icon
+																	as={MapPin}
+																	size='sm'
 																	style={{
-																		alignItems:
-																			"center",
-																	}}>
-																	<Icon
-																		as={
-																			MapPin
+																		color: muted,
+																	}}
+																/>
+																<VStack>
+																	<Text
+																		style={{
+																			fontWeight:
+																				"600",
+																			color: textColor,
+																			fontSize: 14,
+																		}}>
+																		{
+																			item.street
 																		}
-																		size='sm'
+																	</Text>
+																	<Text
+																		size='xs'
 																		style={{
 																			color: muted,
-																		}}
-																	/>
-																	<VStack>
-																		<Text
-																			style={{
-																				fontWeight:
-																					"600",
-																				color: textColor,
-																				fontSize: 14,
-																			}}>
-																			{
-																				item.street
-																			}
-																		</Text>
-																		<Text
-																			size='xs'
-																			style={{
-																				color: muted,
-																			}}>
-																			{
-																				item.postcode
-																			}{" "}
-																			{
-																				item.city
-																			}
-																		</Text>
-																	</VStack>
-																</HStack>
-															</Card>
-														</TouchableOpacity>
-													),
-												)}
+																		}}>
+																		{
+																			item.postcode
+																		}{" "}
+																		{
+																			item.city
+																		}
+																	</Text>
+																</VStack>
+															</HStack>
+														</Card>
+													</TouchableOpacity>
+												))}
 											</VStack>
 										)}
 
@@ -1102,22 +1188,13 @@ const CreateProfile = () => {
 													? "Femme"
 													: "—",
 										],
-										[
-											"Adresse",
-											addrSelected?.label || "—",
-										],
-										[
-											"Ville",
-											addrSelected?.city || "—",
-										],
+										["Adresse", addrSelected?.label || "—"],
+										["Ville", addrSelected?.city || "—"],
 										[
 											"Département",
 											addrSelected?.department || "—",
 										],
-										[
-											"Région",
-											addrSelected?.region || "—",
-										],
+										["Région", addrSelected?.region || "—"],
 										[
 											"Taille",
 											height ? `${height} cm` : "—",
