@@ -33,7 +33,7 @@ import Colors from "@/constants/Colors";
 
 export default function CameraProDocsScreen() {
 	const router = useRouter();
-	const { setImage } = useImage();
+	const { setProDocImage } = useImage();
 	const { isDark } = useTheme();
 
 	const bg = isDark ? Colors.dark.background : Colors.light.background;
@@ -172,7 +172,7 @@ export default function CameraProDocsScreen() {
 	};
 
 	const confirmPhoto = () => {
-		setImage({ uri: capturedPhoto });
+		setProDocImage({ uri: capturedPhoto });
 		router.back();
 	};
 
