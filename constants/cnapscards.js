@@ -1,6 +1,6 @@
 export const CNAPS_CARDS = {
 	surveillance_humaine: {
-		acronym: "SURV",
+		acronym: "APS",
 		name: "Surveillance humaine ou gardiennage",
 		category: "cnaps",
 	},
