@@ -77,11 +77,53 @@ const CreateCompany = () => {
 	const [step, setStep] = useState(1);
 	const [submitting, setSubmitting] = useState(false);
 
+	const scrollRef = useRef(null);
+	const phoneRef = useRef(null);
+	const nameRef = useRef(null);
+	const legalLastnameRef = useRef(null);
+	const legalFirstnameRef = useRef(null);
+	const descriptionRef = useRef(null);
+	const siretRef = useRef(null);
+	const addrRef = useRef(null);
+
+	const scrollToInput = (ref) => {
+		if (ref?.current && scrollRef.current) {
+			setTimeout(() => {
+				ref.current.measureLayout(
+					scrollRef.current,
+					(x, y) => {
+						scrollRef.current.scrollTo({
+							y: y - 100,
+							animated: true,
+						});
+					},
+					() => {},
+				);
+			}, 100);
+		}
+	};
+
 	// Step 1
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
 	const [legalLastname, setLegalLastname] = useState("");
 	const [legalFirstname, setLegalFirstname] = useState("");
+	const [phone, setPhone] = useState("");
+
+	const formatPhone = (val) => {
+		let digits = val.replace(/\D/g, "");
+		if (digits.startsWith("0")) digits = digits.slice(1);
+		if (digits.length > 0 && digits[0] !== "6" && digits[0] !== "7") {
+			digits = "";
+		}
+		digits = digits.slice(0, 9);
+		let formatted = "";
+		for (let i = 0; i < digits.length; i++) {
+			if (i === 1 || i === 3 || i === 5 || i === 7) formatted += " ";
+			formatted += digits[i];
+		}
+		return formatted;
+	};
 
 	// Step 2
 	const [siret, setSiret] = useState("");
@@ -216,6 +258,12 @@ const CreateCompany = () => {
 				name: name.trim(),
 				siret: siret.trim(),
 				email: user.email,
+				...(phone.replace(/\s/g, "").length === 9 && {
+					phone: `+33${phone.replace(/\s/g, "")}`,
+				}),
+				...(phone.replace(/\s/g, "").length === 9 && {
+					phone: `+33${phone.replace(/\s/g, "")}`,
+				}),
 				last_minute_credits: 0,
 				isConfirmed: false,
 				description: description.trim(),
@@ -347,6 +395,7 @@ const CreateCompany = () => {
 				style={{ flex: 1 }}
 				behavior={Platform.OS === "ios" ? "padding" : "height"}>
 				<ScrollView
+					ref={scrollRef}
 					contentContainerStyle={{ flexGrow: 1 }}
 					keyboardShouldPersistTaps='handled'>
 					<VStack
@@ -425,11 +474,83 @@ const CreateCompany = () => {
 								<VStack space='lg'>
 									<VStack space='xs'>
 										<Text size='sm' style={labelStyle}>
+											Email
+										</Text>
+										<Input
+											style={[
+												inputStyle,
+												{ opacity: 0.6 },
+											]}>
+											<InputField
+												value={user?.email || ""}
+												editable={false}
+												style={inputTextStyle}
+											/>
+										</Input>
+									</VStack>
+
+									<VStack space='xs'>
+										<Text size='sm' style={labelStyle}>
+											Téléphone mobile
+										</Text>
+										<HStack
+											space='sm'
+											style={{ alignItems: "center" }}>
+											<Box
+												style={[
+													inputStyle,
+													{
+														height: 44,
+														paddingHorizontal: 12,
+														justifyContent:
+															"center",
+														alignItems: "center",
+														opacity: 0.6,
+													},
+												]}>
+												<Text
+													style={[
+														inputTextStyle,
+														{
+															fontWeight: "600",
+															fontSize: 15,
+														},
+													]}>
+													+33
+												</Text>
+											</Box>
+											<Input
+												style={[
+													inputStyle,
+													{ flex: 1 },
+												]}>
+												<InputField
+													placeholder='6 XX XX XX XX'
+													ref={phoneRef}
+													onFocus={() => scrollToInput(phoneRef)}
+													value={phone}
+													onChangeText={(val) =>
+														setPhone(
+															formatPhone(val),
+														)
+													}
+													keyboardType='phone-pad'
+													maxLength={13}
+													style={inputTextStyle}
+												/>
+											</Input>
+										</HStack>
+									</VStack>
+
+									<VStack space='xs'>
+										<Text size='sm' style={labelStyle}>
 											Nom de l'entreprise *
 										</Text>
 										<Input style={inputStyle}>
 											<InputField
 												placeholder='WeSafe SAS'
+												ref={nameRef}
+												onFocus={() => scrollToInput(nameRef)}
 												value={name}
 												onChangeText={setName}
 												style={inputTextStyle}
@@ -445,6 +566,8 @@ const CreateCompany = () => {
 										<Input style={inputStyle}>
 											<InputField
 												placeholder='Dupont'
+												ref={legalLastnameRef}
+												onFocus={() => scrollToInput(legalLastnameRef)}
 												value={legalLastname}
 												onChangeText={setLegalLastname}
 												style={inputTextStyle}
@@ -459,6 +582,8 @@ const CreateCompany = () => {
 										<Input style={inputStyle}>
 											<InputField
 												placeholder='Jean'
+												ref={legalFirstnameRef}
+												onFocus={() => scrollToInput(legalFirstnameRef)}
 												value={legalFirstname}
 												onChangeText={setLegalFirstname}
 												style={inputTextStyle}
@@ -471,6 +596,8 @@ const CreateCompany = () => {
 											Description *
 										</Text>
 										<TextInput
+											ref={descriptionRef}
+											onFocus={() => scrollToInput(descriptionRef)}
 											placeholder='Décrivez votre entreprise…'
 											placeholderTextColor={
 												isDark
@@ -525,6 +652,8 @@ const CreateCompany = () => {
 										<Input style={inputStyle}>
 											<InputField
 												placeholder='xxx xxx xxx xxxxx'
+												ref={siretRef}
+												onFocus={() => scrollToInput(siretRef)}
 												value={formatSiret(siret)}
 												onChangeText={(t) =>
 													setSiret(
@@ -758,6 +887,8 @@ const CreateCompany = () => {
 										<Input style={inputStyle}>
 											<InputField
 												placeholder='8 rue de la Paix, Paris...'
+												ref={addrRef}
+												onFocus={() => scrollToInput(addrRef)}
 												value={addrQuery}
 												onChangeText={(v) => {
 													setAddrQuery(v);
