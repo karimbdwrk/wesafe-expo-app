@@ -206,8 +206,8 @@ const CompletionTodoList = ({ company, router, isDark }) => {
 	const progressColor = allDone
 		? Colors.light.success
 		: isDark
-			? Colors.dark.tint
-			: Colors.light.tint;
+			? Colors.dark.warning
+			: Colors.light.warning;
 
 	const [isOpen, setIsOpen] = useState(false);
 	const animHeight = useRef(new Animated.Value(0)).current;
@@ -260,11 +260,13 @@ const CompletionTodoList = ({ company, router, isDark }) => {
 			style={{
 				padding: 16,
 				backgroundColor: isDark
-					? Colors.dark.cardBackground
-					: Colors.light.cardBackground,
+					? Colors.dark.background
+					: Colors.light.background,
 				borderRadius: 12,
 				borderWidth: 1,
-				borderColor: isDark ? Colors.dark.border : Colors.light.border,
+				borderColor: isDark
+					? Colors.dark.warning50
+					: Colors.light.warning50,
 			}}>
 			<VStack space='md'>
 				{/* Header cliquable */}
@@ -280,8 +282,8 @@ const CompletionTodoList = ({ company, router, isDark }) => {
 								style={{
 									fontWeight: "700",
 									color: isDark
-										? Colors.dark.text
-										: Colors.light.text,
+										? Colors.dark.warning
+										: Colors.light.warning,
 								}}>
 								Complétez votre profil
 							</Text>
@@ -289,8 +291,8 @@ const CompletionTodoList = ({ company, router, isDark }) => {
 								size='sm'
 								style={{
 									color: isDark
-										? Colors.dark.muted
-										: Colors.light.muted,
+										? Colors.dark.warning70
+										: Colors.light.warning70,
 								}}>
 								Ces informations sont requises pour activer
 								votre compte
@@ -306,8 +308,8 @@ const CompletionTodoList = ({ company, router, isDark }) => {
 								size='md'
 								style={{
 									color: isDark
-										? Colors.dark.muted
-										: Colors.light.muted,
+										? Colors.dark.warning
+										: Colors.light.warning,
 								}}
 							/>
 						</Animated.View>
@@ -343,8 +345,8 @@ const CompletionTodoList = ({ company, router, isDark }) => {
 						style={{
 							height: 6,
 							backgroundColor: isDark
-								? Colors.dark.border
-								: "#e5e7eb",
+								? Colors.dark.warning20
+								: Colors.light.warning20,
 							borderRadius: 3,
 							overflow: "hidden",
 						}}>
