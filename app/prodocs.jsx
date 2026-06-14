@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
@@ -191,8 +191,14 @@ const ProDocs = () => {
 	const [docs, setDocs] = useState([]);
 	const [loadingDocs, setLoadingDocs] = useState(true);
 
+	const scrollRef = useRef(null);
+
 	// Wizard steps: list | category | type | upload
 	const [step, setStep] = useState("list");
+
+	useEffect(() => {
+		scrollRef.current?.scrollTo({ y: 0, animated: false });
+	}, [step]);
 	const [selectedCategory, setSelectedCategory] = useState(null);
 	const [selectedType, setSelectedType] = useState(null);
 	const [cnapsCardNumber, setCnapsCardNumber] = useState("");
@@ -200,6 +206,8 @@ const ProDocs = () => {
 	const [validityDate, setValidityDate] = useState(null);
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [selectedDoc, setSelectedDoc] = useState(null); // document affiché en détail
+	const [isArchiving, setIsArchiving] = useState(false);
 
 	/* --- load --- */
 	const loadDocs = useCallback(async () => {
@@ -521,6 +529,66 @@ const ProDocs = () => {
 	};
 
 	/* ---------------------------------------------------------------- */
+	/* Archive (suppression logique)                                      */
+	/* ---------------------------------------------------------------- */
+
+	const handleArchive = async (doc) => {
+		const tableMap = {
+			cnaps: "user_cnaps_cards",
+			diploma: "user_diplomas",
+			certification: "user_certifications",
+		};
+		const table = tableMap[doc._category];
+		if (!table) return;
+		setIsArchiving(true);
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			const { error } = await supabase
+				.from(table)
+				.update({ isArchived: true })
+				.eq("id", doc.id);
+			if (error) throw error;
+			await loadDocs();
+			setStep("list");
+			setSelectedDoc(null);
+			toast.show({
+				placement: "top",
+				duration: 3000,
+				render: ({ id }) => (
+					<CustomToast
+						id={id}
+						icon={CheckCircle}
+						color={
+							isDark ? Colors.dark.success : Colors.light.success
+						}
+						title='Document supprimé'
+						description='Le document a été retiré de votre dossier.'
+					/>
+				),
+			});
+		} catch (e) {
+			console.error("handleArchive error:", e);
+			toast.show({
+				placement: "top",
+				duration: 3000,
+				render: ({ id }) => (
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title='Erreur'
+						description='Impossible de supprimer ce document.'
+					/>
+				),
+			});
+		} finally {
+			setIsArchiving(false);
+		}
+	};
+
+	/* ---------------------------------------------------------------- */
 	/* Sub-components                                                     */
 	/* ---------------------------------------------------------------- */
 
@@ -739,181 +807,542 @@ const ProDocs = () => {
 						) : (
 							<VStack space='sm'>
 								{grouped[key].map((doc) => (
-									<Card
+									<Pressable
 										key={doc.id}
-										style={{
-											padding: 16,
-											backgroundColor: isDark
-												? Colors.dark.cardBackground
-												: Colors.light.cardBackground,
-											borderRadius: 12,
-											shadowColor: "#000",
-											shadowOffset: {
-												width: 0,
-												height: 1,
-											},
-											shadowOpacity: 0.04,
-											shadowRadius: 4,
-											elevation: 1,
+										onPress={() => {
+											setSelectedDoc(doc);
+											setStep("detail");
 										}}>
-										<HStack
+										<Card
 											style={{
-												justifyContent: "space-between",
-												alignItems: "flex-start",
+												padding: 16,
+												backgroundColor: isDark
+													? Colors.dark.cardBackground
+													: Colors.light
+															.cardBackground,
+												borderRadius: 12,
+												shadowColor: "#000",
+												shadowOffset: {
+													width: 0,
+													height: 1,
+												},
+												shadowOpacity: 0.04,
+												shadowRadius: 4,
+												elevation: 1,
 											}}>
-											<VStack
-												space='xs'
+											<HStack
 												style={{
-													flex: 1,
-													marginRight: 12,
+													justifyContent:
+														"space-between",
+													alignItems: "flex-start",
 												}}>
-												{(() => {
-													const info = getDocInfo(
-														doc._category,
-														doc.type,
-													);
-													return (
-														<>
-															{info.acronym ? (
+												<VStack
+													space='xs'
+													style={{
+														flex: 1,
+														marginRight: 12,
+													}}>
+													{(() => {
+														const info = getDocInfo(
+															doc._category,
+															doc.type,
+														);
+														return (
+															<>
+																{info.acronym ? (
+																	<Text
+																		style={{
+																			fontWeight:
+																				"800",
+																			fontSize: 15,
+																			color: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
+																		}}>
+																		{
+																			info.acronym
+																		}
+																	</Text>
+																) : null}
 																<Text
-																	style={{
-																		fontWeight:
-																			"800",
-																		fontSize: 15,
-																		color: isDark
-																			? Colors
-																					.dark
-																					.text
-																			: Colors
-																					.light
-																					.text,
-																	}}>
-																	{
-																		info.acronym
-																	}
-																</Text>
-															) : null}
-															<Text
-																size='sm'
-																style={{
-																	color: isDark
-																		? Colors
-																				.dark
-																				.muted
-																		: Colors
-																				.light
-																				.muted,
-																	lineHeight: 18,
-																}}>
-																{info.name}
-															</Text>
-														</>
-													);
-												})()}
-												{doc._category === "cnaps" &&
-												doc.number ? (
-													<Text
-														size='xs'
-														style={{
-															color: isDark
-																? Colors.dark
-																		.tint
-																: Colors.light
-																		.tint,
-															fontWeight: "700",
-															letterSpacing: 2,
-														}}>
-														N° ···{doc.number}
-													</Text>
-												) : null}
-												{(() => {
-													const exp = getExpiryInfo(
-														doc.expires_at,
-													);
-													if (!exp) return null;
-													return (
-														<HStack
-															space='xs'
-															style={{
-																alignItems:
-																	"center",
-																gap: 4,
-															}}>
-															{exp.icon ===
-															"expired" ? (
-																<Icon
-																	as={
-																		AlertCircle
-																	}
-																	size='2xs'
+																	size='sm'
 																	style={{
 																		color: isDark
-																			? Colors
-																					.dark
-																					.danger
-																			: Colors
-																					.light
-																					.danger,
-																	}}
-																/>
-															) : exp.icon ===
-															  "soon" ? (
-																<Icon
-																	as={Clock}
-																	size='2xs'
-																	style={{
-																		color: isDark
-																			? Colors
-																					.dark
-																					.warning
-																			: Colors
-																					.light
-																					.warning,
-																	}}
-																/>
-															) : null}
-															<Text
-																size='xs'
-																style={{
-																	fontWeight:
-																		exp.icon
-																			? "600"
-																			: "400",
-																	color:
-																		exp.color ??
-																		(isDark
 																			? Colors
 																					.dark
 																					.muted
 																			: Colors
 																					.light
-																					.muted),
+																					.muted,
+																		lineHeight: 18,
+																	}}>
+																	{info.name}
+																</Text>
+															</>
+														);
+													})()}
+													{doc._category ===
+														"cnaps" &&
+													doc.number ? (
+														<Text
+															size='xs'
+															style={{
+																color: isDark
+																	? Colors
+																			.dark
+																			.tint
+																	: Colors
+																			.light
+																			.tint,
+																fontWeight:
+																	"700",
+																letterSpacing: 2,
+															}}>
+															N° ···{doc.number}
+														</Text>
+													) : null}
+													{(() => {
+														const exp =
+															getExpiryInfo(
+																doc.expires_at,
+															);
+														if (!exp) return null;
+														return (
+															<HStack
+																space='xs'
+																style={{
+																	alignItems:
+																		"center",
+																	gap: 4,
 																}}>
-																{exp.label}
-															</Text>
-														</HStack>
-													);
-												})()}
-												<Text
-													size='xs'
-													style={{
-														color: isDark
-															? Colors.dark.muted
-															: Colors.light
-																	.muted,
-													}}>
-													Soumis le{" "}
-													{formatDate(doc.created_at)}
-												</Text>
-											</VStack>
-											<StatusBadge status={doc.status} />
-										</HStack>
-									</Card>
+																{exp.icon ===
+																"expired" ? (
+																	<Icon
+																		as={
+																			AlertCircle
+																		}
+																		size='2xs'
+																		style={{
+																			color: isDark
+																				? Colors
+																						.dark
+																						.danger
+																				: Colors
+																						.light
+																						.danger,
+																		}}
+																	/>
+																) : exp.icon ===
+																  "soon" ? (
+																	<Icon
+																		as={
+																			Clock
+																		}
+																		size='2xs'
+																		style={{
+																			color: isDark
+																				? Colors
+																						.dark
+																						.warning
+																				: Colors
+																						.light
+																						.warning,
+																		}}
+																	/>
+																) : null}
+																<Text
+																	size='xs'
+																	style={{
+																		fontWeight:
+																			exp.icon
+																				? "600"
+																				: "400",
+																		color:
+																			exp.color ??
+																			(isDark
+																				? Colors
+																						.dark
+																						.muted
+																				: Colors
+																						.light
+																						.muted),
+																	}}>
+																	{exp.label}
+																</Text>
+															</HStack>
+														);
+													})()}
+													<Text
+														size='xs'
+														style={{
+															color: isDark
+																? Colors.dark
+																		.muted
+																: Colors.light
+																		.muted,
+														}}>
+														Soumis le{" "}
+														{formatDate(
+															doc.created_at,
+														)}
+													</Text>
+												</VStack>
+												<StatusBadge
+													status={doc.status}
+												/>
+											</HStack>
+										</Card>
+									</Pressable>
 								))}
 							</VStack>
 						)}
 					</VStack>
 				))}
+			</VStack>
+		);
+	};
+
+	/* ---------------------------------------------------------------- */
+	/* Step: DETAIL                                                       */
+	/* ---------------------------------------------------------------- */
+
+	const renderDetail = () => {
+		if (!selectedDoc) return null;
+		const doc = selectedDoc;
+		const info = getDocInfo(doc._category, doc.type);
+		const exp = getExpiryInfo(doc.expires_at);
+		const isVerified = doc.status === "verified";
+		const catColor = getCategoryColor(doc._category, isDark);
+		const CatIcon = getCategoryIcon(doc._category);
+
+		const categoryLabel =
+			doc._category === "cnaps"
+				? "Carte CNAPS"
+				: doc._category === "diploma"
+					? "Diplôme"
+					: "Certification";
+
+		return (
+			<VStack space='xl'>
+				<SectionHeader
+					title={info.acronym || info.name}
+					subtitle={info.acronym ? info.name : categoryLabel}
+					onBack={() => {
+						setStep("list");
+						setSelectedDoc(null);
+					}}
+				/>
+
+				{/* Icône catégorie */}
+				<VStack style={{ alignItems: "center" }} space='xs'>
+					<Box
+						style={{
+							width: 64,
+							height: 64,
+							borderRadius: 18,
+							backgroundColor: isDark
+								? Colors.dark.elevated
+								: catColor.bg,
+							justifyContent: "center",
+							alignItems: "center",
+						}}>
+						<Icon
+							as={CatIcon}
+							size='xl'
+							style={{ color: catColor.icon }}
+						/>
+					</Box>
+					<StatusBadge status={doc.status} />
+				</VStack>
+
+				{/* Infos */}
+				<Card
+					style={{
+						padding: 20,
+						backgroundColor: isDark
+							? Colors.dark.cardBackground
+							: Colors.light.cardBackground,
+						borderRadius: 16,
+						gap: 14,
+					}}>
+					{/* Nom complet */}
+					<VStack space='xs'>
+						<Text
+							size='xs'
+							style={{
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
+								fontWeight: "600",
+								textTransform: "uppercase",
+								letterSpacing: 1,
+							}}>
+							Document
+						</Text>
+						<Text
+							style={{
+								fontWeight: "700",
+								fontSize: 15,
+								color: isDark
+									? Colors.dark.text
+									: Colors.light.text,
+							}}>
+							{info.name}
+						</Text>
+					</VStack>
+
+					{/* Numéro CNAPS */}
+					{doc._category === "cnaps" && doc.number ? (
+						<VStack space='xs'>
+							<Text
+								size='xs'
+								style={{
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
+									fontWeight: "600",
+									textTransform: "uppercase",
+									letterSpacing: 1,
+								}}>
+								Numéro de carte
+							</Text>
+							<Text
+								style={{
+									fontWeight: "700",
+									fontSize: 15,
+									color: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+									letterSpacing: 2,
+								}}>
+								{doc.number}
+							</Text>
+						</VStack>
+					) : null}
+
+					{/* Date d'expiration */}
+					{doc.expires_at ? (
+						<VStack space='xs'>
+							<Text
+								size='xs'
+								style={{
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
+									fontWeight: "600",
+									textTransform: "uppercase",
+									letterSpacing: 1,
+								}}>
+								Date d'expiration
+							</Text>
+							<HStack space='xs' style={{ alignItems: "center" }}>
+								{exp?.icon === "expired" && (
+									<Icon
+										as={AlertCircle}
+										size='sm'
+										style={{
+											color: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
+										}}
+									/>
+								)}
+								{exp?.icon === "soon" && (
+									<Icon
+										as={Clock}
+										size='sm'
+										style={{
+											color: isDark
+												? Colors.dark.warning
+												: Colors.light.warning,
+										}}
+									/>
+								)}
+								<Text
+									style={{
+										fontWeight: exp?.icon ? "600" : "400",
+										fontSize: 15,
+										color:
+											exp?.color ??
+											(isDark
+												? Colors.dark.text
+												: Colors.light.text),
+									}}>
+									{formatDate(doc.expires_at)}
+								</Text>
+							</HStack>
+						</VStack>
+					) : null}
+
+					{/* Date de soumission */}
+					<VStack space='xs'>
+						<Text
+							size='xs'
+							style={{
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
+								fontWeight: "600",
+								textTransform: "uppercase",
+								letterSpacing: 1,
+							}}>
+							Soumis le
+						</Text>
+						<Text
+							style={{
+								fontSize: 15,
+								color: isDark
+									? Colors.dark.text
+									: Colors.light.text,
+							}}>
+							{formatDate(doc.created_at)}
+						</Text>
+					</VStack>
+				</Card>
+
+				{/* Fichier joint */}
+				{doc.document_url ? (
+					<VStack space='sm'>
+						<Text
+							size='xs'
+							style={{
+								fontWeight: "600",
+								color: isDark
+									? Colors.dark.muted
+									: Colors.light.muted,
+								textTransform: "uppercase",
+								letterSpacing: 1,
+							}}>
+							Fichier joint
+						</Text>
+						<HStack
+							space='sm'
+							style={{
+								alignItems: "center",
+								padding: 12,
+								borderRadius: 10,
+								backgroundColor: isDark
+									? Colors.dark.elevated
+									: "#f3f4f6",
+							}}>
+							<Icon
+								as={
+									doc.document_url.endsWith(".pdf")
+										? FileText
+										: ImageIcon
+								}
+								size='sm'
+								style={{
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
+								}}
+							/>
+							<Text
+								size='sm'
+								numberOfLines={1}
+								style={{
+									flex: 1,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
+								}}>
+								{doc.document_url.split("/").pop()}
+							</Text>
+						</HStack>
+					</VStack>
+				) : null}
+
+				{/* Message si vérifié */}
+				{isVerified && (
+					<HStack
+						space='sm'
+						style={{
+							alignItems: "center",
+							padding: 12,
+							borderRadius: 10,
+							backgroundColor: isDark
+								? Colors.dark.success20
+								: Colors.light.success20,
+						}}>
+						<Icon
+							as={CheckCircle}
+							size='sm'
+							style={{
+								color: isDark
+									? Colors.dark.success
+									: Colors.light.success,
+							}}
+						/>
+						<Text
+							size='sm'
+							style={{
+								color: isDark
+									? Colors.dark.success
+									: Colors.light.success,
+								fontWeight: "600",
+								flex: 1,
+							}}>
+							Document vérifié — la modification n'est pas
+							disponible.
+						</Text>
+					</HStack>
+				)}
+
+				{/* Actions */}
+				<VStack space='md'>
+					{/* Supprimer */}
+					<Button
+						size='lg'
+						isDisabled={isArchiving}
+						onPress={() => handleArchive(doc)}
+						style={{
+							borderRadius: 12,
+							backgroundColor: isDark
+								? (Colors.dark.danger20 ?? "#3b0c0c")
+								: "#fef2f2",
+							borderWidth: 1,
+							borderColor: isDark
+								? Colors.dark.danger
+								: Colors.light.danger,
+						}}>
+						{isArchiving ? (
+							<ButtonText
+								style={{
+									color: isDark
+										? Colors.dark.danger
+										: Colors.light.danger,
+									fontWeight: "700",
+								}}>
+								Suppression…
+							</ButtonText>
+						) : (
+							<>
+								<ButtonIcon
+									as={X}
+									style={{
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
+									}}
+								/>
+								<ButtonText
+									style={{
+										color: isDark
+											? Colors.dark.danger
+											: Colors.light.danger,
+										fontWeight: "700",
+									}}>
+									Supprimer ce document
+								</ButtonText>
+							</>
+						)}
+					</Button>
+				</VStack>
 			</VStack>
 		);
 	};
@@ -1741,6 +2170,7 @@ const ProDocs = () => {
 			style={{ flex: 1 }}
 			behavior={Platform.OS === "ios" ? "padding" : "height"}>
 			<ScrollView
+				ref={scrollRef}
 				style={{
 					flex: 1,
 					backgroundColor: isDark
@@ -1751,6 +2181,7 @@ const ProDocs = () => {
 				showsVerticalScrollIndicator={false}>
 				<Box style={{ padding: 20, paddingBottom: 60 }}>
 					{step === "list" && renderList()}
+					{step === "detail" && renderDetail()}
 					{step === "category" && renderCategory()}
 					{step === "type" && renderType()}
 					{step === "upload" && renderUpload()}
