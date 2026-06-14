@@ -78,6 +78,9 @@ import {
 	MessagesSquare,
 	Mail,
 	Phone,
+	CheckCircle2,
+	Circle,
+	ChevronDown,
 } from "lucide-react-native";
 
 import { supabase } from "@/lib/supabase";
@@ -100,6 +103,309 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 const { SUPERADMIN_ID } = Constants.expoConfig.extra;
 
 import Logo from "@/components/Logo";
+
+const CandidateTodoList = ({ profile, router, isDark }) => {
+	const items = [
+		{
+			id: "avatar",
+			label: "Photo de profil",
+			done: !!profile?.avatar_url,
+			onPress: null,
+		},
+		{
+			id: "name",
+			label: "Prénom et nom",
+			done: !!(profile?.firstname && profile?.lastname),
+			onPress: () => router.push("/updateprofile"),
+		},
+		{
+			id: "phone",
+			label: "Numéro de téléphone",
+			done: !!profile?.phone,
+			onPress: () => router.push("/updateprofile"),
+		},
+		{
+			id: "birthday",
+			label: "Date de naissance",
+			done: !!profile?.birthday,
+			onPress: () => router.push("/updateprofile"),
+		},
+		{
+			id: "city",
+			label: "Ville / Localisation",
+			done: !!profile?.city,
+			onPress: () => router.push("/updateprofile"),
+		},
+		{
+			id: "signature",
+			label: "Signature",
+			done: !!profile?.signature_url,
+			onPress: () => router.push("/signature"),
+		},
+		{
+			id: "id_doc",
+			label: "Pièce d'identité",
+			done: ["pending", "verified"].includes(
+				profile?.id_verification_status,
+			),
+			onPress: () => router.push("/iddocumentverification"),
+		},
+		{
+			id: "social_security",
+			label: "N° de sécurité sociale",
+			done: ["pending", "verified"].includes(
+				profile?.social_security_verification_status,
+			),
+			onPress: () => router.push("/socialsecuritydocumentverification"),
+		},
+	];
+
+	const doneCount = items.filter((i) => i.done).length;
+	const progressPercent = Math.round((doneCount / items.length) * 100);
+	const allDone = doneCount === items.length;
+	const progressColor = allDone
+		? Colors.light.success
+		: isDark
+			? Colors.dark.warning
+			: Colors.light.warning;
+
+	const [isOpen, setIsOpen] = useState(false);
+	const animHeight = useRef(new Animated.Value(0)).current;
+	const animOpacity = useRef(new Animated.Value(0)).current;
+	const animRotate = useRef(new Animated.Value(0)).current;
+	const animProgress = useRef(new Animated.Value(0)).current;
+
+	useEffect(() => {
+		Animated.timing(animProgress, {
+			toValue: progressPercent,
+			duration: 600,
+			useNativeDriver: false,
+		}).start();
+	}, [progressPercent]);
+
+	const toggle = () => {
+		const opening = !isOpen;
+		setIsOpen(opening);
+		Animated.parallel([
+			Animated.timing(animHeight, {
+				toValue: opening ? 1 : 0,
+				duration: 300,
+				useNativeDriver: false,
+			}),
+			Animated.timing(animOpacity, {
+				toValue: opening ? 1 : 0,
+				duration: opening ? 280 : 180,
+				useNativeDriver: false,
+			}),
+			Animated.timing(animRotate, {
+				toValue: opening ? 1 : 0,
+				duration: 300,
+				useNativeDriver: true,
+			}),
+		]).start();
+	};
+
+	const maxHeight = animHeight.interpolate({
+		inputRange: [0, 1],
+		outputRange: [0, 600],
+	});
+
+	const rotateDeg = animRotate.interpolate({
+		inputRange: [0, 1],
+		outputRange: ["0deg", "180deg"],
+	});
+
+	const bg = isDark ? Colors.dark.background : Colors.light.background;
+	const textPrimary = isDark ? Colors.dark.text : Colors.light.text;
+	const textSecondary = isDark ? Colors.dark.muted : Colors.light.muted;
+
+	return (
+		<Card
+			style={{
+				padding: 16,
+				backgroundColor: bg,
+				borderRadius: 12,
+				borderWidth: 1,
+				borderColor: isDark
+					? Colors.dark.warning50
+					: Colors.light.warning50,
+			}}>
+			<VStack space='md'>
+				{/* Header cliquable */}
+				<TouchableOpacity onPress={toggle} activeOpacity={0.7}>
+					<HStack
+						style={{
+							alignItems: "center",
+							justifyContent: "space-between",
+						}}>
+						<VStack space='xs' style={{ flex: 1 }}>
+							<Text
+								size='md'
+								style={{
+									fontWeight: "700",
+									color: isDark
+										? Colors.dark.warning
+										: Colors.light.warning,
+								}}>
+								Complétez votre profil
+							</Text>
+							<Text
+								size='sm'
+								style={{
+									color: isDark
+										? Colors.dark.warning70
+										: Colors.light.warning70,
+								}}>
+								Ces informations sont requises pour activer
+								votre compte
+							</Text>
+						</VStack>
+						<Animated.View
+							style={{
+								marginLeft: 8,
+								transform: [{ rotate: rotateDeg }],
+							}}>
+							<Icon
+								as={ChevronDown}
+								size='md'
+								style={{
+									color: isDark
+										? Colors.dark.warning
+										: Colors.light.warning,
+								}}
+							/>
+						</Animated.View>
+					</HStack>
+				</TouchableOpacity>
+
+				{/* Progress bar — toujours visible */}
+				<VStack space='xs'>
+					<HStack
+						style={{
+							justifyContent: "space-between",
+							alignItems: "center",
+						}}>
+						<Text
+							size='xs'
+							style={{ color: textSecondary }}>
+							{doneCount}/{items.length} complétés
+						</Text>
+						<Text
+							size='xs'
+							style={{
+								fontWeight: "700",
+								color: progressColor,
+							}}>
+							{progressPercent}%
+						</Text>
+					</HStack>
+					<View
+						style={{
+							height: 6,
+							backgroundColor: isDark
+								? Colors.dark.warning20
+								: Colors.light.warning20,
+							borderRadius: 3,
+							overflow: "hidden",
+						}}>
+						<Animated.View
+							style={{
+								width: animProgress.interpolate({
+									inputRange: [0, 100],
+									outputRange: ["0%", "100%"],
+								}),
+								height: "100%",
+								backgroundColor: progressColor,
+								borderRadius: 3,
+							}}
+						/>
+					</View>
+				</VStack>
+
+				{/* Liste animée */}
+				<Animated.View
+					style={{
+						maxHeight,
+						opacity: animOpacity,
+						overflow: "hidden",
+					}}>
+					<VStack space='md'>
+						<Divider />
+						<VStack space='xs'>
+							{items.map((item, index) => (
+								<View key={item.id}>
+									<TouchableOpacity
+										onPress={item.onPress}
+										activeOpacity={item.onPress ? 0.7 : 1}
+										disabled={!item.onPress}>
+										<HStack
+											space='sm'
+											style={{
+												alignItems: "center",
+												paddingVertical: 7,
+											}}>
+											<Icon
+												as={
+													item.done
+														? CheckCircle2
+														: Circle
+												}
+												size='md'
+												style={{
+													color: item.done
+														? Colors.light.success
+														: isDark
+															? Colors.dark.muted
+															: "#9ca3af",
+												}}
+											/>
+											<Text
+												size='sm'
+												style={{
+													flex: 1,
+													textDecorationLine:
+														item.done
+															? "line-through"
+															: "none",
+													color: item.done
+														? isDark
+															? Colors.dark.muted
+															: "#9ca3af"
+														: textPrimary,
+												}}>
+												{item.label}
+											</Text>
+											{!item.done && item.onPress && (
+												<Icon
+													as={ChevronRight}
+													size='sm'
+													style={{
+														color: textSecondary,
+													}}
+												/>
+											)}
+										</HStack>
+									</TouchableOpacity>
+									{index < items.length - 1 && (
+										<View
+											style={{
+												height: 1,
+												backgroundColor: isDark
+													? Colors.dark.border
+													: "#f3f4f6",
+												marginLeft: 30,
+											}}
+										/>
+									)}
+								</View>
+							))}
+						</VStack>
+					</VStack>
+				</Animated.View>
+			</VStack>
+		</Card>
+	);
+};
 
 const AccountScreen = () => {
 	const { user, signOut, accessToken } = useAuth();
@@ -377,6 +683,20 @@ const AccountScreen = () => {
 						if (payload.new?.sender_id !== user?.id) {
 							fetchSupportUnreadCount();
 						}
+					},
+				)
+				.on(
+					"postgres_changes",
+					{
+						event: "UPDATE",
+						schema: "public",
+						table: "profiles",
+						filter: `id=eq.${user?.id}`,
+					},
+					(payload) => {
+						setProfile((prev) =>
+							prev ? { ...prev, ...payload.new } : prev,
+						);
 					},
 				)
 				.subscribe();
@@ -812,6 +1132,15 @@ const AccountScreen = () => {
 										)}
 									</VStack>
 								</Card>
+							)}
+
+							{/* Todo list complétion profil */}
+							{profile?.profile_status !== "verified" && (
+								<CandidateTodoList
+									profile={profile}
+									router={router}
+									isDark={isDark}
+								/>
 							)}
 
 							{/* Profile Header Card */}
