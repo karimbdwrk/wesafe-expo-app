@@ -65,6 +65,9 @@ import {
 	MessagesSquare,
 	Zap,
 	ShieldCheck,
+	CheckCircle2,
+	Circle,
+	ChevronDown,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -406,6 +409,362 @@ const DashboardScreen = () => {
 		</TouchableOpacity>
 	);
 
+	const CompletionTodoList = () => {
+		const updateParams = {
+			companyName: company?.name,
+			companySiret: company?.siret,
+			companyDescription: company?.description,
+		};
+
+		const items = [
+			{
+				id: "logo",
+				label: "Logo de l'entreprise",
+				done: !!image,
+				onPress: null,
+			},
+			{
+				id: "name",
+				label: "Nom de l'entreprise",
+				done: !!company?.name,
+				onPress: () =>
+					router.push({
+						pathname: "/updatecompany",
+						params: updateParams,
+					}),
+			},
+			{
+				id: "description",
+				label: "Description de l'entreprise",
+				done: !!company?.description,
+				onPress: () =>
+					router.push({
+						pathname: "/updatecompany",
+						params: updateParams,
+					}),
+			},
+			{
+				id: "address",
+				label: "Adresse complète",
+				done: !!(
+					company?.street &&
+					company?.postcode &&
+					company?.city
+				),
+				onPress: () =>
+					router.push({
+						pathname: "/updatecompany",
+						params: updateParams,
+					}),
+			},
+			{
+				id: "siret",
+				label: "Numéro SIRET",
+				done: !!company?.siret,
+				onPress: () =>
+					router.push({
+						pathname: "/updatecompany",
+						params: updateParams,
+					}),
+			},
+			{
+				id: "legal_rep",
+				label: "Représentant légal",
+				done: !!(
+					company?.legal_representative_firstname ||
+					company?.legal_representative_lastname
+				),
+				onPress: () =>
+					router.push({
+						pathname: "/updatecompany",
+						params: updateParams,
+					}),
+			},
+			{
+				id: "kbis",
+				label: "Document KBIS",
+				done: !!company?.kbis_url,
+				onPress: () =>
+					router.push({ pathname: "/kbisdocumentverification" }),
+			},
+			{
+				id: "signature",
+				label: "Signature de l'entreprise",
+				done: !!company?.signature_url,
+				onPress: () =>
+					router.push({
+						pathname: "/signature",
+						params: {
+							signatureUrl: company?.signature_url,
+							type: "companies",
+						},
+					}),
+			},
+			{
+				id: "stamp",
+				label: "Tampon de l'entreprise",
+				done: !!company?.stamp_url,
+				onPress: () =>
+					router.push({
+						pathname: "/stamp",
+						params: { companyName: company?.name },
+					}),
+			},
+		];
+
+		const doneCount = items.filter((i) => i.done).length;
+		const progressPercent = Math.round((doneCount / items.length) * 100);
+		const allDone = doneCount === items.length;
+		const progressColor = allDone
+			? Colors.light.success
+			: isDark
+				? Colors.dark.tint
+				: Colors.light.tint;
+
+		const [isOpen, setIsOpen] = useState(false);
+		const animHeight = useRef(new Animated.Value(0)).current;
+		const animOpacity = useRef(new Animated.Value(0)).current;
+		const animRotate = useRef(new Animated.Value(0)).current;
+
+		const toggle = () => {
+			const opening = !isOpen;
+			setIsOpen(opening);
+			Animated.parallel([
+				Animated.timing(animHeight, {
+					toValue: opening ? 1 : 0,
+					duration: 300,
+					useNativeDriver: false,
+				}),
+				Animated.timing(animOpacity, {
+					toValue: opening ? 1 : 0,
+					duration: opening ? 280 : 180,
+					useNativeDriver: false,
+				}),
+				Animated.timing(animRotate, {
+					toValue: opening ? 1 : 0,
+					duration: 300,
+					useNativeDriver: true,
+				}),
+			]).start();
+		};
+
+		const maxHeight = animHeight.interpolate({
+			inputRange: [0, 1],
+			outputRange: [0, 700],
+		});
+
+		const rotateDeg = animRotate.interpolate({
+			inputRange: [0, 1],
+			outputRange: ["0deg", "180deg"],
+		});
+
+		return (
+			<Card
+				style={{
+					padding: 16,
+					backgroundColor: isDark
+						? Colors.dark.cardBackground
+						: Colors.light.cardBackground,
+					borderRadius: 12,
+					borderWidth: 1,
+					borderColor: isDark
+						? Colors.dark.border
+						: Colors.light.border,
+				}}>
+				<VStack space='md'>
+					{/* Header cliquable */}
+					<TouchableOpacity onPress={toggle} activeOpacity={0.7}>
+						<HStack
+							style={{
+								alignItems: "center",
+								justifyContent: "space-between",
+							}}>
+							<VStack space='xs' style={{ flex: 1 }}>
+								<Text
+									size='md'
+									style={{
+										fontWeight: "700",
+										color: isDark
+											? Colors.dark.text
+											: Colors.light.text,
+									}}>
+									Complétez votre profil
+								</Text>
+								<Text
+									size='sm'
+									style={{
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
+									}}>
+									Ces informations sont requises pour activer
+									votre compte
+								</Text>
+							</VStack>
+							<Animated.View
+								style={{
+									marginLeft: 8,
+									transform: [{ rotate: rotateDeg }],
+								}}>
+								<Icon
+									as={ChevronDown}
+									size='md'
+									style={{
+										color: isDark
+											? Colors.dark.muted
+											: Colors.light.muted,
+									}}
+								/>
+							</Animated.View>
+						</HStack>
+					</TouchableOpacity>
+
+					{/* Progress bar — toujours visible */}
+					<VStack space='xs'>
+						<HStack
+							style={{
+								justifyContent: "space-between",
+								alignItems: "center",
+							}}>
+							<Text
+								size='xs'
+								style={{
+									color: isDark
+										? Colors.dark.muted
+										: Colors.light.muted,
+								}}>
+								{doneCount}/{items.length} complétés
+							</Text>
+							<Text
+								size='xs'
+								style={{
+									fontWeight: "700",
+									color: progressColor,
+								}}>
+								{progressPercent}%
+							</Text>
+						</HStack>
+						<View
+							style={{
+								height: 6,
+								backgroundColor: isDark
+									? Colors.dark.border
+									: "#e5e7eb",
+								borderRadius: 3,
+								overflow: "hidden",
+							}}>
+							<View
+								style={{
+									width: `${progressPercent}%`,
+									height: "100%",
+									backgroundColor: progressColor,
+									borderRadius: 3,
+								}}
+							/>
+						</View>
+					</VStack>
+
+					{/* Liste animée */}
+					<Animated.View
+						style={{
+							maxHeight,
+							opacity: animOpacity,
+							overflow: "hidden",
+						}}>
+						<VStack space='md'>
+							<Divider />
+							<VStack space='xs'>
+								{items.map((item, index) => (
+									<View key={item.id}>
+										<TouchableOpacity
+											onPress={item.onPress}
+											activeOpacity={
+												item.onPress ? 0.7 : 1
+											}
+											disabled={!item.onPress}>
+											<HStack
+												space='sm'
+												style={{
+													alignItems: "center",
+													paddingVertical: 7,
+												}}>
+												<Icon
+													as={
+														item.done
+															? CheckCircle2
+															: Circle
+													}
+													size='md'
+													style={{
+														color: item.done
+															? Colors.light
+																	.success
+															: isDark
+																? Colors.dark
+																		.muted
+																: "#9ca3af",
+													}}
+												/>
+												<Text
+													size='sm'
+													style={{
+														flex: 1,
+														textDecorationLine:
+															item.done
+																? "line-through"
+																: "none",
+														color: item.done
+															? isDark
+																? Colors.dark
+																		.muted
+																: "#9ca3af"
+															: isDark
+																? Colors.dark
+																		.text
+																: Colors.light
+																		.text,
+													}}>
+													{item.label}
+												</Text>
+												{!item.done &&
+													item.onPress && (
+														<Icon
+															as={ChevronRight}
+															size='sm'
+															style={{
+																color: isDark
+																	? Colors
+																			.dark
+																			.muted
+																	: Colors
+																			.light
+																			.muted,
+															}}
+														/>
+													)}
+											</HStack>
+										</TouchableOpacity>
+										{index < items.length - 1 && (
+											<View
+												style={{
+													height: 1,
+													backgroundColor: isDark
+														? Colors.dark.border
+														: "#f3f4f6",
+													marginLeft: 30,
+												}}
+											/>
+										)}
+									</View>
+								))}
+							</VStack>
+						</VStack>
+					</Animated.View>
+				</VStack>
+			</Card>
+		);
+	};
+
 	return (
 		<>
 			<Stack.Screen
@@ -682,6 +1041,11 @@ const DashboardScreen = () => {
 										)}
 									</VStack>
 								</Card>
+							)}
+
+							{/* Todo list complétion profil */}
+							{company?.company_status !== "active" && (
+								<CompletionTodoList />
 							)}
 
 							{/* Company Info Card */}
