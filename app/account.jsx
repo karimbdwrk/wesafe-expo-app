@@ -104,7 +104,7 @@ const { SUPERADMIN_ID } = Constants.expoConfig.extra;
 
 import Logo from "@/components/Logo";
 
-const CandidateTodoList = ({ profile, router, isDark }) => {
+const CandidateTodoList = ({ profile, router, isDark, hasProDoc }) => {
 	const items = [
 		{
 			id: "avatar",
@@ -157,6 +157,12 @@ const CandidateTodoList = ({ profile, router, isDark }) => {
 				profile?.social_security_verification_status,
 			),
 			onPress: () => router.push("/socialsecuritydocumentverification"),
+		},
+		{
+			id: "pro_doc",
+			label: "Diplôme ou carte CNAPS",
+			done: !!hasProDoc,
+			onPress: () => router.push("/prodocs"),
 		},
 	];
 
@@ -1140,6 +1146,10 @@ const AccountScreen = () => {
 									profile={profile}
 									router={router}
 									isDark={isDark}
+									hasProDoc={
+										verifiedDocs.cnaps.length > 0 ||
+										verifiedDocs.diplomas.length > 0
+									}
 								/>
 							)}
 
