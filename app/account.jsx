@@ -524,6 +524,7 @@ const AccountScreen = () => {
 		diplomas: [],
 		certifications: [],
 	});
+	const [hasSubmittedProDoc, setHasSubmittedProDoc] = useState(false);
 
 	const [qrToken, setQrToken] = useState(null);
 	const [qrProgress, setQrProgress] = useState(1); // 1 = plein, 0 = vide
@@ -631,36 +632,59 @@ const AccountScreen = () => {
 		try {
 			const supabase = createSupabaseClient(accessToken);
 			const now = new Date().toISOString();
-			const [profileData, procardsData, cnaps, diplomas, certifications] =
-				await Promise.all([
-					getById("profiles", user.id, `*`),
-					getAll(
-						"procards",
-						"*",
-						`&profile_id=eq.${user.id}&isDeleted=eq.false`,
-						1,
-						100,
-						"created_at.desc",
-					),
-					supabase
-						.from("user_cnaps_cards")
-						.select("*")
-						.eq("user_id", user.id)
-						.eq("status", "verified")
-						.or(`expires_at.is.null,expires_at.gt.${now}`),
-					supabase
-						.from("user_diplomas")
-						.select("*")
-						.eq("user_id", user.id)
-						.eq("status", "verified")
-						.or(`expires_at.is.null,expires_at.gt.${now}`),
-					supabase
-						.from("user_certifications")
-						.select("*")
-						.eq("user_id", user.id)
-						.eq("status", "verified")
-						.or(`expires_at.is.null,expires_at.gt.${now}`),
-				]);
+			const [
+				profileData,
+				procardsData,
+				cnaps,
+				diplomas,
+				certifications,
+				cnapsAny,
+				diplomasAny,
+				certsAny,
+			] = await Promise.all([
+				getById("profiles", user.id, `*`),
+				getAll(
+					"procards",
+					"*",
+					`&profile_id=eq.${user.id}&isDeleted=eq.false`,
+					1,
+					100,
+					"created_at.desc",
+				),
+				supabase
+					.from("user_cnaps_cards")
+					.select("*")
+					.eq("user_id", user.id)
+					.eq("status", "verified")
+					.or(`expires_at.is.null,expires_at.gt.${now}`),
+				supabase
+					.from("user_diplomas")
+					.select("*")
+					.eq("user_id", user.id)
+					.eq("status", "verified")
+					.or(`expires_at.is.null,expires_at.gt.${now}`),
+				supabase
+					.from("user_certifications")
+					.select("*")
+					.eq("user_id", user.id)
+					.eq("status", "verified")
+					.or(`expires_at.is.null,expires_at.gt.${now}`),
+				supabase
+					.from("user_cnaps_cards")
+					.select("id", { count: "exact", head: true })
+					.eq("user_id", user.id)
+					.in("status", ["pending", "verified"]),
+				supabase
+					.from("user_diplomas")
+					.select("id", { count: "exact", head: true })
+					.eq("user_id", user.id)
+					.in("status", ["pending", "verified"]),
+				supabase
+					.from("user_certifications")
+					.select("id", { count: "exact", head: true })
+					.eq("user_id", user.id)
+					.in("status", ["pending", "verified"]),
+			]);
 			setProfile(profileData);
 			setProcards(procardsData?.data || []);
 			setVerifiedDocs({
@@ -668,6 +692,11 @@ const AccountScreen = () => {
 				diplomas: diplomas.data || [],
 				certifications: certifications.data || [],
 			});
+			setHasSubmittedProDoc(
+				(cnapsAny.count ?? 0) > 0 ||
+					(diplomasAny.count ?? 0) > 0 ||
+					(certsAny.count ?? 0) > 0,
+			);
 		} catch (error) {
 			console.error("Erreur chargement account:", error);
 		} finally {
@@ -1168,10 +1197,7 @@ const AccountScreen = () => {
 									profile={profile}
 									router={router}
 									isDark={isDark}
-									hasProDoc={
-										verifiedDocs.cnaps.length > 0 ||
-										verifiedDocs.diplomas.length > 0
-									}
+									hasProDoc={hasSubmittedProDoc}
 								/>
 							)}
 
