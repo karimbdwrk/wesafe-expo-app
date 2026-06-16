@@ -89,6 +89,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
+import { languages as LANGUAGES } from "@/constants/languages";
 import { useNotifications } from "@/context/NotificationsContext";
 import { useImage } from "@/context/ImageContext";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -101,6 +102,27 @@ import {
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const { SUPERADMIN_ID } = Constants.expoConfig.extra;
+
+const resolveLanguageNames = (raw) => {
+	try {
+		let codes = Array.isArray(raw) ? raw : JSON.parse(raw);
+		if (!Array.isArray(codes)) codes = [codes];
+		return codes
+			.flatMap((item) =>
+				typeof item === "string" && item.startsWith("[")
+					? JSON.parse(item)
+					: item,
+			)
+			.map(
+				(code) =>
+					LANGUAGES.find((l) => l.code === String(code))?.name ??
+					String(code),
+			)
+			.join(", ");
+	} catch {
+		return String(raw);
+	}
+};
 
 import Logo from "@/components/Logo";
 
@@ -1578,25 +1600,12 @@ const AccountScreen = () => {
 														Permis{" "}
 														{(() => {
 															try {
-																const v =
-																	Array.isArray(
-																		profile.driving_licenses,
-																	)
-																		? profile.driving_licenses
-																		: JSON.parse(
-																				profile.driving_licenses,
-																			);
-																return Array.isArray(
-																	v,
-																)
-																	? v.join(
-																			", ",
-																		)
-																	: String(v);
+																const v = Array.isArray(profile.driving_licenses)
+																	? profile.driving_licenses
+																	: JSON.parse(profile.driving_licenses);
+																return Array.isArray(v) ? v.join(", ") : String(v);
 															} catch {
-																return String(
-																	profile.driving_licenses,
-																);
+																return String(profile.driving_licenses);
 															}
 														})()}
 													</Text>
@@ -1622,29 +1631,7 @@ const AccountScreen = () => {
 														style={{
 															color: textPrimary,
 														}}>
-														{(() => {
-															try {
-																const v =
-																	Array.isArray(
-																		profile.languages,
-																	)
-																		? profile.languages
-																		: JSON.parse(
-																				profile.languages,
-																			);
-																return Array.isArray(
-																	v,
-																)
-																	? v.join(
-																			", ",
-																		)
-																	: String(v);
-															} catch {
-																return String(
-																	profile.languages,
-																);
-															}
-														})()}
+														{resolveLanguageNames(profile.languages)}
 													</Text>
 												</HStack>
 											)}
