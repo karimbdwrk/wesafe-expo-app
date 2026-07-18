@@ -19,6 +19,7 @@ import {
 	Shield,
 	CreditCard,
 	FileText,
+	QrCode,
 } from "lucide-react-native";
 
 import { useTheme } from "@/context/ThemeContext";
@@ -52,112 +53,180 @@ const FAQProScreen = () => {
 	const faqData = [
 		{
 			id: 1,
-			category: "Compte",
+			category: "Compte entreprise",
 			icon: User,
 			questions: [
 				{
 					id: "account-1",
-					question: "Comment créer un compte ?",
-					answer: "Pour créer un compte, cliquez sur 'Inscription' sur l'écran de connexion. Remplissez vos informations personnelles (nom, prénom, email, mot de passe) et validez. Vous recevrez un email de confirmation pour activer votre compte.",
+					question: "Comment créer un compte entreprise ?",
+					answer: "Téléchargez WeSafe et touchez 'Inscription'. Créez votre compte avec votre email professionnel, puis renseignez les informations de votre entreprise. Votre dossier devra être complété et validé par notre équipe avant de pouvoir publier des offres.",
 				},
 				{
 					id: "account-2",
 					question: "J'ai oublié mon mot de passe, que faire ?",
-					answer: "Sur l'écran de connexion, cliquez sur 'Mot de passe oublié'. Entrez votre adresse email et vous recevrez un lien pour réinitialiser votre mot de passe. Le lien est valable 24 heures.",
+					answer: "Depuis l'écran de connexion, touchez 'Mot de passe oublié'. Saisissez votre adresse email et vous recevrez un lien pour créer un nouveau mot de passe.",
 				},
 				{
 					id: "account-3",
-					question:
-						"Comment modifier mes informations personnelles ?",
-					answer: "Accédez à votre profil, puis cliquez sur 'Informations personnelles'. Vous pourrez modifier votre nom, prénom, adresse, numéro de téléphone et autres informations. N'oubliez pas de sauvegarder vos modifications.",
+					question: "Comment modifier les informations de mon entreprise ?",
+					answer: "Depuis votre tableau de bord, accédez aux paramètres de votre entreprise. Vous pouvez y modifier le nom, la description, l'adresse, le numéro SIRET, le représentant légal et le logo.",
+				},
+				{
+					id: "account-4",
+					question: "Qu'est-ce que le statut 'Entreprise active' ?",
+					answer: "Avant de pouvoir publier des offres, WeSafe vérifie votre dossier d'entreprise. Une fois tous les documents soumis et validés (KBIS, SIRET, signature, tampon…), votre compte passe au statut 'Actif'. Ce processus prend généralement entre 24 et 48 heures ouvrées.",
 				},
 			],
 		},
 		{
 			id: 2,
-			category: "Candidatures",
-			icon: Briefcase,
+			category: "Dossier entreprise",
+			icon: Shield,
 			questions: [
 				{
-					id: "jobs-1",
-					question: "Comment postuler à une offre ?",
-					answer: "Recherchez une offre qui vous intéresse, cliquez dessus pour voir les détails, puis cliquez sur 'Postuler'. Assurez-vous que votre profil est complet et que vos documents sont à jour avant de postuler.",
+					id: "docs-1",
+					question: "Quels éléments sont nécessaires pour activer mon compte ?",
+					answer: "Pour obtenir le statut 'Actif', vous devez renseigner : le logo, le nom, la description, l'adresse complète, le numéro SIRET, le nom du représentant légal, et fournir votre document KBIS, une signature d'entreprise et un tampon.",
 				},
 				{
-					id: "jobs-2",
-					question: "Puis-je annuler une candidature ?",
-					answer: "Oui, accédez à 'Mes candidatures' depuis votre profil. Trouvez la candidature que vous souhaitez annuler et cliquez sur 'Annuler la candidature'. Attention, cette action est irréversible.",
+					id: "docs-2",
+					question: "Comment ajouter mon document KBIS ?",
+					answer: "Depuis votre tableau de bord, touchez 'Document KBIS'. Téléchargez une photo ou un PDF lisible de votre extrait KBIS (de moins de 3 mois). Il sera examiné par notre équipe sous 48h ouvrées.",
 				},
 				{
-					id: "jobs-3",
-					question: "Comment suivre l'état de mes candidatures ?",
-					answer: "Dans la section 'Mes candidatures', vous pouvez voir toutes vos candidatures avec leur statut : En attente, Acceptée, Refusée, ou En cours. Vous recevrez également des notifications pour chaque changement de statut.",
+					id: "docs-3",
+					question: "Comment créer la signature et le tampon de mon entreprise ?",
+					answer: "Depuis votre tableau de bord, accédez respectivement à 'Signature' et 'Tampon'. La signature se dessine directement à l'écran. Le tampon peut être importé sous forme d'image. Ces éléments seront apposés automatiquement sur les contrats générés dans l'application.",
+				},
+				{
+					id: "docs-4",
+					question: "Combien de temps prend la vérification du dossier ?",
+					answer: "La vérification prend généralement entre 24 et 48 heures ouvrées. Vous recevrez une notification dès que votre dossier est validé ou si une correction est nécessaire.",
 				},
 			],
 		},
 		{
 			id: 3,
-			category: "Documents professionnels",
-			icon: Shield,
+			category: "Offres d'emploi",
+			icon: Briefcase,
 			questions: [
 				{
-					id: "docs-1",
-					question: "Quels documents dois-je fournir ?",
-					answer: "Vous devez fournir : votre carte professionnelle de sécurité (obligatoire), votre pièce d'identité, votre carte vitale, et tout diplôme ou certification pertinent (SSIAP, CQP, etc.). Ces documents doivent être valides et lisibles.",
+					id: "jobs-1",
+					question: "Comment publier une offre d'emploi ?",
+					answer: "Depuis votre tableau de bord, touchez 'Nouvelle offre'. Renseignez le titre du poste, la catégorie, la localisation, le type de contrat et les détails de la mission. L'offre sera visible par les candidats vérifiés dès sa publication.",
 				},
 				{
-					id: "docs-2",
-					question: "Comment ajouter ma carte professionnelle ?",
-					answer: "Allez dans 'Documents professionnels', cliquez sur 'Ajouter une carte', puis scannez ou téléchargez votre carte professionnelle. Remplissez les informations demandées (numéro, date de validité, catégorie). Le document sera vérifié par nos équipes.",
+					id: "jobs-2",
+					question: "Combien d'offres puis-je publier ?",
+					answer: "Cela dépend de votre plan : Standard (gratuit) permet 3 offres par mois, Standard+ permet 10 offres par mois, et Premium offre des annonces illimitées. Pour changer de plan, rendez-vous sur wesafeapp.fr.",
 				},
 				{
-					id: "docs-3",
-					question: "Combien de temps prend la vérification ?",
-					answer: "La vérification de vos documents prend généralement entre 24 et 48 heures ouvrées. Vous recevrez une notification dès que vos documents sont validés ou si des informations complémentaires sont nécessaires.",
+					id: "jobs-3",
+					question: "Comment fonctionne une annonce Last Minute ?",
+					answer: "Les annonces Last Minute sont des missions urgentes mises en avant pour une visibilité maximale. Chaque publication consomme 1 crédit Last Minute. Les crédits s'achètent en pack sur wesafeapp.fr (pack de 10 crédits à 30€, soit 3€ l'annonce).",
+				},
+				{
+					id: "jobs-4",
+					question: "Mes offres sont-elles mises en avant ?",
+					answer: "Oui, les plans Standard+ et Premium incluent le statut 'Annonce prioritaire' qui améliore la visibilité de vos offres dans les résultats. Le plan Standard ne bénéficie pas de cette mise en avant.",
 				},
 			],
 		},
 		{
 			id: 4,
-			category: "Paiements",
-			icon: CreditCard,
+			category: "Candidatures & Contrats",
+			icon: FileText,
 			questions: [
 				{
-					id: "payment-1",
-					question: "Comment fonctionne l'abonnement ?",
-					answer: "L'abonnement vous donne accès à toutes les fonctionnalités premium de l'application. Vous pouvez choisir entre un abonnement mensuel ou annuel. Le paiement est automatiquement renouvelé sauf si vous résiliez avant la date de renouvellement.",
+					id: "apply-1",
+					question: "Comment gérer les candidatures reçues ?",
+					answer: "Depuis l'onglet Candidatures, retrouvez toutes les candidatures classées par offre, avec le statut de chaque profil en temps réel. Vous pouvez sélectionner un candidat, refuser une candidature ou passer à l'étape suivante directement depuis l'application.",
 				},
 				{
-					id: "payment-2",
-					question: "Puis-je annuler mon abonnement ?",
-					answer: "Oui, vous pouvez annuler votre abonnement à tout moment depuis les paramètres. L'annulation prendra effet à la fin de la période en cours. Vous conserverez l'accès aux fonctionnalités premium jusqu'à cette date.",
+					id: "apply-2",
+					question: "Quelles sont les étapes d'une candidature ?",
+					answer: "Le processus se déroule ainsi : En attente → Profil sélectionné → Contrat envoyé → Contrat signé → Mission confirmée. Le candidat est notifié à chaque étape. Vous pouvez également refuser une candidature à tout moment.",
 				},
 				{
-					id: "payment-3",
-					question: "Quels moyens de paiement sont acceptés ?",
-					answer: "Nous acceptons les cartes bancaires (Visa, Mastercard, American Express) et Apple Pay / Google Pay. Tous les paiements sont sécurisés via notre plateforme de paiement certifiée.",
+					id: "apply-3",
+					question: "Comment générer et envoyer un contrat ?",
+					answer: "Une fois un profil sélectionné, touchez 'Générer un contrat' dans la candidature. Le contrat est créé automatiquement avec les informations de la mission et de l'entreprise (signature + tampon inclus). Il est ensuite envoyé au candidat pour signature électronique.",
+				},
+				{
+					id: "apply-4",
+					question: "Comment communiquer avec un candidat ?",
+					answer: "La messagerie interne est disponible sur les plans Standard+ et Premium. Elle vous permet d'échanger directement avec les candidats dans le cadre de leurs candidatures. Vous pouvez également contacter l'équipe de support WeSafe via la messagerie dédiée.",
 				},
 			],
 		},
 		{
 			id: 5,
+			category: "Abonnements & Crédits",
+			icon: CreditCard,
+			questions: [
+				{
+					id: "sub-1",
+					question: "Quels sont les plans disponibles ?",
+					answer: "WeSafe propose 3 plans : Standard (gratuit, 3 offres/mois), Standard+ (19€/mois ou 199€/an, 10 offres/mois + messagerie + annonces prioritaires + répertoire candidats) et Premium (25€/mois ou 249€/an, offres illimitées + toutes les fonctionnalités).",
+				},
+				{
+					id: "sub-2",
+					question: "Comment souscrire ou changer de plan ?",
+					answer: "Les abonnements se gèrent exclusivement sur wesafeapp.fr. Depuis l'application, touchez 'Abonnement' dans votre tableau de bord pour être redirigé vers le site. Vous pouvez passer à un plan supérieur ou inférieur à tout moment.",
+				},
+				{
+					id: "sub-3",
+					question: "Comment résilier mon abonnement ?",
+					answer: "La résiliation se fait sur wesafeapp.fr depuis votre espace client. Elle prend effet à la fin de la période en cours. Vous conservez l'accès aux fonctionnalités de votre plan jusqu'à cette date, puis passez automatiquement au plan Standard gratuit.",
+				},
+				{
+					id: "sub-4",
+					question: "Comment acheter des crédits Last Minute ?",
+					answer: "Les crédits Last Minute s'achètent sur wesafeapp.fr. Le pack de 10 crédits est à 30€ (3€ par annonce, au lieu de 5€ à l'unité). Vos crédits disponibles sont affichés en temps réel dans la section Crédits de votre tableau de bord.",
+				},
+			],
+		},
+		{
+			id: 6,
+			category: "Scanner & Répertoire",
+			icon: QrCode,
+			questions: [
+				{
+					id: "qr-1",
+					question: "À quoi sert le scanner QR ?",
+					answer: "Le scanner vous permet de consulter instantanément le profil WeSafe vérifié d'un candidat en scannant son QR code personnel. Vous accédez directement à son dossier complet (documents, certifications, expériences) sans avoir à le rechercher manuellement.",
+				},
+				{
+					id: "qr-2",
+					question: "Comment scanner un candidat ?",
+					answer: "Depuis votre tableau de bord, touchez l'icône Scanner. Pointez l'appareil photo vers le QR code affiché par le candidat sur son application WeSafe. Le profil s'ouvre automatiquement.",
+				},
+				{
+					id: "qr-3",
+					question: "Qu'est-ce que le répertoire candidats ?",
+					answer: "Le répertoire candidats (disponible sur les plans Standard+ et Premium) regroupe tous les profils que vous avez scannés. Il vous permet de retrouver rapidement un candidat rencontré, de consulter son dossier et de lui proposer une mission.",
+				},
+			],
+		},
+		{
+			id: 7,
 			category: "Assistance",
 			icon: HelpCircle,
 			questions: [
 				{
 					id: "support-1",
 					question: "Comment contacter le support ?",
-					answer: "Vous pouvez nous contacter via la section 'Contact' dans les paramètres, par email à support@wesafe.fr, ou directement depuis l'application via le chat en direct. Notre équipe vous répond sous 24h.",
+					answer: "Vous pouvez nous contacter par email à contact@wesafeapp.fr ou depuis la section Contact dans les paramètres de l'application. Les abonnés Standard+ et Premium bénéficient d'un support prioritaire via la messagerie intégrée.",
 				},
 				{
 					id: "support-2",
-					question: "L'application ne fonctionne pas correctement",
-					answer: "Essayez d'abord de redémarrer l'application. Si le problème persiste, vérifiez que vous avez la dernière version installée. Vous pouvez également vider le cache dans les paramètres. Si rien ne fonctionne, contactez le support avec une description détaillée du problème.",
+					question: "Mon compte n'est pas encore activé, que faire ?",
+					answer: "Vérifiez que tous les éléments de votre dossier sont bien renseignés et soumis depuis votre tableau de bord. La validation prend entre 24 et 48h ouvrées. Si le délai est dépassé, contactez-nous à contact@wesafeapp.fr.",
 				},
 				{
 					id: "support-3",
-					question: "Comment signaler un problème avec une offre ?",
-					answer: "Sur la page de l'offre, cliquez sur les trois points en haut à droite et sélectionnez 'Signaler'. Décrivez le problème rencontré (offre frauduleuse, informations incorrectes, etc.). Nous traiterons votre signalement dans les plus brefs délais.",
+					question: "L'application ne fonctionne pas correctement, que faire ?",
+					answer: "Commencez par forcer la fermeture et relancer l'application. Si le problème persiste, vérifiez que vous disposez de la dernière version sur l'App Store ou Google Play. En dernier recours, décrivez le problème à contact@wesafeapp.fr.",
 				},
 			],
 		},
@@ -317,8 +386,7 @@ const FAQProScreen = () => {
 									fontSize: 14,
 									color: textMuted,
 								}}>
-								Notre équipe de support est là pour vous aider.
-								Contactez-nous directement depuis l'application.
+								Notre équipe est disponible à contact@wesafeapp.fr ou depuis la section Contact dans les paramètres. Les abonnés Standard+ et Premium bénéficient d'un support prioritaire.
 							</Text>
 						</VStack>
 					</Card>
