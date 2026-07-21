@@ -3,6 +3,8 @@ import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import { useRouter } from "expo-router";
 import axios from "axios";
+import { trackAuthActivity } from "../utils/trackAuthActivity";
+import { SIGN_IN, SIGN_UP } from "../utils/activityEvents";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
@@ -125,6 +127,8 @@ export const AuthProvider = ({ children }) => {
 			await saveSession(data);
 
 			await loadUserData(data.user.id, data.access_token);
+
+			trackAuthActivity(data.user.id, data.access_token, SIGN_IN);
 		} catch (err) {
 			console.error(
 				"Erreur connexion:",
@@ -166,6 +170,8 @@ export const AuthProvider = ({ children }) => {
 			await saveSession(data);
 
 			await loadUserData(data.user.id, data.access_token);
+
+			trackAuthActivity(data.user.id, data.access_token, SIGN_UP);
 
 			// if (isCompanyFlag) {
 			// 	router.replace("/createcompany");
