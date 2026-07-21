@@ -44,6 +44,10 @@ import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 import { createSupabaseClient } from "@/lib/supabase";
+import {
+	SELECT_SUBSCRIPTION_PLAN,
+	CANCEL_SUBSCRIPTION,
+} from "@/utils/activityEvents";
 
 const {
 	WEBSITE_URL = "https://wesafe-dashboard-gxat3vt1m-infowesafeapp-8042s-projects.vercel.app",
@@ -118,7 +122,7 @@ const SubscriptionScreen = () => {
 	const { accessToken, userCompany, user, checkSubscription, refreshUser } =
 		useAuth();
 	const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
-	const { getAll } = useDataContext();
+	const { getAll, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const router = useRouter();
 	const toast = useToast();
@@ -177,6 +181,10 @@ const SubscriptionScreen = () => {
 
 	const handleCancel = async () => {
 		if (!activeSub?.stripe_subscription_id) return;
+		trackActivity(CANCEL_SUBSCRIPTION, {
+			plan: userCompany?.subscription_status,
+			interval: activeSub?.interval,
+		});
 		setCancelLoading(true);
 		try {
 			await axios.post(
@@ -797,11 +805,21 @@ const SubscriptionScreen = () => {
 									{/* CTA */}
 									{!isCurrent && plan.key !== "standard" && (
 										<TouchableOpacity
-											onPress={() =>
+											onPress={() => {
+												trackActivity(
+													SELECT_SUBSCRIPTION_PLAN,
+													{
+														plan: plan.key,
+														interval,
+														action: isUpgrade
+															? "upgrade"
+															: "select",
+													},
+												);
 												openWebsite(
 													"/dashboard/billing",
-												)
-											}
+												);
+											}}
 											activeOpacity={0.8}
 											style={{
 												marginTop: 12,
