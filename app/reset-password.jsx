@@ -24,6 +24,8 @@ import { EyeIcon, EyeOffIcon } from "@/components/ui/icon";
 import { ChevronLeft } from "lucide-react-native";
 
 import { useTheme } from "@/context/ThemeContext";
+import { trackAuthActivity } from "@/utils/trackAuthActivity";
+import { PASSWORD_RESET_COMPLETED } from "@/utils/activityEvents";
 
 const { SUPABASE_URL, SUPABASE_API_KEY } = Constants.expoConfig.extra;
 
@@ -106,6 +108,25 @@ export default function ResetPassword() {
 				},
 			);
 			setDone(true);
+
+			try {
+				const { data: userData } = await axios.get(
+					`${SUPABASE_URL}/auth/v1/user`,
+					{
+						headers: {
+							apikey: SUPABASE_API_KEY,
+							Authorization: `Bearer ${accessToken}`,
+						},
+					},
+				);
+				trackAuthActivity(
+					userData?.id,
+					accessToken,
+					PASSWORD_RESET_COMPLETED,
+				);
+			} catch (e) {
+				// Silencieux : l'activité est non-critique
+			}
 		} catch (e) {
 			Alert.alert(
 				"Erreur",
