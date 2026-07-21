@@ -63,6 +63,7 @@ export const STAMP_PICK_DOCUMENT = "stamp_pick_document";
 // ─── Abonnement & Crédits ─────────────────────────────────────────────────────
 export const SELECT_SUBSCRIPTION_PLAN = "select_subscription_plan";
 export const BUY_CREDITS = "buy_credits";
+export const CREDITS_RECEIVED = "credits_received";
 export const CANCEL_SUBSCRIPTION = "cancel_subscription";
 
 // ─── Paramètres ───────────────────────────────────────────────────────────────
