@@ -1,5 +1,8 @@
 // ─── Authentification ─────────────────────────────────────────────────────────
 export const SIGN_OUT = "sign_out";
+export const SIGN_IN = "sign_in";
+export const SIGN_UP = "sign_up";
+export const PASSWORD_RESET_COMPLETED = "password_reset_completed";
 
 // ─── Onboarding ───────────────────────────────────────────────────────────────
 export const CREATE_PROFILE = "create_profile";
