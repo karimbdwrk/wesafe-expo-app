@@ -8,6 +8,7 @@ import Colors from "@/constants/Colors";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
 import { createSupabaseClient } from "@/lib/supabase";
+import { BUY_CREDITS, CREDITS_RECEIVED } from "@/utils/activityEvents";
 
 import { Box } from "@/components/ui/box";
 import { VStack } from "@/components/ui/vstack";
@@ -32,7 +33,7 @@ const { WEBSITE_URL = "https://wesafe-dashboard-gxat3vt1m-infowesafeapp-8042s-pr
 
 const BuyCreditsScreen = () => {
 	const { user, userCompany, accessToken } = useAuth();
-	const { getById } = useDataContext();
+	const { getById, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 	const router = useRouter();
 	const toast = useToast();
@@ -92,9 +93,18 @@ const BuyCreditsScreen = () => {
 						filter: `id=eq.${user.id}`,
 					},
 					(payload) => {
-						if (payload.new?.last_minute_credits !== undefined) {
-							setCredits(payload.new.last_minute_credits);
-						}
+						const newCredits = payload.new?.last_minute_credits;
+						if (newCredits === undefined) return;
+						setCredits((prev) => {
+							if (newCredits > prev) {
+								trackActivity(CREDITS_RECEIVED, {
+									previous_credits: prev,
+									new_credits: newCredits,
+									delta: newCredits - prev,
+								});
+							}
+							return newCredits;
+						});
 					},
 				)
 				.subscribe();
@@ -105,7 +115,8 @@ const BuyCreditsScreen = () => {
 		}, [user?.id, accessToken]),
 	);
 
-	const openWebsite = async () => {
+	const openWebsite = async (source = "banner") => {
+		trackActivity(BUY_CREDITS, { source });
 		const refreshToken = await SecureStore.getItemAsync("refresh_token");
 		const base = `${WEBSITE_URL}/dashboard/billing`;
 		if (accessToken && refreshToken) {
@@ -176,7 +187,7 @@ const BuyCreditsScreen = () => {
 
 				{/* Website redirect banner */}
 				<TouchableOpacity
-					onPress={openWebsite}
+					onPress={() => openWebsite("banner")}
 					activeOpacity={0.8}
 					style={{
 						borderRadius: 14,
@@ -267,7 +278,7 @@ const BuyCreditsScreen = () => {
 						</Box>
 
 						<TouchableOpacity
-							onPress={openWebsite}
+							onPress={() => openWebsite("pack_10_credits")}
 							activeOpacity={0.8}
 							style={{
 								backgroundColor: warning,
