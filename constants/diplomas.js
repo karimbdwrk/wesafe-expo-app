@@ -21,18 +21,18 @@ export const DIPLOMAS = {
 	},
 
 	tfp_video: {
-		acronym: "TFP OVS",
-		name: "Titre Opérateur en Vidéoprotection",
+		acronym: "TFP OVT",
+		name: "Titre Opérateur en Vidéoprotection et Télésurveillance",
 		category: "videoprotection",
 		validity_years: null,
 	},
 
-	tfp_ats: {
-		acronym: "TFP ATS",
-		name: "Titre Agent de Télésurveillance",
-		category: "videoprotection",
-		validity_years: null,
-	},
+	// tfp_ats: {
+	// 	acronym: "TFP ATS",
+	// 	name: "Titre Agent de Télésurveillance",
+	// 	category: "videoprotection",
+	// 	validity_years: null,
+	// },
 
 	ssiap_1: {
 		acronym: "SSIAP 1",

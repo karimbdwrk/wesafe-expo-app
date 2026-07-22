@@ -6,33 +6,33 @@ export const JOB_REQUIREMENTS = {
 		driving_licenses: [],
 	},
 
-	ads_magasin: {
-		cnaps: ["SURV"],
-		diplomas: ["TFP_APS"],
-		certifications: ["SST"],
-		driving_licenses: [],
-	},
+	// ads_magasin: {
+	// 	cnaps: ["SURV"],
+	// 	diplomas: ["TFP_APS"],
+	// 	certifications: ["SST"],
+	// 	driving_licenses: [],
+	// },
 
-	ads_ronde: {
-		cnaps: ["SURV"],
-		diplomas: ["TFP_APS"],
-		certifications: ["SST"],
-		driving_licenses: ["B"],
-	},
+	// ads_ronde: {
+	// 	cnaps: ["SURV"],
+	// 	diplomas: ["TFP_APS"],
+	// 	certifications: ["SST"],
+	// 	driving_licenses: ["B"],
+	// },
 
-	agent_mobile: {
-		cnaps: ["SURV"],
-		diplomas: ["TFP_APS"],
-		certifications: ["SST"],
-		driving_licenses: ["B"],
-	},
+	// agent_mobile: {
+	// 	cnaps: ["SURV"],
+	// 	diplomas: ["TFP_APS"],
+	// 	certifications: ["SST"],
+	// 	driving_licenses: ["B"],
+	// },
 
-	agent_evenementiel: {
-		cnaps: ["SURV"],
-		diplomas: ["TFP_APS"],
-		certifications: ["PALPATION", "SST"],
-		driving_licenses: [],
-	},
+	// agent_evenementiel: {
+	// 	cnaps: ["SURV"],
+	// 	diplomas: ["TFP_APS"],
+	// 	certifications: ["PALPATION", "SST"],
+	// 	driving_licenses: [],
+	// },
 
 	ssiap_1: {
 		cnaps: [],
@@ -71,17 +71,17 @@ export const JOB_REQUIREMENTS = {
 
 	operateur_videoprotection: {
 		cnaps: ["VIDEO"],
-		diplomas: ["TFP_OVS"],
+		diplomas: ["TFP_OVT"],
 		certifications: [],
 		driving_licenses: [],
 	},
 
-	telesurveillance: {
-		cnaps: ["VIDEO"],
-		diplomas: ["TFP_ATS"],
-		certifications: [],
-		driving_licenses: [],
-	},
+	// telesurveillance: {
+	// 	cnaps: ["VIDEO"],
+	// 	diplomas: ["TFP_ATS"],
+	// 	certifications: [],
+	// 	driving_licenses: [],
+	// },
 
 	surete_aeroportuaire: {
 		cnaps: ["SURV"],

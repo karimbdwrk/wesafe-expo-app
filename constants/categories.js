@@ -6,30 +6,30 @@ export const CATEGORY = [
 		name: "Agent de Prévention et de Sécurité",
 		category: "surveillance_humaine",
 	},
-	{
-		id: "ads_magasin",
-		acronym: "ADS MAG",
-		name: "Agent de Sécurité Magasin",
-		category: "surveillance_humaine",
-	},
-	{
-		id: "ads_ronde",
-		acronym: "ADS RONDE",
-		name: "Agent de Ronde",
-		category: "surveillance_humaine",
-	},
-	{
-		id: "agent_mobile",
-		acronym: "AM",
-		name: "Agent Mobile",
-		category: "surveillance_humaine",
-	},
-	{
-		id: "agent_evenementiel",
-		acronym: "AE",
-		name: "Agent de Sécurité Événementiel",
-		category: "surveillance_humaine",
-	},
+	// {
+	// 	id: "ads_magasin",
+	// 	acronym: "ADS MAG",
+	// 	name: "Agent de Sécurité Magasin",
+	// 	category: "surveillance_humaine",
+	// },
+	// {
+	// 	id: "ads_ronde",
+	// 	acronym: "ADS RONDE",
+	// 	name: "Agent de Ronde",
+	// 	category: "surveillance_humaine",
+	// },
+	// {
+	// 	id: "agent_mobile",
+	// 	acronym: "AM",
+	// 	name: "Agent Mobile",
+	// 	category: "surveillance_humaine",
+	// },
+	// {
+	// 	id: "agent_evenementiel",
+	// 	acronym: "AE",
+	// 	name: "Agent de Sécurité Événementiel",
+	// 	category: "surveillance_humaine",
+	// },
 
 	// SÉCURITÉ INCENDIE
 	{
@@ -71,19 +71,25 @@ export const CATEGORY = [
 	},
 
 	// SURVEILLANCE TECHNIQUE
+	// {
+	// 	id: "operateur_videoprotection",
+	// 	acronym: "OVS",
+	// 	name: "Opérateur Vidéoprotection",
+	// 	category: "videoprotection",
+	// },
+	// {
+	// 	id: "telesurveillance",
+	// 	acronym: "ATS",
+	// 	name: "Agent de Télésurveillance",
+	// 	category: "videoprotection",
+	// },
 	{
-		id: "operateur_videoprotection",
-		acronym: "OVS",
-		name: "Opérateur Vidéoprotection",
+		id: "operateur_videoprotection_telesurveillance",
+		acronym: "OVT",
+		name: "Opérateur en Vidéoprotection et Télésurveillance",
 		category: "videoprotection",
+		ccp: ["CCP1", "CCP2"], // vidéoprotection / télésurveillance — optionnel selon usage
 	},
-	{
-		id: "telesurveillance",
-		acronym: "ATS",
-		name: "Agent de Télésurveillance",
-		category: "videoprotection",
-	},
-
 	// SÛRETÉ AÉROPORTUAIRE
 	{
 		id: "surete_aeroportuaire",
