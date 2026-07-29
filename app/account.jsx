@@ -89,8 +89,6 @@ import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 import { languages as LANGUAGES } from "@/constants/languages";
-import { JOB_REQUIREMENTS } from "@/constants/jobrequirements";
-import { CNAPS_CARDS } from "@/constants/cnapscards";
 import { CATEGORY } from "@/constants/categories";
 import { useNotifications } from "@/context/NotificationsContext";
 import { useImage } from "@/context/ImageContext";
@@ -520,59 +518,14 @@ const AccountScreen = () => {
 		trackActivity(OPEN_SUPPORT_CHAT);
 		setShowSupportSheet(true);
 	};
-	const [verifiedDocs, setVerifiedDocs] = useState({
-		cnaps: [],
-		diplomas: [],
-		certifications: [],
-	});
 	const [hasSubmittedProDoc, setHasSubmittedProDoc] = useState(false);
 
-	// Métiers accessibles au candidat, déduits de ses cartes CNAPS, diplômes
-	// et certifications vérifiés (constants/jobrequirements.js).
+	// Métiers du candidat, déclarés dans profiles.job_categories (ex: ["aps", "ssiap_1"]).
 	const eligibleJobs = useMemo(() => {
-		const userCnaps = new Set(
-			verifiedDocs.cnaps
-				.map((d) => d.type)
-				.filter(Boolean)
-				.map(
-					(t) =>
-						CNAPS_CARDS[t.toLowerCase()]?.acronym ??
-						t.toUpperCase(),
-				),
-		);
-		const userDiplomas = new Set(
-			verifiedDocs.diplomas
-				.map((d) => d.type)
-				.filter(Boolean)
-				.map((t) => t.toUpperCase()),
-		);
-		const userCerts = new Set(
-			verifiedDocs.certifications
-				.map((d) => d.type)
-				.filter(Boolean)
-				.map((t) => t.toUpperCase()),
-		);
-
-		return Object.entries(JOB_REQUIREMENTS)
-			.filter(([, req]) => {
-				const hasCnaps =
-					req.cnaps.length === 0 ||
-					req.cnaps.every((c) => userCnaps.has(c.toUpperCase()));
-				const hasDiploma =
-					req.diplomas.length === 0 ||
-					req.diplomas.some((d) =>
-						userDiplomas.has(d.toUpperCase()),
-					);
-				const hasCerts =
-					req.certifications.length === 0 ||
-					req.certifications.every((c) =>
-						userCerts.has(c.toUpperCase()),
-					);
-				return hasCnaps && hasDiploma && hasCerts;
-			})
-			.map(([jobKey]) => CATEGORY.find((c) => c.id === jobKey))
+		return (profile?.job_categories || [])
+			.map((jobKey) => CATEGORY.find((c) => c.id === jobKey))
 			.filter(Boolean);
-	}, [verifiedDocs]);
+	}, [profile?.job_categories]);
 
 	const [qrToken, setQrToken] = useState(null);
 	const [qrProgress, setQrProgress] = useState(1); // 1 = plein, 0 = vide
@@ -679,57 +632,26 @@ const AccountScreen = () => {
 		if (!user?.id) return;
 		try {
 			const supabase = createSupabaseClient(accessToken);
-			const now = new Date().toISOString();
-			const [
-				profileData,
-				cnaps,
-				diplomas,
-				certifications,
-				cnapsAny,
-				diplomasAny,
-				certsAny,
-			] = await Promise.all([
-				getById("profiles", user.id, `*`),
-				supabase
-					.from("user_cnaps_cards")
-					.select("*")
-					.eq("user_id", user.id)
-					.eq("status", "verified")
-					.or(`expires_at.is.null,expires_at.gt.${now}`),
-				supabase
-					.from("user_diplomas")
-					.select("*")
-					.eq("user_id", user.id)
-					.eq("status", "verified")
-					.or(`expires_at.is.null,expires_at.gt.${now}`),
-				supabase
-					.from("user_certifications")
-					.select("*")
-					.eq("user_id", user.id)
-					.eq("status", "verified")
-					.or(`expires_at.is.null,expires_at.gt.${now}`),
-				supabase
-					.from("user_cnaps_cards")
-					.select("id", { count: "exact", head: true })
-					.eq("user_id", user.id)
-					.in("status", ["pending", "verified"]),
-				supabase
-					.from("user_diplomas")
-					.select("id", { count: "exact", head: true })
-					.eq("user_id", user.id)
-					.in("status", ["pending", "verified"]),
-				supabase
-					.from("user_certifications")
-					.select("id", { count: "exact", head: true })
-					.eq("user_id", user.id)
-					.in("status", ["pending", "verified"]),
-			]);
+			const [profileData, cnapsAny, diplomasAny, certsAny] =
+				await Promise.all([
+					getById("profiles", user.id, `*`),
+					supabase
+						.from("user_cnaps_cards")
+						.select("id", { count: "exact", head: true })
+						.eq("user_id", user.id)
+						.in("status", ["pending", "verified"]),
+					supabase
+						.from("user_diplomas")
+						.select("id", { count: "exact", head: true })
+						.eq("user_id", user.id)
+						.in("status", ["pending", "verified"]),
+					supabase
+						.from("user_certifications")
+						.select("id", { count: "exact", head: true })
+						.eq("user_id", user.id)
+						.in("status", ["pending", "verified"]),
+				]);
 			setProfile(profileData);
-			setVerifiedDocs({
-				cnaps: cnaps.data || [],
-				diplomas: diplomas.data || [],
-				certifications: certifications.data || [],
-			});
 			setHasSubmittedProDoc(
 				(cnapsAny.count ?? 0) > 0 ||
 					(diplomasAny.count ?? 0) > 0 ||
@@ -1393,68 +1315,28 @@ const AccountScreen = () => {
 													</Text>
 												</HStack>
 											)}
-											{(verifiedDocs.cnaps.length > 0 ||
-												verifiedDocs.diplomas.length >
-													0 ||
-												verifiedDocs.certifications
-													.length > 0) && (
+											{eligibleJobs.length > 0 && (
 												<HStack
 													space='xs'
 													style={{
 														flexWrap: "wrap",
 														marginTop: 6,
 													}}>
-													{verifiedDocs.cnaps.map(
-														(doc) => (
-															<Badge
-																key={doc.id}
-																size='sm'
-																variant='solid'
-																action='success'>
-																<BadgeIcon
-																	as={IdCard}
-																	className='mr-1'
-																/>
-																<BadgeText>
-																	{doc.type}
-																</BadgeText>
-															</Badge>
-														),
-													)}
-													{verifiedDocs.diplomas.map(
-														(doc) => (
-															<Badge
-																key={doc.id}
-																size='sm'
-																variant='solid'
-																action='success'>
-																<BadgeIcon
-																	as={IdCard}
-																	className='mr-1'
-																/>
-																<BadgeText>
-																	{doc.type}
-																</BadgeText>
-															</Badge>
-														),
-													)}
-													{verifiedDocs.certifications.map(
-														(doc) => (
-															<Badge
-																key={doc.id}
-																size='sm'
-																variant='solid'
-																action='success'>
-																<BadgeIcon
-																	as={IdCard}
-																	className='mr-1'
-																/>
-																<BadgeText>
-																	{doc.type}
-																</BadgeText>
-															</Badge>
-														),
-													)}
+													{eligibleJobs.map((job) => (
+														<Badge
+															key={job.id}
+															size='sm'
+															variant='solid'
+															action='success'>
+															<BadgeIcon
+																as={IdCard}
+																className='mr-1'
+															/>
+															<BadgeText>
+																{job.acronym}
+															</BadgeText>
+														</Badge>
+													))}
 												</HStack>
 											)}
 										</VStack>
@@ -1731,43 +1613,6 @@ const AccountScreen = () => {
 
 								</VStack>
 							</Card>
-
-							{/* Métiers accessibles (déduits des cartes CNAPS, diplômes et certifications vérifiés) */}
-							{eligibleJobs.length > 0 && (
-								<VStack space='sm' style={{ width: "100%" }}>
-									<Text
-										size='sm'
-										style={{
-											fontWeight: "600",
-											color: textPrimary,
-										}}>
-										Métiers accessibles
-									</Text>
-									<HStack
-										space='sm'
-										style={{
-											flexWrap: "wrap",
-											justifyContent: "flex-start",
-											width: "100%",
-										}}>
-										{eligibleJobs.map((job) => (
-											<Badge
-												key={job.id}
-												size='sm'
-												variant='solid'
-												action='success'>
-												<BadgeIcon
-													as={IdCard}
-													className='mr-1'
-												/>
-												<BadgeText>
-													{job.acronym}
-												</BadgeText>
-											</Badge>
-										))}
-									</HStack>
-								</VStack>
-							)}
 
 							{/* Navigation Cards */}
 							<VStack space='lg'>
