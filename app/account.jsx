@@ -71,7 +71,6 @@ import {
 	Car,
 	Languages,
 	Ruler,
-	GraduationCap,
 	Settings,
 	LogOut,
 	BookmarkCheck,
@@ -90,6 +89,9 @@ import { useDataContext } from "@/context/DataContext";
 import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 import { languages as LANGUAGES } from "@/constants/languages";
+import { JOB_REQUIREMENTS } from "@/constants/jobrequirements";
+import { CNAPS_CARDS } from "@/constants/cnapscards";
+import { CATEGORY } from "@/constants/categories";
 import { useNotifications } from "@/context/NotificationsContext";
 import { useImage } from "@/context/ImageContext";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -437,7 +439,7 @@ const CandidateTodoList = ({ profile, router, isDark, hasProDoc }) => {
 
 const AccountScreen = () => {
 	const { user, signOut, accessToken } = useAuth();
-	const { getById, getAll, trackActivity } = useDataContext();
+	const { getById, trackActivity } = useDataContext();
 	const { isDark } = useTheme();
 
 	const bg = isDark ? Colors.dark.background : Colors.light.background;
@@ -459,7 +461,6 @@ const AccountScreen = () => {
 
 	const [loading, setLoading] = useState(true);
 	const [profile, setProfile] = useState(null);
-	const [procards, setProcards] = useState([]);
 	const [showQRModal, setShowQRModal] = useState(false);
 	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 	const [notifCount, setNotifCount] = useState(0);
@@ -525,6 +526,53 @@ const AccountScreen = () => {
 		certifications: [],
 	});
 	const [hasSubmittedProDoc, setHasSubmittedProDoc] = useState(false);
+
+	// Métiers accessibles au candidat, déduits de ses cartes CNAPS, diplômes
+	// et certifications vérifiés (constants/jobrequirements.js).
+	const eligibleJobs = useMemo(() => {
+		const userCnaps = new Set(
+			verifiedDocs.cnaps
+				.map((d) => d.type)
+				.filter(Boolean)
+				.map(
+					(t) =>
+						CNAPS_CARDS[t.toLowerCase()]?.acronym ??
+						t.toUpperCase(),
+				),
+		);
+		const userDiplomas = new Set(
+			verifiedDocs.diplomas
+				.map((d) => d.type)
+				.filter(Boolean)
+				.map((t) => t.toUpperCase()),
+		);
+		const userCerts = new Set(
+			verifiedDocs.certifications
+				.map((d) => d.type)
+				.filter(Boolean)
+				.map((t) => t.toUpperCase()),
+		);
+
+		return Object.entries(JOB_REQUIREMENTS)
+			.filter(([, req]) => {
+				const hasCnaps =
+					req.cnaps.length === 0 ||
+					req.cnaps.every((c) => userCnaps.has(c.toUpperCase()));
+				const hasDiploma =
+					req.diplomas.length === 0 ||
+					req.diplomas.some((d) =>
+						userDiplomas.has(d.toUpperCase()),
+					);
+				const hasCerts =
+					req.certifications.length === 0 ||
+					req.certifications.every((c) =>
+						userCerts.has(c.toUpperCase()),
+					);
+				return hasCnaps && hasDiploma && hasCerts;
+			})
+			.map(([jobKey]) => CATEGORY.find((c) => c.id === jobKey))
+			.filter(Boolean);
+	}, [verifiedDocs]);
 
 	const [qrToken, setQrToken] = useState(null);
 	const [qrProgress, setQrProgress] = useState(1); // 1 = plein, 0 = vide
@@ -634,7 +682,6 @@ const AccountScreen = () => {
 			const now = new Date().toISOString();
 			const [
 				profileData,
-				procardsData,
 				cnaps,
 				diplomas,
 				certifications,
@@ -643,14 +690,6 @@ const AccountScreen = () => {
 				certsAny,
 			] = await Promise.all([
 				getById("profiles", user.id, `*`),
-				getAll(
-					"procards",
-					"*",
-					`&profile_id=eq.${user.id}&isDeleted=eq.false`,
-					1,
-					100,
-					"created_at.desc",
-				),
 				supabase
 					.from("user_cnaps_cards")
 					.select("*")
@@ -686,7 +725,6 @@ const AccountScreen = () => {
 					.in("status", ["pending", "verified"]),
 			]);
 			setProfile(profileData);
-			setProcards(procardsData?.data || []);
 			setVerifiedDocs({
 				cnaps: cnaps.data || [],
 				diplomas: diplomas.data || [],
@@ -1691,124 +1729,45 @@ const AccountScreen = () => {
 											</>
 										)}
 
-									{/* Cartes professionnelles */}
-									{procards && procards.length > 0 && (
-										<>
-											<Divider />
-											<VStack
-												space='xs'
-												style={{ width: "100%" }}>
-												{/* <Text
-												size='sm'
-												style={{
-													fontWeight: "600",
-													color: textPrimary,
-												}}>
-												Cartes professionnelles
-											</Text> */}
-												<HStack
-													space='sm'
-													style={{
-														flexWrap: "wrap",
-														justifyContent:
-															"flex-start",
-														width: "100%",
-													}}>
-													{profile?.ssiap1_verification_status ===
-														"verified" && (
-														<Badge
-															size='sm'
-															variant='solid'
-															action='success'>
-															<BadgeIcon
-																as={
-																	GraduationCap
-																}
-																className='mr-1'
-															/>
-															<BadgeText>
-																SSIAP 1
-															</BadgeText>
-														</Badge>
-													)}
-													{profile?.ssiap2_verification_status ===
-														"verified" && (
-														<Badge
-															size='sm'
-															variant='solid'
-															action='success'>
-															<BadgeIcon
-																as={
-																	GraduationCap
-																}
-																className='mr-1'
-															/>
-															<BadgeText>
-																SSIAP 2
-															</BadgeText>
-														</Badge>
-													)}
-													{profile?.ssiap3_verification_status ===
-														"verified" && (
-														<Badge
-															size='sm'
-															variant='solid'
-															action='success'>
-															<BadgeIcon
-																as={
-																	GraduationCap
-																}
-																className='mr-1'
-															/>
-															<BadgeText>
-																SSIAP 3
-															</BadgeText>
-														</Badge>
-													)}
-													{procards
-														.filter((card) => {
-															const validityDate =
-																new Date(
-																	card.validity_date,
-																);
-															const isExpired =
-																validityDate <
-																new Date();
-															return (
-																card.status ===
-																	"verified" &&
-																!isExpired
-															);
-														})
-														.map((card) => {
-															return (
-																<Badge
-																	key={
-																		card.id
-																	}
-																	size='sm'
-																	variant='solid'
-																	action='success'>
-																	<BadgeIcon
-																		as={
-																			IdCard
-																		}
-																		className='mr-1'
-																	/>
-																	<BadgeText>
-																		{
-																			card.category
-																		}
-																	</BadgeText>
-																</Badge>
-															);
-														})}
-												</HStack>
-											</VStack>
-										</>
-									)}
 								</VStack>
 							</Card>
+
+							{/* Métiers accessibles (déduits des cartes CNAPS, diplômes et certifications vérifiés) */}
+							{eligibleJobs.length > 0 && (
+								<VStack space='sm' style={{ width: "100%" }}>
+									<Text
+										size='sm'
+										style={{
+											fontWeight: "600",
+											color: textPrimary,
+										}}>
+										Métiers accessibles
+									</Text>
+									<HStack
+										space='sm'
+										style={{
+											flexWrap: "wrap",
+											justifyContent: "flex-start",
+											width: "100%",
+										}}>
+										{eligibleJobs.map((job) => (
+											<Badge
+												key={job.id}
+												size='sm'
+												variant='solid'
+												action='success'>
+												<BadgeIcon
+													as={IdCard}
+													className='mr-1'
+												/>
+												<BadgeText>
+													{job.acronym}
+												</BadgeText>
+											</Badge>
+										))}
+									</HStack>
+								</VStack>
+							)}
 
 							{/* Navigation Cards */}
 							<VStack space='lg'>
