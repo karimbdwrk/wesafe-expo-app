@@ -10,6 +10,7 @@ import {
 	TouchableOpacity,
 	KeyboardAvoidingView,
 	Platform,
+	Dimensions,
 } from "react-native";
 
 import { Box } from "@/components/ui/box";
@@ -25,6 +26,14 @@ import { Heading } from "@/components/ui/heading";
 import { Divider } from "@/components/ui/divider";
 import { Pressable } from "@/components/ui/pressable";
 import { Input, InputField } from "@/components/ui/input";
+import {
+	Actionsheet,
+	ActionsheetContent,
+	ActionsheetDragIndicator,
+	ActionsheetDragIndicatorWrapper,
+	ActionsheetBackdrop,
+	ActionsheetScrollView,
+} from "@/components/ui/actionsheet";
 import { useToast } from "@/components/ui/toast";
 import CustomToast from "@/components/CustomToast";
 import {
@@ -43,6 +52,7 @@ import {
 	ChevronLeft,
 	Paperclip,
 	CalendarDays,
+	Briefcase,
 } from "lucide-react-native";
 
 import { useAuth } from "@/context/AuthContext";
@@ -55,7 +65,26 @@ import { createSupabaseClient } from "@/lib/supabase";
 import { CNAPS_CARDS } from "@/constants/cnapscards";
 import { DIPLOMAS as DIPLOMAS_CONST } from "@/constants/diplomas";
 import { CERTIFICATIONS as CERTIFICATIONS_CONST } from "@/constants/certifications";
+import { CATEGORY } from "@/constants/categories";
 import Constants from "expo-constants";
+
+const screenHeight = Dimensions.get("window").height;
+
+const JOB_GROUP_LABELS = {
+	surveillance_humaine: "Surveillance humaine",
+	securite_incendie: "Sécurité incendie",
+	cynophile: "Cynophile",
+	protection_rapprochee: "Protection rapprochée",
+	videoprotection: "Surveillance technique",
+	surete_aeroportuaire: "Sûreté aéroportuaire",
+	transport_fonds: "Transport de fonds",
+};
+
+const JOBS_GROUPED = CATEGORY.reduce((acc, job) => {
+	if (!acc[job.category]) acc[job.category] = [];
+	acc[job.category].push(job);
+	return acc;
+}, {});
 
 const DOCUMENTS_BUCKET = "pro-documents";
 
@@ -209,6 +238,12 @@ const ProDocs = () => {
 	const [selectedDoc, setSelectedDoc] = useState(null); // document affiché en détail
 	const [isArchiving, setIsArchiving] = useState(false);
 
+	/* --- métier(s) du candidat --- */
+	const [jobCategories, setJobCategories] = useState([]);
+	const [tempJobCategories, setTempJobCategories] = useState([]);
+	const [showJobSheet, setShowJobSheet] = useState(false);
+	const [savingJobs, setSavingJobs] = useState(false);
+
 	/* --- load --- */
 	const loadDocs = useCallback(async () => {
 		if (!user?.id) return;
@@ -216,29 +251,38 @@ const ProDocs = () => {
 		try {
 			const supabase = createSupabaseClient(accessToken);
 			const now = new Date().toISOString();
-			const [cnapsRes, diplomasRes, certsRes] = await Promise.all([
-				supabase
-					.from("user_cnaps_cards")
-					.select("*")
-					.eq("user_id", user.id)
-					.or(`expires_at.is.null,expires_at.gt.${now}`)
-					.order("created_at", { ascending: false }),
-				supabase
-					.from("user_diplomas")
-					.select("*")
-					.eq("user_id", user.id)
-					.or(`expires_at.is.null,expires_at.gt.${now}`)
-					.order("created_at", { ascending: false }),
-				supabase
-					.from("user_certifications")
-					.select("*")
-					.eq("user_id", user.id)
-					.or(`expires_at.is.null,expires_at.gt.${now}`)
-					.order("created_at", { ascending: false }),
-			]);
+			const [cnapsRes, diplomasRes, certsRes, profileRes] =
+				await Promise.all([
+					supabase
+						.from("user_cnaps_cards")
+						.select("*")
+						.eq("user_id", user.id)
+						.or(`expires_at.is.null,expires_at.gt.${now}`)
+						.order("created_at", { ascending: false }),
+					supabase
+						.from("user_diplomas")
+						.select("*")
+						.eq("user_id", user.id)
+						.or(`expires_at.is.null,expires_at.gt.${now}`)
+						.order("created_at", { ascending: false }),
+					supabase
+						.from("user_certifications")
+						.select("*")
+						.eq("user_id", user.id)
+						.or(`expires_at.is.null,expires_at.gt.${now}`)
+						.order("created_at", { ascending: false }),
+					supabase
+						.from("profiles")
+						.select("job_categories")
+						.eq("id", user.id)
+						.maybeSingle(),
+				]);
 			if (cnapsRes.error) throw cnapsRes.error;
 			if (diplomasRes.error) throw diplomasRes.error;
 			if (certsRes.error) throw certsRes.error;
+			if (!profileRes.error) {
+				setJobCategories(profileRes.data?.job_categories || []);
+			}
 			const merged = [
 				...(cnapsRes.data || []).map((d) => ({
 					...d,
@@ -589,6 +633,64 @@ const ProDocs = () => {
 	};
 
 	/* ---------------------------------------------------------------- */
+	/* Métier(s) du candidat                                              */
+	/* ---------------------------------------------------------------- */
+
+	const openJobSheet = () => {
+		setTempJobCategories(jobCategories);
+		setShowJobSheet(true);
+	};
+
+	const saveJobCategories = async () => {
+		if (!user?.id) return;
+		setSavingJobs(true);
+		try {
+			const supabase = createSupabaseClient(accessToken);
+			const { error } = await supabase
+				.from("profiles")
+				.update({ job_categories: tempJobCategories })
+				.eq("id", user.id);
+			if (error) throw error;
+			setJobCategories(tempJobCategories);
+			setShowJobSheet(false);
+			toast.show({
+				placement: "top",
+				duration: 3000,
+				render: ({ id }) => (
+					<CustomToast
+						id={id}
+						icon={CheckCircle}
+						color={
+							isDark ? Colors.dark.success : Colors.light.success
+						}
+						title='Métier mis à jour'
+						description='Votre sélection a été enregistrée.'
+					/>
+				),
+			});
+		} catch (e) {
+			console.error("saveJobCategories error:", e);
+			toast.show({
+				placement: "top",
+				duration: 3000,
+				render: ({ id }) => (
+					<CustomToast
+						id={id}
+						icon={AlertCircle}
+						color={
+							isDark ? Colors.dark.danger : Colors.light.danger
+						}
+						title='Erreur'
+						description='Impossible d’enregistrer votre sélection.'
+					/>
+				),
+			});
+		} finally {
+			setSavingJobs(false);
+		}
+	};
+
+	/* ---------------------------------------------------------------- */
 	/* Sub-components                                                     */
 	/* ---------------------------------------------------------------- */
 
@@ -733,6 +835,62 @@ const ProDocs = () => {
 						}}>
 						Cartes CNAPS, diplômes et certifications
 					</Text>
+				</VStack>
+
+				{/* Métier(s) */}
+				<VStack space='sm'>
+					<Button
+						size='lg'
+						variant='outline'
+						onPress={openJobSheet}
+						style={{
+							borderRadius: 12,
+							borderColor: isDark
+								? Colors.dark.tint
+								: Colors.light.tint,
+						}}>
+						<ButtonIcon
+							as={Briefcase}
+							style={{
+								color: isDark
+									? Colors.dark.tint
+									: Colors.light.tint,
+							}}
+						/>
+						<ButtonText
+							style={{
+								fontWeight: "700",
+								color: isDark
+									? Colors.dark.tint
+									: Colors.light.tint,
+							}}>
+							{jobCategories.length > 0
+								? `Mon métier (${jobCategories.length})`
+								: "Choisir mon métier"}
+						</ButtonText>
+					</Button>
+					{jobCategories.length > 0 && (
+						<HStack space='xs' style={{ flexWrap: "wrap" }}>
+							{jobCategories.map((jobId) => {
+								const job = CATEGORY.find(
+									(c) => c.id === jobId,
+								);
+								if (!job) return null;
+								return (
+									<Badge
+										key={jobId}
+										size='sm'
+										variant='solid'
+										action='info'>
+										<BadgeIcon as={Briefcase} />
+										<BadgeText style={{ marginLeft: 4 }}>
+											{job.acronym}
+										</BadgeText>
+									</Badge>
+								);
+							})}
+						</HStack>
+					)}
 				</VStack>
 
 				{/* Add button */}
@@ -2187,6 +2345,265 @@ const ProDocs = () => {
 					{step === "upload" && renderUpload()}
 				</Box>
 			</ScrollView>
+
+			{/* Actionsheet — Mon métier */}
+			<Actionsheet
+				isOpen={showJobSheet}
+				onClose={() => setShowJobSheet(false)}>
+				<ActionsheetBackdrop />
+				<ActionsheetContent
+					style={{
+						backgroundColor: isDark
+							? Colors.dark.background
+							: Colors.light.cardBackground,
+						paddingBottom: 0,
+					}}>
+					<ActionsheetDragIndicatorWrapper>
+						<ActionsheetDragIndicator />
+					</ActionsheetDragIndicatorWrapper>
+					<VStack style={{ width: "100%", paddingTop: 8 }}>
+						<HStack
+							style={{
+								alignItems: "center",
+								justifyContent: "space-between",
+								paddingHorizontal: 4,
+								marginBottom: 8,
+							}}>
+							<Text
+								style={{
+									fontWeight: "700",
+									fontSize: 17,
+									color: isDark
+										? Colors.dark.text
+										: Colors.light.text,
+								}}>
+								Mon métier
+							</Text>
+							{tempJobCategories.length > 0 && (
+								<Pressable
+									onPress={() => setTempJobCategories([])}>
+									<Text
+										style={{
+											fontSize: 13,
+											color: isDark
+												? Colors.dark.danger
+												: Colors.light.danger,
+										}}>
+										Tout effacer
+									</Text>
+								</Pressable>
+							)}
+						</HStack>
+						<ActionsheetScrollView
+							showsVerticalScrollIndicator={false}
+							style={{
+								width: "100%",
+								height: screenHeight * 0.5,
+							}}>
+							<VStack space='lg' style={{ paddingBottom: 16 }}>
+								{Object.entries(JOBS_GROUPED).map(
+									([groupKey, items]) => (
+										<VStack key={groupKey} space='sm'>
+											<Text
+												style={{
+													fontSize: 12,
+													fontWeight: "700",
+													letterSpacing: 0.8,
+													textTransform: "uppercase",
+													color: isDark
+														? Colors.dark.muted
+														: Colors.light.muted,
+													paddingHorizontal: 4,
+												}}>
+												{JOB_GROUP_LABELS[groupKey] ||
+													groupKey}
+											</Text>
+											<VStack space='xs'>
+												{items.map((job) => {
+													const isSel =
+														tempJobCategories.includes(
+															job.id,
+														);
+													return (
+														<Pressable
+															key={job.id}
+															onPress={() =>
+																setTempJobCategories(
+																	(prev) =>
+																		isSel
+																			? prev.filter(
+																					(
+																						v,
+																					) =>
+																						v !==
+																						job.id,
+																				)
+																			: [
+																					...prev,
+																					job.id,
+																				],
+																)
+															}>
+															<Box
+																style={{
+																	padding: 14,
+																	borderRadius: 10,
+																	borderWidth: 2,
+																	borderColor:
+																		isSel
+																			? isDark
+																				? Colors
+																						.dark
+																						.tint
+																				: Colors
+																						.light
+																						.tint
+																			: isDark
+																				? Colors
+																						.dark
+																						.border
+																				: Colors
+																						.light
+																						.border,
+																	backgroundColor:
+																		isSel
+																			? isDark
+																				? Colors
+																						.dark
+																						.tint20
+																				: "#dbeafe"
+																			: isDark
+																				? Colors
+																						.dark
+																						.cardBackground
+																				: Colors
+																						.light
+																						.cardBackground,
+																}}>
+																<HStack
+																	space='sm'
+																	style={{
+																		alignItems:
+																			"center",
+																	}}>
+																	<Box
+																		style={{
+																			paddingHorizontal: 8,
+																			paddingVertical: 3,
+																			borderRadius: 6,
+																			backgroundColor:
+																				isSel
+																					? isDark
+																						? Colors
+																								.dark
+																								.tint
+																						: Colors
+																								.light
+																								.tint
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
+																		}}>
+																		<Text
+																			style={{
+																				fontSize: 11,
+																				fontWeight:
+																					"800",
+																				color: isSel
+																					? isDark
+																						? Colors
+																								.dark
+																								.cardBackground
+																						: Colors
+																								.light
+																								.cardBackground
+																					: isDark
+																						? Colors
+																								.dark
+																								.muted
+																						: Colors
+																								.light
+																								.muted,
+																			}}>
+																			{
+																				job.acronym
+																			}
+																		</Text>
+																	</Box>
+																	<Text
+																		style={{
+																			flex: 1,
+																			fontSize: 14,
+																			color: isSel
+																				? isDark
+																					? Colors
+																							.dark
+																							.tint
+																					: Colors
+																							.light
+																							.tint
+																				: isDark
+																					? Colors
+																							.dark
+																							.text
+																					: Colors
+																							.light
+																							.text,
+																			fontWeight:
+																				isSel
+																					? "600"
+																					: "400",
+																		}}>
+																		{
+																			job.name
+																		}
+																	</Text>
+																</HStack>
+															</Box>
+														</Pressable>
+													);
+												})}
+											</VStack>
+										</VStack>
+									),
+								)}
+							</VStack>
+						</ActionsheetScrollView>
+						<Box
+							style={{
+								paddingTop: 12,
+								paddingBottom: 32,
+								backgroundColor: isDark
+									? Colors.dark.background
+									: Colors.light.cardBackground,
+							}}>
+							<Button
+								isDisabled={savingJobs}
+								style={{
+									backgroundColor: isDark
+										? Colors.dark.tint
+										: Colors.light.tint,
+								}}
+								onPress={saveJobCategories}>
+								<ButtonText
+									style={{
+										color: isDark
+											? Colors.dark.cardBackground
+											: Colors.light.cardBackground,
+									}}>
+									{savingJobs
+										? "Enregistrement…"
+										: "Valider"}
+								</ButtonText>
+							</Button>
+						</Box>
+					</VStack>
+				</ActionsheetContent>
+			</Actionsheet>
 		</KeyboardAvoidingView>
 	);
 };
