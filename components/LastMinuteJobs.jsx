@@ -12,9 +12,6 @@ import { Spinner } from "@/components/ui/spinner";
 import JobCard from "@/components/JobCard";
 import { useAuth } from "@/context/AuthContext";
 import { useDataContext } from "@/context/DataContext";
-import { JOB_REQUIREMENTS } from "@/constants/jobrequirements";
-import { CNAPS_CARDS } from "@/constants/cnapscards";
-import { DIPLOMAS } from "@/constants/diplomas";
 import { regions } from "@/constants/regions";
 import { CATEGORY } from "@/constants/categories";
 import { useTheme } from "@/context/ThemeContext";
@@ -32,84 +29,15 @@ const LastMinuteJobs = () => {
 	const { isDark } = useTheme();
 
 	const [suggestedJobs, setSuggestedJobs] = useState([]);
-	const [eligibleCategories, setEligibleCategories] = useState([]);
-	const [userCnapsList, setUserCnapsList] = useState([]);
-	const [userDiplomasList, setUserDiplomasList] = useState([]);
 	const [loading, setLoading] = useState(false);
+
+	// Métiers du candidat, déclarés dans profiles.job_categories (ex: ["aps", "ssiap_1"]).
+	const eligibleCategories = userProfile?.job_categories || [];
 
 	const loadSuggestedJobs = useCallback(async () => {
 		if (!user?.id) return;
 		setLoading(true);
 		try {
-			// 1. Récupérer les documents du candidat en parallèle
-			const [cnapsRes, diplomasRes, certsRes] = await Promise.all([
-				getAll(
-					"user_cnaps_cards",
-					"type",
-					`&user_id=eq.${user.id}&status=eq.verified`,
-					1,
-					100,
-				),
-				getAll(
-					"user_diplomas",
-					"type",
-					`&user_id=eq.${user.id}&status=eq.verified`,
-					1,
-					100,
-				),
-				getAll(
-					"user_certifications",
-					"type",
-					`&user_id=eq.${user.id}&status=eq.verified`,
-					1,
-					100,
-				),
-			]);
-
-			const userCnapsRaw = (cnapsRes.data || [])
-				.map((r) => r.type)
-				.filter(Boolean);
-			const userDiplomasRaw = (diplomasRes.data || [])
-				.map((r) => r.type)
-				.filter(Boolean);
-
-			setUserCnapsList(userCnapsRaw);
-			setUserDiplomasList(userDiplomasRaw);
-
-			const userCnaps = new Set(
-				userCnapsRaw.map(
-					(t) =>
-						CNAPS_CARDS[t.toLowerCase()]?.acronym ??
-						t.toUpperCase(),
-				),
-			);
-			const userDiplomas = new Set(
-				userDiplomasRaw.map((t) => t.toUpperCase()),
-			);
-			const userCerts = new Set(
-				(certsRes.data || [])
-					.map((r) => r.type?.toUpperCase())
-					.filter(Boolean),
-			);
-
-			// 2. Calculer les catégories d'emploi accessibles
-			const eligibleCategories = [];
-			for (const [jobKey, req] of Object.entries(JOB_REQUIREMENTS)) {
-				const hasCnaps =
-					req.cnaps.length === 0 ||
-					req.cnaps.every((c) => userCnaps.has(c.toUpperCase()));
-
-				const hasDiploma =
-					req.diplomas.length === 0 ||
-					req.diplomas.some((d) => userDiplomas.has(d.toUpperCase()));
-
-				if (hasCnaps && hasDiploma) {
-					eligibleCategories.push(jobKey);
-				}
-			}
-
-			setEligibleCategories(eligibleCategories);
-
 			if (eligibleCategories.length === 0) {
 				setSuggestedJobs([]);
 				return;
@@ -124,7 +52,7 @@ const LastMinuteJobs = () => {
 			today.setHours(0, 0, 0, 0);
 			const todayISO = today.toISOString().split("T")[0];
 
-			// 3. Récupérer les offres actives correspondantes
+			// Récupérer les offres actives correspondant aux métiers du candidat
 			const inList = eligibleCategories.map((c) => `"${c}"`).join(",");
 			const regionFilter = userProfile?.region_code
 				? `&region_code=eq.${userProfile.region_code}`
@@ -152,13 +80,15 @@ const LastMinuteJobs = () => {
 		} catch (err) {
 			console.error("last minute SuggestedJobs error:", err);
 			setSuggestedJobs([]);
-			setEligibleCategories([]);
-			setUserCnapsList([]);
-			setUserDiplomasList([]);
 		} finally {
 			setLoading(false);
 		}
-	}, [user?.id, userProfile?.region_code, getAll]);
+	}, [
+		user?.id,
+		userProfile?.region_code,
+		eligibleCategories.join(","),
+		getAll,
+	]);
 
 	useEffect(() => {
 		loadSuggestedJobs();
