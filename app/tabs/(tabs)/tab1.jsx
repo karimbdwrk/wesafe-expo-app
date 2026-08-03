@@ -745,7 +745,7 @@ export default function Tab1() {
 										textAlign: "center",
 										fontStyle: "italic",
 									}}>
-									support@wesafe.fr
+									support@wesafeapp.fr
 								</Text>
 							</VStack>
 						</Card>
@@ -806,7 +806,7 @@ export default function Tab1() {
 										textAlign: "center",
 										fontStyle: "italic",
 									}}>
-									En cas de question : support@wesafe.fr
+									En cas de question : support@wesafeapp.fr
 								</Text>
 							</VStack>
 						</Card>
