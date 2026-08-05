@@ -30,7 +30,8 @@
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "NSCameraUsageDescription": "This app needs access to your camera.",
+        "NSCameraUsageDescription": "Cette application a besoin d'accéder à votre appareil photo.",
+        "NSLocationWhenInUseUsageDescription": "Cette application utilise votre position pour vous proposer des missions à proximité.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.aizensecu.wesafeapp"
