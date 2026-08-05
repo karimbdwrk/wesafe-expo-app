@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "197838165630",
+    "project_id": "wesafeapp-15fc8",
+    "storage_bucket": "wesafeapp-15fc8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197838165630:android:b4378fdebca3ebc8d42a2f",
+        "android_client_info": {
+          "package_name": "com.wesafe.wesafeapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1G71sa75Lo0wWYRtsrVdxbwjvROO1NVE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
