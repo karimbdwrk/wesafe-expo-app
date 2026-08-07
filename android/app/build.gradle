@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.wesafe.wesafeapp'
+    namespace 'com.aizensecu.wesafeapp'
     defaultConfig {
-        applicationId 'com.wesafe.wesafeapp'
+        applicationId 'com.aizensecu.wesafeapp'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
