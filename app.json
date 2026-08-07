@@ -48,7 +48,7 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.wesafe.wesafeapp"
+      "package": "com.aizensecu.wesafeapp"
     },
     "web": {
       "bundler": "metro",
