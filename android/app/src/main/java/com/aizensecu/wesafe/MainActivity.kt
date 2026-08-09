@@ -1,4 +1,4 @@
-package com.aizensecu.wesafeapp
+package com.aizensecu.wesafe
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

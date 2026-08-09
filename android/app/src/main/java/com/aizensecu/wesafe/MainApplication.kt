@@ -1,4 +1,4 @@
-package com.aizensecu.wesafeapp
+package com.aizensecu.wesafe
 
 import android.app.Application
 import android.content.res.Configuration
