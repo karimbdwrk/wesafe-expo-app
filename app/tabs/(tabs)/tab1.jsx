@@ -25,7 +25,8 @@ import { Button, ButtonText, ButtonIcon } from "@/components/ui/button";
 import { Pressable } from "@/components/ui/pressable";
 import { Badge, BadgeText, BadgeIcon } from "@/components/ui/badge";
 import { Input, InputField, InputSlot, InputIcon } from "@/components/ui/input";
-import { Icon } from "@/components/ui/icon";
+import { Icon, MoonIcon, SunIcon } from "@/components/ui/icon";
+import { Fab, FabIcon } from "@/components/ui/fab";
 import {
 	Avatar,
 	AvatarImage,
@@ -80,7 +81,7 @@ export default function Tab1() {
 	const router = useRouter();
 	const { user, role, userCompany, userProfile, refreshUser } = useAuth();
 	const { getAll, update } = useDataContext();
-	const { isDark } = useTheme();
+	const { isDark, colorMode, toggleColorMode } = useTheme();
 	const { unreadCount } = useNotifications();
 
 	const searchInputRef = useRef(null);
@@ -563,6 +564,7 @@ export default function Tab1() {
 	// Version PRO
 	if (role === "pro") {
 		return (
+			<>
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				style={{
@@ -899,11 +901,16 @@ export default function Tab1() {
 					)}
 				</VStack>
 			</ScrollView>
+			<Fab onPress={toggleColorMode} className='m-6' size='lg'>
+				<FabIcon as={colorMode === "dark" ? MoonIcon : SunIcon} />
+			</Fab>
+			</>
 		);
 	}
 
 	// Version CANDIDAT
 	return (
+		<>
 		<KeyboardAvoidingView
 			behavior={Platform.OS === "ios" ? "padding" : "height"}
 			style={{ flex: 1 }}
@@ -1863,5 +1870,9 @@ export default function Tab1() {
 				</VStack> */}
 			</ScrollView>
 		</KeyboardAvoidingView>
+		<Fab onPress={toggleColorMode} className='m-6' size='lg'>
+			<FabIcon as={colorMode === "dark" ? MoonIcon : SunIcon} />
+		</Fab>
+		</>
 	);
 }
