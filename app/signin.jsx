@@ -534,7 +534,7 @@ const SignInScreen = () => {
 									vous pensez qu'il s'agit d'une erreur,
 									contactez-nous à{" "}
 									<Text style={{ fontWeight: "700" }}>
-										support@wesafe.fr
+										support@wesafeapp.fr
 									</Text>{" "}
 									avant la date d'échéance.
 								</Text>
