@@ -10,6 +10,7 @@ import {
 	Keyboard,
 	View,
 	Animated,
+	Easing,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { LineChart, BarChart, PieChart } from "react-native-gifted-charts";
@@ -85,6 +86,35 @@ export default function Tab1() {
 	const { unreadCount } = useNotifications();
 
 	const searchInputRef = useRef(null);
+
+	// Anim icône du bouton thème : 0 = light (affiche la lune, pour passer en dark), 1 = dark (affiche le soleil, pour passer en light)
+	const themeIconAnim = useRef(
+		new Animated.Value(colorMode === "dark" ? 1 : 0),
+	).current;
+	useEffect(() => {
+		Animated.timing(themeIconAnim, {
+			toValue: colorMode === "dark" ? 1 : 0,
+			duration: 350,
+			easing: Easing.out(Easing.cubic),
+			useNativeDriver: true,
+		}).start();
+	}, [colorMode]);
+	const moonIconOpacity = themeIconAnim.interpolate({
+		inputRange: [0, 1],
+		outputRange: [1, 0],
+	});
+	const sunIconOpacity = themeIconAnim.interpolate({
+		inputRange: [0, 1],
+		outputRange: [0, 1],
+	});
+	const moonIconRotate = themeIconAnim.interpolate({
+		inputRange: [0, 1],
+		outputRange: ["0deg", "-90deg"],
+	});
+	const sunIconRotate = themeIconAnim.interpolate({
+		inputRange: [0, 1],
+		outputRange: ["90deg", "0deg"],
+	});
 
 	const skeletonAnim = useRef(new Animated.Value(0.4)).current;
 	useEffect(() => {
@@ -901,8 +931,38 @@ export default function Tab1() {
 					)}
 				</VStack>
 			</ScrollView>
-			<Fab onPress={toggleColorMode} className='m-6' size='lg'>
-				<FabIcon as={colorMode === "dark" ? MoonIcon : SunIcon} />
+			<Fab
+				onPress={toggleColorMode}
+				style={{ position: "absolute", bottom: 6, right: 6 }}
+				size='md'>
+				<View
+					style={{
+						width: 18,
+						height: 18,
+						alignItems: "center",
+						justifyContent: "center",
+					}}>
+					<Animated.View
+						style={{
+							position: "absolute",
+							top: 0,
+							left: 0,
+							opacity: moonIconOpacity,
+							transform: [{ rotate: moonIconRotate }],
+						}}>
+						<FabIcon as={MoonIcon} />
+					</Animated.View>
+					<Animated.View
+						style={{
+							position: "absolute",
+							top: 0,
+							left: 0,
+							opacity: sunIconOpacity,
+							transform: [{ rotate: sunIconRotate }],
+						}}>
+						<FabIcon as={SunIcon} />
+					</Animated.View>
+				</View>
 			</Fab>
 			</>
 		);
@@ -1870,8 +1930,38 @@ export default function Tab1() {
 				</VStack> */}
 			</ScrollView>
 		</KeyboardAvoidingView>
-		<Fab onPress={toggleColorMode} className='m-6' size='lg'>
-			<FabIcon as={colorMode === "dark" ? MoonIcon : SunIcon} />
+		<Fab
+			onPress={toggleColorMode}
+			style={{ position: "absolute", bottom: 6, right: 6 }}
+			size='md'>
+			<View
+				style={{
+					width: 18,
+					height: 18,
+					alignItems: "center",
+					justifyContent: "center",
+				}}>
+				<Animated.View
+					style={{
+						position: "absolute",
+						top: 0,
+						left: 0,
+						opacity: moonIconOpacity,
+						transform: [{ rotate: moonIconRotate }],
+					}}>
+					<FabIcon as={MoonIcon} />
+				</Animated.View>
+				<Animated.View
+					style={{
+						position: "absolute",
+						top: 0,
+						left: 0,
+						opacity: sunIconOpacity,
+						transform: [{ rotate: sunIconRotate }],
+					}}>
+					<FabIcon as={SunIcon} />
+				</Animated.View>
+			</View>
 		</Fab>
 		</>
 	);
