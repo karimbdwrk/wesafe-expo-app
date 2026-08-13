@@ -21,20 +21,20 @@
 //   },
 // };
 
-const primaryLight = '#2563EB';
-const primaryLight70 = '#2563EBB2';
-const primaryLight50 = '#2563EB80';
-const primaryLight20 = '#2563EB33';
+const primaryLight = '#6D5EF8';
+const primaryLight70 = '#6D5EF8B2';
+const primaryLight50 = '#6D5EF880';
+const primaryLight20 = '#6D5EF833';
 
-const primaryDark = '#60A5FA';
-const primaryDark70 = '#60A5FAB2';
-const primaryDark50 = '#60A5FA80';
-const primaryDark20 = '#60A5FA33';
+const primaryDark = '#8B7DFF';
+const primaryDark70 = '#8B7DFFB2';
+const primaryDark50 = '#8B7DFF80';
+const primaryDark20 = '#8B7DFF33';
 
-const successLight = '#16A34A';
-const successLight70 = '#16A34AB2';
-const successLight50 = '#16A34A80';
-const successLight20 = '#16A34A33';
+const successLight = '#22C55E';
+const successLight70 = '#22C55EB2';
+const successLight50 = '#22C55E80';
+const successLight20 = '#22C55E33';
 
 const successDark = '#22C55E';
 const successDark70 = '#22C55EB2';
@@ -46,15 +46,15 @@ const warningLight70 = '#F59E0BB2';
 const warningLight50 = '#F59E0B80';
 const warningLight20 = '#F59E0B33';
 
-const warningDark = '#FBBF24';
-const warningDark70 = '#FBBF24B2';
-const warningDark50 = '#FBBF2480';
-const warningDark20 = '#FBBF2433';
+const warningDark = '#F59E0B';
+const warningDark70 = '#F59E0BB2';
+const warningDark50 = '#F59E0B80';
+const warningDark20 = '#F59E0B33';
 
-const errorLight = '#DC2626';
-const errorLight70 = '#DC2626B2';
-const errorLight50 = '#DC262680';
-const errorLight20 = '#DC262633';
+const errorLight = '#EF4444';
+const errorLight70 = '#EF4444B2';
+const errorLight50 = '#EF444480';
+const errorLight20 = '#EF444433';
 
 const errorDark = '#EF4444';
 const errorDark70 = '#EF4444B2';
@@ -73,30 +73,30 @@ const infoDark20 = '#38BDF833';
 
 export default {
   light: {
-    text: '#111111',
-    text70: '#111111B2',
-    text50: '#11111180',
-    text20: '#11111133',
+    text: '#0F172A',
+    text70: '#0F172AB2',
+    text50: '#0F172A80',
+    text20: '#0F172A33',
 
-    textSecondary: '#525252',
-    textSecondary70: '#525252B2',
-    textSecondary50: '#52525280',
-    textSecondary20: '#52525233',
+    textSecondary: '#475569',
+    textSecondary70: '#475569B2',
+    textSecondary50: '#47556980',
+    textSecondary20: '#47556933',
 
-    background: '#FAFAFA',
-    background70: '#FAFAFAB2',
-    background50: '#FAFAFA80',
-    background20: '#FAFAFA33',
+    background: '#FFFFFF',
+    background70: '#FFFFFFB2',
+    background50: '#FFFFFF80',
+    background20: '#FFFFFF33',
 
     cardBackground: '#FFFFFF',
     cardBackground70: '#FFFFFFB2',
     cardBackground50: '#FFFFFF80',
     cardBackground20: '#FFFFFF33',
 
-    elevated: '#F5F5F5',
-    elevated70: '#F5F5F5B2',
-    elevated50: '#F5F5F580',
-    elevated20: '#F5F5F533',
+    elevated: '#F8FAFC',
+    elevated70: '#F8FAFCB2',
+    elevated50: '#F8FAFC80',
+    elevated20: '#F8FAFC33',
 
     tint: primaryLight,
     tint70: primaryLight70,
@@ -133,20 +133,20 @@ export default {
     danger50: errorLight50,
     danger20: errorLight20,
 
-    border: '#E5E5E5',
-    border70: '#E5E5E5B2',
-    border50: '#E5E5E580',
-    border20: '#E5E5E533',
+    border: '#E5E7EB',
+    border70: '#E5E7EBB2',
+    border50: '#E5E7EB80',
+    border20: '#E5E7EB33',
 
-    muted: '#737373',
-    muted70: '#737373B2',
-    muted50: '#73737380',
-    muted20: '#73737333',
+    muted: '#94A3B8',
+    muted70: '#94A3B8B2',
+    muted50: '#94A3B880',
+    muted20: '#94A3B833',
 
-    tabIconDefault: '#A3A3A3',
-    tabIconDefault70: '#A3A3A3B2',
-    tabIconDefault50: '#A3A3A380',
-    tabIconDefault20: '#A3A3A333',
+    tabIconDefault: '#CBD5E1',
+    tabIconDefault70: '#CBD5E1B2',
+    tabIconDefault50: '#CBD5E180',
+    tabIconDefault20: '#CBD5E133',
 
     tabIconSelected: primaryLight,
     tabIconSelected70: primaryLight70,
@@ -160,25 +160,25 @@ export default {
     text50: '#FAFAFA80',
     text20: '#FAFAFA33',
 
-    textSecondary: '#A3A3A3',
-    textSecondary70: '#A3A3A3B2',
-    textSecondary50: '#A3A3A380',
-    textSecondary20: '#A3A3A333',
+    textSecondary: '#D4D4D8',
+    textSecondary70: '#D4D4D8B2',
+    textSecondary50: '#D4D4D880',
+    textSecondary20: '#D4D4D833',
 
-    background: '#101010',
-    background70: '#101010B2',
-    background50: '#10101080',
-    background20: '#10101033',
+    background: '#09090B',
+    background70: '#09090BB2',
+    background50: '#09090B80',
+    background20: '#09090B33',
 
-    cardBackground: '#171717',
-    cardBackground70: '#171717B2',
-    cardBackground50: '#17171780',
-    cardBackground20: '#17171733',
+    cardBackground: '#18181B',
+    cardBackground70: '#18181BB2',
+    cardBackground50: '#18181B80',
+    cardBackground20: '#18181B33',
 
-    elevated: '#1F1F1F',
-    elevated70: '#1F1F1FB2',
-    elevated50: '#1F1F1F80',
-    elevated20: '#1F1F1F33',
+    elevated: '#111114',
+    elevated70: '#111114B2',
+    elevated50: '#11111480',
+    elevated20: '#11111433',
 
     tint: primaryDark,
     tint70: primaryDark70,
@@ -215,20 +215,20 @@ export default {
     danger50: errorDark50,
     danger20: errorDark20,
 
-    border: '#2A2A2A',
-    border70: '#2A2A2AB2',
-    border50: '#2A2A2A80',
-    border20: '#2A2A2A33',
+    border: 'rgba(255,255,255,0.08)',
+    border70: 'rgba(255,255,255,0.056)',
+    border50: 'rgba(255,255,255,0.04)',
+    border20: 'rgba(255,255,255,0.016)',
 
-    muted: '#737373',
-    muted70: '#737373B2',
-    muted50: '#73737380',
-    muted20: '#73737333',
+    muted: '#A1A1AA',
+    muted70: '#A1A1AAB2',
+    muted50: '#A1A1AA80',
+    muted20: '#A1A1AA33',
 
-    tabIconDefault: '#737373',
-    tabIconDefault70: '#737373B2',
-    tabIconDefault50: '#73737380',
-    tabIconDefault20: '#73737333',
+    tabIconDefault: '#71717A',
+    tabIconDefault70: '#71717AB2',
+    tabIconDefault50: '#71717A80',
+    tabIconDefault20: '#71717A33',
 
     tabIconSelected: primaryDark,
     tabIconSelected70: primaryDark70,
