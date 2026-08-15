@@ -85,7 +85,7 @@ export const CATEGORY = [
 	// },
 	{
 		id: "operateur_videoprotection_telesurveillance",
-		acronym: "OVT",
+		acronym: "OVP - OVT",
 		name: "Opérateur en Vidéoprotection et Télésurveillance",
 		category: "videoprotection",
 		ccp: ["CCP1", "CCP2"], // vidéoprotection / télésurveillance — optionnel selon usage
