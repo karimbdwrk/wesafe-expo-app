@@ -13,12 +13,12 @@ export const CERTIFICATIONS = {
 		validity_years: 3,
 	},
 
-	palpation: {
-		acronym: "PALP",
-		name: "Formation palpation de sécurité",
-		category: "evenementiel",
-		validity_years: null,
-	},
+	// palpation: {
+	// 	acronym: "PALP",
+	// 	name: "Formation palpation de sécurité",
+	// 	category: "evenementiel",
+	// 	validity_years: null,
+	// },
 
 	formation_tir: {
 		acronym: "TIR",
@@ -41,12 +41,12 @@ export const CERTIFICATIONS = {
 		validity_years: null,
 	},
 
-	recyclage_ssiap: {
-		acronym: "RECY SSIAP",
-		name: "Recyclage SSIAP",
-		category: "securite_incendie",
-		validity_years: 3,
-	},
+	// recyclage_ssiap: {
+	// 	acronym: "RECY SSIAP",
+	// 	name: "Recyclage SSIAP",
+	// 	category: "securite_incendie",
+	// 	validity_years: 3,
+	// },
 
 	habilitation_chien: {
 		acronym: "CHIEN",
