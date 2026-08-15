@@ -682,7 +682,7 @@ const HomePro = () => {
 								? Colors.dark.text
 								: Colors.light.text,
 						}}>
-						Crédits last minute
+						Crédits Last Minute
 					</Text>
 				</HStack>
 
