@@ -9,6 +9,7 @@ import {
 	Keyboard,
 	Easing,
 	ActivityIndicator,
+	View,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter, Stack } from "expo-router";
@@ -256,6 +257,28 @@ const PostJob = () => {
 		salary_annual_min: false,
 		salary_annual_max: false,
 	});
+
+	// Barre "Terminé" au-dessus du clavier numérique (taux horaire, heures/jour, heures/semaine)
+	const [numericKeyboardVisible, setNumericKeyboardVisible] =
+		useState(false);
+	const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+	useEffect(() => {
+		const showEvent =
+			Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+		const hideEvent =
+			Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+		const showSub = Keyboard.addListener(showEvent, (e) => {
+			setKeyboardHeight(e.endCoordinates.height);
+		});
+		const hideSub = Keyboard.addListener(hideEvent, () => {
+			setKeyboardHeight(0);
+		});
+		return () => {
+			showSub.remove();
+			hideSub.remove();
+		};
+	}, []);
 
 	useEffect(() => {
 		console.log("subscription status:", userCompany?.subscription_status);
@@ -5975,14 +5998,18 @@ const PostJob = () => {
 																				value,
 																			)
 																		}
-																		onFocus={() =>
+																		onFocus={() => {
 																			scrollToInput(
 																				salaryInputRef,
 																				1,
 																				100,
 																			)
-																		}
+																			setNumericKeyboardVisible(true);
+																		}}
 																		keyboardType='decimal-pad'
+																		onBlur={() =>
+																			setNumericKeyboardVisible(false)
+																		}
 																		style={{
 																			color: isDark
 																				? Colors
@@ -6234,14 +6261,18 @@ const PostJob = () => {
 																					value,
 																				)
 																			}
-																			onFocus={() =>
+																			onFocus={() => {
 																				scrollToInput(
 																					hoursInputRef,
 																					1,
 																					100,
 																				)
-																			}
+																				setNumericKeyboardVisible(true);
+																			}}
 																			keyboardType='decimal-pad'
+																			onBlur={() =>
+																				setNumericKeyboardVisible(false)
+																			}
 																			style={{
 																				color: isDark
 																					? Colors
@@ -6346,14 +6377,18 @@ const PostJob = () => {
 																					value,
 																				)
 																			}
-																			onFocus={() =>
+																			onFocus={() => {
 																				scrollToInput(
 																					hoursInputRef,
 																					1,
 																					100,
 																				)
-																			}
+																				setNumericKeyboardVisible(true);
+																			}}
 																			keyboardType='decimal-pad'
+																			onBlur={() =>
+																				setNumericKeyboardVisible(false)
+																			}
 																			style={{
 																				color: isDark
 																					? Colors
@@ -11498,6 +11533,44 @@ const PostJob = () => {
 						</VStack>
 					</ActionsheetContent>
 				</Actionsheet>
+
+				{numericKeyboardVisible && keyboardHeight > 0 && (
+					<View
+						style={{
+							position: "absolute",
+							left: 0,
+							right: 0,
+							bottom: keyboardHeight,
+							zIndex: 999,
+						}}>
+						<HStack
+							style={{
+								justifyContent: "flex-end",
+								paddingHorizontal: 16,
+								paddingVertical: 8,
+								backgroundColor: isDark
+									? Colors.dark.elevated
+									: Colors.light.elevated,
+								borderTopWidth: 1,
+								borderTopColor: isDark
+									? Colors.dark.border
+									: Colors.light.border,
+							}}>
+							<TouchableOpacity
+								onPress={() => Keyboard.dismiss()}
+								activeOpacity={0.7}>
+								<Text
+									style={{
+										color: Colors.light.tint,
+										fontWeight: "600",
+										fontSize: 16,
+									}}>
+									Terminé
+								</Text>
+							</TouchableOpacity>
+						</HStack>
+					</View>
+				)}
 			</Box>
 		</>
 	);
