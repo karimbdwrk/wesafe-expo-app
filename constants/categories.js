@@ -105,6 +105,14 @@ export const CATEGORY = [
 		name: "Agent de Transport de Fonds",
 		category: "transport_fonds",
 	},
+
+	// FORMATION
+	{
+		id: "formateur",
+		acronym: "FORM",
+		name: "Formateur",
+		category: "formation",
+	},
 ];
 
 /**
