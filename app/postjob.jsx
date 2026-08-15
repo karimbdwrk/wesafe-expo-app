@@ -233,11 +233,41 @@ const PostJob = () => {
 		start_date_asap: false,
 	});
 
+	const [step1Errors, setStep1Errors] = useState({
+		title: false,
+		category: false,
+		description: false,
+	});
+
+	const [step2Errors, setStep2Errors] = useState({
+		city: false,
+		contract_type: false,
+		work_time: false,
+		start_date: false,
+		end_date: false,
+		vacations: false,
+		salary_hourly: false,
+		daily_hours: false,
+		weekly_hours: false,
+		salary_monthly_fixed: false,
+		salary_annual_fixed: false,
+		salary_monthly_min: false,
+		salary_monthly_max: false,
+		salary_annual_min: false,
+		salary_annual_max: false,
+	});
+
 	useEffect(() => {
 		console.log("subscription status:", userCompany?.subscription_status);
 	}, [userCompany]);
 
 	const updateField = (field, value) => {
+		if (field in step1Errors) {
+			setStep1Errors((prev) => ({ ...prev, [field]: false }));
+		}
+		if (field in step2Errors) {
+			setStep2Errors((prev) => ({ ...prev, [field]: false }));
+		}
 		// Si on change le type d'heures, réinitialiser les deux champs d'heures
 		if (field === "work_hours_type") {
 			setFormData((prev) => ({
@@ -381,6 +411,7 @@ const PostJob = () => {
 			latitude: cityData.latitude,
 			longitude: cityData.longitude,
 		}));
+		setStep2Errors((prev) => ({ ...prev, city: false }));
 		setCities([]);
 	};
 
@@ -752,6 +783,7 @@ const PostJob = () => {
 				(a, b) => new Date(a.date) - new Date(b.date),
 			),
 		}));
+		setStep2Errors((prev) => ({ ...prev, vacations: false }));
 		setCurrentVacation({ date: null, start_time: "", end_time: "" });
 	};
 
@@ -788,6 +820,11 @@ const PostJob = () => {
 					!formData.category ||
 					!formData.description
 				) {
+					setStep1Errors({
+						title: !formData.title,
+						category: !formData.category,
+						description: !formData.description,
+					});
 					showError(
 						"Erreur",
 						"Veuillez remplir tous les champs obligatoires",
@@ -797,6 +834,7 @@ const PostJob = () => {
 				break;
 			case 2:
 				if (!formData.city) {
+					setStep2Errors((prev) => ({ ...prev, city: true }));
 					showError(
 						"Erreur",
 						"Veuillez remplir tous les champs obligatoires (localisation)",
@@ -809,6 +847,10 @@ const PostJob = () => {
 					formData.date_mode === "vacations"
 				) {
 					if (formData.vacations.length === 0) {
+						setStep2Errors((prev) => ({
+							...prev,
+							vacations: true,
+						}));
 						showError(
 							"Erreur",
 							"Veuillez ajouter au moins une vacation",
@@ -837,6 +879,10 @@ const PostJob = () => {
 					}
 				} else {
 					if (!formData.start_date && !formData.start_date_asap) {
+						setStep2Errors((prev) => ({
+							...prev,
+							start_date: true,
+						}));
 						showError(
 							"Erreur",
 							"Veuillez indiquer une date de début",
@@ -847,6 +893,10 @@ const PostJob = () => {
 						formData.contract_type !== "CDI" &&
 						!formData.end_date
 					) {
+						setStep2Errors((prev) => ({
+							...prev,
+							end_date: true,
+						}));
 						showError(
 							"Erreur",
 							"La date de fin est obligatoire pour ce type de contrat",
@@ -869,6 +919,10 @@ const PostJob = () => {
 					}
 				}
 				if (!formData.contract_type) {
+					setStep2Errors((prev) => ({
+						...prev,
+						contract_type: true,
+					}));
 					showError(
 						"Erreur",
 						"Veuillez sélectionner un type de contrat",
@@ -876,6 +930,7 @@ const PostJob = () => {
 					return false;
 				}
 				if (!formData.work_time) {
+					setStep2Errors((prev) => ({ ...prev, work_time: true }));
 					showError(
 						"Erreur",
 						"Veuillez sélectionner un temps de travail",
@@ -886,6 +941,10 @@ const PostJob = () => {
 				// Validation selon le type de salaire
 				if (formData.salary_type === "hourly") {
 					if (!formData.salary_hourly) {
+						setStep2Errors((prev) => ({
+							...prev,
+							salary_hourly: true,
+						}));
 						showError(
 							"Erreur",
 							"Veuillez indiquer le salaire horaire",
@@ -900,6 +959,10 @@ const PostJob = () => {
 							formData.date_mode === "vacations"
 						)
 					) {
+						setStep2Errors((prev) => ({
+							...prev,
+							daily_hours: true,
+						}));
 						showError(
 							"Erreur",
 							"Veuillez indiquer le nombre d'heures par jour",
@@ -910,6 +973,10 @@ const PostJob = () => {
 						formData.work_hours_type === "semaine" &&
 						!formData.weekly_hours
 					) {
+						setStep2Errors((prev) => ({
+							...prev,
+							weekly_hours: true,
+						}));
 						showError(
 							"Erreur",
 							"Veuillez indiquer le nombre d'heures par semaine",
@@ -918,6 +985,10 @@ const PostJob = () => {
 					}
 				} else if (formData.salary_type === "monthly_fixed") {
 					if (!formData.salary_monthly_fixed) {
+						setStep2Errors((prev) => ({
+							...prev,
+							salary_monthly_fixed: true,
+						}));
 						showError(
 							"Erreur",
 							"Veuillez indiquer le salaire mensuel",
@@ -926,6 +997,10 @@ const PostJob = () => {
 					}
 				} else if (formData.salary_type === "annual_fixed") {
 					if (!formData.salary_annual_fixed) {
+						setStep2Errors((prev) => ({
+							...prev,
+							salary_annual_fixed: true,
+						}));
 						showError(
 							"Erreur",
 							"Veuillez indiquer le salaire annuel",
@@ -937,6 +1012,11 @@ const PostJob = () => {
 						!formData.salary_monthly_min ||
 						!formData.salary_monthly_max
 					) {
+						setStep2Errors((prev) => ({
+							...prev,
+							salary_monthly_min: !formData.salary_monthly_min,
+							salary_monthly_max: !formData.salary_monthly_max,
+						}));
 						showError(
 							"Erreur",
 							"Veuillez indiquer la fourchette de salaire mensuel (min et max)",
@@ -948,6 +1028,11 @@ const PostJob = () => {
 						!formData.salary_annual_min ||
 						!formData.salary_annual_max
 					) {
+						setStep2Errors((prev) => ({
+							...prev,
+							salary_annual_min: !formData.salary_annual_min,
+							salary_annual_max: !formData.salary_annual_max,
+						}));
 						showError(
 							"Erreur",
 							"Veuillez indiquer la fourchette de salaire annuel (min et max)",
@@ -2070,11 +2155,18 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark
-																? Colors.dark
-																		.text
-																: Colors.light
-																		.text,
+															color: step1Errors.title
+																? isDark
+																	? Colors.dark
+																			.danger
+																	: Colors
+																			.light
+																			.danger
+																: isDark
+																	? Colors.dark
+																			.text
+																	: Colors.light
+																			.text,
 														}}>
 														Titre du poste *
 													</Text>
@@ -2092,13 +2184,25 @@ const PostJob = () => {
 																				.light
 																				.cardBackground,
 																borderColor:
-																	isDark
-																		? Colors
-																				.dark
-																				.border
-																		: Colors
-																				.light
-																				.border,
+																	step1Errors.title
+																		? isDark
+																			? Colors
+																					.dark
+																					.danger
+																			: Colors
+																					.light
+																					.danger
+																		: isDark
+																			? Colors
+																					.dark
+																					.border
+																			: Colors
+																					.light
+																					.border,
+																borderWidth:
+																	step1Errors.title
+																		? 1.5
+																		: 1,
 															}}>
 															<InputField
 																placeholder='Ex: Agent de sécurité H/F'
@@ -2140,11 +2244,18 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark
-																? Colors.dark
-																		.text
-																: Colors.light
-																		.text,
+															color: step1Errors.category
+																? isDark
+																	? Colors.dark
+																			.danger
+																	: Colors
+																			.light
+																			.danger
+																: isDark
+																	? Colors.dark
+																			.text
+																	: Colors.light
+																			.text,
 														}}>
 														Catégorie *
 													</Text>
@@ -2165,19 +2276,30 @@ const PostJob = () => {
 																	"space-between",
 																padding: 12,
 																borderRadius: 8,
-																borderWidth: 1,
+																borderWidth:
+																	step1Errors.category
+																		? 1.5
+																		: 1,
 																borderColor:
-																	formData.category
-																		? Colors
-																				.light
-																				.tint
-																		: isDark
+																	step1Errors.category
+																		? isDark
 																			? Colors
 																					.dark
-																					.border
+																					.danger
 																			: Colors
 																					.light
-																					.border,
+																					.danger
+																		: formData.category
+																			? Colors
+																					.light
+																					.tint
+																			: isDark
+																				? Colors
+																						.dark
+																						.border
+																				: Colors
+																						.light
+																						.border,
 																backgroundColor:
 																	isDark
 																		? Colors
@@ -2239,11 +2361,18 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark
-																? Colors.dark
-																		.text
-																: Colors.light
-																		.text,
+															color: step1Errors.description
+																? isDark
+																	? Colors.dark
+																			.danger
+																	: Colors
+																			.light
+																			.danger
+																: isDark
+																	? Colors.dark
+																			.text
+																	: Colors.light
+																			.text,
 														}}>
 														Description du poste *
 													</Text>
@@ -2263,13 +2392,25 @@ const PostJob = () => {
 																				.light
 																				.cardBackground,
 																borderColor:
-																	isDark
-																		? Colors
-																				.dark
-																				.border
-																		: Colors
-																				.light
-																				.border,
+																	step1Errors.description
+																		? isDark
+																			? Colors
+																					.dark
+																					.danger
+																			: Colors
+																					.light
+																					.danger
+																		: isDark
+																			? Colors
+																					.dark
+																					.border
+																			: Colors
+																					.light
+																					.border,
+																borderWidth:
+																	step1Errors.description
+																		? 1.5
+																		: 1,
 																minHeight: 120,
 															}}>
 															<TextareaInput
@@ -2309,7 +2450,7 @@ const PostJob = () => {
 										</Card>
 
 										{/* Missions principales */}
-										<Card
+										{/* <Card
 											style={{
 												padding: 20,
 												backgroundColor: isDark
@@ -2517,10 +2658,10 @@ const PostJob = () => {
 													</VStack>
 												)}
 											</VStack>
-										</Card>
+										</Card> */}
 
 										{/* Profil recherché */}
-										<Card
+										{/* <Card
 											style={{
 												padding: 20,
 												backgroundColor: isDark
@@ -2728,7 +2869,7 @@ const PostJob = () => {
 													</VStack>
 												)}
 											</VStack>
-										</Card>
+										</Card> */}
 
 										{/* Diplômes requis */}
 										<Card
@@ -3101,7 +3242,7 @@ const PostJob = () => {
 											</VStack>
 										</Card>
 										{/* Cartes CNAPS requises */}
-										<Card
+										{/* <Card
 											style={{
 												padding: 20,
 												backgroundColor: isDark
@@ -3281,7 +3422,7 @@ const PostJob = () => {
 													</HStack>
 												)}
 											</VStack>
-										</Card>
+										</Card> */}
 									</VStack>
 								</ScrollView>
 							</KeyboardAvoidingView>
@@ -3367,11 +3508,18 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark
-																? Colors.dark
-																		.text
-																: Colors.light
-																		.text,
+															color: step2Errors.city
+																? isDark
+																	? Colors.dark
+																			.danger
+																	: Colors
+																			.light
+																			.danger
+																: isDark
+																	? Colors.dark
+																			.text
+																	: Colors.light
+																			.text,
 														}}>
 														Code postal *
 													</Text>
@@ -3392,13 +3540,25 @@ const PostJob = () => {
 																				.light
 																				.cardBackground,
 																borderColor:
-																	isDark
-																		? Colors
-																				.dark
-																				.border
-																		: Colors
-																				.light
-																				.border,
+																	step2Errors.city
+																		? isDark
+																			? Colors
+																					.dark
+																					.danger
+																			: Colors
+																					.light
+																					.danger
+																		: isDark
+																			? Colors
+																					.dark
+																					.border
+																			: Colors
+																					.light
+																					.border,
+																borderWidth:
+																	step2Errors.city
+																		? 1.5
+																		: 1,
 															}}>
 															<InputField
 																placeholder='Entrez le code postal'
@@ -3982,9 +4142,15 @@ const PostJob = () => {
 													size='sm'
 													style={{
 														fontWeight: "600",
-														color: isDark
-															? Colors.dark.text
-															: Colors.light.text,
+														color: step2Errors.contract_type
+															? isDark
+																? Colors.dark
+																		.danger
+																: Colors.light
+																		.danger
+															: isDark
+																? Colors.dark.text
+																: Colors.light.text,
 													}}>
 													Type de contrat *
 												</Text>
@@ -4302,13 +4468,21 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark
-																		? Colors
-																				.dark
-																				.text
-																		: Colors
-																				.light
-																				.text,
+																	color: step2Errors.start_date
+																		? isDark
+																			? Colors
+																					.dark
+																					.danger
+																			: Colors
+																					.light
+																					.danger
+																		: isDark
+																			? Colors
+																					.dark
+																					.text
+																			: Colors
+																					.light
+																					.text,
 																}}>
 																{formData.contract_type ===
 																"CDI"
@@ -4429,13 +4603,25 @@ const PostJob = () => {
 																							.light
 																							.cardBackground,
 																			borderColor:
-																				isDark
-																					? Colors
-																							.dark
-																							.border
-																					: Colors
-																							.light
-																							.border,
+																				step2Errors.start_date
+																					? isDark
+																						? Colors
+																								.dark
+																								.danger
+																						: Colors
+																								.light
+																								.danger
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
+																			borderWidth:
+																				step2Errors.start_date
+																					? 1.5
+																					: 1,
 																		}}>
 																		<InputField
 																			value={formatDate(
@@ -4472,13 +4658,21 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark
-																			? Colors
-																					.dark
-																					.text
-																			: Colors
-																					.light
-																					.text,
+																		color: step2Errors.end_date
+																			? isDark
+																				? Colors
+																						.dark
+																						.danger
+																				: Colors
+																						.light
+																						.danger
+																			: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																	}}>
 																	Date de fin
 																	*
@@ -4506,13 +4700,25 @@ const PostJob = () => {
 																							.light
 																							.cardBackground,
 																			borderColor:
-																				isDark
-																					? Colors
-																							.dark
-																							.border
-																					: Colors
-																							.light
-																							.border,
+																				step2Errors.end_date
+																					? isDark
+																						? Colors
+																								.dark
+																								.danger
+																						: Colors
+																								.light
+																								.danger
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
+																			borderWidth:
+																				step2Errors.end_date
+																					? 1.5
+																					: 1,
 																		}}>
 																		<InputField
 																			value={formatDate(
@@ -4560,13 +4766,21 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark
-																			? Colors
-																					.dark
-																					.text
-																			: Colors
-																					.light
-																					.text,
+																		color: step2Errors.vacations
+																			? isDark
+																				? Colors
+																						.dark
+																						.danger
+																				: Colors
+																						.light
+																						.danger
+																			: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																	}}>
 																	Vacations (
 																	{
@@ -5075,11 +5289,18 @@ const PostJob = () => {
 														size='sm'
 														style={{
 															fontWeight: "600",
-															color: isDark
-																? Colors.dark
-																		.text
-																: Colors.light
-																		.text,
+															color: step2Errors.work_time
+																? isDark
+																	? Colors.dark
+																			.danger
+																	: Colors
+																			.light
+																			.danger
+																: isDark
+																	? Colors.dark
+																			.text
+																	: Colors.light
+																			.text,
 														}}>
 														Temps de travail *
 													</Text>
@@ -5689,13 +5910,21 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark
-																			? Colors
-																					.dark
-																					.text
-																			: Colors
-																					.light
-																					.text,
+																		color: step2Errors.salary_hourly
+																			? isDark
+																				? Colors
+																						.dark
+																						.danger
+																				: Colors
+																						.light
+																						.danger
+																			: isDark
+																				? Colors
+																						.dark
+																						.text
+																				: Colors
+																						.light
+																						.text,
 																	}}>
 																	Taux horaire
 																	(€) *
@@ -5713,13 +5942,25 @@ const PostJob = () => {
 																						.light
 																						.cardBackground,
 																		borderColor:
-																			isDark
-																				? Colors
-																						.dark
-																						.border
-																				: Colors
-																						.light
-																						.border,
+																			step2Errors.salary_hourly
+																				? isDark
+																					? Colors
+																							.dark
+																							.danger
+																					: Colors
+																							.light
+																							.danger
+																				: isDark
+																					? Colors
+																							.dark
+																							.border
+																					: Colors
+																							.light
+																							.border,
+																		borderWidth:
+																			step2Errors.salary_hourly
+																				? 1.5
+																				: 1,
 																	}}>
 																	<InputField
 																		placeholder='Ex: 15.50'
@@ -5928,13 +6169,21 @@ const PostJob = () => {
 																		style={{
 																			fontWeight:
 																				"600",
-																			color: isDark
-																				? Colors
-																						.dark
-																						.text
-																				: Colors
-																						.light
-																						.text,
+																			color: step2Errors.weekly_hours
+																				? isDark
+																					? Colors
+																							.dark
+																							.danger
+																					: Colors
+																							.light
+																							.danger
+																				: isDark
+																					? Colors
+																							.dark
+																							.text
+																					: Colors
+																							.light
+																							.text,
 																		}}>
 																		Heures/semaine
 																		*
@@ -5952,13 +6201,25 @@ const PostJob = () => {
 																							.light
 																							.cardBackground,
 																			borderColor:
-																				isDark
-																					? Colors
-																							.dark
-																							.border
-																					: Colors
-																							.light
-																							.border,
+																				step2Errors.weekly_hours
+																					? isDark
+																						? Colors
+																								.dark
+																								.danger
+																						: Colors
+																								.light
+																								.danger
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
+																			borderWidth:
+																				step2Errors.weekly_hours
+																					? 1.5
+																					: 1,
 																		}}>
 																		<InputField
 																			placeholder='Ex: 35'
@@ -6014,13 +6275,21 @@ const PostJob = () => {
 																		style={{
 																			fontWeight:
 																				"600",
-																			color: isDark
-																				? Colors
-																						.dark
-																						.text
-																				: Colors
-																						.light
-																						.text,
+																			color: step2Errors.daily_hours
+																				? isDark
+																					? Colors
+																							.dark
+																							.danger
+																					: Colors
+																							.light
+																							.danger
+																				: isDark
+																					? Colors
+																							.dark
+																							.text
+																					: Colors
+																							.light
+																							.text,
 																		}}>
 																		{!(
 																			formData.contract_type ===
@@ -6044,13 +6313,25 @@ const PostJob = () => {
 																							.light
 																							.cardBackground,
 																			borderColor:
-																				isDark
-																					? Colors
-																							.dark
-																							.border
-																					: Colors
-																							.light
-																							.border,
+																				step2Errors.daily_hours
+																					? isDark
+																						? Colors
+																								.dark
+																								.danger
+																						: Colors
+																								.light
+																								.danger
+																					: isDark
+																						? Colors
+																								.dark
+																								.border
+																						: Colors
+																								.light
+																								.border,
+																			borderWidth:
+																				step2Errors.daily_hours
+																					? 1.5
+																					: 1,
 																		}}>
 																		<InputField
 																			placeholder='Ex: 7'
@@ -6202,13 +6483,21 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark
-																		? Colors
+																	color: step2Errors.salary_monthly_fixed
+																		? isDark
+																			? Colors
 																				.dark
-																				.text
-																		: Colors
+																				.danger
+																			: Colors
 																				.light
-																				.text,
+																				.danger
+																	: isDark
+																		? Colors
+																			.dark
+																			.text
+																	: Colors
+																		.light
+																		.text,
 																}}>
 																Salaire mensuel
 																brut (€) *
@@ -6226,13 +6515,25 @@ const PostJob = () => {
 																					.light
 																					.cardBackground,
 																	borderColor:
-																		isDark
-																			? Colors
+																		step2Errors.salary_monthly_fixed
+																			? isDark
+																				? Colors
+																					.dark
+																					.danger
+																				: Colors
+																					.light
+																					.danger
+																			: isDark
+																				? Colors
 																					.dark
 																					.border
 																			: Colors
-																					.light
-																					.border,
+																				.light
+																				.border,
+																	borderWidth:
+																		step2Errors.salary_monthly_fixed
+																			? 1.5
+																			: 1,
 																	color: isDark
 																		? Colors
 																				.dark
@@ -6249,15 +6550,23 @@ const PostJob = () => {
 																	}
 																	onChangeText={(
 																		text,
-																	) =>
+																	) => {
 																		setFormData(
 																			{
 																				...formData,
 																				salary_monthly_fixed:
 																					text,
 																			},
-																		)
-																	}
+																		);
+																		setStep2Errors(
+																			(
+																				prev,
+																			) => ({
+																				...prev,
+																				salary_monthly_fixed: false,
+																			}),
+																		);
+																	}}
 																	onFocus={() =>
 																		scrollToInput(
 																			salaryInputRef,
@@ -6293,13 +6602,21 @@ const PostJob = () => {
 																style={{
 																	fontWeight:
 																		"600",
-																	color: isDark
-																		? Colors
+																	color: step2Errors.salary_annual_fixed
+																		? isDark
+																			? Colors
 																				.dark
-																				.text
-																		: Colors
+																				.danger
+																			: Colors
 																				.light
-																				.text,
+																				.danger
+																	: isDark
+																		? Colors
+																			.dark
+																			.text
+																	: Colors
+																		.light
+																		.text,
 																}}>
 																Salaire annuel
 																brut (€) *
@@ -6317,13 +6634,25 @@ const PostJob = () => {
 																					.light
 																					.cardBackground,
 																	borderColor:
-																		isDark
-																			? Colors
+																		step2Errors.salary_annual_fixed
+																			? isDark
+																				? Colors
+																					.dark
+																					.danger
+																				: Colors
+																					.light
+																					.danger
+																			: isDark
+																				? Colors
 																					.dark
 																					.border
 																			: Colors
-																					.light
-																					.border,
+																				.light
+																				.border,
+																	borderWidth:
+																		step2Errors.salary_annual_fixed
+																			? 1.5
+																			: 1,
 																	color: isDark
 																		? Colors
 																				.dark
@@ -6340,15 +6669,23 @@ const PostJob = () => {
 																	}
 																	onChangeText={(
 																		text,
-																	) =>
+																	) => {
 																		setFormData(
 																			{
 																				...formData,
 																				salary_annual_fixed:
 																					text,
 																			},
-																		)
-																	}
+																		);
+																		setStep2Errors(
+																			(
+																				prev,
+																			) => ({
+																				...prev,
+																				salary_annual_fixed: false,
+																			}),
+																		);
+																	}}
 																	onFocus={() =>
 																		scrollToInput(
 																			salaryInputRef,
@@ -6389,13 +6726,21 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark
-																			? Colors
+																		color: step2Errors.salary_monthly_min
+																			? isDark
+																				? Colors
 																					.dark
-																					.text
-																			: Colors
+																					.danger
+																				: Colors
 																					.light
-																					.text,
+																					.danger
+																		: isDark
+																			? Colors
+																				.dark
+																				.text
+																		: Colors
+																			.light
+																			.text,
 																	}}>
 																	Salaire min.
 																	(€) *
@@ -6413,13 +6758,25 @@ const PostJob = () => {
 																						.light
 																						.cardBackground,
 																		borderColor:
-																			isDark
-																				? Colors
+																			step2Errors.salary_monthly_min
+																				? isDark
+																					? Colors
+																						.dark
+																						.danger
+																					: Colors
+																						.light
+																						.danger
+																				: isDark
+																					? Colors
 																						.dark
 																						.border
 																				: Colors
-																						.light
-																						.border,
+																					.light
+																					.border,
+																		borderWidth:
+																			step2Errors.salary_monthly_min
+																				? 1.5
+																				: 1,
 																		color: isDark
 																			? Colors
 																					.dark
@@ -6436,15 +6793,21 @@ const PostJob = () => {
 																		}
 																		onChangeText={(
 																			text,
-																		) =>
+																		) => {
 																			setFormData(
 																				{
 																					...formData,
 																					salary_monthly_min:
 																						text,
 																				},
-																			)
-																		}
+																			);
+																			setStep2Errors(
+																				(prev) => ({
+																					...prev,
+																					salary_monthly_min: false,
+																				}),
+																			);
+																		}}
 																		onFocus={() =>
 																			scrollToInput(
 																				salaryInputRef,
@@ -6476,13 +6839,21 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark
-																			? Colors
+																		color: step2Errors.salary_monthly_max
+																			? isDark
+																				? Colors
 																					.dark
-																					.text
-																			: Colors
+																					.danger
+																				: Colors
 																					.light
-																					.text,
+																					.danger
+																		: isDark
+																			? Colors
+																				.dark
+																				.text
+																		: Colors
+																			.light
+																			.text,
 																	}}>
 																	Salaire max.
 																	(€) *
@@ -6500,13 +6871,25 @@ const PostJob = () => {
 																						.light
 																						.cardBackground,
 																		borderColor:
-																			isDark
-																				? Colors
+																			step2Errors.salary_monthly_max
+																				? isDark
+																					? Colors
+																						.dark
+																						.danger
+																					: Colors
+																						.light
+																						.danger
+																				: isDark
+																					? Colors
 																						.dark
 																						.border
 																				: Colors
-																						.light
-																						.border,
+																					.light
+																					.border,
+																		borderWidth:
+																			step2Errors.salary_monthly_max
+																				? 1.5
+																				: 1,
 																		color: isDark
 																			? Colors
 																					.dark
@@ -6523,15 +6906,21 @@ const PostJob = () => {
 																		}
 																		onChangeText={(
 																			text,
-																		) =>
+																		) => {
 																			setFormData(
 																				{
 																					...formData,
 																					salary_monthly_max:
 																						text,
 																				},
-																			)
-																		}
+																			);
+																			setStep2Errors(
+																				(prev) => ({
+																					...prev,
+																					salary_monthly_max: false,
+																				}),
+																			);
+																		}}
 																		onFocus={() =>
 																			scrollToInput(
 																				salaryInputRef,
@@ -6573,13 +6962,21 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark
-																			? Colors
+																		color: step2Errors.salary_annual_min
+																			? isDark
+																				? Colors
 																					.dark
-																					.text
-																			: Colors
+																					.danger
+																				: Colors
 																					.light
-																					.text,
+																					.danger
+																		: isDark
+																			? Colors
+																				.dark
+																				.text
+																		: Colors
+																			.light
+																			.text,
 																	}}>
 																	Salaire min.
 																	(€) *
@@ -6597,13 +6994,25 @@ const PostJob = () => {
 																						.light
 																						.cardBackground,
 																		borderColor:
-																			isDark
-																				? Colors
+																			step2Errors.salary_annual_min
+																				? isDark
+																					? Colors
+																						.dark
+																						.danger
+																					: Colors
+																						.light
+																						.danger
+																				: isDark
+																					? Colors
 																						.dark
 																						.border
 																				: Colors
-																						.light
-																						.border,
+																					.light
+																					.border,
+																		borderWidth:
+																			step2Errors.salary_annual_min
+																				? 1.5
+																				: 1,
 																		color: isDark
 																			? Colors
 																					.dark
@@ -6620,15 +7029,21 @@ const PostJob = () => {
 																		}
 																		onChangeText={(
 																			text,
-																		) =>
+																		) => {
 																			setFormData(
 																				{
 																					...formData,
 																					salary_annual_min:
 																						text,
 																				},
-																			)
-																		}
+																			);
+																			setStep2Errors(
+																				(prev) => ({
+																					...prev,
+																					salary_annual_min: false,
+																				}),
+																			);
+																		}}
 																		onFocus={() =>
 																			scrollToInput(
 																				salaryInputRef,
@@ -6660,13 +7075,21 @@ const PostJob = () => {
 																	style={{
 																		fontWeight:
 																			"600",
-																		color: isDark
-																			? Colors
+																		color: step2Errors.salary_annual_max
+																			? isDark
+																				? Colors
 																					.dark
-																					.text
-																			: Colors
+																					.danger
+																				: Colors
 																					.light
-																					.text,
+																					.danger
+																		: isDark
+																			? Colors
+																				.dark
+																				.text
+																		: Colors
+																			.light
+																			.text,
 																	}}>
 																	Salaire max.
 																	(€) *
@@ -6684,13 +7107,25 @@ const PostJob = () => {
 																						.light
 																						.cardBackground,
 																		borderColor:
-																			isDark
-																				? Colors
+																			step2Errors.salary_annual_max
+																				? isDark
+																					? Colors
+																						.dark
+																						.danger
+																					: Colors
+																						.light
+																						.danger
+																				: isDark
+																					? Colors
 																						.dark
 																						.border
 																				: Colors
-																						.light
-																						.border,
+																					.light
+																					.border,
+																		borderWidth:
+																			step2Errors.salary_annual_max
+																				? 1.5
+																				: 1,
 																		color: isDark
 																			? Colors
 																					.dark
@@ -6707,15 +7142,21 @@ const PostJob = () => {
 																		}
 																		onChangeText={(
 																			text,
-																		) =>
+																		) => {
 																			setFormData(
 																				{
 																					...formData,
 																					salary_annual_max:
 																						text,
 																				},
-																			)
-																		}
+																			);
+																			setStep2Errors(
+																				(prev) => ({
+																					...prev,
+																					salary_annual_max: false,
+																				}),
+																			);
+																		}}
 																		onFocus={() =>
 																			scrollToInput(
 																				salaryInputRef,
